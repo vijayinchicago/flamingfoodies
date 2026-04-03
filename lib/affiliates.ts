@@ -24,19 +24,6 @@ export interface AffiliateLinkEntry extends AffiliateLinkDefinition {
   key: string;
 }
 
-export interface MerchItem {
-  slug: string;
-  name: string;
-  category: string;
-  badge: string;
-  description: string;
-  priceLabel: string;
-  status: "preview" | "waitlist";
-  accent: string;
-  href: string;
-  ctaLabel: string;
-}
-
 const AMAZON_TAG = env.NEXT_PUBLIC_AMAZON_TAG || "flamingfoodies-20";
 
 export function buildAmazonSearchUrl(query: string) {
@@ -299,81 +286,6 @@ export const SUBSCRIPTION_KEYS = [
   "heatonist-gift-set",
   "pepper-joe-superhot-seed-pack"
 ] as const;
-
-export const MERCH_COLLECTION: MerchItem[] = [
-  {
-    slug: "sauce-lab-tee",
-    name: "Sauce Lab Tee",
-    category: "Apparel",
-    badge: "Drop 01",
-    description: "Soft heavyweight tee with a back print that maps the brand's five-stage heat ladder.",
-    priceLabel: "$32",
-    status: "preview",
-    accent: "from-flame/30 via-ember/20 to-transparent",
-    href: "/shop#merch-waitlist",
-    ctaLabel: "Join merch waitlist"
-  },
-  {
-    slug: "flame-club-hoodie",
-    name: "Flame Club Hoodie",
-    category: "Apparel",
-    badge: "Cold-weather staple",
-    description: "Oversized hoodie for smokers, late-night cooks, and anyone who treats hot sauce like pantry infrastructure.",
-    priceLabel: "$68",
-    status: "waitlist",
-    accent: "from-ember/30 via-flame/15 to-transparent",
-    href: "/shop#merch-waitlist",
-    ctaLabel: "Reserve the first drop"
-  },
-  {
-    slug: "kitchen-apron",
-    name: "Kitchen Apron",
-    category: "Kitchen gear",
-    badge: "Cook-ready",
-    description: "Waxed-canvas style apron concept with towel loop, tasting spoon pocket, and FlamingFoodies chest mark.",
-    priceLabel: "$44",
-    status: "preview",
-    accent: "from-gold/25 via-ember/15 to-transparent",
-    href: "/shop#merch-waitlist",
-    ctaLabel: "Get launch access"
-  },
-  {
-    slug: "tasting-flight-enamel-mugs",
-    name: "Tasting Flight Enamel Mug Set",
-    category: "Drinkware",
-    badge: "Gift set",
-    description: "Four mugs labeled mild through reaper for sauce flights, camp coffee, and competition judging days.",
-    priceLabel: "$36",
-    status: "waitlist",
-    accent: "from-white/10 via-flame/15 to-transparent",
-    href: "/shop#merch-waitlist",
-    ctaLabel: "Join merch waitlist"
-  },
-  {
-    slug: "heat-scale-hat",
-    name: "Heat Scale Dad Hat",
-    category: "Headwear",
-    badge: "Low-key logo",
-    description: "Clean cap with tonal embroidery for the people who want spicy references without billboard branding.",
-    priceLabel: "$28",
-    status: "preview",
-    accent: "from-cream/10 via-ember/10 to-transparent",
-    href: "/shop#merch-waitlist",
-    ctaLabel: "Get launch access"
-  },
-  {
-    slug: "sauce-station-towel-pack",
-    name: "Sauce Station Towel Pack",
-    category: "Kitchen linens",
-    badge: "Utility set",
-    description: "A trio of heavy kitchen towels built around wipe-down duty, grill nights, and messy wing sessions.",
-    priceLabel: "$24",
-    status: "waitlist",
-    accent: "from-flame/20 via-white/10 to-transparent",
-    href: "/shop#merch-waitlist",
-    ctaLabel: "Reserve the first drop"
-  }
-];
 
 export function getAffiliateLinkEntries(
   keys: readonly string[]

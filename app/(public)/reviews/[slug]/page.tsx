@@ -5,12 +5,12 @@ import { CommentSection } from "@/components/community/comment-section";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { ReviewSchema } from "@/components/schema/review-schema";
 import {
-  MERCH_COLLECTION,
   findAffiliateLinkByUrl,
   getReviewAffiliateRecommendations
 } from "@/lib/affiliates";
+import { getMerchThemeClasses } from "@/lib/merch";
 import { buildMetadata } from "@/lib/seo";
-import { getReview } from "@/lib/services/content";
+import { getFeaturedMerchProducts, getReview } from "@/lib/services/content";
 import { absoluteUrl, formatDate, markdownToHtml } from "@/lib/utils";
 
 export async function generateMetadata({
@@ -53,7 +53,7 @@ export default async function ReviewPage({
     excludeKeys: primaryOffer ? [primaryOffer.key] : [],
     limit: 2
   });
-  const merchPreview = MERCH_COLLECTION.slice(0, 2);
+  const merchPreview = await getFeaturedMerchProducts(2);
 
   return (
     <article className="container-shell py-16">
@@ -137,7 +137,7 @@ export default async function ReviewPage({
               {merchPreview.map((item) => (
                 <article
                   key={item.slug}
-                  className={`rounded-[1.5rem] border border-white/10 bg-gradient-to-br ${item.accent} p-4`}
+                  className={`rounded-[1.5rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-4`}
                 >
                   <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
                   <h3 className="mt-2 font-display text-2xl text-cream">{item.name}</h3>

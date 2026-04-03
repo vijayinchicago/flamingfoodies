@@ -8,13 +8,15 @@ import {
   rateRecipeAction,
   toggleRecipeSaveAction
 } from "@/lib/actions/engagement";
-import {
-  MERCH_COLLECTION,
-  getRecipeAffiliateRecommendations
-} from "@/lib/affiliates";
+import { getRecipeAffiliateRecommendations } from "@/lib/affiliates";
+import { getMerchThemeClasses } from "@/lib/merch";
 import { buildMetadata } from "@/lib/seo";
 import { getCurrentProfile } from "@/lib/supabase/auth";
-import { getRecipe, getRecipeUserState } from "@/lib/services/content";
+import {
+  getFeaturedMerchProducts,
+  getRecipe,
+  getRecipeUserState
+} from "@/lib/services/content";
 import { absoluteUrl, formatDate } from "@/lib/utils";
 
 export async function generateMetadata({
@@ -57,7 +59,7 @@ export default async function RecipePage({
     heatLevel: recipe.heatLevel,
     limit: 3
   });
-  const merchPreview = MERCH_COLLECTION.slice(0, 2);
+  const merchPreview = await getFeaturedMerchProducts(2);
 
   return (
     <article className="container-shell py-16">
@@ -225,7 +227,7 @@ export default async function RecipePage({
                 {merchPreview.map((item) => (
                   <article
                     key={item.slug}
-                    className={`rounded-[1.5rem] border border-white/10 bg-gradient-to-br ${item.accent} p-5`}
+                    className={`rounded-[1.5rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-5`}
                   >
                     <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
                     <h4 className="mt-3 font-display text-3xl text-cream">{item.name}</h4>

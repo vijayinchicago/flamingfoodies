@@ -5,14 +5,21 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { flags } from "@/lib/env";
+import { merchThemeOptions } from "@/lib/merch";
 import {
   parseCsvList,
   parseLineList,
   parseRecipeIngredients,
   parseRecipeInstructions
 } from "@/lib/parsers";
+import {
+  sampleMerchProducts,
+  sampleRecipes,
+  sampleReviews
+} from "@/lib/sample-data";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import type { MerchProduct, Recipe, Review } from "@/lib/types";
 import { calculateReadTime, slugify } from "@/lib/utils";
 
 type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
@@ -40,6 +47,7 @@ const cuisineTypes = [
   "other"
 ] as const;
 const difficulties = ["beginner", "intermediate", "advanced"] as const;
+const merchAvailability = ["preview", "waitlist", "live"] as const;
 
 const blogSchema = z.object({
   title: z.string().min(6).max(120),
@@ -103,6 +111,33 @@ const reviewSchema = z.object({
   redirectTo: z.string().optional()
 });
 
+const merchSchema = z.object({
+  name: z.string().min(3).max(120),
+  category: z.string().min(2).max(60),
+  badge: z.string().min(2).max(40),
+  description: z.string().min(20).max(220),
+  priceLabel: z.string().min(1).max(40),
+  availability: z.enum(merchAvailability),
+  themeKey: z.enum(merchThemeOptions),
+  href: z
+    .string()
+    .min(1)
+    .refine(
+      (value) =>
+        value.startsWith("/") ||
+        value.startsWith("http://") ||
+        value.startsWith("https://"),
+      "CTA URL must start with / or http(s)://"
+    ),
+  ctaLabel: z.string().min(2).max(40),
+  sortOrder: z.coerce.number().int().min(0).default(0),
+  imageUrl: z.string().url().optional(),
+  imageAlt: z.string().max(180).optional(),
+  status: z.enum(["draft", "published"]),
+  featured: z.boolean().optional(),
+  redirectTo: z.string().optional()
+});
+
 const blogStateSchema = z.object({
   id: z.coerce.number(),
   intent: z.enum(["publish", "archive", "feature", "unfeature"])
@@ -118,6 +153,11 @@ const contentStateSchema = z.object({
     "recommend",
     "unrecommend"
   ])
+});
+
+const importCatalogSchema = z.object({
+  catalog: z.enum(["recipes", "reviews", "merch", "all"]),
+  redirectTo: z.string().optional()
 });
 
 function getOptionalText(formData: FormData, key: string) {
@@ -175,7 +215,7 @@ async function writeAuditLog(
 
 async function makeUniqueSlug(
   supabase: AdminClient,
-  table: "blog_posts" | "recipes" | "reviews" | "competitions",
+  table: "blog_posts" | "recipes" | "reviews" | "competitions" | "merch_products",
   title: string
 ) {
   const base = slugify(title);
@@ -294,6 +334,110 @@ function revalidateReviewPaths(slug: string, previousSlug?: string | null) {
     revalidatePath(`/reviews/${previousSlug}`);
   }
   revalidatePath(`/reviews/${slug}`);
+}
+
+function revalidateMerchPaths() {
+  revalidatePath("/admin/content/merch");
+  revalidatePath("/");
+  revalidatePath("/shop");
+  revalidatePath("/subscriptions");
+}
+
+function revalidateCatalogBootstrapPaths() {
+  revalidatePath("/admin");
+  revalidatePath("/recipes");
+  revalidatePath("/reviews");
+  revalidateMerchPaths();
+}
+
+function mapSampleRecipeForInsert(recipe: Recipe) {
+  return {
+    slug: recipe.slug,
+    title: recipe.title,
+    description: recipe.description,
+    intro: recipe.intro ?? null,
+    author_name: recipe.authorName,
+    heat_level: recipe.heatLevel,
+    cuisine_type: recipe.cuisineType,
+    prep_time_minutes: recipe.prepTimeMinutes,
+    cook_time_minutes: recipe.cookTimeMinutes,
+    servings: recipe.servings,
+    difficulty: recipe.difficulty,
+    ingredients: recipe.ingredients,
+    instructions: recipe.instructions,
+    tips: recipe.tips,
+    variations: recipe.variations,
+    equipment: recipe.equipment,
+    tags: recipe.tags,
+    image_url: recipe.imageUrl ?? null,
+    image_alt: recipe.imageAlt ?? null,
+    featured: recipe.featured ?? false,
+    status: recipe.status,
+    source: recipe.source,
+    affiliate_disclosure: true,
+    seo_title: recipe.seoTitle ?? recipe.title.slice(0, 60),
+    seo_description: recipe.seoDescription ?? recipe.description.slice(0, 160),
+    view_count: recipe.viewCount,
+    like_count: recipe.likeCount,
+    save_count: recipe.saveCount,
+    rating_avg: recipe.ratingAvg ?? null,
+    rating_count: recipe.ratingCount,
+    published_at: recipe.publishedAt ?? null
+  };
+}
+
+function mapSampleReviewForInsert(review: Review) {
+  return {
+    slug: review.slug,
+    title: review.title,
+    description: review.description,
+    content: review.content,
+    product_name: review.productName,
+    brand: review.brand,
+    rating: review.rating,
+    price_usd: review.priceUsd ?? null,
+    affiliate_url: review.affiliateUrl,
+    image_url: review.imageUrl ?? null,
+    image_alt: review.imageAlt ?? null,
+    heat_level: review.heatLevel ?? null,
+    scoville_min: review.scovilleMin ?? null,
+    scoville_max: review.scovilleMax ?? null,
+    flavor_notes: review.flavorNotes,
+    cuisine_origin: review.cuisineOrigin ?? null,
+    category: review.category,
+    pros: review.pros,
+    cons: review.cons,
+    tags: review.tags,
+    recommended: review.recommended,
+    featured: review.featured ?? false,
+    status: review.status,
+    source: review.source,
+    seo_title: review.title.slice(0, 60),
+    seo_description: review.description.slice(0, 160),
+    view_count: review.viewCount,
+    published_at: review.publishedAt ?? null
+  };
+}
+
+function mapSampleMerchForInsert(product: MerchProduct) {
+  return {
+    slug: product.slug,
+    name: product.name,
+    category: product.category,
+    badge: product.badge,
+    description: product.description,
+    price_label: product.priceLabel,
+    availability: product.availability,
+    theme_key: product.themeKey,
+    href: product.href,
+    cta_label: product.ctaLabel,
+    image_url: product.imageUrl ?? null,
+    image_alt: product.imageAlt ?? null,
+    featured: product.featured,
+    status: product.status,
+    sort_order: product.sortOrder,
+    created_at: product.createdAt ?? null
+  };
 }
 
 export async function createBlogPostAction(formData: FormData) {
@@ -1065,4 +1209,330 @@ export async function updateReviewStateAction(formData: FormData) {
 
   revalidateReviewPaths(data.slug);
   redirect("/admin/content/reviews?updated=1");
+}
+
+export async function createMerchProductAction(formData: FormData) {
+  const admin = await requireAdmin();
+
+  const parsed = merchSchema.safeParse({
+    name: String(formData.get("name") || "").trim(),
+    category: String(formData.get("category") || "").trim(),
+    badge: String(formData.get("badge") || "").trim(),
+    description: String(formData.get("description") || "").trim(),
+    priceLabel: String(formData.get("priceLabel") || "").trim(),
+    availability: String(formData.get("availability") || "preview"),
+    themeKey: String(formData.get("themeKey") || "flame"),
+    href: String(formData.get("href") || "").trim(),
+    ctaLabel: String(formData.get("ctaLabel") || "").trim(),
+    sortOrder: formData.get("sortOrder") || 0,
+    imageUrl: getOptionalText(formData, "imageUrl"),
+    imageAlt: getOptionalText(formData, "imageAlt"),
+    status: String(formData.get("status") || "draft"),
+    featured: formData.get("featured") === "on"
+  });
+
+  if (!parsed.success) {
+    redirect(
+      `/admin/content/merch?error=${encodeURIComponent(
+        parsed.error.issues[0]?.message || "Invalid merch product"
+      )}`
+    );
+  }
+
+  if (!flags.hasSupabaseAdmin) {
+    redirect("/admin/content/merch?created=mock");
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    redirect("/admin/content/merch?error=Supabase%20admin%20is%20not%20configured");
+  }
+
+  const image = await resolveImageFields({
+    formData,
+    supabase,
+    folder: "merch"
+  });
+  const slug = await makeUniqueSlug(supabase, "merch_products", parsed.data.name);
+
+  const { data, error } = await supabase
+    .from("merch_products")
+    .insert({
+      slug,
+      name: parsed.data.name,
+      category: parsed.data.category,
+      badge: parsed.data.badge,
+      description: parsed.data.description,
+      price_label: parsed.data.priceLabel,
+      availability: parsed.data.availability,
+      theme_key: parsed.data.themeKey,
+      href: parsed.data.href,
+      cta_label: parsed.data.ctaLabel,
+      sort_order: parsed.data.sortOrder,
+      image_url: image.imageUrl,
+      image_alt: image.imageAlt ?? null,
+      featured: parsed.data.featured ?? false,
+      status: parsed.data.status
+    })
+    .select("id, slug")
+    .single();
+
+  if (error) {
+    redirect(`/admin/content/merch?error=${encodeURIComponent(error.message)}`);
+  }
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "create_merch_product",
+    targetType: "merch_product",
+    targetId: String(data.id),
+    metadata: { slug: data.slug, status: parsed.data.status }
+  });
+
+  revalidateMerchPaths();
+  redirect("/admin/content/merch?created=1");
+}
+
+export async function updateMerchProductAction(formData: FormData) {
+  const admin = await requireAdmin();
+
+  const parsed = merchSchema.extend({ id: z.coerce.number().int().positive() }).safeParse({
+    id: formData.get("id"),
+    name: String(formData.get("name") || "").trim(),
+    category: String(formData.get("category") || "").trim(),
+    badge: String(formData.get("badge") || "").trim(),
+    description: String(formData.get("description") || "").trim(),
+    priceLabel: String(formData.get("priceLabel") || "").trim(),
+    availability: String(formData.get("availability") || "preview"),
+    themeKey: String(formData.get("themeKey") || "flame"),
+    href: String(formData.get("href") || "").trim(),
+    ctaLabel: String(formData.get("ctaLabel") || "").trim(),
+    sortOrder: formData.get("sortOrder") || 0,
+    imageUrl: getOptionalText(formData, "imageUrl"),
+    imageAlt: getOptionalText(formData, "imageAlt"),
+    status: String(formData.get("status") || "draft"),
+    featured: formData.get("featured") === "on",
+    redirectTo: getOptionalText(formData, "redirectTo")
+  });
+
+  const redirectTo = getRedirectPath(
+    getOptionalText(formData, "redirectTo"),
+    "/admin/content/merch"
+  );
+
+  if (!parsed.success) {
+    redirect(
+      `${redirectTo}?error=${encodeURIComponent(
+        parsed.error.issues[0]?.message || "Invalid merch product"
+      )}`
+    );
+  }
+
+  if (!flags.hasSupabaseAdmin) {
+    redirect(`${redirectTo}?updated=mock`);
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    redirect(`${redirectTo}?error=Supabase%20admin%20is%20not%20configured`);
+  }
+
+  const { data: existing, error: existingError } = await supabase
+    .from("merch_products")
+    .select("id, slug, name, image_url")
+    .eq("id", parsed.data.id)
+    .single();
+
+  if (existingError) {
+    redirect(`${redirectTo}?error=${encodeURIComponent(existingError.message)}`);
+  }
+
+  const image = await resolveImageFields({
+    formData,
+    supabase,
+    folder: "merch",
+    existingImageUrl: existing.image_url
+  });
+  const slug =
+    existing.name === parsed.data.name
+      ? existing.slug
+      : await makeUniqueSlug(supabase, "merch_products", parsed.data.name);
+
+  const { data, error } = await supabase
+    .from("merch_products")
+    .update({
+      slug,
+      name: parsed.data.name,
+      category: parsed.data.category,
+      badge: parsed.data.badge,
+      description: parsed.data.description,
+      price_label: parsed.data.priceLabel,
+      availability: parsed.data.availability,
+      theme_key: parsed.data.themeKey,
+      href: parsed.data.href,
+      cta_label: parsed.data.ctaLabel,
+      sort_order: parsed.data.sortOrder,
+      image_url: image.imageUrl,
+      image_alt: image.imageAlt ?? null,
+      featured: parsed.data.featured ?? false,
+      status: parsed.data.status
+    })
+    .eq("id", parsed.data.id)
+    .select("id, slug")
+    .single();
+
+  if (error) {
+    redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
+  }
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "edit_merch_product",
+    targetType: "merch_product",
+    targetId: String(data.id),
+    metadata: { slug: data.slug, previousSlug: existing.slug }
+  });
+
+  revalidateMerchPaths();
+  redirect(`${redirectTo}?updated=1`);
+}
+
+export async function updateMerchProductStateAction(formData: FormData) {
+  const admin = await requireAdmin();
+
+  const parsed = contentStateSchema.safeParse({
+    id: formData.get("id"),
+    intent: formData.get("intent")
+  });
+
+  if (!parsed.success) {
+    redirect("/admin/content/merch?error=Invalid%20content%20action");
+  }
+
+  if (!flags.hasSupabaseAdmin) {
+    redirect("/admin/content/merch?updated=mock");
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    redirect("/admin/content/merch?error=Supabase%20admin%20is%20not%20configured");
+  }
+
+  const updates: Record<string, unknown> = {};
+  if (parsed.data.intent === "publish") {
+    updates.status = "published";
+  }
+  if (parsed.data.intent === "archive") {
+    updates.status = "archived";
+  }
+  if (parsed.data.intent === "feature") {
+    updates.featured = true;
+  }
+  if (parsed.data.intent === "unfeature") {
+    updates.featured = false;
+  }
+
+  const { data, error } = await supabase
+    .from("merch_products")
+    .update(updates)
+    .eq("id", parsed.data.id)
+    .select("id, slug")
+    .single();
+
+  if (error) {
+    redirect(`/admin/content/merch?error=${encodeURIComponent(error.message)}`);
+  }
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "update_merch_product",
+    targetType: "merch_product",
+    targetId: String(data.id),
+    metadata: { intent: parsed.data.intent }
+  });
+
+  revalidateMerchPaths();
+  redirect("/admin/content/merch?updated=1");
+}
+
+export async function importSampleCatalogAction(formData: FormData) {
+  const admin = await requireAdmin();
+
+  const parsed = importCatalogSchema.safeParse({
+    catalog: formData.get("catalog"),
+    redirectTo: getOptionalText(formData, "redirectTo")
+  });
+
+  const redirectTo = getRedirectPath(getOptionalText(formData, "redirectTo"), "/admin");
+
+  if (!parsed.success) {
+    redirect(`${redirectTo}?error=Invalid%20catalog%20import%20request`);
+  }
+
+  if (!flags.hasSupabaseAdmin) {
+    redirect(`${redirectTo}?imported=mock`);
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    redirect(`${redirectTo}?error=Supabase%20admin%20is%20not%20configured`);
+  }
+
+  const counts = {
+    recipes: 0,
+    reviews: 0,
+    merch: 0
+  };
+
+  if (parsed.data.catalog === "recipes" || parsed.data.catalog === "all") {
+    const { error } = await supabase.from("recipes").upsert(
+      sampleRecipes.map(mapSampleRecipeForInsert),
+      { onConflict: "slug" }
+    );
+
+    if (error) {
+      redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
+    }
+
+    counts.recipes = sampleRecipes.length;
+  }
+
+  if (parsed.data.catalog === "reviews" || parsed.data.catalog === "all") {
+    const { error } = await supabase.from("reviews").upsert(
+      sampleReviews.map(mapSampleReviewForInsert),
+      { onConflict: "slug" }
+    );
+
+    if (error) {
+      redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
+    }
+
+    counts.reviews = sampleReviews.length;
+  }
+
+  if (parsed.data.catalog === "merch" || parsed.data.catalog === "all") {
+    const { error } = await supabase.from("merch_products").upsert(
+      sampleMerchProducts.map(mapSampleMerchForInsert),
+      { onConflict: "slug" }
+    );
+
+    if (error) {
+      redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
+    }
+
+    counts.merch = sampleMerchProducts.length;
+  }
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "import_sample_catalog",
+    targetType: "catalog",
+    targetId: parsed.data.catalog,
+    metadata: counts
+  });
+
+  revalidateCatalogBootstrapPaths();
+  redirect(
+    `${redirectTo}?imported=${parsed.data.catalog}&recipes=${counts.recipes}&reviews=${counts.reviews}&merch=${counts.merch}`
+  );
 }

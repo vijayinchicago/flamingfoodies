@@ -4,6 +4,7 @@ import {
   sampleCompetitions,
   sampleCommunityPosts,
   sampleFollows,
+  sampleMerchProducts,
   sampleProfiles,
   sampleRecipeRatings,
   sampleRecipes,
@@ -19,6 +20,7 @@ import type {
   ContentComment,
   CommunityPost,
   CommunityRecipe,
+  MerchProduct,
   Profile,
   Recipe,
   Review
@@ -29,6 +31,20 @@ function sortPublished<T extends { publishedAt?: string }>(items: T[]) {
   return [...items].sort((left, right) =>
     (right.publishedAt || "").localeCompare(left.publishedAt || "")
   );
+}
+
+function sortMerch(items: MerchProduct[]) {
+  return [...items].sort((left, right) => {
+    if (left.featured !== right.featured) {
+      return left.featured ? -1 : 1;
+    }
+
+    if (left.sortOrder !== right.sortOrder) {
+      return left.sortOrder - right.sortOrder;
+    }
+
+    return (right.createdAt || "").localeCompare(left.createdAt || "");
+  });
 }
 
 function mapProfileRow(row: any): Profile {
@@ -142,6 +158,29 @@ function mapReviewRow(row: any): Review {
     cons: row.cons ?? [],
     recommended: row.recommended ?? false,
     featured: row.featured ?? false
+  };
+}
+
+function mapMerchRow(row: any): MerchProduct {
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    category: row.category,
+    badge: row.badge,
+    description: row.description,
+    priceLabel: row.price_label,
+    availability: row.availability,
+    themeKey: row.theme_key,
+    href: row.href,
+    ctaLabel: row.cta_label,
+    imageUrl: row.image_url ?? undefined,
+    imageAlt: row.image_alt ?? undefined,
+    featured: row.featured ?? false,
+    status: row.status,
+    sortOrder: row.sort_order ?? 0,
+    createdAt: row.created_at ?? undefined,
+    updatedAt: row.updated_at ?? undefined
   };
 }
 
@@ -450,6 +489,89 @@ export async function getAdminReviewById(id: number) {
   }
 
   return mapReviewRow(data);
+}
+
+export async function getMerchProducts() {
+  if (!flags.hasSupabaseAdmin) {
+    return sortMerch(
+      sampleMerchProducts.filter((product) => product.status === "published")
+    );
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return sortMerch(
+      sampleMerchProducts.filter((product) => product.status === "published")
+    );
+  }
+
+  const { data } = await supabase
+    .from("merch_products")
+    .select("*")
+    .eq("status", "published")
+    .order("featured", { ascending: false })
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false });
+
+  if (!data?.length) {
+    return sortMerch(
+      sampleMerchProducts.filter((product) => product.status === "published")
+    );
+  }
+
+  return data.map(mapMerchRow);
+}
+
+export async function getFeaturedMerchProducts(limit = 3) {
+  const products = await getMerchProducts();
+  return products.filter((product) => product.featured).slice(0, limit);
+}
+
+export async function getAdminMerchProducts() {
+  if (!flags.hasSupabaseAdmin) {
+    return sortMerch(sampleMerchProducts);
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return sortMerch(sampleMerchProducts);
+  }
+
+  const { data } = await supabase
+    .from("merch_products")
+    .select("*")
+    .order("featured", { ascending: false })
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: false });
+
+  if (!data?.length) {
+    return sortMerch(sampleMerchProducts);
+  }
+
+  return data.map(mapMerchRow);
+}
+
+export async function getAdminMerchProductById(id: number) {
+  if (!flags.hasSupabaseAdmin) {
+    return sampleMerchProducts.find((product) => product.id === id) ?? null;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return sampleMerchProducts.find((product) => product.id === id) ?? null;
+  }
+
+  const { data } = await supabase
+    .from("merch_products")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!data) {
+    return sampleMerchProducts.find((product) => product.id === id) ?? null;
+  }
+
+  return mapMerchRow(data);
 }
 
 export async function getCommunityPosts() {

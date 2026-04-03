@@ -10,7 +10,8 @@ const navSections = [
     items: [
       { href: "/admin/content/blog", label: "Blog" },
       { href: "/admin/content/recipes", label: "Recipes" },
-      { href: "/admin/content/reviews", label: "Reviews" }
+      { href: "/admin/content/reviews", label: "Reviews" },
+      { href: "/admin/content/merch", label: "Merch" }
     ]
   },
   {

@@ -1,8 +1,19 @@
+import { importSampleCatalogAction } from "@/lib/actions/admin-content";
 import { AdminPage } from "@/components/admin/admin-page";
 import { KPICard } from "@/components/admin/kpi-card";
 import { getAdminDashboard } from "@/lib/services/admin";
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({
+  searchParams
+}: {
+  searchParams?: {
+    imported?: string;
+    recipes?: string;
+    reviews?: string;
+    merch?: string;
+    error?: string;
+  };
+}) {
   const dashboard = await getAdminDashboard();
 
   return (
@@ -31,6 +42,41 @@ export default async function AdminDashboardPage() {
             <li>Subscriber growth: {dashboard.subscriberGrowth}</li>
           </ul>
         </div>
+      </div>
+      <div className="panel-light p-6">
+        <p className="eyebrow">Catalog bootstrap</p>
+        <h2 className="mt-3 font-display text-4xl text-charcoal">
+          Copy the current fallback catalog into Supabase.
+        </h2>
+        <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/65">
+          This seeds the real CMS tables for recipes, reviews, and merch so the public site can stop
+          depending on static fallback arrays once your Supabase project is wired.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          {[
+            { label: "Import recipes", value: "recipes" },
+            { label: "Import reviews", value: "reviews" },
+            { label: "Import merch", value: "merch" },
+            { label: "Import everything", value: "all" }
+          ].map((item) => (
+            <form key={item.value} action={importSampleCatalogAction}>
+              <input type="hidden" name="catalog" value={item.value} />
+              <input type="hidden" name="redirectTo" value="/admin" />
+              <button className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal">
+                {item.label}
+              </button>
+            </form>
+          ))}
+        </div>
+        {searchParams?.error ? (
+          <p className="mt-4 text-sm text-rose-600">{searchParams.error}</p>
+        ) : null}
+        {searchParams?.imported ? (
+          <p className="mt-4 text-sm text-emerald-700">
+            Imported {searchParams.imported}. Recipes: {searchParams.recipes || 0}, reviews:{" "}
+            {searchParams.reviews || 0}, merch: {searchParams.merch || 0}.
+          </p>
+        ) : null}
       </div>
     </AdminPage>
   );

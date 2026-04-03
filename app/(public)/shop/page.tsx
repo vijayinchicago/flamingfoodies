@@ -5,14 +5,15 @@ import { SectionHeading } from "@/components/layout/section-heading";
 import {
   HOT_SAUCE_SPOTLIGHT_KEYS,
   KITCHEN_GEAR_KEYS,
-  MERCH_COLLECTION,
   PANTRY_HEAT_KEYS,
   SUBSCRIPTION_KEYS,
   getAffiliateLinkEntries
 } from "@/lib/affiliates";
+import { getMerchThemeClasses } from "@/lib/merch";
+import { getMerchProducts } from "@/lib/services/content";
 
-export default function ShopPage() {
-  const merchItems = MERCH_COLLECTION;
+export default async function ShopPage() {
+  const merchItems = await getMerchProducts();
   const hotSauceLinks = getAffiliateLinkEntries(HOT_SAUCE_SPOTLIGHT_KEYS);
   const gearLinks = getAffiliateLinkEntries(KITCHEN_GEAR_KEYS);
   const pantryLinks = getAffiliateLinkEntries(PANTRY_HEAT_KEYS);
@@ -45,7 +46,7 @@ export default function ShopPage() {
             {merchItems.map((item) => (
               <article
                 key={item.slug}
-                className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${item.accent} p-5`}
+                className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-5`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>

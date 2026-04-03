@@ -7,6 +7,7 @@ import type {
   CommunityPost,
   DashboardMetric,
   GenerationJob,
+  MerchProduct,
   GenerationSchedule,
   NewsletterCampaign,
   NewsletterSubscriber,
@@ -1066,6 +1067,123 @@ It is a hobby purchase, not an instant table-sauce fix.
     cons: ["Not for people who want immediate gratification"],
     recommended: true,
     featured: false
+  }
+];
+
+export const sampleMerchProducts: MerchProduct[] = [
+  {
+    id: 1,
+    slug: "sauce-lab-tee",
+    name: "Sauce Lab Tee",
+    category: "Apparel",
+    badge: "Drop 01",
+    description:
+      "Soft heavyweight tee with a back print that maps the brand's five-stage heat ladder.",
+    priceLabel: "$32",
+    availability: "preview",
+    themeKey: "flame",
+    href: "/shop#merch-waitlist",
+    ctaLabel: "Join merch waitlist",
+    featured: true,
+    status: "published",
+    sortOrder: 10,
+    createdAt: "2026-03-25T12:00:00.000Z",
+    updatedAt: "2026-03-25T12:00:00.000Z"
+  },
+  {
+    id: 2,
+    slug: "flame-club-hoodie",
+    name: "Flame Club Hoodie",
+    category: "Apparel",
+    badge: "Cold-weather staple",
+    description:
+      "Oversized hoodie for smokers, late-night cooks, and anyone who treats hot sauce like pantry infrastructure.",
+    priceLabel: "$68",
+    availability: "waitlist",
+    themeKey: "ember",
+    href: "/shop#merch-waitlist",
+    ctaLabel: "Reserve the first drop",
+    featured: true,
+    status: "published",
+    sortOrder: 20,
+    createdAt: "2026-03-25T12:10:00.000Z",
+    updatedAt: "2026-03-25T12:10:00.000Z"
+  },
+  {
+    id: 3,
+    slug: "kitchen-apron",
+    name: "Kitchen Apron",
+    category: "Kitchen gear",
+    badge: "Cook-ready",
+    description:
+      "Waxed-canvas style apron concept with towel loop, tasting spoon pocket, and FlamingFoodies chest mark.",
+    priceLabel: "$44",
+    availability: "preview",
+    themeKey: "gold",
+    href: "/shop#merch-waitlist",
+    ctaLabel: "Get launch access",
+    featured: true,
+    status: "published",
+    sortOrder: 30,
+    createdAt: "2026-03-25T12:20:00.000Z",
+    updatedAt: "2026-03-25T12:20:00.000Z"
+  },
+  {
+    id: 4,
+    slug: "tasting-flight-enamel-mugs",
+    name: "Tasting Flight Enamel Mug Set",
+    category: "Drinkware",
+    badge: "Gift set",
+    description:
+      "Four mugs labeled mild through reaper for sauce flights, camp coffee, and competition judging days.",
+    priceLabel: "$36",
+    availability: "waitlist",
+    themeKey: "smoke",
+    href: "/shop#merch-waitlist",
+    ctaLabel: "Join merch waitlist",
+    featured: false,
+    status: "published",
+    sortOrder: 40,
+    createdAt: "2026-03-25T12:30:00.000Z",
+    updatedAt: "2026-03-25T12:30:00.000Z"
+  },
+  {
+    id: 5,
+    slug: "heat-scale-hat",
+    name: "Heat Scale Dad Hat",
+    category: "Headwear",
+    badge: "Low-key logo",
+    description:
+      "Clean cap with tonal embroidery for the people who want spicy references without billboard branding.",
+    priceLabel: "$28",
+    availability: "preview",
+    themeKey: "cream",
+    href: "/shop#merch-waitlist",
+    ctaLabel: "Get launch access",
+    featured: false,
+    status: "published",
+    sortOrder: 50,
+    createdAt: "2026-03-25T12:40:00.000Z",
+    updatedAt: "2026-03-25T12:40:00.000Z"
+  },
+  {
+    id: 6,
+    slug: "sauce-station-towel-pack",
+    name: "Sauce Station Towel Pack",
+    category: "Kitchen linens",
+    badge: "Utility set",
+    description:
+      "A trio of heavy kitchen towels built around wipe-down duty, grill nights, and messy wing sessions.",
+    priceLabel: "$24",
+    availability: "waitlist",
+    themeKey: "charcoal",
+    href: "/shop#merch-waitlist",
+    ctaLabel: "Reserve the first drop",
+    featured: false,
+    status: "published",
+    sortOrder: 60,
+    createdAt: "2026-03-25T12:50:00.000Z",
+    updatedAt: "2026-03-25T12:50:00.000Z"
   }
 ];
 

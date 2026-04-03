@@ -7,20 +7,25 @@ import { SectionHeading } from "@/components/layout/section-heading";
 import { OrganizationSchema } from "@/components/schema/organization-schema";
 import {
   HOME_FEATURED_AFFILIATE_KEYS,
-  MERCH_COLLECTION,
   getAffiliateLinkEntries
 } from "@/lib/affiliates";
-import { getFeaturedCollection, getCompetitions } from "@/lib/services/content";
+import { getMerchThemeClasses } from "@/lib/merch";
+import {
+  getFeaturedCollection,
+  getCompetitions,
+  getMerchProducts
+} from "@/lib/services/content";
 import { getGuides } from "@/lib/content/guides";
 
 export default async function HomePage() {
-  const [{ recipes, blogPosts, reviews }, competitions, guides] = await Promise.all([
+  const [{ recipes, blogPosts, reviews }, competitions, guides, merchItems] = await Promise.all([
     getFeaturedCollection(),
     getCompetitions(),
-    getGuides()
+    getGuides(),
+    getMerchProducts()
   ]);
   const homeAffiliateLinks = getAffiliateLinkEntries(HOME_FEATURED_AFFILIATE_KEYS);
-  const merchPreview = MERCH_COLLECTION.slice(0, 3);
+  const merchPreview = merchItems.slice(0, 3);
 
   return (
     <>
@@ -72,7 +77,7 @@ export default async function HomePage() {
                 </div>
                 <div className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4">
                   <p className="text-xs uppercase tracking-[0.2em] text-ember">Merch and gear</p>
-                  <p className="mt-2 font-display text-3xl text-cream">20+</p>
+                  <p className="mt-2 font-display text-3xl text-cream">{merchItems.length}+</p>
                   <p className="mt-2 leading-6">Owned merch previews backed by partner tools and sauce picks.</p>
                 </div>
               </div>
@@ -147,7 +152,7 @@ export default async function HomePage() {
               {merchPreview.map((item) => (
                 <article
                   key={item.slug}
-                  className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${item.accent} p-5`}
+                  className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-5`}
                 >
                   <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
                   <h3 className="mt-3 font-display text-3xl text-cream">{item.name}</h3>

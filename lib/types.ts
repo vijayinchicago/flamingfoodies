@@ -1,4 +1,12 @@
 export type HeatLevel = "mild" | "medium" | "hot" | "inferno" | "reaper";
+export type MerchAvailability = "preview" | "waitlist" | "live";
+export type MerchThemeKey =
+  | "flame"
+  | "ember"
+  | "gold"
+  | "cream"
+  | "smoke"
+  | "charcoal";
 export type CuisineType =
   | "american"
   | "mexican"
@@ -105,6 +113,27 @@ export interface Review extends BaseContent {
   pros: string[];
   cons: string[];
   recommended: boolean;
+}
+
+export interface MerchProduct {
+  id: number;
+  slug: string;
+  name: string;
+  category: string;
+  badge: string;
+  description: string;
+  priceLabel: string;
+  availability: MerchAvailability;
+  themeKey: MerchThemeKey;
+  href: string;
+  ctaLabel: string;
+  imageUrl?: string;
+  imageAlt?: string;
+  featured: boolean;
+  status: PostStatus;
+  sortOrder: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CommunityPost {
