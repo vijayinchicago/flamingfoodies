@@ -1,0 +1,151 @@
+import type { CuisineType, HeatLevel } from "@/lib/types";
+
+const HEAT_DESCRIPTIONS: Record<HeatLevel, string> = {
+  mild: "a gentle warmth, suitable for all audiences",
+  medium: "noticeable heat that excites without overwhelming",
+  hot: "serious heat for enthusiasts (habanero/scotch bonnet range)",
+  inferno: "extreme heat for experienced chilli heads (7-pot/Trinidad Moruga range)",
+  reaper: "Carolina Reaper-level - the absolute limit of culinary heat"
+};
+
+export const RECIPE_PROMPT = (params: {
+  cuisine_type: CuisineType;
+  heat_level: HeatLevel;
+}) => `
+You are a professional food writer for FlamingFoodies.com, a site celebrating spicy and hot food from around the world.
+
+Generate a complete, authentic recipe. Requirements:
+- Cuisine: ${params.cuisine_type}
+- Heat level: ${params.heat_level} (${HEAT_DESCRIPTIONS[params.heat_level]})
+- The dish should use chilli heat in the way that cuisine does.
+
+Return ONLY valid JSON matching this structure:
+{
+  "title": "...",
+  "description": "...",
+  "intro": "...",
+  "heat_level": "${params.heat_level}",
+  "cuisine_type": "${params.cuisine_type}",
+  "prep_time_minutes": 0,
+  "cook_time_minutes": 0,
+  "servings": 0,
+  "difficulty": "beginner|intermediate|advanced",
+  "ingredients": [{"amount": "1", "unit": "cup", "item": "ingredient name", "notes": "optional"}],
+  "instructions": [{"step": 1, "text": "instruction", "tip": "optional"}],
+  "tips": ["make-ahead tip"],
+  "variations": ["make it hotter"],
+  "equipment": ["cast iron skillet"],
+  "tags": ["spicy"],
+  "seo_title": "...",
+  "seo_description": "...",
+  "image_alt": "...",
+  "image_search_query": "...",
+  "affiliate_products": [{"name": "product name", "reason": "why this helps", "amazon_search": "query"}]
+}`;
+
+export const BLOG_POST_PROMPT = (params: {
+  category: string;
+  topic?: string;
+  keywords?: string[];
+}) => `
+You are a food writer for FlamingFoodies.com. Write an engaging, informative blog post.
+
+Topic category: ${params.category}
+Topic: ${params.topic || "choose a relevant, high-interest topic in spicy food culture"}
+Target keywords: ${params.keywords?.join(", ") || "naturally relevant keywords"}
+
+Return ONLY valid JSON:
+{
+  "title": "...",
+  "description": "...",
+  "content": "full post content in markdown (800-1200 words, H2 subheadings)",
+  "category": "${params.category}",
+  "tags": ["..."],
+  "heat_level": "mild|medium|hot|inferno|reaper",
+  "cuisine_type": "cuisine if relevant",
+  "seo_title": "...",
+  "seo_description": "...",
+  "image_alt": "...",
+  "image_search_query": "..."
+}`;
+
+export const REVIEW_PROMPT = (params: {
+  category: string;
+  cuisine_origin?: CuisineType;
+  heat_level?: HeatLevel;
+}) => `
+You are a product reviewer for FlamingFoodies.com. Write a credible, specific review of a spicy food product.
+
+Category: ${params.category}
+Cuisine origin: ${params.cuisine_origin || "choose a relevant origin if appropriate"}
+Heat level: ${params.heat_level || "choose the most appropriate heat level"}
+
+Return ONLY valid JSON:
+{
+  "title": "...",
+  "description": "...",
+  "content": "full review content in markdown with H2 subheadings",
+  "product_name": "...",
+  "brand": "...",
+  "rating": 4.5,
+  "price_usd": 12.99,
+  "affiliate_url": "https://example.com/product",
+  "category": "${params.category}",
+  "heat_level": "mild|medium|hot|inferno|reaper",
+  "scoville_min": 0,
+  "scoville_max": 0,
+  "flavor_notes": ["..."],
+  "cuisine_origin": "american|mexican|thai|korean|indian|chinese|japanese|ethiopian|peruvian|jamaican|cajun|szechuan|vietnamese|west_african|middle_eastern|caribbean|italian|moroccan|other",
+  "pros": ["..."],
+  "cons": ["..."],
+  "tags": ["..."],
+  "seo_title": "...",
+  "seo_description": "...",
+  "image_alt": "...",
+  "image_search_query": "...",
+  "recommended": true
+}`;
+
+export const SOCIAL_CAPTION_PROMPT = (
+  content: { type: string; title: string },
+  platform: string
+) => `
+Generate a ${platform} caption for this FlamingFoodies ${content.type}: "${content.title}".
+
+Brand voice: Bold, fun, food-obsessed. Never corporate. Use "🔥" max once if heat is relevant.
+
+Return JSON: { "caption": "...", "hashtags": ["..."] }`;
+
+export const CUISINE_ROTATION: CuisineType[] = [
+  "mexican",
+  "thai",
+  "korean",
+  "indian",
+  "ethiopian",
+  "peruvian",
+  "jamaican",
+  "cajun",
+  "szechuan",
+  "vietnamese",
+  "west_african",
+  "middle_eastern",
+  "caribbean",
+  "moroccan",
+  "japanese",
+  "american",
+  "italian",
+  "chinese",
+  "other"
+];
+
+export function getTodayCuisines(count: number): CuisineType[] {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const diff = now.getTime() - start.getTime();
+  const dayOfYear = Math.floor(diff / 86400000);
+
+  return Array.from(
+    { length: count },
+    (_, index) => CUISINE_ROTATION[(dayOfYear + index) % CUISINE_ROTATION.length]
+  );
+}

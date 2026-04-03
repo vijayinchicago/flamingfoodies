@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-charcoal text-cream font-body antialiased;
+}
+
+a {
+  @apply transition-colors duration-200;
+}
+
+.container-shell {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+.panel {
+  @apply rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-sm;
+}
+
+.panel-light {
+  @apply rounded-[2rem] border border-charcoal/10 bg-white shadow-panel;
+}
+
+.eyebrow {
+  @apply text-xs font-semibold uppercase tracking-[0.32em] text-ember;
+}
+
+.section-title {
+  @apply font-display text-4xl leading-tight text-cream sm:text-5xl;
+}
+
+.section-copy {
+  @apply max-w-3xl text-base leading-7 text-cream/75;
+}
+
+.prose-guide {
+  @apply prose prose-invert prose-headings:font-display prose-headings:text-cream prose-p:text-cream/85 prose-li:text-cream/80 prose-strong:text-cream max-w-none;
+}
+
+.admin-grid {
+  @apply grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)];
+}
+
+.heat-ring {
+  box-shadow:
+    0 0 0 1px rgba(255, 248, 240, 0.08),
+    0 0 0 8px rgba(230, 57, 70, 0.08),
+    0 30px 60px rgba(230, 57, 70, 0.2);
+}

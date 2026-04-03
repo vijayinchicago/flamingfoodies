@@ -1,0 +1,201 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+
+async function importNewsletterRoute({
+  createWeeklyDigest = vi.fn().mockResolvedValue({ mode: "mock", subject: "Digest" }),
+  processScheduledNewsletterCampaigns = vi
+    .fn()
+    .mockResolvedValue({ mode: "mock", processed: 0, sent: 0, failures: 0 })
+} = {}) {
+  vi.resetModules();
+  vi.doMock("@/lib/services/automation", () => ({
+    createWeeklyDigest
+  }));
+  vi.doMock("@/lib/services/newsletter", () => ({
+    processScheduledNewsletterCampaigns
+  }));
+
+  const route = await import("@/app/api/admin/newsletter-digest/route");
+  return {
+    route,
+    createWeeklyDigest,
+    processScheduledNewsletterCampaigns
+  };
+}
+
+async function importSocialRoute({
+  queueSocialScheduler = vi.fn().mockResolvedValue({ queued: 2, published: 1 })
+} = {}) {
+  vi.resetModules();
+  vi.doMock("@/lib/services/automation", () => ({
+    queueSocialScheduler
+  }));
+
+  const route = await import("@/app/api/admin/social-scheduler/route");
+  return {
+    route,
+    queueSocialScheduler
+  };
+}
+
+afterEach(() => {
+  vi.clearAllMocks();
+  vi.unstubAllEnvs();
+});
+
+describe("newsletter digest cron route", () => {
+  it("rejects unauthorized requests when CRON_SECRET is set", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
+    const { route, createWeeklyDigest, processScheduledNewsletterCampaigns } =
+      await importNewsletterRoute();
+
+    const response = await route.POST(
+      new Request("https://flamingfoodies.com/api/admin/newsletter-digest")
+    );
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ ok: false, error: "Unauthorized" });
+    expect(createWeeklyDigest).not.toHaveBeenCalled();
+    expect(processScheduledNewsletterCampaigns).not.toHaveBeenCalled();
+  });
+
+  it("creates a digest by default when authorized", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
+    const { route, createWeeklyDigest, processScheduledNewsletterCampaigns } =
+      await importNewsletterRoute({
+        createWeeklyDigest: vi.fn().mockResolvedValue({
+          mode: "mock",
+          subject: "This Week's Heat",
+          draftCount: 1
+        })
+      });
+
+    const response = await route.POST(
+      new Request(
+        "https://flamingfoodies.com/api/admin/newsletter-digest",
+        {
+          method: "POST",
+          headers: {
+            authorization: "Bearer topsecret"
+          }
+        }
+      )
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      ok: true,
+      requestMode: "draft",
+      mode: "mock",
+      subject: "This Week's Heat",
+      draftCount: 1
+    });
+    expect(createWeeklyDigest).toHaveBeenCalledTimes(1);
+    expect(processScheduledNewsletterCampaigns).not.toHaveBeenCalled();
+  });
+
+  it("processes due scheduled newsletters when requested", async () => {
+    const processScheduledNewsletterCampaigns = vi.fn().mockResolvedValue({
+      mode: "mock",
+      processed: 3,
+      sent: 2,
+      failures: 1
+    });
+    const { route, createWeeklyDigest } = await importNewsletterRoute({
+      processScheduledNewsletterCampaigns
+    });
+
+    const response = await route.POST(
+      new Request(
+        "https://flamingfoodies.com/api/admin/newsletter-digest?mode=send_due",
+        { method: "POST" }
+      )
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      ok: true,
+      requestMode: "send_due",
+      mode: "mock",
+      processed: 3,
+      sent: 2,
+      failures: 1
+    });
+    expect(createWeeklyDigest).not.toHaveBeenCalled();
+    expect(processScheduledNewsletterCampaigns).toHaveBeenCalledTimes(1);
+  });
+
+  it("can draft and process due newsletters in one request", async () => {
+    const createWeeklyDigest = vi.fn().mockResolvedValue({
+      mode: "live",
+      subject: "Weekend Heat",
+      draftCount: 1
+    });
+    const processScheduledNewsletterCampaigns = vi.fn().mockResolvedValue({
+      mode: "mock",
+      processed: 2,
+      sent: 2,
+      failures: 0
+    });
+    const { route } = await importNewsletterRoute({
+      createWeeklyDigest,
+      processScheduledNewsletterCampaigns
+    });
+
+    const response = await route.POST(
+      new Request(
+        "https://flamingfoodies.com/api/admin/newsletter-digest?mode=draft_and_send_due",
+        { method: "POST" }
+      )
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      ok: true,
+      requestMode: "draft_and_send_due",
+      digest: {
+        mode: "live",
+        subject: "Weekend Heat",
+        draftCount: 1
+      },
+      sending: {
+        mode: "mock",
+        processed: 2,
+        sent: 2,
+        failures: 0
+      }
+    });
+    expect(createWeeklyDigest).toHaveBeenCalledTimes(1);
+    expect(processScheduledNewsletterCampaigns).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("social scheduler cron route", () => {
+  it("runs the scheduler when authorized", async () => {
+    vi.stubEnv("CRON_SECRET", "shh");
+    const { route, queueSocialScheduler } = await importSocialRoute({
+      queueSocialScheduler: vi.fn().mockResolvedValue({
+        queued: 4,
+        published: 2,
+        platforms: ["instagram", "facebook"]
+      })
+    });
+
+    const response = await route.POST(
+      new Request("https://flamingfoodies.com/api/admin/social-scheduler", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer shh"
+        }
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      ok: true,
+      queued: 4,
+      published: 2,
+      platforms: ["instagram", "facebook"]
+    });
+    expect(queueSocialScheduler).toHaveBeenCalledTimes(1);
+  });
+});
