@@ -1,3 +1,4 @@
+import { buildAmazonSearchUrl } from "@/lib/affiliates";
 import type {
   AdminAuditEntry,
   BlogPost,
@@ -769,8 +770,7 @@ People who want a gentler on-ramp to serious hot sauce, or a giftable recurring 
     brand: "Yellowbird",
     rating: 4.5,
     priceUsd: 8.99,
-    affiliateUrl:
-      "https://www.amazon.com/s?k=Yellowbird+habanero+hot+sauce&tag=flamingfoodies-20",
+    affiliateUrl: buildAmazonSearchUrl("Yellowbird habanero hot sauce"),
     imageUrl:
       "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Orange hot sauce bottle near tacos",
@@ -811,8 +811,7 @@ Breakfast tacos, rice bowls, grilled vegetables, and anything that wants a gener
     brand: "Torchbearer",
     rating: 4.6,
     priceUsd: 15.99,
-    affiliateUrl:
-      "https://www.amazon.com/s?k=Torchbearer+Garlic+Reaper+sauce&tag=flamingfoodies-20",
+    affiliateUrl: buildAmazonSearchUrl("Torchbearer Garlic Reaper sauce"),
     imageUrl:
       "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Dark hot sauce bottle on wooden table",
@@ -853,8 +852,7 @@ People who want a wings and pizza weapon with real personality, not just shock v
     brand: "Queen Majesty",
     rating: 4.7,
     priceUsd: 14.0,
-    affiliateUrl:
-      "https://www.amazon.com/s?k=Queen+Majesty+Scotch+Bonnet+Ginger&tag=flamingfoodies-20",
+    affiliateUrl: buildAmazonSearchUrl("Queen Majesty Scotch Bonnet Ginger"),
     imageUrl:
       "https://images.unsplash.com/photo-1625944525533-473f1e4fd6ed?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Hot sauce bottle with tropical ingredients",
@@ -895,8 +893,7 @@ It is a little more specific than an all-purpose red sauce. That is also why it 
     brand: "Fly By Jing",
     rating: 4.4,
     priceUsd: 14.99,
-    affiliateUrl:
-      "https://www.amazon.com/s?k=Fly+By+Jing+Sichuan+Gold&tag=flamingfoodies-20",
+    affiliateUrl: buildAmazonSearchUrl("Fly By Jing Sichuan Gold"),
     imageUrl:
       "https://images.unsplash.com/photo-1589302168068-964664d93dc0?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Sauce bottle with dumplings and noodles",

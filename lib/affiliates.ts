@@ -1,3 +1,4 @@
+import { env } from "@/lib/env";
 import type { CuisineType, HeatLevel } from "@/lib/types";
 
 export type AffiliateCategory =
@@ -36,9 +37,9 @@ export interface MerchItem {
   ctaLabel: string;
 }
 
-const AMAZON_TAG = "flamingfoodies-20";
+const AMAZON_TAG = env.NEXT_PUBLIC_AMAZON_TAG || "flamingfoodies-20";
 
-function buildAmazonSearchUrl(query: string) {
+export function buildAmazonSearchUrl(query: string) {
   return `https://www.amazon.com/s?k=${encodeURIComponent(query)}&tag=${AMAZON_TAG}`;
 }
 
