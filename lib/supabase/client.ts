@@ -2,13 +2,22 @@
 
 import { createBrowserClient } from "@supabase/ssr";
 
-import { env, flags, supabaseConfig } from "@/lib/env";
+function getBrowserSupabaseConfig() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const publicKey =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !publicKey) {
+    return null;
+  }
+
+  return { url, publicKey };
+}
 
 export function createSupabaseBrowserClient() {
-  if (!flags.hasSupabase) return null;
+  const config = getBrowserSupabaseConfig();
+  if (!config) return null;
 
-  return createBrowserClient(
-    env.NEXT_PUBLIC_SUPABASE_URL!,
-    supabaseConfig.publicKey!
-  );
+  return createBrowserClient(config.url, config.publicKey);
 }
