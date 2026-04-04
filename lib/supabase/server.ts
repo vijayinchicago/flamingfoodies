@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 
-import { env, flags } from "@/lib/env";
+import { env, flags, supabaseConfig } from "@/lib/env";
 
 export function createSupabaseServerClient() {
   if (!flags.hasSupabase) return null;
@@ -11,7 +11,7 @@ export function createSupabaseServerClient() {
 
   return createServerClient(
     env.NEXT_PUBLIC_SUPABASE_URL!,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseConfig.publicKey!,
     {
       cookies: {
         get(name: string) {
@@ -41,7 +41,7 @@ export function createSupabaseAdminClient() {
 
   return createClient(
     env.NEXT_PUBLIC_SUPABASE_URL!,
-    env.SUPABASE_SERVICE_ROLE_KEY!,
+    supabaseConfig.adminKey!,
     {
       auth: {
         autoRefreshToken: false,

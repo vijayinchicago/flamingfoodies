@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-import { env, flags } from "@/lib/env";
+import { env, flags, supabaseConfig } from "@/lib/env";
 
 export async function updateSession(request: NextRequest) {
   if (!flags.hasSupabase) {
@@ -12,7 +12,7 @@ export async function updateSession(request: NextRequest) {
 
   const supabase = createServerClient(
     env.NEXT_PUBLIC_SUPABASE_URL!,
-    env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseConfig.publicKey!,
     {
       cookies: {
         get(name: string) {

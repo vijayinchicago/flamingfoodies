@@ -11,7 +11,9 @@ const envSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z.string().url().default(inferredSiteUrl),
   NEXT_PUBLIC_SITE_NAME: z.string().default("FlamingFoodies"),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().optional(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
+  SUPABASE_SECRET_KEY: z.string().optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
   CONVERTKIT_API_KEY: z.string().optional(),
   CONVERTKIT_API_SECRET: z.string().optional(),
@@ -39,13 +41,19 @@ const parsed = envSchema.safeParse(process.env);
 
 export const env = parsed.success ? parsed.data : envSchema.parse({});
 
+export const supabaseConfig = {
+  publicKey:
+    env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  adminKey: env.SUPABASE_SECRET_KEY || env.SUPABASE_SERVICE_ROLE_KEY
+};
+
 export const flags = {
   hasSupabase:
     Boolean(env.NEXT_PUBLIC_SUPABASE_URL) &&
-    Boolean(env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+    Boolean(supabaseConfig.publicKey),
   hasSupabaseAdmin:
     Boolean(env.NEXT_PUBLIC_SUPABASE_URL) &&
-    Boolean(env.SUPABASE_SERVICE_ROLE_KEY),
+    Boolean(supabaseConfig.adminKey),
   hasConvertKit: Boolean(env.CONVERTKIT_API_KEY && env.CONVERTKIT_FORM_ID),
   hasConvertKitBroadcast: Boolean(env.CONVERTKIT_API_SECRET),
   hasAnthropic: Boolean(env.ANTHROPIC_API_KEY),

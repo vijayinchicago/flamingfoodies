@@ -7,10 +7,13 @@ This runbook assumes the Vercel project and custom domain already exist.
 1. Create a new Supabase project in the region you want to run production from.
 2. Wait for the database to finish provisioning.
 3. In the Supabase dashboard, open `Project Settings -> API`.
-4. Copy these three values:
+4. Copy these values:
    - Project URL
-   - `anon` / publishable key
-   - `service_role` secret key
+   - publishable key
+   - secret key
+5. If you prefer the legacy key names, the app still accepts:
+   - `anon`
+   - `service_role`
 
 ## 2. Apply the database schema
 
@@ -60,8 +63,8 @@ Required:
 - `NEXT_PUBLIC_SITE_URL=https://flamingfoodies.com`
 - `NEXT_PUBLIC_SITE_NAME=FlamingFoodies`
 - `NEXT_PUBLIC_SUPABASE_URL=<project-url>`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>`
-- `SUPABASE_SERVICE_ROLE_KEY=<service-role-key>`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key>` or `NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon-key>`
+- `SUPABASE_SECRET_KEY=<secret-key>` or `SUPABASE_SERVICE_ROLE_KEY=<service-role-key>`
 - `CRON_SECRET=<long-random-secret>`
 - `NEXT_PUBLIC_AMAZON_TAG=flamingfoodies-20`
 

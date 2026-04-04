@@ -8,8 +8,8 @@ FlamingFoodies is a Next.js 14 App Router project backed by Supabase for auth, c
 2. For a mock-content local run, leave the optional integrations blank.
 3. For a real local run, set:
    - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` or `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SECRET_KEY` or `SUPABASE_SERVICE_ROLE_KEY`
 4. Install dependencies with `pnpm install`.
 5. Run `pnpm env:check`.
 6. Start the app with `pnpm dev`.
@@ -28,8 +28,8 @@ FlamingFoodies is a Next.js 14 App Router project backed by Supabase for auth, c
 Required for a production deploy:
 - `NEXT_PUBLIC_SITE_URL`
 - `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` or `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SECRET_KEY` or `SUPABASE_SERVICE_ROLE_KEY`
 - `CRON_SECRET`
 
 Recommended for the full platform:

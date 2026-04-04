@@ -12,8 +12,6 @@ const requiredByMode = {
   production: [
     "NEXT_PUBLIC_SITE_URL",
     "NEXT_PUBLIC_SUPABASE_URL",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    "SUPABASE_SERVICE_ROLE_KEY",
     "CRON_SECRET"
   ]
 };
@@ -55,6 +53,12 @@ function isBufferProfileFormatValid(value) {
 }
 
 const missingRequired = requiredByMode[mode].filter((name) => !getValue(name));
+const hasSupabasePublicKey =
+  Boolean(getValue("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY")) ||
+  Boolean(getValue("NEXT_PUBLIC_SUPABASE_ANON_KEY"));
+const hasSupabaseAdminKey =
+  Boolean(getValue("SUPABASE_SECRET_KEY")) ||
+  Boolean(getValue("SUPABASE_SERVICE_ROLE_KEY"));
 const missingRecommended = recommended.filter((name) => !getValue(name));
 const bufferProfiles = getValue("BUFFER_PROFILE_IDS");
 
@@ -70,6 +74,20 @@ if (missingRequired.length) {
   for (const name of missingRequired) {
     console.error(`- ${name}`);
   }
+  process.exit(1);
+}
+
+if (mode === "production" && !hasSupabasePublicKey) {
+  console.error(
+    "Missing required production Supabase public key. Set NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY."
+  );
+  process.exit(1);
+}
+
+if (mode === "production" && !hasSupabaseAdminKey) {
+  console.error(
+    "Missing required production Supabase admin key. Set SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY."
+  );
   process.exit(1);
 }
 
