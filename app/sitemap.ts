@@ -21,6 +21,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/hot-sauces",
     "/hot-sauces/best",
     "/hot-sauces/best-for-eggs",
+    "/hot-sauces/best-for-pizza",
+    "/hot-sauces/best-for-seafood",
     "/hot-sauces/best-for-tacos",
     "/hot-sauces/best-for-wings",
     "/hot-sauces/best-gift-sets",

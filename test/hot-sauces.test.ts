@@ -4,6 +4,8 @@ import {
   getBestForEggsReviews,
   getAffordableHotSauceReviews,
   getBestGiftableHotSauceReviews,
+  getBestForPizzaReviews,
+  getBestForSeafoodReviews,
   getGiftableHotSauceReviewsUnderPrice,
   getBestForWingsReviews,
   getBestHotSaucesReviews,
@@ -155,6 +157,12 @@ describe("hot sauce helpers", () => {
     );
     expect(getBestForEggsReviews(reviews, 2)[0]?.slug).toBe(
       "yellowbird-habanero-hot-sauce-review"
+    );
+    expect(getBestForSeafoodReviews(reviews, 2)[0]?.slug).toBe(
+      "yellowbird-habanero-hot-sauce-review"
+    );
+    expect(getBestForPizzaReviews(reviews, 2)[0]?.slug).toBe(
+      "mikes-hot-honey-review"
     );
   });
 

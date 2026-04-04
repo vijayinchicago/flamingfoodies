@@ -54,10 +54,22 @@ export const HOT_SAUCE_LANDING_LINKS = [
     description: "Everyday pours, chili crisps, and bright bottles that make eggs more interesting fast."
   },
   {
+    href: "/hot-sauces/best-for-seafood",
+    eyebrow: "Seafood",
+    title: "Best hot sauces for seafood",
+    description: "Bright, gingery, and fruit-forward bottles that sharpen shrimp, fish, and grilled seafood."
+  },
+  {
     href: "/hot-sauces/best-for-wings",
     eyebrow: "Wings and pizza",
     title: "Best hot sauces for wings",
     description: "Garlicky, clingy bottles and big hitters that still taste good on game-day food."
+  },
+  {
+    href: "/hot-sauces/best-for-pizza",
+    eyebrow: "Pizza night",
+    title: "Best hot sauces for pizza",
+    description: "Hot honeys, reaper bombs, and pizza-friendly bottles that actually improve the slice."
   },
   {
     href: "/hot-sauces/under-15",
@@ -308,6 +320,44 @@ export function getBestForEggsReviews(reviews: Review[], limit = 4) {
     if (hasAnyToken(review, ["crisp", "honey", "bright", "pour"])) score += 2;
     if (review.recommended) score += 2;
     if (typeof review.priceUsd === "number" && review.priceUsd <= 15) score += 1;
+
+    return { review, score };
+  });
+
+  return scored
+    .sort((left, right) => right.score - left.score || right.review.rating - left.review.rating)
+    .map((entry) => entry.review)
+    .slice(0, limit);
+}
+
+export function getBestForSeafoodReviews(reviews: Review[], limit = 4) {
+  const scored = reviews.map((review) => {
+    let score = 0;
+
+    if (getHotSauceIntentLabel(review) === "Best for seafood") score += 5;
+    if (hasAnyToken(review, ["seafood", "shrimp", "fish", "ginger", "citrus", "bright"])) score += 4;
+    if (!isBigHeatHotSauceReview(review)) score += 2;
+    if (review.recommended) score += 2;
+    if (review.featured) score += 1;
+
+    return { review, score };
+  });
+
+  return scored
+    .sort((left, right) => right.score - left.score || right.review.rating - left.review.rating)
+    .map((entry) => entry.review)
+    .slice(0, limit);
+}
+
+export function getBestForPizzaReviews(reviews: Review[], limit = 4) {
+  const scored = reviews.map((review) => {
+    let score = 0;
+
+    if (getHotSauceIntentLabel(review) === "Best on pizza") score += 5;
+    if (getHotSauceIntentLabel(review) === "Best for wings") score += 3;
+    if (hasAnyToken(review, ["pizza", "hot honey", "garlic", "fried chicken"])) score += 4;
+    if (review.category === "pantry-condiment") score += 2;
+    if (review.recommended) score += 2;
 
     return { review, score };
   });
