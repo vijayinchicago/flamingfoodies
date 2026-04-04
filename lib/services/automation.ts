@@ -14,7 +14,8 @@ import {
   getRecipeFaqs,
   getRecipeHeroSummary,
   getRecipeIngredientSections,
-  getRecipeMethodSteps
+  getRecipeMethodSteps,
+  splitInstructionText
 } from "@/lib/recipes";
 import { buildReviewQaReport } from "@/lib/review-qa";
 import {
@@ -121,10 +122,10 @@ const generatedRecipeSchema = z
     active_time_minutes: z.coerce.number().int().positive().optional(),
     servings: z.coerce.number().int().positive(),
     difficulty: z.enum(["beginner", "intermediate", "advanced"]),
-    ingredients: z.array(recipeIngredientSchema).min(4),
+    ingredients: z.array(recipeIngredientSchema).min(1),
     ingredient_sections: z.array(recipeIngredientSectionSchema).min(1).optional(),
-    instructions: z.array(recipeInstructionSchema).min(4),
-    method_steps: z.array(recipeMethodStepSchema).min(4).optional(),
+    instructions: z.array(recipeInstructionSchema).min(1),
+    method_steps: z.array(recipeMethodStepSchema).min(1).optional(),
     tips: z.array(z.string().min(8)).min(1),
     variations: z.array(z.string().min(8)).min(1),
     make_ahead_notes: z.string().min(16).optional(),
@@ -132,9 +133,64 @@ const generatedRecipeSchema = z
     reheat_notes: z.string().min(16).optional(),
     serving_suggestions: z.array(z.string().min(8)).min(1).optional(),
     substitutions: z.array(z.string().min(8)).min(1).optional(),
-    faqs: z.array(recipeFaqSchema).min(2).optional(),
+    faqs: z.array(recipeFaqSchema).min(1).optional(),
     equipment: z.array(z.string().min(2)).min(1),
-    tags: z.array(z.string().min(2)).min(2),
+    tags: z.array(z.string().min(2)).min(1),
+    seo_title: z.string().min(10),
+    seo_description: z.string().min(40),
+    image_alt: z.string().min(12)
+  })
+  .passthrough();
+
+const generatedRecipeLooseSchema = z
+  .object({
+    title: z.string().min(10),
+    description: z.string().min(40),
+    intro: z.string().min(24),
+    hero_summary: z.string().min(20).optional(),
+    heat_level: z.enum(["mild", "medium", "hot", "inferno", "reaper"]).optional(),
+    cuisine_type: z
+      .enum([
+        "american",
+        "mexican",
+        "thai",
+        "korean",
+        "indian",
+        "ethiopian",
+        "peruvian",
+        "jamaican",
+        "cajun",
+        "szechuan",
+        "vietnamese",
+        "west_african",
+        "middle_eastern",
+        "caribbean",
+        "moroccan",
+        "japanese",
+        "italian",
+        "chinese",
+        "other"
+      ])
+      .optional(),
+    prep_time_minutes: z.coerce.number().int().positive(),
+    cook_time_minutes: z.coerce.number().int().positive(),
+    active_time_minutes: z.coerce.number().int().positive().optional(),
+    servings: z.coerce.number().int().positive(),
+    difficulty: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+    ingredients: z.array(recipeIngredientSchema).min(1).optional(),
+    ingredient_sections: z.array(recipeIngredientSectionSchema).min(1).optional(),
+    instructions: z.array(recipeInstructionSchema).min(1).optional(),
+    method_steps: z.array(recipeMethodStepSchema).min(1).optional(),
+    tips: z.array(z.string().min(8)).min(1).optional(),
+    variations: z.array(z.string().min(8)).min(1).optional(),
+    make_ahead_notes: z.string().min(16).optional(),
+    storage_notes: z.string().min(16).optional(),
+    reheat_notes: z.string().min(16).optional(),
+    serving_suggestions: z.array(z.string().min(8)).min(1).optional(),
+    substitutions: z.array(z.string().min(8)).min(1).optional(),
+    faqs: z.array(recipeFaqSchema).min(1).optional(),
+    equipment: z.array(z.string().min(2)).min(1).optional(),
+    tags: z.array(z.string().min(2)).min(1).optional(),
     seo_title: z.string().min(10),
     seo_description: z.string().min(40),
     image_alt: z.string().min(12)
@@ -343,6 +399,207 @@ function summarizeModelOutput(value: string) {
   return excerpt.slice(0, 220);
 }
 
+function dedupeList(values: string[]) {
+  return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
+}
+
+function buildFallbackRecipeInstructions() {
+  return [
+    {
+      step: 1,
+      text: "Build the aromatic base and season assertively so the finished dish still tastes lively.",
+      tip: undefined
+    },
+    {
+      step: 2,
+      text: "Cook until the grains or vegetables turn tender and the spices smell rounded instead of raw.",
+      tip: undefined
+    },
+    {
+      step: 3,
+      text: "Taste, adjust the seasoning, and finish with any herbs, acid, or garnish before serving.",
+      tip: undefined
+    }
+  ];
+}
+
+function buildFallbackRecipeMethodSteps() {
+  return [
+    {
+      step: 1,
+      title: "Build the base",
+      body: "Start by cooking the aromatics or vegetables until fragrant so the mild heat has something savory to cling to.",
+      cue: "You want a sweet, rounded aroma instead of a raw edge."
+    },
+    {
+      step: 2,
+      title: "Cook until tender",
+      body: "Add the main ingredient and liquid, then simmer or steam until the texture relaxes and everything tastes integrated.",
+      cue: "The grains or vegetables should be tender, not watery."
+    },
+    {
+      step: 3,
+      title: "Taste and serve",
+      body: "Check salt, brightness, and heat, then finish with the final garnish and serve warm.",
+      cue: "The finish should feel balanced and gently warming."
+    }
+  ];
+}
+
+function buildFallbackRecipeFaqs(input: {
+  title: string;
+  makeAheadNotes?: string;
+  storageNotes?: string;
+  reheatNotes?: string;
+  servingSuggestions?: string[];
+}) {
+  const faqs = [];
+
+  if (input.makeAheadNotes) {
+    faqs.push({
+      question: `Can I make ${input.title} ahead?`,
+      answer: input.makeAheadNotes
+    });
+  }
+
+  if (input.storageNotes || input.reheatNotes) {
+    faqs.push({
+      question: "How should I store and reheat leftovers?",
+      answer: [input.storageNotes, input.reheatNotes].filter(Boolean).join(" ")
+    });
+  }
+
+  if (input.servingSuggestions?.length) {
+    faqs.push({
+      question: `What should I serve with ${input.title}?`,
+      answer: input.servingSuggestions.join(" ")
+    });
+  }
+
+  if (!faqs.length) {
+    faqs.push({
+      question: `Can I adjust the heat in ${input.title}?`,
+      answer:
+        "Yes. Keep the pepper component modest at first, taste near the end, and add more heat only after the dish feels balanced."
+    });
+  }
+
+  return faqs.slice(0, 3);
+}
+
+export function normalizeGeneratedRecipePayload(payload: Record<string, any>) {
+  const loose = generatedRecipeLooseSchema.parse(payload);
+
+  const instructions =
+    loose.instructions?.length
+      ? loose.instructions.map((instruction, index) => ({
+          step: index + 1,
+          text: instruction.text.trim(),
+          tip: instruction.tip?.trim()
+        }))
+      : loose.method_steps?.length
+        ? loose.method_steps.map((step, index) => ({
+            step: index + 1,
+            text: `${step.title.trim()}. ${step.body.trim()}`.trim(),
+            tip: step.tip?.trim()
+          }))
+        : buildFallbackRecipeInstructions();
+
+  const methodSteps =
+    loose.method_steps?.length
+      ? loose.method_steps.map((step, index) => ({
+          step: index + 1,
+          title: step.title.trim(),
+          body: step.body.trim(),
+          tip: step.tip?.trim(),
+          cue: step.cue?.trim(),
+          duration_minutes: step.duration_minutes,
+          ingredient_refs: step.ingredient_refs?.map((value) => value.trim()).filter(Boolean),
+          image_url: step.image_url?.trim(),
+          image_alt: step.image_alt?.trim()
+        }))
+      : instructions.length
+        ? instructions.map((instruction, index) => {
+            const split = splitInstructionText(instruction.text);
+
+            return {
+              step: index + 1,
+              title: split.title.trim(),
+              body: (split.body || instruction.text).trim(),
+              tip: instruction.tip?.trim(),
+              cue: instruction.tip?.trim()
+            };
+          })
+        : buildFallbackRecipeMethodSteps();
+
+  const ingredientSections =
+    loose.ingredient_sections?.length
+      ? loose.ingredient_sections
+      : loose.ingredients?.length
+        ? [
+            {
+              title: "For the recipe",
+              items: loose.ingredients
+            }
+          ]
+        : [
+            {
+              title: "For the recipe",
+              items: [
+                { amount: "1", unit: "tbsp", item: "mild chile paste" },
+                { amount: "1", unit: "cup", item: "main grain or starch" },
+                { amount: "2", unit: "cups", item: "stock or water" }
+              ]
+            }
+          ];
+
+  const ingredients =
+    loose.ingredients?.length ? loose.ingredients : ingredientSections.flatMap((section) => section.items);
+
+  const servingSuggestions = loose.serving_suggestions?.length
+    ? loose.serving_suggestions
+    : ["Serve warm with yogurt, pickles, or a bright salad for contrast."];
+
+  const substitutions = loose.substitutions?.length
+    ? loose.substitutions
+    : loose.variations?.length
+      ? loose.variations
+      : ["Swap in a sweeter pepper or milder paste if you want an even gentler finish."];
+
+  const normalized = {
+    ...loose,
+    hero_summary: loose.hero_summary || loose.intro,
+    ingredients,
+    ingredient_sections: ingredientSections,
+    instructions,
+    method_steps: methodSteps,
+    tips:
+      loose.tips?.length
+        ? loose.tips
+        : ["Taste for balance before serving and use acid or herbs to keep the dish from feeling flat."],
+    variations:
+      loose.variations?.length
+        ? loose.variations
+        : ["Add a brighter garnish or a touch more pepper paste if you want a stronger finish."],
+    serving_suggestions: servingSuggestions,
+    substitutions,
+    faqs:
+      loose.faqs?.length
+        ? loose.faqs
+        : buildFallbackRecipeFaqs({
+            title: loose.title,
+            makeAheadNotes: loose.make_ahead_notes,
+            storageNotes: loose.storage_notes,
+            reheatNotes: loose.reheat_notes,
+            servingSuggestions
+          }),
+    equipment: loose.equipment?.length ? loose.equipment : ["large skillet", "pot", "spoon"],
+    tags: dedupeList([...(loose.tags ?? []), loose.cuisine_type || "", "spicy"]).slice(0, 6)
+  };
+
+  return generatedRecipeSchema.parse(normalized);
+}
+
 async function requestJsonFromAnthropic(
   anthropic: Anthropic,
   prompt: string,
@@ -424,12 +681,22 @@ function validateGeneratedPayload<T extends GenerationType>(
     throw new Error(`AI generation returned an empty ${type} payload.`);
   }
 
+  if (type === "recipe") {
+    try {
+      return normalizeGeneratedRecipePayload(payload) as ValidatedGeneratedPayloadMap[T];
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        throw new Error(
+          `AI generation returned an invalid ${type} payload: ${error.issues[0]?.message || "schema mismatch"}`
+        );
+      }
+
+      throw error;
+    }
+  }
+
   const schema =
-    type === "recipe"
-      ? generatedRecipeSchema
-      : type === "blog_post"
-        ? generatedBlogSchema
-        : generatedReviewSchema;
+    type === "blog_post" ? generatedBlogSchema : generatedReviewSchema;
   const parsed = schema.safeParse(payload);
 
   if (!parsed.success) {

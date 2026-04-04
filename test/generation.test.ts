@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { BLOG_POST_PROMPT, RECIPE_PROMPT, getTodayCuisines } from "@/lib/generation/prompts";
 import { getQuizResult } from "@/lib/quiz";
+import { normalizeGeneratedRecipePayload } from "@/lib/services/automation";
 
 describe("generation prompts", () => {
   it("creates a recipe prompt with heat and cuisine details", () => {
@@ -21,5 +22,45 @@ describe("generation prompts", () => {
 
   it("scores quiz answers into a persona", () => {
     expect(getQuizResult([3, 3, 3, 3, 3])).toBe("reaper-chaser");
+  });
+
+  it("normalizes sparse generated recipe payloads before validation", () => {
+    const payload = normalizeGeneratedRecipePayload({
+      title: "Turkish Spiced Bulgur Pilaf with Mild Pepper Paste",
+      description:
+        "A comforting Turkish bulgur pilaf infused with mild red pepper paste, aromatic spices, and tender vegetables that delivers gentle warmth without overwhelming the palate.",
+      intro:
+        "This Turkish-inspired bulgur pilaf keeps the heat soft and rounded, using mild pepper paste, warm spices, and savory vegetables for a deeply comforting bowl.",
+      heat_level: "mild",
+      cuisine_type: "other",
+      prep_time_minutes: 15,
+      cook_time_minutes: 25,
+      servings: 4,
+      difficulty: "beginner",
+      ingredients: [
+        { amount: "1", unit: "cup", item: "coarse bulgur" },
+        { amount: "2", unit: "tbsp", item: "mild red pepper paste" },
+        { amount: "1", unit: "", item: "onion", notes: "finely diced" }
+      ],
+      instructions: [
+        { step: 1, text: "Saute the onion in olive oil until soft, then stir in the pepper paste until fragrant." },
+        { step: 2, text: "Add the bulgur, stock, and spices, then simmer gently until the grains are tender." },
+        { step: 3, text: "Rest briefly, fluff with herbs, and serve warm with yogurt or salad." }
+      ],
+      tips: ["Rest the pilaf for five minutes so the grains finish absorbing steam."],
+      variations: ["Fold in chickpeas for a heartier meal."],
+      equipment: ["medium pot"],
+      tags: ["turkish"],
+      seo_title: "Turkish Spiced Bulgur Pilaf Recipe | FlamingFoodies",
+      seo_description:
+        "Make a gentle, savory Turkish-style bulgur pilaf with mild pepper paste, aromatic spices, and a softly warming finish.",
+      image_alt: "A bowl of Turkish spiced bulgur pilaf with herbs"
+    });
+
+    expect(payload.instructions).toHaveLength(3);
+    expect(payload.method_steps).toHaveLength(3);
+    expect(payload.ingredient_sections?.[0]?.items).toHaveLength(3);
+    expect(payload.faqs?.length).toBeGreaterThan(0);
+    expect(payload.tags).toContain("spicy");
   });
 });
