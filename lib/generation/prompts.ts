@@ -24,6 +24,7 @@ Generate a complete, authentic recipe. Requirements:
 - Group ingredients into logical sections when the dish has components like marinade, sauce, garnish, slaw, glaze, salsa, or assembly.
 - Write at least 4 method steps with action-led titles, concise bodies, at least 1 timed step, and at least 2 sensory cues across the method.
 - Include make-ahead, storage, reheating, serving suggestions, substitutions, and FAQs.
+- Do not include any keys beyond the JSON schema below.
 
 Return ONLY valid JSON matching this structure:
 {
@@ -69,9 +70,7 @@ Return ONLY valid JSON matching this structure:
   "tags": ["spicy"],
   "seo_title": "...",
   "seo_description": "...",
-  "image_alt": "...",
-  "image_search_query": "...",
-  "affiliate_products": [{"name": "product name", "reason": "why this helps", "amazon_search": "query"}]
+  "image_alt": "..."
 }`;
 
 export const BLOG_POST_PROMPT = (params: {
@@ -85,7 +84,7 @@ Topic category: ${params.category}
 Topic: ${params.topic || "choose a relevant, high-interest topic in spicy food culture"}
 Target keywords: ${params.keywords?.join(", ") || "naturally relevant keywords"}
 
-Return ONLY valid JSON:
+Return ONLY valid JSON. Do not include any keys beyond the JSON schema below.
 {
   "title": "...",
   "description": "...",
@@ -96,8 +95,7 @@ Return ONLY valid JSON:
   "cuisine_type": "cuisine if relevant",
   "seo_title": "...",
   "seo_description": "...",
-  "image_alt": "...",
-  "image_search_query": "..."
+  "image_alt": "..."
 }`;
 
 export const REVIEW_PROMPT = (params: {
@@ -111,7 +109,7 @@ Category: ${params.category}
 Cuisine origin: ${params.cuisine_origin || "choose a relevant origin if appropriate"}
 Heat level: ${params.heat_level || "choose the most appropriate heat level"}
 
-Return ONLY valid JSON:
+Return ONLY valid JSON. Do not include any keys beyond the JSON schema below.
 {
   "title": "...",
   "description": "...",
@@ -133,7 +131,6 @@ Return ONLY valid JSON:
   "seo_title": "...",
   "seo_description": "...",
   "image_alt": "...",
-  "image_search_query": "...",
   "recommended": true
 }`;
 

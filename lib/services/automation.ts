@@ -229,6 +229,9 @@ const generatedReviewSchema = z
 const AUTOMATED_RECIPE_PUBLISH_SCORE = 84;
 const AUTOMATED_REVIEW_PUBLISH_SCORE = 86;
 const ANTHROPIC_TEXT_MODEL = env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
+const ANTHROPIC_GENERATION_MAX_TOKENS = 3200;
+const ANTHROPIC_QA_MAX_TOKENS = 1400;
+const ANTHROPIC_JSON_CONTINUATION_LIMIT = 2;
 type ValidatedGeneratedPayloadMap = {
   recipe: z.infer<typeof generatedRecipeSchema>;
   blog_post: z.infer<typeof generatedBlogSchema>;
@@ -338,6 +341,79 @@ function completeJsonPrefill(value: string) {
 function summarizeModelOutput(value: string) {
   const excerpt = stripCodeFence(value).replace(/\s+/g, " ").trim();
   return excerpt.slice(0, 220);
+}
+
+async function requestJsonFromAnthropic(
+  anthropic: Anthropic,
+  prompt: string,
+  options: {
+    maxTokens: number;
+  }
+) {
+  let output = "{";
+  let tokensUsed = 0;
+  let stopReason: string | null = null;
+
+  for (let attempt = 0; attempt <= ANTHROPIC_JSON_CONTINUATION_LIMIT; attempt += 1) {
+    const messages =
+      attempt === 0
+        ? [
+            {
+              role: "user" as const,
+              content: prompt
+            },
+            {
+              role: "assistant" as const,
+              content: "{"
+            }
+          ]
+        : [
+            {
+              role: "user" as const,
+              content: prompt
+            },
+            {
+              role: "assistant" as const,
+              content: output
+            },
+            {
+              role: "user" as const,
+              content:
+                "Continue exactly where you left off. Return only the remaining JSON characters needed to complete the same object. Do not restart the object. Do not add explanation or markdown fences."
+            }
+          ];
+
+    const response = await anthropic.messages.create({
+      model: ANTHROPIC_TEXT_MODEL,
+      max_tokens: options.maxTokens,
+      messages
+    });
+
+    const chunk =
+      attempt === 0
+        ? completeJsonPrefill(getAnthropicTextOutput(response.content))
+        : getAnthropicTextOutput(response.content);
+
+    output = attempt === 0 ? chunk : `${output}${chunk}`;
+    tokensUsed +=
+      Number(response.usage?.input_tokens ?? 0) + Number(response.usage?.output_tokens ?? 0);
+    stopReason = response.stop_reason ?? null;
+
+    if (parseJsonResponse(output)) {
+      break;
+    }
+
+    if (response.stop_reason !== "max_tokens") {
+      break;
+    }
+  }
+
+  return {
+    output,
+    payload: parseJsonResponse<Record<string, any>>(output),
+    tokensUsed,
+    stopReason
+  };
 }
 
 function validateGeneratedPayload<T extends GenerationType>(
@@ -463,24 +539,15 @@ async function runEditorialQaReview(
     return null;
   }
 
-  const response = await anthropic.messages.create({
-    model: ANTHROPIC_TEXT_MODEL,
-    max_tokens: 1100,
-    messages: [
-      {
-        role: "user",
-        content: buildEditorialQaPrompt(type, payload)
-      },
-      {
-        role: "assistant",
-        content: "{"
-      }
-    ]
-  });
+  const response = await requestJsonFromAnthropic(
+    anthropic,
+    buildEditorialQaPrompt(type, payload),
+    {
+      maxTokens: ANTHROPIC_QA_MAX_TOKENS
+    }
+  );
 
-  const output = completeJsonPrefill(getAnthropicTextOutput(response.content));
-
-  return parseJsonResponse<AgentQaReview>(output);
+  return parseJsonResponse<AgentQaReview>(response.output);
 }
 
 function buildQaIssue(
@@ -951,28 +1018,18 @@ async function generateStructuredDraft(
     };
   }
 
-  const response = await anthropic.messages.create({
-    model: ANTHROPIC_TEXT_MODEL,
-    max_tokens: 1800,
-    messages: [
-      {
-        role: "user",
-        content: buildPrompt(type, cuisine, index)
-      },
-      {
-        role: "assistant",
-        content: "{"
-      }
-    ]
+  const response = await requestJsonFromAnthropic(anthropic, buildPrompt(type, cuisine, index), {
+    maxTokens:
+      type === "recipe"
+        ? ANTHROPIC_GENERATION_MAX_TOKENS
+        : Math.max(2000, ANTHROPIC_QA_MAX_TOKENS)
   });
 
-  const output = completeJsonPrefill(getAnthropicTextOutput(response.content));
-
   return {
-    payload: parseJsonResponse<Record<string, any>>(output),
-    output,
-    tokensUsed:
-      Number(response.usage?.input_tokens ?? 0) + Number(response.usage?.output_tokens ?? 0)
+    payload: response.payload,
+    output: response.output,
+    tokensUsed: response.tokensUsed,
+    stopReason: response.stopReason
   };
 }
 
@@ -1258,6 +1315,10 @@ export async function runGenerationPipeline(
       );
       lastOutput = generated.output;
       lastTokensUsed = generated.tokensUsed;
+
+      if (!generated.payload && generated.stopReason === "max_tokens") {
+        throw new Error("AI generation hit the Anthropic max_tokens limit before completing JSON.");
+      }
 
       const inserted = await insertGeneratedContent(
         supabase,
