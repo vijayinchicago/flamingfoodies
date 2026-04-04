@@ -180,7 +180,10 @@ export const sampleRecipes: Recipe[] = [
         cue: "You want shiny noodles with a loose sheen, not a dry paste sitting on top.",
         tip: "Use noodle water in small splashes until the sauce coats every strand cleanly.",
         durationMinutes: 6,
-        ingredientRefs: ["ramyun-style noodles", "baby spinach"]
+        ingredientRefs: ["ramyun-style noodles", "baby spinach"],
+        imageUrl:
+          "https://images.unsplash.com/photo-1617093727343-374698b1b08d?auto=format&fit=crop&w=1000&q=80",
+        imageAlt: "Gochujang noodles being tossed until glossy"
       },
       {
         step: 4,
@@ -250,6 +253,8 @@ export const sampleRecipes: Recipe[] = [
       "Charred skewers layered with allspice, thyme, Scotch bonnet heat, and a sticky citrus glaze.",
     intro:
       "Jerk is about aromatic depth as much as spice. These skewers keep the warm spice backbone intact while staying fast enough for a grill-night staple.",
+    heroSummary:
+      "Fast-grilled shrimp with real jerk character, a sticky lime glaze, and enough char to make the whole platter taste bigger than the ingredient list.",
     imageUrl:
       "https://images.unsplash.com/photo-1625944230945-1b7dd3b949ab?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Jerk shrimp skewers on a grill with lime wedges",
@@ -266,20 +271,158 @@ export const sampleRecipes: Recipe[] = [
     prepTimeMinutes: 25,
     cookTimeMinutes: 8,
     totalTimeMinutes: 33,
+    activeTimeMinutes: 22,
     servings: 4,
     difficulty: "intermediate",
     ingredients: [
-      { amount: "1.5", unit: "lb", item: "large shrimp" },
+      { amount: "1 1/2", unit: "lb", item: "large shrimp", notes: "peeled and deveined" },
       { amount: "2", unit: "tbsp", item: "jerk seasoning" },
-      { amount: "1", unit: "tbsp", item: "brown sugar" }
+      { amount: "2", unit: "tbsp", item: "neutral oil" },
+      { amount: "1", unit: "tbsp", item: "lime juice" },
+      { amount: "1", unit: "tbsp", item: "soy sauce" },
+      { amount: "1", unit: "tbsp", item: "brown sugar" },
+      { amount: "2", unit: "", item: "garlic cloves", notes: "grated" },
+      { amount: "1", unit: "tbsp", item: "fresh thyme leaves" },
+      { amount: "2", unit: "tbsp", item: "melted butter" },
+      { amount: "2", unit: "", item: "limes", notes: "cut into wedges" },
+      { amount: "2", unit: "", item: "scallions", notes: "thinly sliced" }
+    ],
+    ingredientSections: [
+      {
+        title: "For the jerk marinade",
+        items: [
+          { amount: "2", unit: "tbsp", item: "jerk seasoning" },
+          { amount: "2", unit: "tbsp", item: "neutral oil" },
+          { amount: "1", unit: "tbsp", item: "lime juice" },
+          { amount: "1", unit: "tbsp", item: "soy sauce" },
+          { amount: "1", unit: "tbsp", item: "brown sugar" },
+          { amount: "2", unit: "", item: "garlic cloves", notes: "grated" },
+          { amount: "1", unit: "tbsp", item: "fresh thyme leaves" }
+        ]
+      },
+      {
+        title: "For the shrimp and grill finish",
+        items: [
+          { amount: "1 1/2", unit: "lb", item: "large shrimp", notes: "peeled and deveined" },
+          { amount: "2", unit: "tbsp", item: "melted butter" }
+        ]
+      },
+      {
+        title: "For serving",
+        items: [
+          { amount: "2", unit: "", item: "limes", notes: "cut into wedges" },
+          { amount: "2", unit: "", item: "scallions", notes: "thinly sliced" }
+        ]
+      }
     ],
     instructions: [
-      { step: 1, text: "Marinate the shrimp in jerk seasoning, oil, and lime." },
-      { step: 2, text: "Skewer and grill over high heat until just opaque." },
-      { step: 3, text: "Brush with glaze and rest briefly before serving." }
+      {
+        step: 1,
+        text: "Whisk the jerk seasoning, oil, lime juice, soy sauce, brown sugar, garlic, and thyme into a loose marinade, then coat the shrimp well.",
+        tip: "The marinade should read savory and aromatic first, not just hot."
+      },
+      {
+        step: 2,
+        text: "Thread the shrimp onto skewers and let them sit just long enough to take on the seasoning while the grill gets fully hot.",
+        tip: "Do not leave the shrimp for hours. The lime can start to toughen them."
+      },
+      {
+        step: 3,
+        text: "Grill over high heat until the shrimp just curl and char at the edges, turning once and brushing with butter for shine.",
+        tip: "Pull them as soon as they go opaque so they stay snappy, not rubbery."
+      },
+      {
+        step: 4,
+        text: "Rest briefly, then shower with scallions and serve with lime wedges while the shrimp are still hot and smoky.",
+        tip: "These are at their best straight off the grill."
+      }
     ],
-    tips: ["Use metal skewers to avoid flipping issues."],
-    variations: ["Make it milder with habanero instead of Scotch bonnet."],
+    methodSteps: [
+      {
+        step: 1,
+        title: "Build a marinade with depth, not just heat",
+        body:
+          "Whisk together the jerk seasoning, oil, lime, soy, brown sugar, garlic, and thyme until you have a loose marinade that tastes warm, savory, and sharp.",
+        cue: "The mixture should smell like allspice, thyme, and chile before the shrimp ever touch it.",
+        tip: "If your jerk seasoning is salt-heavy, hold back a pinch until you taste the finished marinade.",
+        durationMinutes: 5,
+        ingredientRefs: ["jerk seasoning", "neutral oil", "lime juice", "soy sauce", "brown sugar", "garlic cloves", "fresh thyme leaves"]
+      },
+      {
+        step: 2,
+        title: "Coat and skewer the shrimp",
+        body:
+          "Toss the shrimp in the marinade, thread them onto skewers, and let them stand while the grill preheats so the seasoning can grab on without curing the shrimp.",
+        cue: "The shrimp should look evenly coated and glossy, not drenched in excess liquid.",
+        tip: "Double-skewer if you want easier flipping over high heat.",
+        durationMinutes: 12,
+        ingredientRefs: ["large shrimp"]
+      },
+      {
+        step: 3,
+        title: "Grill fast for char and snap",
+        body:
+          "Grill the skewers over high heat, turning once, until the shrimp are opaque with charred edges. Brush with melted butter right at the end for shine and extra richness.",
+        cue: "You want tight curls, bright color, and a little blackening on the ridges without any dry, chalky centers.",
+        tip: "As soon as the shrimp firm up, they are done. Grill bravado dries them out fast.",
+        durationMinutes: 6,
+        ingredientRefs: ["large shrimp", "melted butter"],
+        imageUrl:
+          "https://images.unsplash.com/photo-1625944230945-1b7dd3b949ab?auto=format&fit=crop&w=1000&q=80",
+        imageAlt: "Jerk shrimp skewers charring over high heat"
+      },
+      {
+        step: 4,
+        title: "Finish bright and serve immediately",
+        body:
+          "Slide the shrimp off the grill, rest for a minute, then hit them with scallions and plenty of lime so the plate stays bright against all that spice and smoke.",
+        cue: "The final platter should smell spicy and citrusy, not just charred.",
+        tip: "Serve these with extra napkins and extra lime. Both earn their place.",
+        durationMinutes: 2,
+        ingredientRefs: ["limes", "scallions"]
+      }
+    ],
+    tips: [
+      "Use metal skewers or soak wooden ones well so the shrimp turn cleanly on the grill.",
+      "Keep one edge of the grill cooler in case the sugars in the marinade start darkening too fast."
+    ],
+    variations: [
+      "Swap shrimp for chunks of chicken thigh if you want a heavier grill-night version.",
+      "Use habanero instead of Scotch bonnet style jerk seasoning if that is easier to find."
+    ],
+    makeAheadNotes:
+      "Mix the marinade earlier in the day, but coat the shrimp only shortly before grilling so they keep a bouncy texture.",
+    storageNotes:
+      "Leftover shrimp keep for up to 2 days in the fridge. Store them separate from any sides so they do not get soggy.",
+    reheatNotes:
+      "Rewarm quickly in a skillet or hot oven just until heated through. Avoid long reheating or the shrimp will turn rubbery.",
+    servingSuggestions: [
+      "Serve with grilled pineapple, coconut rice, or a crisp cabbage slaw if you want a full plate.",
+      "An icy lager or citrusy sparkling water works well with the allspice-heavy heat.",
+      "A little extra lime over the platter right before serving makes the jerk flavors pop."
+    ],
+    substitutions: [
+      "Use chicken thighs or thick strips of tofu if you want to take the same flavor profile in a different direction.",
+      "If your jerk seasoning is very hot already, skip extra fresh chile and let the spice blend do the work.",
+      "Use honey instead of brown sugar if you want a glossier finish on the grill."
+    ],
+    faqs: [
+      {
+        question: "How long should I marinate the shrimp?",
+        answer:
+          "About 10 to 20 minutes is plenty. Much longer and the lime can start to change the texture of the shrimp."
+      },
+      {
+        question: "Can I cook these indoors?",
+        answer:
+          "Yes. A ripping-hot grill pan or cast-iron skillet works well if you cannot get outside, though you will lose a little smokiness."
+      },
+      {
+        question: "What makes jerk taste like jerk?",
+        answer:
+          "It is the allspice, thyme, chile, and a little sweetness working together. The profile should taste aromatic and savory, not like generic hot sauce."
+      }
+    ],
     equipment: ["grill", "metal skewers"],
     ratingAvg: 4.6,
     ratingCount: 48,
@@ -455,7 +598,10 @@ export const sampleRecipes: Recipe[] = [
         cue: "You want a crust that sounds crisp when tapped and chicken that reads done without looking dry.",
         tip: "Rest the fried chicken on a rack, never directly on paper towels, so the crust stays audible.",
         durationMinutes: 12,
-        ingredientRefs: ["boneless chicken thighs"]
+        ingredientRefs: ["boneless chicken thighs"],
+        imageUrl:
+          "https://images.unsplash.com/photo-1562967914-608f82629710?auto=format&fit=crop&w=1000&q=80",
+        imageAlt: "Hot chicken frying until deeply golden and crisp"
       },
       {
         step: 4,
@@ -628,7 +774,10 @@ export const sampleRecipes: Recipe[] = [
         cue: "You want a loud sizzle and frilled edges that turn dark brown without the center drying out.",
         tip: "Use parchment between the spatula and the beef if you want cleaner, flatter patties.",
         durationMinutes: 6,
-        ingredientRefs: ["ground beef"]
+        ingredientRefs: ["ground beef"],
+        imageUrl:
+          "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1000&q=80",
+        imageAlt: "Smash burger patties searing on a hot griddle"
       },
       {
         step: 3,
@@ -810,7 +959,10 @@ export const sampleRecipes: Recipe[] = [
         cue: "The noodles should turn darker and pick up spots of char without breaking apart.",
         tip: "If the noodles clump, loosen them with a small splash of water instead of more sauce.",
         durationMinutes: 5,
-        ingredientRefs: ["wide rice noodles", "red bell pepper", "oyster sauce", "soy sauce"]
+        ingredientRefs: ["wide rice noodles", "red bell pepper", "oyster sauce", "soy sauce"],
+        imageUrl:
+          "https://images.unsplash.com/photo-1559314809-0d155014e29e?auto=format&fit=crop&w=1000&q=80",
+        imageAlt: "Drunken noodles tossed in a hot wok until glossy"
       },
       {
         step: 4,
@@ -1033,7 +1185,10 @@ export const sampleRecipes: Recipe[] = [
         cue: "The tortillas should sizzle on contact and develop bronze-red patches before you flip.",
         tip: "Work in small batches so the tortillas fry instead of steaming.",
         durationMinutes: 20,
-        ingredientRefs: ["corn tortillas", "Oaxaca cheese"]
+        ingredientRefs: ["corn tortillas", "Oaxaca cheese"],
+        imageUrl:
+          "https://images.unsplash.com/photo-1613514785940-daed07799d9b?auto=format&fit=crop&w=1000&q=80",
+        imageAlt: "Birria quesatacos crisping on a griddle before serving"
       },
       {
         step: 6,
@@ -1103,6 +1258,8 @@ export const sampleRecipes: Recipe[] = [
       "Frozen dumplings leveled up with sesame-peanut sauce, sharp vinegar, and a chili crisp finish that tastes bigger than the effort.",
     intro:
       "This is the kind of fast dinner the site needs more of: pantry-smart, actually spicy, and built around one great condiment doing real work.",
+    heroSummary:
+      "A fast pantry dinner with plush dumplings, a nutty sesame sauce, and enough chili crisp crunch to make the bowl feel far more ambitious than the effort.",
     imageUrl:
       "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Dumpling bowl topped with chili crisp and scallions",
@@ -1119,21 +1276,153 @@ export const sampleRecipes: Recipe[] = [
     prepTimeMinutes: 12,
     cookTimeMinutes: 10,
     totalTimeMinutes: 22,
+    activeTimeMinutes: 18,
     servings: 4,
     difficulty: "beginner",
     ingredients: [
       { amount: "1", unit: "bag", item: "frozen dumplings" },
-      { amount: "2", unit: "tbsp", item: "chili crisp" },
       { amount: "2", unit: "tbsp", item: "sesame paste" },
-      { amount: "1", unit: "tbsp", item: "black vinegar" }
+      { amount: "1", unit: "tbsp", item: "peanut butter" },
+      { amount: "2", unit: "tbsp", item: "soy sauce" },
+      { amount: "1", unit: "tbsp", item: "black vinegar" },
+      { amount: "1", unit: "tbsp", item: "chili crisp" },
+      { amount: "2", unit: "tbsp", item: "warm water" },
+      { amount: "2", unit: "", item: "baby bok choy", notes: "halved" },
+      { amount: "1", unit: "", item: "Persian cucumber", notes: "smashed and sliced" },
+      { amount: "3", unit: "", item: "scallions", notes: "thinly sliced" },
+      { amount: "1/4", unit: "cup", item: "roasted peanuts", notes: "roughly chopped" }
+    ],
+    ingredientSections: [
+      {
+        title: "For the sesame-chile sauce",
+        items: [
+          { amount: "2", unit: "tbsp", item: "sesame paste" },
+          { amount: "1", unit: "tbsp", item: "peanut butter" },
+          { amount: "2", unit: "tbsp", item: "soy sauce" },
+          { amount: "1", unit: "tbsp", item: "black vinegar" },
+          { amount: "1", unit: "tbsp", item: "chili crisp" },
+          { amount: "2", unit: "tbsp", item: "warm water" }
+        ]
+      },
+      {
+        title: "For the bowl build",
+        items: [
+          { amount: "1", unit: "bag", item: "frozen dumplings" },
+          { amount: "2", unit: "", item: "baby bok choy", notes: "halved" },
+          { amount: "1", unit: "", item: "Persian cucumber", notes: "smashed and sliced" },
+          { amount: "3", unit: "", item: "scallions", notes: "thinly sliced" },
+          { amount: "1/4", unit: "cup", item: "roasted peanuts", notes: "roughly chopped" }
+        ]
+      }
     ],
     instructions: [
-      { step: 1, text: "Cook the dumplings according to the package until tender." },
-      { step: 2, text: "Whisk the sauce with warm water until pourable." },
-      { step: 3, text: "Pile into bowls and finish with chili crisp, herbs, and peanuts." }
+      {
+        step: 1,
+        text: "Whisk the sesame paste, peanut butter, soy, black vinegar, chili crisp, and warm water until the sauce turns smooth and spoonable.",
+        tip: "Keep adding water in tiny splashes until the sauce falls off a spoon in ribbons."
+      },
+      {
+        step: 2,
+        text: "Cook the dumplings and bok choy until both are tender but still lively, then reserve a little dumpling water before draining.",
+        tip: "That starchy water is perfect for loosening the sauce if it tightens up."
+      },
+      {
+        step: 3,
+        text: "Pile everything into bowls and spoon over the sauce while the dumplings are still hot enough to soften it.",
+        tip: "You want the sauce to cling, not pool underneath the dumplings."
+      },
+      {
+        step: 4,
+        text: "Finish with cucumber, scallions, peanuts, and extra chili crisp so the bowl gets crunch and contrast.",
+        tip: "The toppings are what keep the bowl from eating too soft and rich."
+      }
     ],
-    tips: ["A spoon of dumpling water helps the sauce cling better."],
-    variations: ["Add wilted bok choy or cucumbers for crunch."],
+    methodSteps: [
+      {
+        step: 1,
+        title: "Whisk a sauce with body and bite",
+        body:
+          "Whisk together sesame paste, peanut butter, soy, black vinegar, chili crisp, and warm water until the sauce goes smooth, nutty, and pourable.",
+        cue: "The sauce should taste savory, tangy, and spicy, not like straight sesame paste.",
+        tip: "Sesame sauces always tighten at first. Keep whisking and add warm water a teaspoon at a time.",
+        durationMinutes: 5,
+        ingredientRefs: ["sesame paste", "peanut butter", "soy sauce", "black vinegar", "chili crisp", "warm water"]
+      },
+      {
+        step: 2,
+        title: "Cook the dumplings and greens together",
+        body:
+          "Boil or steam the dumplings until tender and add the bok choy near the end so the greens soften without losing their bite.",
+        cue: "The dumplings should feel plush and hot all the way through, while the bok choy stays bright.",
+        tip: "Reserve a splash of dumpling water before draining in case the sauce needs loosening.",
+        durationMinutes: 8,
+        ingredientRefs: ["frozen dumplings", "baby bok choy"]
+      },
+      {
+        step: 3,
+        title: "Coat the bowls while everything is still hot",
+        body:
+          "Pile the dumplings and bok choy into bowls and spoon the sauce over the top while the heat from the dumplings turns it glossy and clingy.",
+        cue: "The sauce should coat the dumplings in a light sheen instead of sitting like a thick blob.",
+        tip: "Use dumpling water, not more soy sauce, if you need to loosen the texture.",
+        durationMinutes: 3,
+        ingredientRefs: ["frozen dumplings", "sesame-chile sauce"],
+        imageUrl:
+          "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=80",
+        imageAlt: "Dumplings coated in sesame chili crisp sauce in a bowl"
+      },
+      {
+        step: 4,
+        title: "Finish with crunch and extra heat",
+        body:
+          "Scatter on the smashed cucumber, scallions, peanuts, and another spoonful of chili crisp so the bowl gets texture and a sharper final edge.",
+        cue: "The final bowl should look glossy, crunchy, and a little chaotic in the best way.",
+        tip: "Add the cucumber at the end so it stays cold and snappy against the hot dumplings.",
+        durationMinutes: 2,
+        ingredientRefs: ["Persian cucumber", "scallions", "roasted peanuts", "chili crisp"]
+      }
+    ],
+    tips: [
+      "A splash of dumpling water is the fastest way to rescue a sauce that tightens too much.",
+      "Use dumplings you genuinely like on their own because they are still the backbone of the bowl."
+    ],
+    variations: [
+      "Add wilted spinach or shredded cabbage if bok choy is not around.",
+      "Use chili crunch or salsa macha if your favorite spicy condiment is not technically chili crisp."
+    ],
+    makeAheadNotes:
+      "Whisk the sauce and prep the toppings ahead so dinner becomes a 10-minute finish once the dumplings hit the pot.",
+    storageNotes:
+      "Store leftover dumplings, sauce, and crunchy toppings separately for up to 2 days so the bowl does not go soft.",
+    reheatNotes:
+      "Reheat the dumplings gently by steaming or microwaving with a damp towel, then reassemble with fresh cucumber and scallions.",
+    servingSuggestions: [
+      "A jammy egg fits naturally here if you want the bowl to feel even more substantial.",
+      "Serve with extra black vinegar and chili crisp at the table so everyone can tune the balance.",
+      "Pair it with a simple cucumber salad if you want to lean even harder into contrast and crunch."
+    ],
+    substitutions: [
+      "Use tahini if sesame paste is all you can find, but add a little more soy and vinegar because tahini tastes gentler.",
+      "Swap the bok choy for spinach, napa cabbage, or broccoli if that is what is in the fridge.",
+      "Use any frozen dumplings you love, whether pork, chicken, shrimp, or vegetable."
+    ],
+    faqs: [
+      {
+        question: "What kind of dumplings work best here?",
+        answer:
+          "Any good frozen dumpling works, but smaller potstickers or soup-dumpling-style wrappers are especially nice because they pick up more sauce per bite."
+      },
+      {
+        question: "Is the sauce very spicy?",
+        answer:
+          "It has a clear kick, but the sesame and peanut mellow it out. Start with less chili crisp if you want a gentler bowl."
+      },
+      {
+        question: "Can I eat this cold later?",
+        answer:
+          "You can, but it is much better warm. The sauce tastes fuller and silkier when it hits hot dumplings."
+      }
+    ],
     equipment: ["pot", "mixing bowl"],
     ratingAvg: 4.5,
     ratingCount: 63,
@@ -1148,6 +1437,8 @@ export const sampleRecipes: Recipe[] = [
       "Creamy rigatoni with tomato depth, Calabrian chile fruitiness, and enough heat to keep it from tasting too plush.",
     intro:
       "Vodka sauce needs edge or it gets sleepy. Calabrian chile paste adds fruit and heat without crushing the creaminess.",
+    heroSummary:
+      "A glossy vodka rigatoni with fruit-forward chile heat, real tomato depth, and enough sharpness to keep the creaminess moving.",
     imageUrl:
       "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Rigatoni coated in spicy vodka sauce",
@@ -1164,21 +1455,151 @@ export const sampleRecipes: Recipe[] = [
     prepTimeMinutes: 10,
     cookTimeMinutes: 25,
     totalTimeMinutes: 35,
+    activeTimeMinutes: 22,
     servings: 4,
     difficulty: "beginner",
     ingredients: [
       { amount: "1", unit: "lb", item: "rigatoni" },
+      { amount: "2", unit: "tbsp", item: "olive oil" },
+      { amount: "1", unit: "", item: "shallot", notes: "finely chopped" },
+      { amount: "3", unit: "", item: "garlic cloves", notes: "thinly sliced" },
+      { amount: "3", unit: "tbsp", item: "tomato paste" },
       { amount: "2", unit: "tbsp", item: "Calabrian chili paste" },
-      { amount: "0.5", unit: "cup", item: "vodka" },
-      { amount: "0.75", unit: "cup", item: "heavy cream" }
+      { amount: "1/2", unit: "cup", item: "vodka" },
+      { amount: "3/4", unit: "cup", item: "heavy cream" },
+      { amount: "3/4", unit: "cup", item: "pecorino romano", notes: "finely grated" },
+      { amount: "1/4", unit: "cup", item: "basil", notes: "torn for finishing" }
+    ],
+    ingredientSections: [
+      {
+        title: "For the sauce base",
+        items: [
+          { amount: "2", unit: "tbsp", item: "olive oil" },
+          { amount: "1", unit: "", item: "shallot", notes: "finely chopped" },
+          { amount: "3", unit: "", item: "garlic cloves", notes: "thinly sliced" },
+          { amount: "3", unit: "tbsp", item: "tomato paste" },
+          { amount: "2", unit: "tbsp", item: "Calabrian chili paste" },
+          { amount: "1/2", unit: "cup", item: "vodka" },
+          { amount: "3/4", unit: "cup", item: "heavy cream" }
+        ]
+      },
+      {
+        title: "For the pasta and finish",
+        items: [
+          { amount: "1", unit: "lb", item: "rigatoni" },
+          { amount: "3/4", unit: "cup", item: "pecorino romano", notes: "finely grated" },
+          { amount: "1/4", unit: "cup", item: "basil", notes: "torn for finishing" }
+        ]
+      }
     ],
     instructions: [
-      { step: 1, text: "Build the onion, tomato paste, and chile base until darkened and fragrant." },
-      { step: 2, text: "Deglaze with vodka, then stir in cream and pasta water." },
-      { step: 3, text: "Toss with rigatoni until glossy and finish with pecorino." }
+      {
+        step: 1,
+        text: "Sweat the shallot and garlic in olive oil, then cook the tomato paste and Calabrian chile paste until they darken and smell jammy.",
+        tip: "Letting the paste deepen is what keeps the sauce from tasting flat and creamy-sweet."
+      },
+      {
+        step: 2,
+        text: "Deglaze with vodka and reduce until the pan looks syrupy instead of boozy.",
+        tip: "The raw alcohol smell should mostly disappear before the cream goes in."
+      },
+      {
+        step: 3,
+        text: "Add cream and pasta water, then toss in the rigatoni until the sauce turns glossy and clings inside every tube.",
+        tip: "The sauce should coat, not flood, the bowl."
+      },
+      {
+        step: 4,
+        text: "Finish with pecorino and basil right before serving so the pasta lands rich but still bright.",
+        tip: "Keep the basil torn, not chopped, so it perfumes the bowl instead of bruising into it."
+      }
     ],
-    tips: ["Save extra pasta water for the final toss."],
-    variations: ["Add spicy Italian sausage for a heavier dinner."],
+    methodSteps: [
+      {
+        step: 1,
+        title: "Cook the chile-tomato base until it turns jammy",
+        body:
+          "Sweat the shallot and garlic in olive oil, then work in the tomato paste and Calabrian chile paste until the mixture darkens, thickens, and smells sweet-hot.",
+        cue: "The base should look deeper brick-red than when it started, with a little sheen from the oil.",
+        tip: "Do not rush this part. It is what gives vodka sauce real depth instead of canned-tomato brightness.",
+        durationMinutes: 8,
+        ingredientRefs: ["olive oil", "shallot", "garlic cloves", "tomato paste", "Calabrian chili paste"]
+      },
+      {
+        step: 2,
+        title: "Reduce the vodka until it stops smelling sharp",
+        body:
+          "Pour in the vodka and simmer until the pan looks syrupy and the raw alcohol edge mostly cooks off.",
+        cue: "You want the sauce base to smell warm and tomato-rich, not aggressively boozy.",
+        tip: "Keep the heat lively here so the reduction happens quickly and cleanly.",
+        durationMinutes: 4,
+        ingredientRefs: ["vodka"]
+      },
+      {
+        step: 3,
+        title: "Emulsify the sauce with cream and pasta water",
+        body:
+          "Stir in the cream, add the rigatoni, and loosen with pasta water until the sauce turns glossy enough to cling to the pasta inside and out.",
+        cue: "The pasta should look lacquered, not drowned, with the sauce holding to the ridges and the center of each tube.",
+        tip: "Reserve more pasta water than you think you need because this style of sauce tightens fast.",
+        durationMinutes: 8,
+        ingredientRefs: ["heavy cream", "rigatoni"],
+        imageUrl:
+          "https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=1000&q=80",
+        imageAlt: "Rigatoni being tossed in glossy Calabrian chili vodka sauce"
+      },
+      {
+        step: 4,
+        title: "Finish with pecorino and basil",
+        body:
+          "Kill the heat, fold in the pecorino, and scatter over torn basil so the bowl stays lively against all the cream and chile.",
+        cue: "The finished pasta should feel glossy, rich, and sharp enough that you still want the next bite.",
+        tip: "Serve immediately. Vodka sauce is best at its silkiest, not after a long wait.",
+        durationMinutes: 2,
+        ingredientRefs: ["pecorino romano", "basil"]
+      }
+    ],
+    tips: [
+      "Save more pasta water than you think you need because rigatoni drinks sauce fast.",
+      "Use a wide pan for the final toss so the sauce can emulsify instead of steaming."
+    ],
+    variations: [
+      "Add spicy Italian sausage if you want a heavier, more restaurant-style bowl.",
+      "Finish with burrata for an even richer, dinner-party version."
+    ],
+    makeAheadNotes:
+      "The chile-tomato base can be made a day ahead. Rewarm it gently before adding cream and pasta water.",
+    storageNotes:
+      "Leftovers keep for up to 3 days in the fridge, though the sauce thickens as it sits.",
+    reheatNotes:
+      "Reheat slowly with a splash of water or cream to bring the sauce back to a glossy texture before serving.",
+    servingSuggestions: [
+      "Serve with a bitter green salad or lemony broccolini if you want relief from the richness.",
+      "Extra pecorino at the table makes sense, but a squeeze of lemon can be even more useful.",
+      "A peppery arugula salad and chilled red wine both work well here."
+    ],
+    substitutions: [
+      "Use parmesan if pecorino is what you have, though pecorino gives the bowl a sharper finish.",
+      "If you skip the vodka, add a splash of water and lemon juice, but expect a softer, less classic finish.",
+      "Use penne or mezzi rigatoni if full-size rigatoni is sold out."
+    ],
+    faqs: [
+      {
+        question: "Does the vodka really matter?",
+        answer:
+          "It helps pull extra flavor out of the tomato and chile base and gives the sauce its classic edge, though the alcohol itself cooks off."
+      },
+      {
+        question: "Is this very spicy?",
+        answer:
+          "It lands more warm and persistent than punishing. Calabrian chile has fruit and heat, so the bowl stays lively without going brutal."
+      },
+      {
+        question: "Can I make this without cream?",
+        answer:
+          "You can use mascarpone or a smaller amount of creme fraiche, but the sauce will eat differently and lose some of the classic vodka-sauce feel."
+      }
+    ],
     equipment: ["Dutch oven", "large pot"],
     ratingAvg: 4.6,
     ratingCount: 74,
@@ -1193,6 +1614,8 @@ export const sampleRecipes: Recipe[] = [
       "Chicken thighs roasted over peppers and onions in a fiery lemon-garlic peri-peri marinade with crisp pan edges.",
     intro:
       "A traybake should feel low effort but not low impact. Peri-peri gives you acid, garlic, and chili all in one move.",
+    heroSummary:
+      "A high-impact traybake with lacquered chicken, softened peppers, and enough lemon-garlic heat in the pan juices to make every spoonful count.",
     imageUrl:
       "https://images.unsplash.com/photo-1518492104633-130d0cc84637?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Roasted chicken with peppers on a tray",
@@ -1209,21 +1632,154 @@ export const sampleRecipes: Recipe[] = [
     prepTimeMinutes: 15,
     cookTimeMinutes: 40,
     totalTimeMinutes: 55,
+    activeTimeMinutes: 20,
     servings: 4,
     difficulty: "beginner",
     ingredients: [
       { amount: "2", unit: "lb", item: "bone-in chicken thighs" },
-      { amount: "2", unit: "", item: "red bell peppers", notes: "sliced" },
       { amount: "3", unit: "tbsp", item: "peri-peri sauce" },
-      { amount: "1", unit: "", item: "lemon" }
+      { amount: "2", unit: "tbsp", item: "olive oil" },
+      { amount: "4", unit: "", item: "garlic cloves", notes: "grated" },
+      { amount: "1", unit: "", item: "lemon", notes: "zested and juiced" },
+      { amount: "1", unit: "tsp", item: "smoked paprika" },
+      { amount: "2", unit: "", item: "red bell peppers", notes: "thickly sliced" },
+      { amount: "1", unit: "", item: "red onion", notes: "thickly sliced" },
+      { amount: "1", unit: "pint", item: "cherry tomatoes" },
+      { amount: "2", unit: "tbsp", item: "parsley", notes: "chopped for finishing" }
+    ],
+    ingredientSections: [
+      {
+        title: "For the peri-peri marinade",
+        items: [
+          { amount: "3", unit: "tbsp", item: "peri-peri sauce" },
+          { amount: "2", unit: "tbsp", item: "olive oil" },
+          { amount: "4", unit: "", item: "garlic cloves", notes: "grated" },
+          { amount: "1", unit: "", item: "lemon", notes: "zested and juiced" },
+          { amount: "1", unit: "tsp", item: "smoked paprika" }
+        ]
+      },
+      {
+        title: "For the traybake",
+        items: [
+          { amount: "2", unit: "lb", item: "bone-in chicken thighs" },
+          { amount: "2", unit: "", item: "red bell peppers", notes: "thickly sliced" },
+          { amount: "1", unit: "", item: "red onion", notes: "thickly sliced" },
+          { amount: "1", unit: "pint", item: "cherry tomatoes" }
+        ]
+      },
+      {
+        title: "For finishing",
+        items: [{ amount: "2", unit: "tbsp", item: "parsley", notes: "chopped for finishing" }]
+      }
     ],
     instructions: [
-      { step: 1, text: "Marinate the chicken with peri-peri, lemon, garlic, and oil." },
-      { step: 2, text: "Scatter the vegetables on a sheet pan and roast the chicken until lacquered." },
-      { step: 3, text: "Broil briefly for extra char, then spoon the pan juices over everything." }
+      {
+        step: 1,
+        text: "Stir together the peri-peri sauce, olive oil, garlic, lemon, and smoked paprika, then coat the chicken until every piece is fully glossed.",
+        tip: "The marinade should taste hot, bright, and deeply garlicky."
+      },
+      {
+        step: 2,
+        text: "Spread the peppers, onion, and tomatoes on a sheet pan, then nestle the chicken on top so the vegetables can baste underneath.",
+        tip: "A little crowding is fine here because the pan juices are part of the point."
+      },
+      {
+        step: 3,
+        text: "Roast until the chicken is lacquered and the vegetables have collapsed into spicy, jammy pan edges.",
+        tip: "If the skin needs help, give the pan a short broil right at the end."
+      },
+      {
+        step: 4,
+        text: "Finish with parsley and spoon the hot pan juices over everything before serving.",
+        tip: "Those juices are the sauce, so do not leave them behind."
+      }
     ],
-    tips: ["Salt the chicken first so the marinade penetrates faster."],
-    variations: ["Roast small potatoes underneath for a one-pan dinner."],
+    methodSteps: [
+      {
+        step: 1,
+        title: "Coat the chicken in a bright, garlicky marinade",
+        body:
+          "Whisk together the peri-peri sauce, olive oil, garlic, lemon, and smoked paprika, then rub the mixture all over the chicken so every piece is fully seasoned.",
+        cue: "The chicken should look glossy and aggressively seasoned, not lightly dabbed with sauce.",
+        tip: "Get some marinade under the skin if you want even deeper flavor.",
+        durationMinutes: 8,
+        ingredientRefs: ["peri-peri sauce", "olive oil", "garlic cloves", "lemon", "smoked paprika", "bone-in chicken thighs"]
+      },
+      {
+        step: 2,
+        title: "Build the tray so the vegetables catch every drop",
+        body:
+          "Scatter the peppers, onion, and tomatoes across a sheet pan and set the chicken on top so the vegetables roast in the spicy chicken juices.",
+        cue: "The tray should look full but not stacked; you still want exposed edges for browning.",
+        tip: "Use a real sheet pan, not a deep baking dish, if you want good edge color.",
+        durationMinutes: 5,
+        ingredientRefs: ["red bell peppers", "red onion", "cherry tomatoes", "bone-in chicken thighs"]
+      },
+      {
+        step: 3,
+        title: "Roast until the chicken is lacquered and the pan goes jammy",
+        body:
+          "Roast until the chicken skin looks burnished and the vegetables slump into spicy, glossy edges. Broil briefly at the end if you want extra char.",
+        cue: "The pan should smell lemony and smoky, and the chicken skin should look tight and deeply colored.",
+        tip: "Rotate the tray if one side of your oven colors faster than the other.",
+        durationMinutes: 40,
+        ingredientRefs: ["bone-in chicken thighs", "red bell peppers", "red onion", "cherry tomatoes"],
+        imageUrl:
+          "https://images.unsplash.com/photo-1518492104633-130d0cc84637?auto=format&fit=crop&w=1000&q=80",
+        imageAlt: "Peri-peri chicken roasting with peppers on a sheet pan"
+      },
+      {
+        step: 4,
+        title: "Finish with herbs and every drop of pan juice",
+        body:
+          "Scatter parsley over the tray and spoon the hot, spicy juices back across the chicken and vegetables so nothing eats dry.",
+        cue: "The finished tray should look glossy, not dusty or dry, with vegetables that still have some shape.",
+        tip: "Serve straight from the pan for the most dramatic, least fussy dinner-table move.",
+        durationMinutes: 2,
+        ingredientRefs: ["parsley"]
+      }
+    ],
+    tips: [
+      "Salt the chicken first if your peri-peri sauce is low-sodium.",
+      "Let the tray rest for 5 minutes before serving so the juices settle back into the chicken."
+    ],
+    variations: [
+      "Add baby potatoes under the chicken if you want the traybake to land as a full one-pan dinner.",
+      "Swap in boneless thighs if you want a slightly faster roast, but expect less juicy meat."
+    ],
+    makeAheadNotes:
+      "Marinate the chicken earlier in the day, then build and roast the tray right before dinner for the best texture.",
+    storageNotes:
+      "Leftovers keep in the fridge for up to 3 days. Store the chicken and vegetables together with the pan juices.",
+    reheatNotes:
+      "Reheat in a hot oven until the chicken is warmed through and the vegetables start sizzling again at the edges.",
+    servingSuggestions: [
+      "Serve with rice, warm flatbread, or crispy potatoes to catch the spicy lemon-garlic juices.",
+      "A cucumber salad or yogurt sauce is useful if you want more cooling contrast.",
+      "This tray also works really well as meal prep if you portion the juices over everything before chilling."
+    ],
+    substitutions: [
+      "Use any peri-peri style sauce you love, then tune the garlic and lemon to taste.",
+      "Swap peppers for zucchini or broccolini if that is what is on hand, but keep something in the pan to catch the juices.",
+      "Boneless breasts work in a pinch, though thighs are more forgiving and more flavorful here."
+    ],
+    faqs: [
+      {
+        question: "Can I use boneless chicken?",
+        answer:
+          "Yes, though boneless thighs are the best swap. They cook a little faster, so start checking early."
+      },
+      {
+        question: "What makes the pan juices so good?",
+        answer:
+          "The chicken fat, peri-peri sauce, lemon, and vegetable juices all mix together as the tray roasts. That combination is the real sauce here."
+      },
+      {
+        question: "How spicy is this traybake?",
+        answer:
+          "It has a strong kick, but the roasted vegetables and lemon keep it from tasting one-note. You can always use a milder peri-peri sauce if needed."
+      }
+    ],
     equipment: ["sheet pan", "mixing bowl"],
     ratingAvg: 4.5,
     ratingCount: 59,
@@ -1238,6 +1794,8 @@ export const sampleRecipes: Recipe[] = [
       "Roasted salmon brushed with hot honey over rice, crunchy vegetables, and a cooling herbed yogurt sauce.",
     intro:
       "This one lands in the sweet spot between meal-prep useful and dinner-party photogenic. Cajun seasoning and hot honey do the heavy lifting.",
+    heroSummary:
+      "A glossy weeknight bowl with spiced salmon, sticky hot honey, cool yogurt, and enough fresh crunch to keep the whole thing balanced.",
     imageUrl:
       "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Salmon rice bowl with vegetables and spicy glaze",
@@ -1254,21 +1812,158 @@ export const sampleRecipes: Recipe[] = [
     prepTimeMinutes: 15,
     cookTimeMinutes: 15,
     totalTimeMinutes: 30,
+    activeTimeMinutes: 20,
     servings: 4,
     difficulty: "beginner",
     ingredients: [
-      { amount: "1.5", unit: "lb", item: "salmon fillet" },
+      { amount: "1 1/2", unit: "lb", item: "salmon fillet", notes: "cut into 4 portions" },
       { amount: "2", unit: "tbsp", item: "Cajun seasoning" },
-      { amount: "2", unit: "tbsp", item: "hot honey" },
-      { amount: "4", unit: "cups", item: "cooked rice" }
+      { amount: "1", unit: "tbsp", item: "olive oil" },
+      { amount: "3", unit: "tbsp", item: "hot honey" },
+      { amount: "3/4", unit: "cup", item: "Greek yogurt" },
+      { amount: "1", unit: "tbsp", item: "lemon juice" },
+      { amount: "2", unit: "tbsp", item: "dill", notes: "chopped" },
+      { amount: "4", unit: "cups", item: "cooked rice" },
+      { amount: "1", unit: "", item: "English cucumber", notes: "thinly sliced" },
+      { amount: "1", unit: "", item: "avocado", notes: "sliced" },
+      { amount: "2", unit: "", item: "scallions", notes: "thinly sliced" }
+    ],
+    ingredientSections: [
+      {
+        title: "For the salmon",
+        items: [
+          { amount: "1 1/2", unit: "lb", item: "salmon fillet", notes: "cut into 4 portions" },
+          { amount: "2", unit: "tbsp", item: "Cajun seasoning" },
+          { amount: "1", unit: "tbsp", item: "olive oil" },
+          { amount: "3", unit: "tbsp", item: "hot honey" }
+        ]
+      },
+      {
+        title: "For the herbed yogurt",
+        items: [
+          { amount: "3/4", unit: "cup", item: "Greek yogurt" },
+          { amount: "1", unit: "tbsp", item: "lemon juice" },
+          { amount: "2", unit: "tbsp", item: "dill", notes: "chopped" }
+        ]
+      },
+      {
+        title: "For the bowls",
+        items: [
+          { amount: "4", unit: "cups", item: "cooked rice" },
+          { amount: "1", unit: "", item: "English cucumber", notes: "thinly sliced" },
+          { amount: "1", unit: "", item: "avocado", notes: "sliced" },
+          { amount: "2", unit: "", item: "scallions", notes: "thinly sliced" }
+        ]
+      }
     ],
     instructions: [
-      { step: 1, text: "Season the salmon generously and roast until just flaky." },
-      { step: 2, text: "Brush with hot honey and return to the oven for a glossy finish." },
-      { step: 3, text: "Build bowls with rice, cucumbers, herbs, and yogurt sauce." }
+      {
+        step: 1,
+        text: "Rub the salmon with Cajun seasoning and olive oil, then roast until just shy of fully done.",
+        tip: "The fish should still look slightly translucent in the center before the glaze step."
+      },
+      {
+        step: 2,
+        text: "Brush with hot honey and return to the oven briefly so the glaze turns shiny and sticky.",
+        tip: "This second blast is what makes the bowl look dinner-party polished instead of meal-prep plain."
+      },
+      {
+        step: 3,
+        text: "Stir together the yogurt, lemon, and dill while the salmon rests.",
+        tip: "Keep the yogurt tangy so it actually cools the bowl."
+      },
+      {
+        step: 4,
+        text: "Build the bowls with rice, vegetables, glazed salmon, and plenty of herbed yogurt.",
+        tip: "Use more yogurt than you think at first. It is part of the balance, not decoration."
+      }
     ],
-    tips: ["Use short-grain rice if you want the bowl to feel richer."],
-    variations: ["Swap salmon for shrimp or tofu."],
+    methodSteps: [
+      {
+        step: 1,
+        title: "Season the salmon hard enough to matter",
+        body:
+          "Rub the salmon with Cajun seasoning and olive oil so the fish gets a real spice crust before it ever meets the hot honey.",
+        cue: "The fish should be evenly coated and already smell savory and peppery before roasting.",
+        tip: "Check your Cajun blend for salt level before you pile it on.",
+        durationMinutes: 5,
+        ingredientRefs: ["salmon fillet", "Cajun seasoning", "olive oil"]
+      },
+      {
+        step: 2,
+        title: "Roast, then lacquer with hot honey",
+        body:
+          "Roast the salmon until nearly done, brush with hot honey, and return it to the oven just long enough for the glaze to turn shiny and sticky.",
+        cue: "The glaze should look glossy and cling to the fish in a thin layer instead of sliding off.",
+        tip: "Pull the salmon while it is still juicy in the center because carryover heat finishes the job.",
+        durationMinutes: 12,
+        ingredientRefs: ["salmon fillet", "hot honey"],
+        imageUrl:
+          "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=1000&q=80",
+        imageAlt: "Roasted salmon glazed with hot honey for rice bowls"
+      },
+      {
+        step: 3,
+        title: "Mix a cool yogurt counterpoint",
+        body:
+          "Stir the yogurt with lemon and dill while the salmon rests so the bowl gets a cold, herby element to cut the glaze and Cajun spice.",
+        cue: "The yogurt should taste bright and clean enough to reset your palate.",
+        tip: "If the yogurt feels too thick, loosen it with a tiny splash of water or lemon juice.",
+        durationMinutes: 3,
+        ingredientRefs: ["Greek yogurt", "lemon juice", "dill"]
+      },
+      {
+        step: 4,
+        title: "Build bowls with hot, cool, and crunchy layers",
+        body:
+          "Spoon rice into bowls, add cucumber and avocado, then top with the glazed salmon and generous swoops of herbed yogurt so every bite lands balanced.",
+        cue: "The final bowl should look layered and glossy, not like the toppings were just dumped in one corner.",
+        tip: "Scatter the scallions at the end so the bowls still read fresh when they hit the table.",
+        durationMinutes: 4,
+        ingredientRefs: ["cooked rice", "English cucumber", "avocado", "scallions"]
+      }
+    ],
+    tips: [
+      "Use short-grain or jasmine rice if you want the bowl to feel softer and richer.",
+      "Let the salmon rest for a couple of minutes before flaking into the bowls so the glaze stays put."
+    ],
+    variations: [
+      "Swap salmon for shrimp or tofu if you want the same bowl structure with a different protein.",
+      "Use pickled onions instead of avocado if you want the bowl to read brighter and sharper."
+    ],
+    makeAheadNotes:
+      "Cook the rice and mix the yogurt ahead, then roast and glaze the salmon right before serving so the fish still feels juicy.",
+    storageNotes:
+      "Store the salmon, rice, yogurt, and vegetables in separate containers for up to 3 days if you are meal prepping.",
+    reheatNotes:
+      "Reheat the rice and salmon gently, then add the cold toppings and yogurt after warming so the bowl keeps its contrast.",
+    servingSuggestions: [
+      "Add quick-pickled onions or charred corn if you want the bowl to feel even bigger and brighter.",
+      "Serve with extra lemon wedges or hot sauce at the table depending on whether you want more acid or more fire.",
+      "This bowl is strong enough for meal prep but polished enough for company."
+    ],
+    substitutions: [
+      "Use trout or steelhead if salmon is pricey or hard to find.",
+      "Swap dill for chives or parsley if that is what your fridge is offering.",
+      "Brown rice works fine, but use something tender enough that the bowl still feels cohesive."
+    ],
+    faqs: [
+      {
+        question: "Can I cook the salmon in an air fryer?",
+        answer:
+          "Yes. Air fry it until nearly done, then brush with hot honey and finish for a minute or two more so the glaze sets."
+      },
+      {
+        question: "Is this recipe very spicy?",
+        answer:
+          "It lands more warm and punchy than brutal. The yogurt and cucumber keep the bowl from eating hot all the way through."
+      },
+      {
+        question: "What keeps the bowl from tasting too sweet?",
+        answer:
+          "The Cajun spice, lemony yogurt, and fresh vegetables do that job. Without those, hot honey can take over fast."
+      }
+    ],
     equipment: ["sheet pan", "small bowl"],
     ratingAvg: 4.7,
     ratingCount: 85,
@@ -1283,6 +1978,8 @@ export const sampleRecipes: Recipe[] = [
       "Tender meatballs simmered in green curry coconut sauce with basil, lime, and a slow-building chili finish.",
     intro:
       "This is a comfort-dinner version of green curry: rich enough for a weeknight centerpiece, but still sharp and herbaceous.",
+    heroSummary:
+      "A comfort-dinner curry with tender chicken meatballs, a silky coconut sauce, and enough basil and lime at the end to keep it from going sleepy.",
     imageUrl:
       "https://images.unsplash.com/photo-1604908176997-4318c0c0b7c2?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Meatballs in green curry sauce with herbs",
@@ -1299,21 +1996,158 @@ export const sampleRecipes: Recipe[] = [
     prepTimeMinutes: 20,
     cookTimeMinutes: 25,
     totalTimeMinutes: 45,
+    activeTimeMinutes: 28,
     servings: 4,
     difficulty: "intermediate",
     ingredients: [
-      { amount: "1.5", unit: "lb", item: "ground chicken" },
+      { amount: "1 1/2", unit: "lb", item: "ground chicken" },
+      { amount: "1/2", unit: "cup", item: "panko" },
+      { amount: "1", unit: "", item: "egg" },
+      { amount: "2", unit: "", item: "scallions", notes: "thinly sliced" },
+      { amount: "1", unit: "tbsp", item: "fish sauce" },
       { amount: "3", unit: "tbsp", item: "green curry paste" },
-      { amount: "1", unit: "can", item: "coconut milk" },
-      { amount: "1", unit: "cup", item: "Thai basil leaves" }
+      { amount: "1", unit: "13.5-oz can", item: "coconut milk" },
+      { amount: "1/2", unit: "cup", item: "chicken stock" },
+      { amount: "8", unit: "oz", item: "green beans", notes: "trimmed and cut in half" },
+      { amount: "1", unit: "cup", item: "Thai basil leaves" },
+      { amount: "1", unit: "", item: "lime", notes: "cut into wedges" }
+    ],
+    ingredientSections: [
+      {
+        title: "For the meatballs",
+        items: [
+          { amount: "1 1/2", unit: "lb", item: "ground chicken" },
+          { amount: "1/2", unit: "cup", item: "panko" },
+          { amount: "1", unit: "", item: "egg" },
+          { amount: "2", unit: "", item: "scallions", notes: "thinly sliced" },
+          { amount: "1", unit: "tbsp", item: "fish sauce" }
+        ]
+      },
+      {
+        title: "For the green curry sauce",
+        items: [
+          { amount: "3", unit: "tbsp", item: "green curry paste" },
+          { amount: "1", unit: "13.5-oz can", item: "coconut milk" },
+          { amount: "1/2", unit: "cup", item: "chicken stock" },
+          { amount: "8", unit: "oz", item: "green beans", notes: "trimmed and cut in half" }
+        ]
+      },
+      {
+        title: "For finishing",
+        items: [
+          { amount: "1", unit: "cup", item: "Thai basil leaves" },
+          { amount: "1", unit: "", item: "lime", notes: "cut into wedges" }
+        ]
+      }
     ],
     instructions: [
-      { step: 1, text: "Mix, shape, and brown the meatballs until lightly golden." },
-      { step: 2, text: "Bloom the curry paste, then simmer with coconut milk until glossy." },
-      { step: 3, text: "Return the meatballs to the sauce and finish with basil and lime." }
+      {
+        step: 1,
+        text: "Mix the chicken, panko, egg, scallions, and fish sauce gently, then form the meatballs and brown them until lightly golden.",
+        tip: "You want lightly set exteriors, not fully cooked-through meatballs yet."
+      },
+      {
+        step: 2,
+        text: "Bloom the green curry paste in the pan, then add the coconut milk and stock and let the sauce simmer until glossy.",
+        tip: "Cooking the paste first is what gives the curry a rounder, deeper flavor."
+      },
+      {
+        step: 3,
+        text: "Add the green beans and return the meatballs to the pan until everything cooks through in the sauce.",
+        tip: "The meatballs should finish juicy and tender, not tight."
+      },
+      {
+        step: 4,
+        text: "Kill the heat and finish with Thai basil and lime so the curry lands fragrant instead of heavy.",
+        tip: "Basil added too early loses the lift this dish needs."
+      }
     ],
-    tips: ["Wet your hands to keep the meatball mix from sticking."],
-    variations: ["Use turkey or tofu meatballs if preferred."],
+    methodSteps: [
+      {
+        step: 1,
+        title: "Mix a tender meatball base",
+        body:
+          "Combine the chicken, panko, egg, scallions, and fish sauce just until it comes together, then shape into even meatballs so they cook at the same pace.",
+        cue: "The mixture should feel cohesive and sticky, not densely packed.",
+        tip: "Wet your hands if the mixture starts clinging too hard while you shape.",
+        durationMinutes: 10,
+        ingredientRefs: ["ground chicken", "panko", "egg", "scallions", "fish sauce"]
+      },
+      {
+        step: 2,
+        title: "Brown the meatballs, then wake up the curry paste",
+        body:
+          "Brown the meatballs until lightly golden, remove them, then bloom the green curry paste in the same pan so the sauce starts with real aromatic depth.",
+        cue: "The curry paste should smell fragrant and rounded, not raw and grassy.",
+        tip: "You do not need the meatballs fully cooked here. They finish in the sauce.",
+        durationMinutes: 10,
+        ingredientRefs: ["ground chicken", "green curry paste"]
+      },
+      {
+        step: 3,
+        title: "Simmer until the sauce turns silky",
+        body:
+          "Add the coconut milk and stock, return the meatballs, and simmer with the green beans until the sauce goes glossy and the meatballs finish cooking through.",
+        cue: "The sauce should lightly coat a spoon and the meatballs should feel springy and tender, not dense.",
+        tip: "Keep the simmer gentle so the coconut milk stays smooth instead of breaking.",
+        durationMinutes: 12,
+        ingredientRefs: ["coconut milk", "chicken stock", "green beans", "ground chicken"],
+        imageUrl:
+          "https://images.unsplash.com/photo-1604908176997-4318c0c0b7c2?auto=format&fit=crop&w=1000&q=80",
+        imageAlt: "Chicken meatballs simmering in green curry coconut sauce"
+      },
+      {
+        step: 4,
+        title: "Finish with basil and lime for lift",
+        body:
+          "Fold in the basil right at the end and serve with lime wedges so the curry stays fragrant, bright, and just sharp enough to balance the richness.",
+        cue: "The basil should wilt into the sauce without turning dark and tired.",
+        tip: "Serve this one hot. The sauce tightens as it cools.",
+        durationMinutes: 3,
+        ingredientRefs: ["Thai basil leaves", "lime"]
+      }
+    ],
+    tips: [
+      "Wet your hands when shaping the meatballs to keep the mix from sticking and compacting.",
+      "Taste your curry paste brand first if you are unsure of its salt and heat level."
+    ],
+    variations: [
+      "Use turkey if you want a leaner meatball, though chicken stays a little softer.",
+      "Swap the green beans for snap peas or zucchini if that is what is in season."
+    ],
+    makeAheadNotes:
+      "Shape the meatballs and prep the sauce ingredients ahead, then cook everything fresh so the basil and lime still feel bright.",
+    storageNotes:
+      "Leftovers keep for up to 3 days in the fridge. The sauce thickens a bit as it cools.",
+    reheatNotes:
+      "Reheat gently over low heat with a splash of water or stock, then add a fresh squeeze of lime before serving.",
+    servingSuggestions: [
+      "Serve over jasmine rice if you want the curry to eat like a full centerpiece dinner.",
+      "A spoonful of chili crisp on top works surprisingly well if you want a hotter finish.",
+      "Keep extra basil and lime at the table because both help the last bites stay lively."
+    ],
+    substitutions: [
+      "Use turkey in place of chicken if needed, but do not overmix or the meatballs will tighten up.",
+      "Coconut cream makes the sauce richer; stock plus regular coconut milk keeps it lighter.",
+      "Use store-bought fish balls or tofu puffs only if you are comfortable with a very different texture."
+    ],
+    faqs: [
+      {
+        question: "Can I bake the meatballs instead of browning them?",
+        answer:
+          "Yes, but browning them in the pan adds more flavor to the curry base. If you bake them, be sure to bloom the curry paste well on the stove."
+      },
+      {
+        question: "How spicy is this curry?",
+        answer:
+          "It lands warmly spicy as written, not punishing. Curry paste brands vary a lot, though, so taste yours if you know it runs hot."
+      },
+      {
+        question: "What keeps the curry from tasting too rich?",
+        answer:
+          "The basil and lime do that work. Without them, coconut milk can make the whole pan feel heavy pretty quickly."
+      }
+    ],
     equipment: ["saute pan", "mixing bowl"],
     ratingAvg: 4.5,
     ratingCount: 44,
