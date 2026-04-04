@@ -76,6 +76,61 @@ function formatLabel(value: string) {
     .replace(/\b\w/g, (character) => character.toUpperCase());
 }
 
+function getPrintNoteBlocks(recipe: Recipe, substitutions: string[], servingSuggestions: string[]) {
+  const blocks: Array<{ label: string; lines: string[] }> = [];
+
+  if (recipe.equipment.length) {
+    blocks.push({
+      label: "Equipment",
+      lines: recipe.equipment.slice(0, 6)
+    });
+  }
+
+  if (recipe.makeAheadNotes) {
+    blocks.push({
+      label: "Make ahead",
+      lines: [recipe.makeAheadNotes]
+    });
+  }
+
+  if (recipe.storageNotes) {
+    blocks.push({
+      label: "Storage",
+      lines: [recipe.storageNotes]
+    });
+  }
+
+  if (recipe.reheatNotes) {
+    blocks.push({
+      label: "Reheat",
+      lines: [recipe.reheatNotes]
+    });
+  }
+
+  if (recipe.tips.length) {
+    blocks.push({
+      label: "Top tips",
+      lines: recipe.tips.slice(0, 3)
+    });
+  }
+
+  if (substitutions.length) {
+    blocks.push({
+      label: "Substitutions",
+      lines: substitutions.slice(0, 3)
+    });
+  }
+
+  if (servingSuggestions.length) {
+    blocks.push({
+      label: "Serve with",
+      lines: servingSuggestions.slice(0, 3)
+    });
+  }
+
+  return blocks;
+}
+
 function getProjectCard(recipe: Recipe) {
   if (recipe.totalTimeMinutes >= 150) {
     return {
@@ -173,6 +228,7 @@ export default async function RecipePage({
   const heroSummary = getRecipeHeroSummary(recipe);
   const projectCard = getProjectCard(recipe);
   const occasionCard = getOccasionCard(recipe);
+  const printNoteBlocks = getPrintNoteBlocks(recipe, substitutions, servingSuggestions);
   const planningStats = [
     { label: "Prep", value: formatCookTime(recipe.prepTimeMinutes) },
     { label: "Cook", value: formatCookTime(recipe.cookTimeMinutes) },
@@ -221,7 +277,67 @@ export default async function RecipePage({
         <p className="mt-5 text-base leading-7 text-charcoal/78">{heroSummary}</p>
       </section>
 
-      <div id="recipe-detail-shell" className="recipe-detail-shell recipe-print-shell space-y-10">
+      <section className="recipe-print-sheet print-only">
+        <div className="recipe-print-grid">
+          <section className="recipe-print-card">
+            <h2>Ingredients</h2>
+            {ingredientSections.map((section, index) => (
+              <div key={`print-ingredients-${section.title}-${index}`} className="recipe-print-block">
+                <h3>{section.title}</h3>
+                <ul>
+                  {section.items.map((ingredient, ingredientIndex) => (
+                    <li key={`print-ingredient-${index}-${ingredientIndex}-${ingredient.item}`}>
+                      <strong>{[ingredient.amount, ingredient.unit].filter(Boolean).join(" ")}</strong>
+                      <span>
+                        {ingredient.item}
+                        {ingredient.notes ? `, ${ingredient.notes}` : ""}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </section>
+
+          <section className="recipe-print-card">
+            <h2>Method</h2>
+            <ol className="recipe-print-steps">
+              {methodSteps.map((step) => (
+                <li key={`print-step-${step.step}`}>
+                  <p>
+                    <strong>
+                      {step.step}. {step.title}
+                    </strong>
+                    {` ${step.body}`}
+                  </p>
+                  {step.cue ? <p className="recipe-print-note">Watch for: {step.cue}</p> : null}
+                  {step.tip ? <p className="recipe-print-note">Tip: {step.tip}</p> : null}
+                </li>
+              ))}
+            </ol>
+          </section>
+        </div>
+
+        {printNoteBlocks.length ? (
+          <section className="recipe-print-notes">
+            {printNoteBlocks.map((block) => (
+              <div key={`print-note-${block.label}`} className="recipe-print-note-card">
+                <h3>{block.label}</h3>
+                <ul>
+                  {block.lines.map((line) => (
+                    <li key={`${block.label}-${line}`}>{line}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </section>
+        ) : null}
+      </section>
+
+      <div
+        id="recipe-detail-shell"
+        className="recipe-detail-shell recipe-screen-content space-y-10"
+      >
         <section className="recipe-hero-shell recipe-core-panel relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#140b09] shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
           <div className="recipe-hero-bg absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(230,57,70,0.28),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(244,162,97,0.18),transparent_30%)]" />
           <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_460px]">
