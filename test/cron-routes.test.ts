@@ -43,6 +43,25 @@ afterEach(() => {
 });
 
 describe("newsletter digest cron route", () => {
+  it("fails closed when the cron secret is not configured", async () => {
+    const { route, createWeeklyDigest, processScheduledNewsletterCampaigns } =
+      await importNewsletterRoute();
+
+    const response = await route.POST(
+      new Request("https://flamingfoodies.com/api/admin/newsletter-digest", {
+        method: "POST"
+      })
+    );
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error: "CRON_SECRET is not configured"
+    });
+    expect(createWeeklyDigest).not.toHaveBeenCalled();
+    expect(processScheduledNewsletterCampaigns).not.toHaveBeenCalled();
+  });
+
   it("rejects unauthorized requests when CRON_SECRET is set", async () => {
     vi.stubEnv("CRON_SECRET", "topsecret");
     const { route, createWeeklyDigest, processScheduledNewsletterCampaigns } =
@@ -94,6 +113,7 @@ describe("newsletter digest cron route", () => {
   });
 
   it("processes due scheduled newsletters when requested", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
     const processScheduledNewsletterCampaigns = vi.fn().mockResolvedValue({
       mode: "mock",
       processed: 3,
@@ -107,7 +127,12 @@ describe("newsletter digest cron route", () => {
     const response = await route.POST(
       new Request(
         "https://flamingfoodies.com/api/admin/newsletter-digest?mode=send_due",
-        { method: "POST" }
+        {
+          method: "POST",
+          headers: {
+            authorization: "Bearer topsecret"
+          }
+        }
       )
     );
 
@@ -125,6 +150,7 @@ describe("newsletter digest cron route", () => {
   });
 
   it("can draft and process due newsletters in one request", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
     const createWeeklyDigest = vi.fn().mockResolvedValue({
       mode: "live",
       subject: "Weekend Heat",
@@ -144,7 +170,12 @@ describe("newsletter digest cron route", () => {
     const response = await route.POST(
       new Request(
         "https://flamingfoodies.com/api/admin/newsletter-digest?mode=draft_and_send_due",
-        { method: "POST" }
+        {
+          method: "POST",
+          headers: {
+            authorization: "Bearer topsecret"
+          }
+        }
       )
     );
 
@@ -170,6 +201,23 @@ describe("newsletter digest cron route", () => {
 });
 
 describe("social scheduler cron route", () => {
+  it("fails closed when the cron secret is not configured", async () => {
+    const { route, queueSocialScheduler } = await importSocialRoute();
+
+    const response = await route.POST(
+      new Request("https://flamingfoodies.com/api/admin/social-scheduler", {
+        method: "POST"
+      })
+    );
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error: "CRON_SECRET is not configured"
+    });
+    expect(queueSocialScheduler).not.toHaveBeenCalled();
+  });
+
   it("runs the scheduler when authorized", async () => {
     vi.stubEnv("CRON_SECRET", "shh");
     const { route, queueSocialScheduler } = await importSocialRoute({

@@ -65,6 +65,8 @@ BUFFER_PROFILE_IDS=instagram:abc123,pinterest:def456,facebook:ghi789
    - `/api/admin/social-scheduler`
    - `/api/admin/newsletter-digest`
 
+For the exact production cutover checklist, see `docs/production-go-live.md`.
+
 ## Verification Commands
 
 ```bash
