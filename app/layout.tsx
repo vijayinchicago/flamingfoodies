@@ -25,7 +25,14 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {env.NEXT_PUBLIC_ADSENSE_ID ? (
-          <meta name="google-adsense-account" content={env.NEXT_PUBLIC_ADSENSE_ID} />
+          <>
+            <meta name="google-adsense-account" content={env.NEXT_PUBLIC_ADSENSE_ID} />
+            <script
+              async
+              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${env.NEXT_PUBLIC_ADSENSE_ID}`}
+              crossOrigin="anonymous"
+            />
+          </>
         ) : null}
       </head>
       <body>

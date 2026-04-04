@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { AdScript } from "@/components/ads/ad-script";
 import { AdSlot } from "@/components/ads/ad-slot";
 import { CommentSection } from "@/components/community/comment-section";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
@@ -82,9 +81,6 @@ export default async function ReviewPage({
 
   return (
     <article className="container-shell py-16">
-      {ads.enabled && ads.clientId ? (
-        <AdScript clientId={ads.clientId} />
-      ) : null}
       <ReviewSchema review={review} />
       <BreadcrumbSchema
         items={[

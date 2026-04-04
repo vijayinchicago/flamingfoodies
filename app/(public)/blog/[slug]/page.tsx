@@ -1,7 +1,6 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
-import { AdScript } from "@/components/ads/ad-script";
 import { AdSlot } from "@/components/ads/ad-slot";
 import { CommentSection } from "@/components/community/comment-section";
 import { PinterestSaveButton } from "@/components/content/pinterest-save-button";
@@ -54,9 +53,6 @@ export default async function BlogPostPage({
 
   return (
     <article className="container-shell py-16">
-      {ads.enabled && ads.clientId ? (
-        <AdScript clientId={ads.clientId} />
-      ) : null}
       <ArticleSchema post={post} />
       <BreadcrumbSchema
         items={[

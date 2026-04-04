@@ -1,4 +1,3 @@
-import { AdScript } from "@/components/ads/ad-script";
 import { AdSlot } from "@/components/ads/ad-slot";
 import { ContentCard } from "@/components/cards/content-card";
 import { SectionHeading } from "@/components/layout/section-heading";
@@ -21,9 +20,6 @@ export default async function BlogIndexPage() {
 
   return (
     <section className="container-shell py-16">
-      {ads.enabled && ads.clientId ? (
-        <AdScript clientId={ads.clientId} />
-      ) : null}
       <ItemListSchema
         name="FlamingFoodies blog archive"
         items={posts.map((post) => ({

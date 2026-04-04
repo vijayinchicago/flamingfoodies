@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { AdScript } from "@/components/ads/ad-script";
 import { AdSlot } from "@/components/ads/ad-slot";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { AffiliateLink } from "@/components/content/affiliate-link";
@@ -40,9 +39,6 @@ export default async function ReviewsIndexPage() {
 
   return (
     <section className="container-shell py-16">
-      {ads.enabled && ads.clientId ? (
-        <AdScript clientId={ads.clientId} />
-      ) : null}
       <ItemListSchema
         name="FlamingFoodies review archive"
         items={reviews.map((review) => ({
