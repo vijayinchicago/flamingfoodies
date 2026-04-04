@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getBestGiftableHotSauceReviews,
+  getBestHotSaucesReviews,
   getBestForTacosReviews,
   getFilteredHotSauceReviews,
   getHotSauceIntentLabel,
@@ -165,5 +167,14 @@ describe("hot sauce helpers", () => {
     expect(getTacoFriendlyRecipes(recipes, 2).map((item) => item.slug)).toContain(
       "birria-quesatacos-with-arbol-salsa"
     );
+  });
+
+  it("builds best-overall and giftable landing shelves", () => {
+    const reviews = [giftableReview, pantryReview, baseReview, bigHeatReview];
+
+    expect(getBestHotSaucesReviews(reviews, 2)[0]?.slug).toBe(
+      "yellowbird-habanero-hot-sauce-review"
+    );
+    expect(getBestGiftableHotSauceReviews(reviews, 2)[0]?.slug).toBe("gift-set-review");
   });
 });

@@ -36,22 +36,22 @@ export const HOT_SAUCE_FILTERS: Array<{
 
 export const HOT_SAUCE_LANDING_LINKS = [
   {
+    href: "/hot-sauces/best",
+    eyebrow: "Best overall",
+    title: "Best hot sauces",
+    description: "The bottles we would recommend first if someone asked what to buy right now."
+  },
+  {
     href: "/hot-sauces/best-for-tacos",
     eyebrow: "Taco night",
     title: "Best hot sauces for tacos",
     description: "Bright, spoonable bottles that sharpen tacos instead of bullying them."
   },
   {
-    href: "/reviews?filter=everyday",
-    eyebrow: "Weeknight staples",
-    title: "Everyday pours",
-    description: "The bottles that earn fridge-door space because they actually get used."
-  },
-  {
-    href: "/reviews?filter=giftable",
+    href: "/hot-sauces/best-gift-sets",
     eyebrow: "Gifts",
-    title: "Giftable heat",
-    description: "Tasting sets, subscriptions, and safer gifting moves for spice lovers."
+    title: "Best gift sets and subscriptions",
+    description: "The easiest way to gift heat without guessing at a single bottle."
   },
   {
     href: "/reviews?filter=big-heat",
@@ -156,6 +156,47 @@ function sortByShelfValue(reviews: Review[]) {
 
 export function getTopHotSaucePicks(reviews: Review[], limit = 3) {
   return sortByShelfValue(reviews).slice(0, limit);
+}
+
+export function getBestHotSaucesReviews(reviews: Review[], limit = 6) {
+  return reviews
+    .map((review) => {
+      let score = 0;
+
+      if (review.category === "hot-sauce" || review.category === "pantry-condiment") score += 4;
+      if (review.recommended) score += 4;
+      if (review.featured) score += 3;
+      if (isEverydayHotSauceReview(review)) score += 3;
+      if (!isGiftableHotSauceReview(review)) score += 2;
+      if (!isBigHeatHotSauceReview(review)) score += 1;
+      score += Math.round(review.rating * 2);
+      score += Math.min(Math.floor((review.viewCount ?? 0) / 100), 4);
+
+      return { review, score };
+    })
+    .sort((left, right) => right.score - left.score || right.review.rating - left.review.rating)
+    .map((entry) => entry.review)
+    .slice(0, limit);
+}
+
+export function getBestGiftableHotSauceReviews(reviews: Review[], limit = 4) {
+  return reviews
+    .filter(isGiftableHotSauceReview)
+    .map((review) => {
+      let score = 0;
+
+      if (review.category === "gift-set" || review.category === "subscription-box") score += 4;
+      if (review.recommended) score += 3;
+      if (review.featured) score += 2;
+      if (hasAnyToken(review, ["subscription", "tasting", "gift", "collection"])) score += 3;
+      score += Math.round(review.rating * 2);
+      score += Math.min(Math.floor((review.viewCount ?? 0) / 100), 4);
+
+      return { review, score };
+    })
+    .sort((left, right) => right.score - left.score || right.review.rating - left.review.rating)
+    .map((entry) => entry.review)
+    .slice(0, limit);
 }
 
 export function getHotSauceIntentLabel(review: Review) {

@@ -51,9 +51,9 @@ export default async function HotSaucesHubPage() {
             Shortcut the shelf before you waste money on the wrong bottle.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
-            The best hot sauce pages help people shop by occasion and flavor. Start with taco
-            night, everyday pours, gifts, or big heat, then drop into the individual reviews once
-            you know what kind of bottle you actually need.
+            The best hot sauce pages help people shop by occasion and flavor. Start with the best
+            overall shelf, taco night, giftable sets, or big heat, then drop into the individual
+            reviews once you know what kind of bottle you actually need.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
