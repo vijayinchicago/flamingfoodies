@@ -3,13 +3,38 @@ import Link from "next/link";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { RecipeCard } from "@/components/cards/recipe-card";
 import { ReviewCard } from "@/components/cards/review-card";
+import { HotSauceComparisonTable } from "@/components/hot-sauces/hot-sauce-comparison-table";
+import { HotSauceFaqSection } from "@/components/hot-sauces/hot-sauce-faq-section";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
-import { getBestForTacosReviews, getTacoFriendlyRecipes } from "@/lib/hot-sauces";
+import {
+  buildHotSauceComparisonRows,
+  getBestForTacosReviews,
+  getTacoFriendlyRecipes
+} from "@/lib/hot-sauces";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
 import { getRecipes, getReviews } from "@/lib/services/content";
+import type { RecipeFaq } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
+
+const tacoFaqs: RecipeFaq[] = [
+  {
+    question: "What heat level works best on tacos?",
+    answer:
+      "Usually medium to hot. Tacos tend to benefit more from brightness and spoonability than from max-heat bottles that overpower fillings and salsa."
+  },
+  {
+    question: "Should taco hot sauce be smoky or citrusy?",
+    answer:
+      "It depends on the taco. Beef and birria like smoky depth, while fish, shrimp, and breakfast tacos usually benefit more from citrus or cleaner pepper lift."
+  },
+  {
+    question: "Do I need a separate bottle for fish tacos?",
+    answer:
+      "Not always, but seafood-friendly sauces often pull double duty on fish tacos better than garlic-heavy wing sauces do."
+  }
+];
 
 export const metadata = buildMetadata({
   title: "Best Hot Sauces for Tacos | FlamingFoodies",
@@ -22,6 +47,7 @@ export default async function BestHotSaucesForTacosPage() {
   const [reviews, recipes] = await Promise.all([getReviews(), getRecipes()]);
   const tacoSauces = getBestForTacosReviews(reviews, 4);
   const tacoRecipes = getTacoFriendlyRecipes(recipes, 3);
+  const comparisonRows = buildHotSauceComparisonRows(tacoSauces, "tacos");
 
   return (
     <section className="container-shell py-16">
@@ -91,6 +117,13 @@ export default async function BestHotSaucesForTacosPage() {
         </div>
       </div>
 
+      <HotSauceComparisonTable
+        eyebrow="Taco-night comparison"
+        title="Compare the taco shelf fast."
+        copy="If you are stuck between two bottles, this is the quick answer on heat, flavor lane, and the kind of taco each bottle helps most."
+        rows={comparisonRows}
+      />
+
       <div className="mt-12">
         <SectionHeading
           eyebrow="Cook with them"
@@ -103,6 +136,13 @@ export default async function BestHotSaucesForTacosPage() {
           ))}
         </div>
       </div>
+
+      <HotSauceFaqSection
+        eyebrow="FAQ"
+        title="Taco-night questions worth answering before you buy."
+        copy="The best taco bottle is usually the one that solves the meal you actually cook most, not the one with the scariest label."
+        faqs={tacoFaqs}
+      />
     </section>
   );
 }

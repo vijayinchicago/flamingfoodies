@@ -3,13 +3,38 @@ import Link from "next/link";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { RecipeCard } from "@/components/cards/recipe-card";
 import { ReviewCard } from "@/components/cards/review-card";
+import { HotSauceComparisonTable } from "@/components/hot-sauces/hot-sauce-comparison-table";
+import { HotSauceFaqSection } from "@/components/hot-sauces/hot-sauce-faq-section";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
-import { getBestForWingsReviews, getWingFriendlyRecipes } from "@/lib/hot-sauces";
+import {
+  buildHotSauceComparisonRows,
+  getBestForWingsReviews,
+  getWingFriendlyRecipes
+} from "@/lib/hot-sauces";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
 import { getRecipes, getReviews } from "@/lib/services/content";
+import type { RecipeFaq } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
+
+const wingFaqs: RecipeFaq[] = [
+  {
+    question: "What kind of hot sauce works best on wings?",
+    answer:
+      "Usually a sauce with cling, garlic, smoke, or enough acid to keep rich food from tasting flat. Thin novelty superhots rarely work as well as people expect."
+  },
+  {
+    question: "Should my wing sauce also work on pizza?",
+    answer:
+      "Ideally yes. Garlic-heavy, pizza-friendly bottles usually give you more value than a one-purpose wing sauce that never leaves the fridge."
+  },
+  {
+    question: "Do wings need the hottest bottle on the shelf?",
+    answer:
+      "No. Rich food can carry more heat, but one balanced hard-hitter is usually smarter than stacking multiple ultra-hot bottles that all taste flat."
+  }
+];
 
 export const metadata = buildMetadata({
   title: "Best Hot Sauces for Wings | FlamingFoodies",
@@ -22,6 +47,7 @@ export default async function BestHotSaucesForWingsPage() {
   const [reviews, recipes] = await Promise.all([getReviews(), getRecipes()]);
   const wingSauces = getBestForWingsReviews(reviews, 4);
   const wingRecipes = getWingFriendlyRecipes(recipes, 3);
+  const comparisonRows = buildHotSauceComparisonRows(wingSauces, "wings");
 
   return (
     <section className="container-shell py-16">
@@ -88,6 +114,13 @@ export default async function BestHotSaucesForWingsPage() {
         </div>
       </div>
 
+      <HotSauceComparisonTable
+        eyebrow="Wing-night comparison"
+        title="See which bottle earns the late-night slot."
+        copy="These picks all work on richer food, but they solve different problems. Compare the heat, flavor lane, and why-buy case before you fill the cart."
+        rows={comparisonRows}
+      />
+
       <div className="mt-12">
         <SectionHeading
           eyebrow="Use them tonight"
@@ -100,6 +133,13 @@ export default async function BestHotSaucesForWingsPage() {
           ))}
         </div>
       </div>
+
+      <HotSauceFaqSection
+        eyebrow="FAQ"
+        title="The wing-night buying questions that matter most."
+        copy="This is the quick read if you want bottles that work on wings, pizza, and fried comfort food without feeling like a gimmick."
+        faqs={wingFaqs}
+      />
     </section>
   );
 }

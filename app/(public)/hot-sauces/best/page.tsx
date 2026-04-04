@@ -2,13 +2,38 @@ import Link from "next/link";
 
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { ReviewCard } from "@/components/cards/review-card";
+import { HotSauceComparisonTable } from "@/components/hot-sauces/hot-sauce-comparison-table";
+import { HotSauceFaqSection } from "@/components/hot-sauces/hot-sauce-faq-section";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
-import { getBestHotSaucesReviews, getFilteredHotSauceReviews } from "@/lib/hot-sauces";
+import {
+  buildHotSauceComparisonRows,
+  getBestHotSaucesReviews,
+  getFilteredHotSauceReviews
+} from "@/lib/hot-sauces";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
 import { getReviews } from "@/lib/services/content";
+import type { RecipeFaq } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
+
+const bestHotSaucesFaqs: RecipeFaq[] = [
+  {
+    question: "What hot sauce should a beginner buy first?",
+    answer:
+      "Start with one everyday bottle you can pour generously, one brighter bottle for tacos or eggs, and only then add a bigger hitter for pizza or wings."
+  },
+  {
+    question: "How many hot sauces should a starter shelf have?",
+    answer:
+      "Three useful bottles beat six random ones. A balanced shelf usually needs an everyday pour, a bright meal-specific bottle, and one richer-food or higher-heat option."
+  },
+  {
+    question: "Is a more expensive hot sauce always better?",
+    answer:
+      "Not at all. Price usually matters less than use case. Some of the most useful bottles are affordable everyday sauces that simply fit more meals."
+  }
+];
 
 export const metadata = buildMetadata({
   title: "Best Hot Sauces | FlamingFoodies",
@@ -22,6 +47,7 @@ export default async function BestHotSaucesPage() {
   const bestSauces = getBestHotSaucesReviews(reviews, 6);
   const everyday = getFilteredHotSauceReviews(reviews, "everyday").slice(0, 3);
   const bigHeat = getFilteredHotSauceReviews(reviews, "big-heat").slice(0, 3);
+  const comparisonRows = buildHotSauceComparisonRows(bestSauces.slice(0, 4));
 
   return (
     <section className="container-shell py-16">
@@ -94,6 +120,13 @@ export default async function BestHotSaucesPage() {
         </div>
       </div>
 
+      <HotSauceComparisonTable
+        eyebrow="Compare the short list"
+        title="See the tradeoffs before you buy."
+        copy="This is the quick read: what each bottle is best at, how hard it hits, and why it earns shelf space instead of collecting dust."
+        rows={comparisonRows}
+      />
+
       <div className="mt-12 grid gap-6 lg:grid-cols-2">
         <div className="panel p-6">
           <p className="eyebrow">Everyday winners</p>
@@ -127,6 +160,13 @@ export default async function BestHotSaucesPage() {
           </div>
         </div>
       </div>
+
+      <HotSauceFaqSection
+        eyebrow="FAQ"
+        title="What people usually want answered first."
+        copy="These are the buying questions that come up most often when someone is trying to build a smarter sauce shelf."
+        faqs={bestHotSaucesFaqs}
+      />
     </section>
   );
 }

@@ -1,17 +1,19 @@
 import Link from "next/link";
 
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
+import { ContentCard } from "@/components/cards/content-card";
 import { ReviewCard } from "@/components/cards/review-card";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
 import {
   HOT_SAUCE_LANDING_LINKS,
   getFilteredHotSauceReviews,
+  getHotSauceGuidePosts,
   getTopHotSaucePicks
 } from "@/lib/hot-sauces";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
-import { getReviews } from "@/lib/services/content";
+import { getBlogPosts, getReviews } from "@/lib/services/content";
 import { absoluteUrl } from "@/lib/utils";
 
 export const metadata = buildMetadata({
@@ -22,11 +24,12 @@ export const metadata = buildMetadata({
 });
 
 export default async function HotSaucesHubPage() {
-  const reviews = await getReviews();
+  const [reviews, posts] = await Promise.all([getReviews(), getBlogPosts()]);
   const topPicks = getTopHotSaucePicks(reviews, 4);
   const everydayPours = getFilteredHotSauceReviews(reviews, "everyday").slice(0, 4);
   const giftableHeat = getFilteredHotSauceReviews(reviews, "giftable").slice(0, 3);
   const bigHeat = getFilteredHotSauceReviews(reviews, "big-heat").slice(0, 3);
+  const guidePosts = getHotSauceGuidePosts(posts, 3);
 
   return (
     <section className="container-shell py-16">
@@ -111,6 +114,30 @@ export default async function HotSaucesHubPage() {
           ))}
         </div>
       </div>
+
+      {guidePosts.length ? (
+        <div className="mt-12">
+          <SectionHeading
+            eyebrow="Read before you buy"
+            title="Editorial guides that make the shelf easier to navigate."
+            copy="These posts support the hot sauce cluster directly, so someone can move from a buying question to the right landing page and then into the exact review."
+          />
+          <div className="mt-8 grid gap-6 lg:grid-cols-3">
+            {guidePosts.map((post) => (
+              <ContentCard
+                key={post.slug}
+                href={`/blog/${post.slug}`}
+                image={post.imageUrl}
+                imageAlt={post.imageAlt}
+                eyebrow={`${post.category} · ${post.source}`}
+                title={post.title}
+                description={post.description}
+                meta={post.publishedAt}
+              />
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-12 grid gap-6 lg:grid-cols-3">
         <div className="panel p-6">

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildHotSauceComparisonRows,
   getBestForEggsReviews,
   getAffordableHotSauceReviews,
   getBestGiftableHotSauceReviews,
@@ -11,11 +12,12 @@ import {
   getBestHotSaucesReviews,
   getBestForTacosReviews,
   getFilteredHotSauceReviews,
+  getHotSauceGuidePosts,
   getHotSauceIntentLabel,
   getTacoFriendlyRecipes,
   getTopHotSaucePicks
 } from "@/lib/hot-sauces";
-import type { Recipe, Review } from "@/lib/types";
+import type { BlogPost, Recipe, Review } from "@/lib/types";
 
 const baseReview: Review = {
   id: 1,
@@ -128,6 +130,24 @@ const baseRecipe: Recipe = {
   ratingCount: 0
 };
 
+const basePost: BlogPost = {
+  id: 1,
+  type: "blog",
+  slug: "hot-sauce-guide",
+  title: "How to Build a Hot Sauce Shelf",
+  description: "Guide to buying hot sauce",
+  authorName: "FlamingFoodies Team",
+  category: "guides",
+  content: "A useful guide to hot sauce shelves.",
+  source: "editorial",
+  status: "published",
+  tags: ["hot sauce", "guide"],
+  viewCount: 100,
+  likeCount: 5,
+  publishedAt: "2026-04-04T00:00:00.000Z",
+  featured: true
+};
+
 describe("hot sauce helpers", () => {
   it("filters reviews into shopping lanes", () => {
     const reviews = [baseReview, bigHeatReview, giftableReview, pantryReview];
@@ -196,5 +216,42 @@ describe("hot sauce helpers", () => {
     expect(getBestGiftableHotSauceReviews(reviews, 2)[0]?.slug).toBe("gift-set-review");
     expect(getAffordableHotSauceReviews(reviews, 3).every((item) => (item.priceUsd ?? 0) <= 15)).toBe(true);
     expect(getGiftableHotSauceReviewsUnderPrice(reviews, 50, 3)[0]?.slug).toBe("gift-set-review");
+  });
+
+  it("builds comparison rows and finds hot sauce editorial guides", () => {
+    const rows = buildHotSauceComparisonRows([baseReview, giftableReview]);
+    const posts: BlogPost[] = [
+      basePost,
+      {
+        ...basePost,
+        id: 2,
+        slug: "seafood-sauce-guide",
+        title: "How to Choose a Hot Sauce for Seafood",
+        description: "Seafood hot sauce guide",
+        featured: false,
+        publishedAt: "2026-04-05T00:00:00.000Z",
+        tags: ["seafood", "hot sauce"]
+      },
+      {
+        ...basePost,
+        id: 3,
+        slug: "fermented-chili-pastes",
+        title: "How Korean Chilli Pastes Build Layered Heat",
+        description: "Not a hot sauce buying page",
+        featured: false,
+        tags: ["korean", "gochujang"]
+      }
+    ];
+
+    expect(rows[0]).toMatchObject({
+      href: "/reviews/yellowbird-habanero-hot-sauce-review",
+      bestFor: "Tacos and rice bowls",
+      priceLabel: "$8.99"
+    });
+    expect(rows[1]?.bestFor).toBe("Tasting-night gifting");
+    expect(getHotSauceGuidePosts(posts, 2).map((post) => post.slug)).toEqual([
+      "hot-sauce-guide",
+      "seafood-sauce-guide"
+    ]);
   });
 });

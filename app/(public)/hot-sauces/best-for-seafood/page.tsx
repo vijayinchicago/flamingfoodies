@@ -3,13 +3,34 @@ import Link from "next/link";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { RecipeCard } from "@/components/cards/recipe-card";
 import { ReviewCard } from "@/components/cards/review-card";
+import { HotSauceComparisonTable } from "@/components/hot-sauces/hot-sauce-comparison-table";
+import { HotSauceFaqSection } from "@/components/hot-sauces/hot-sauce-faq-section";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
-import { getBestForSeafoodReviews } from "@/lib/hot-sauces";
+import { buildHotSauceComparisonRows, getBestForSeafoodReviews } from "@/lib/hot-sauces";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
 import { getRecipes, getReviews } from "@/lib/services/content";
+import type { RecipeFaq } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
+
+const seafoodFaqs: RecipeFaq[] = [
+  {
+    question: "What kind of hot sauce works best on seafood?",
+    answer:
+      "Usually bottles with brightness, ginger, citrus, or cleaner pepper notes. They wake up shrimp, fish, and grilled seafood without flattening them."
+  },
+  {
+    question: "Are smoky sauces too heavy for fish?",
+    answer:
+      "Often yes, especially on lighter seafood. A little smoke can work, but dense, muddy sauces usually bury delicate proteins faster than they help them."
+  },
+  {
+    question: "Can one seafood bottle also work on tacos?",
+    answer:
+      "Absolutely. Many seafood-friendly bottles are also excellent on fish tacos, shrimp tacos, and rice bowls because they bring the same lift and clarity."
+  }
+];
 
 export const metadata = buildMetadata({
   title: "Best Hot Sauces for Seafood | FlamingFoodies",
@@ -21,6 +42,7 @@ export const metadata = buildMetadata({
 export default async function BestHotSaucesForSeafoodPage() {
   const [reviews, recipes] = await Promise.all([getReviews(), getRecipes()]);
   const seafoodSauces = getBestForSeafoodReviews(reviews, 4);
+  const comparisonRows = buildHotSauceComparisonRows(seafoodSauces, "seafood");
   const seafoodRecipes = recipes.filter((recipe) =>
     [recipe.title, recipe.description, recipe.tags.join(" ")].join(" ").toLowerCase().match(/shrimp|seafood|fish|salmon/)
   ).slice(0, 3);
@@ -91,6 +113,13 @@ export default async function BestHotSaucesForSeafoodPage() {
         </div>
       </div>
 
+      <HotSauceComparisonTable
+        eyebrow="Seafood comparison"
+        title="Compare the bottles that keep seafood tasting clear."
+        copy="This is the quick-buy table for shrimp, fish tacos, grilled fish, and seafood bowls when you want the right kind of lift without overthinking it."
+        rows={comparisonRows}
+      />
+
       {seafoodRecipes.length ? (
         <div className="mt-12">
           <SectionHeading
@@ -105,6 +134,13 @@ export default async function BestHotSaucesForSeafoodPage() {
           </div>
         </div>
       ) : null}
+
+      <HotSauceFaqSection
+        eyebrow="FAQ"
+        title="Seafood buying questions worth solving before dinner."
+        copy="The most useful seafood sauces tend to be the ones that add brightness and range, not just raw heat."
+        faqs={seafoodFaqs}
+      />
     </section>
   );
 }

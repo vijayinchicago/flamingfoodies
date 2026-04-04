@@ -1,4 +1,23 @@
-import type { Recipe, Review } from "@/lib/types";
+import type { BlogPost, Recipe, Review } from "@/lib/types";
+
+export interface HotSauceComparisonRow {
+  name: string;
+  href: string;
+  bestFor: string;
+  heat: string;
+  flavorLane: string;
+  priceLabel: string;
+  whyBuy: string;
+}
+
+export type HotSauceComparisonContext =
+  | "general"
+  | "tacos"
+  | "eggs"
+  | "wings"
+  | "seafood"
+  | "pizza"
+  | "gifts";
 
 export type HotSauceFilterKey = "all" | "everyday" | "big-heat" | "giftable" | "under-15";
 
@@ -116,6 +135,201 @@ function joinReviewCorpus(review: Review) {
 function hasAnyToken(review: Review, tokens: string[]) {
   const corpus = joinReviewCorpus(review);
   return tokens.some((token) => corpus.includes(token));
+}
+
+function formatHotSaucePrice(priceUsd?: number) {
+  return typeof priceUsd === "number" ? `$${priceUsd.toFixed(2)}` : "Check Amazon";
+}
+
+export function getHotSauceHeatLabel(review: Review) {
+  switch (review.heatLevel) {
+    case "mild":
+      return "Mild";
+    case "medium":
+      return "Medium";
+    case "hot":
+      return "Hot";
+    case "inferno":
+      return "Inferno";
+    case "reaper":
+      return "Reaper";
+    default:
+      return "Flavor-first";
+  }
+}
+
+export function getHotSauceFlavorLane(review: Review) {
+  if (review.category === "gift-set" || review.category === "subscription-box") {
+    return "Mixed tasting flight";
+  }
+
+  if (review.category === "pantry-condiment") {
+    return "Sticky-sweet finish";
+  }
+
+  if (review.flavorNotes.length >= 2) {
+    return review.flavorNotes.slice(0, 2).join(" + ");
+  }
+
+  if (review.flavorNotes.length === 1) {
+    return review.flavorNotes[0];
+  }
+
+  return "Flavor-first heat";
+}
+
+export function getHotSauceBestForCopy(
+  review: Review,
+  context: HotSauceComparisonContext = "general"
+) {
+  if (context === "gifts") {
+    if (review.category === "subscription-box") {
+      return "Recurring discovery";
+    }
+
+    if (review.category === "gift-set") {
+      return "Tasting-night gifting";
+    }
+  }
+
+  if (context === "tacos" && hasAnyToken(review, ["taco", "tacos", "birria", "breakfast tacos"])) {
+    return "Tacos and rice bowls";
+  }
+
+  if (context === "eggs" && hasAnyToken(review, ["egg", "eggs", "breakfast", "hash"])) {
+    return "Eggs and breakfast tacos";
+  }
+
+  if (context === "wings" && hasAnyToken(review, ["wings", "wing", "buffalo", "garlic", "pizza"])) {
+    return "Wings and game-day food";
+  }
+
+  if (context === "seafood" && hasAnyToken(review, ["seafood", "shrimp", "fish"])) {
+    return "Seafood and fish tacos";
+  }
+
+  if (context === "pizza" && hasAnyToken(review, ["pizza", "hot honey", "garlic"])) {
+    return "Pizza and fried chicken";
+  }
+
+  if (review.category === "subscription-box") {
+    return "Recurring discovery";
+  }
+
+  if (review.category === "gift-set") {
+    return "Tasting-night gifting";
+  }
+
+  if (review.category === "grow-kit") {
+    return "DIY sauce makers";
+  }
+
+  if (hasAnyToken(review, ["taco", "tacos", "birria"])) {
+    return "Tacos and rice bowls";
+  }
+
+  if (hasAnyToken(review, ["seafood", "shrimp", "fish"])) {
+    return "Seafood and fish tacos";
+  }
+
+  if (hasAnyToken(review, ["egg", "eggs", "breakfast", "hash"])) {
+    return "Eggs and breakfast tacos";
+  }
+
+  if (hasAnyToken(review, ["pizza", "hot honey"])) {
+    return "Pizza and fried chicken";
+  }
+
+  if (hasAnyToken(review, ["wings", "wing", "buffalo", "garlic"])) {
+    return "Wings and game-day food";
+  }
+
+  if (hasAnyToken(review, ["taco", "tacos", "birria"])) {
+    return "Tacos and rice bowls";
+  }
+
+  if (isBigHeatHotSauceReview(review)) {
+    return "Heat-chasing nights";
+  }
+
+  if (isEverydayHotSauceReview(review)) {
+    return "Weeknight everyday use";
+  }
+
+  return "Flavor-first heat";
+}
+
+export function getHotSauceWhyBuy(review: Review) {
+  if (review.category === "subscription-box") {
+    return "It turns one gift into a recurring tasting ritual instead of a one-bottle guess.";
+  }
+
+  if (review.category === "gift-set") {
+    return "You get a more curated gift move with lower odds of missing on one exact flavor profile.";
+  }
+
+  if (review.category === "pantry-condiment") {
+    return "It adds contrast and texture where a standard vinegar-forward sauce can feel too one-note.";
+  }
+
+  if (isBigHeatHotSauceReview(review)) {
+    return "This is the bottle to keep when you want serious fire but still need some actual flavor behind it.";
+  }
+
+  if (hasAnyToken(review, ["citrus", "lime", "bright", "carrot"])) {
+    return "The bright profile keeps rich food tasting awake instead of just hotter.";
+  }
+
+  if (hasAnyToken(review, ["garlic", "buffalo", "smoky"])) {
+    return "It hangs on wings, pizza, and other richer food better than thinner novelty sauces.";
+  }
+
+  if (isEverydayHotSauceReview(review)) {
+    return "This is the kind of bottle you can pour generously across eggs, tacos, bowls, and weeknight dinners.";
+  }
+
+  return "It earns shelf space by being more useful than a pure heat stunt.";
+}
+
+export function buildHotSauceComparisonRows(
+  reviews: Review[],
+  context: HotSauceComparisonContext = "general"
+): HotSauceComparisonRow[] {
+  return reviews.map((review) => ({
+    name: review.productName || review.title,
+    href: `/reviews/${review.slug}`,
+    bestFor: getHotSauceBestForCopy(review, context),
+    heat: getHotSauceHeatLabel(review),
+    flavorLane: getHotSauceFlavorLane(review),
+    priceLabel: formatHotSaucePrice(review.priceUsd),
+    whyBuy: getHotSauceWhyBuy(review)
+  }));
+}
+
+export function getHotSauceGuidePosts(posts: BlogPost[], limit = 3) {
+  return [...posts]
+    .filter((post) => {
+      const corpus = normalizeText(
+        [post.title, post.description, post.slug, post.tags.join(" "), post.category].join(" ")
+      );
+
+      return (
+        corpus.includes("hot sauce") ||
+        corpus.includes("pizza") ||
+        corpus.includes("wings") ||
+        corpus.includes("seafood") ||
+        corpus.includes("eggs") ||
+        corpus.includes("taco")
+      );
+    })
+    .sort((left, right) => {
+      if ((left.featured ?? false) !== (right.featured ?? false)) {
+        return left.featured ? -1 : 1;
+      }
+
+      return new Date(right.publishedAt ?? 0).getTime() - new Date(left.publishedAt ?? 0).getTime();
+    })
+    .slice(0, limit);
 }
 
 export function isGiftableHotSauceReview(review: Review) {

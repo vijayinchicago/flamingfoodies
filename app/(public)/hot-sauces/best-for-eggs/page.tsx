@@ -2,13 +2,34 @@ import Link from "next/link";
 
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { ReviewCard } from "@/components/cards/review-card";
+import { HotSauceComparisonTable } from "@/components/hot-sauces/hot-sauce-comparison-table";
+import { HotSauceFaqSection } from "@/components/hot-sauces/hot-sauce-faq-section";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
-import { getBestForEggsReviews } from "@/lib/hot-sauces";
+import { buildHotSauceComparisonRows, getBestForEggsReviews } from "@/lib/hot-sauces";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
 import { getReviews } from "@/lib/services/content";
+import type { RecipeFaq } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
+
+const eggFaqs: RecipeFaq[] = [
+  {
+    question: "Is hot sauce or chili crisp better on eggs?",
+    answer:
+      "They do different jobs. A pourable hot sauce wakes eggs up quickly, while chili crisp adds texture and richness. The best breakfast shelf usually has one of each."
+  },
+  {
+    question: "How hot should a breakfast sauce be?",
+    answer:
+      "Usually milder than your wing or pizza bottle. Breakfast tends to reward brightness and repeat use more than brute force."
+  },
+  {
+    question: "Can one egg-friendly bottle also work on tacos?",
+    answer:
+      "Yes. The overlap between eggs and breakfast tacos is real, especially with bright, everyday bottles you can pour generously."
+  }
+];
 
 export const metadata = buildMetadata({
   title: "Best Hot Sauces for Eggs | FlamingFoodies",
@@ -20,6 +41,7 @@ export const metadata = buildMetadata({
 export default async function BestHotSaucesForEggsPage() {
   const reviews = await getReviews();
   const eggSauces = getBestForEggsReviews(reviews, 4);
+  const comparisonRows = buildHotSauceComparisonRows(eggSauces, "eggs");
 
   return (
     <section className="container-shell py-16">
@@ -87,6 +109,20 @@ export default async function BestHotSaucesForEggsPage() {
           ))}
         </div>
       </div>
+
+      <HotSauceComparisonTable
+        eyebrow="Breakfast comparison"
+        title="Pick the right breakfast lane."
+        copy="Some bottles are better as generous everyday pours, while others work more like toppers. This table helps you sort that out quickly."
+        rows={comparisonRows}
+      />
+
+      <HotSauceFaqSection
+        eyebrow="FAQ"
+        title="Breakfast bottle questions, answered."
+        copy="If the goal is better eggs, breakfast tacos, and hash, these are the answers that save the most buying mistakes."
+        faqs={eggFaqs}
+      />
     </section>
   );
 }

@@ -2,13 +2,34 @@ import Link from "next/link";
 
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { ReviewCard } from "@/components/cards/review-card";
+import { HotSauceComparisonTable } from "@/components/hot-sauces/hot-sauce-comparison-table";
+import { HotSauceFaqSection } from "@/components/hot-sauces/hot-sauce-faq-section";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
-import { getBestForPizzaReviews } from "@/lib/hot-sauces";
+import { buildHotSauceComparisonRows, getBestForPizzaReviews } from "@/lib/hot-sauces";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
 import { getReviews } from "@/lib/services/content";
+import type { RecipeFaq } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
+
+const pizzaFaqs: RecipeFaq[] = [
+  {
+    question: "What kind of hot sauce works best on pizza?",
+    answer:
+      "Pizza does best with sauces that bring cling, sweetness, garlic, or enough structured heat to cut through cheese and crust without tasting flat."
+  },
+  {
+    question: "Is hot honey enough, or do I need a regular hot sauce too?",
+    answer:
+      "Hot honey is the easiest pizza win, but a separate garlic-forward or richer high-heat bottle gives you more range across wings, sandwiches, and fried chicken too."
+  },
+  {
+    question: "Are superhot sauces good on pizza?",
+    answer:
+      "Only in small doses. Pizza can handle more heat than eggs or seafood, but flavor still matters more than max capsaicin if you want a repeat-use bottle."
+  }
+];
 
 export const metadata = buildMetadata({
   title: "Best Hot Sauces for Pizza | FlamingFoodies",
@@ -20,6 +41,7 @@ export const metadata = buildMetadata({
 export default async function BestHotSaucesForPizzaPage() {
   const reviews = await getReviews();
   const pizzaSauces = getBestForPizzaReviews(reviews, 4);
+  const comparisonRows = buildHotSauceComparisonRows(pizzaSauces, "pizza");
 
   return (
     <section className="container-shell py-16">
@@ -87,6 +109,20 @@ export default async function BestHotSaucesForPizzaPage() {
           ))}
         </div>
       </div>
+
+      <HotSauceComparisonTable
+        eyebrow="Pizza-night comparison"
+        title="Pick the right drizzle or hammer."
+        copy="This is the quick way to compare sweet heat, garlic-heavy hitters, and pizza-friendly bottles without reading every review first."
+        rows={comparisonRows}
+      />
+
+      <HotSauceFaqSection
+        eyebrow="FAQ"
+        title="Pizza-night buying questions, answered fast."
+        copy="If your goal is a better slice instead of a hotter dare, these are the answers that matter most."
+        faqs={pizzaFaqs}
+      />
     </section>
   );
 }
