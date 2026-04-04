@@ -74,6 +74,12 @@ export default async function HotSaucesHubPage() {
             >
               Best bottles under $15
             </Link>
+            <Link
+              href="/hot-sauces/gifts-under-50"
+              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            >
+              Gifts under $50
+            </Link>
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

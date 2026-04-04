@@ -156,6 +156,12 @@ export default async function ReviewsIndexPage({
           >
             Best under $15
           </Link>
+          <Link
+            href="/hot-sauces/gifts-under-50"
+            className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+          >
+            Gifts under $50
+          </Link>
         </div>
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
           {topPicks.map((review) => (

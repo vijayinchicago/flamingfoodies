@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getBestForEggsReviews,
   getAffordableHotSauceReviews,
   getBestGiftableHotSauceReviews,
+  getGiftableHotSauceReviewsUnderPrice,
   getBestForWingsReviews,
   getBestHotSaucesReviews,
   getBestForTacosReviews,
@@ -151,6 +153,9 @@ describe("hot sauce helpers", () => {
     expect(getBestForWingsReviews(reviews, 2)[0]?.slug).toBe(
       "torchbearer-garlic-reaper-review"
     );
+    expect(getBestForEggsReviews(reviews, 2)[0]?.slug).toBe(
+      "yellowbird-habanero-hot-sauce-review"
+    );
   });
 
   it("surfaces strong top picks and taco recipes", () => {
@@ -182,5 +187,6 @@ describe("hot sauce helpers", () => {
     );
     expect(getBestGiftableHotSauceReviews(reviews, 2)[0]?.slug).toBe("gift-set-review");
     expect(getAffordableHotSauceReviews(reviews, 3).every((item) => (item.priceUsd ?? 0) <= 15)).toBe(true);
+    expect(getGiftableHotSauceReviewsUnderPrice(reviews, 50, 3)[0]?.slug).toBe("gift-set-review");
   });
 });

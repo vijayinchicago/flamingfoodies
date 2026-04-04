@@ -48,6 +48,12 @@ export const HOT_SAUCE_LANDING_LINKS = [
     description: "Bright, spoonable bottles that sharpen tacos instead of bullying them."
   },
   {
+    href: "/hot-sauces/best-for-eggs",
+    eyebrow: "Breakfast",
+    title: "Best hot sauces for eggs",
+    description: "Everyday pours, chili crisps, and bright bottles that make eggs more interesting fast."
+  },
+  {
     href: "/hot-sauces/best-for-wings",
     eyebrow: "Wings and pizza",
     title: "Best hot sauces for wings",
@@ -64,6 +70,12 @@ export const HOT_SAUCE_LANDING_LINKS = [
     eyebrow: "Gifts",
     title: "Best gift sets and subscriptions",
     description: "The easiest way to gift heat without guessing at a single bottle."
+  },
+  {
+    href: "/hot-sauces/gifts-under-50",
+    eyebrow: "Budget gifts",
+    title: "Best hot sauce gifts under $50",
+    description: "Giftable sets and shelf builders that still feel thoughtful without blowing past impulse-buy range."
   }
 ] as const;
 
@@ -286,6 +298,26 @@ export function getBestForWingsReviews(reviews: Review[], limit = 4) {
     .slice(0, limit);
 }
 
+export function getBestForEggsReviews(reviews: Review[], limit = 4) {
+  const scored = reviews.map((review) => {
+    let score = 0;
+
+    if (hasAnyToken(review, ["egg", "eggs", "breakfast", "hash"])) score += 5;
+    if (isEverydayHotSauceReview(review)) score += 4;
+    if (review.category === "pantry-condiment") score += 2;
+    if (hasAnyToken(review, ["crisp", "honey", "bright", "pour"])) score += 2;
+    if (review.recommended) score += 2;
+    if (typeof review.priceUsd === "number" && review.priceUsd <= 15) score += 1;
+
+    return { review, score };
+  });
+
+  return scored
+    .sort((left, right) => right.score - left.score || right.review.rating - left.review.rating)
+    .map((entry) => entry.review)
+    .slice(0, limit);
+}
+
 export function getAffordableHotSauceReviews(reviews: Review[], limit = 6) {
   const scored = reviews
     .filter((review) => typeof review.priceUsd === "number" && review.priceUsd <= 15)
@@ -303,6 +335,35 @@ export function getAffordableHotSauceReviews(reviews: Review[], limit = 6) {
     });
 
   return scored
+    .sort((left, right) => right.score - left.score || right.review.rating - left.review.rating)
+    .map((entry) => entry.review)
+    .slice(0, limit);
+}
+
+export function getGiftableHotSauceReviewsUnderPrice(
+  reviews: Review[],
+  maxPrice = 50,
+  limit = 4
+) {
+  return reviews
+    .filter(
+      (review) =>
+        isGiftableHotSauceReview(review) &&
+        typeof review.priceUsd === "number" &&
+        review.priceUsd <= maxPrice
+    )
+    .map((review) => {
+      let score = 0;
+
+      if (review.category === "gift-set" || review.category === "subscription-box") score += 4;
+      if (review.recommended) score += 3;
+      if (review.featured) score += 2;
+      if (hasAnyToken(review, ["gift", "bundle", "subscription", "tasting"])) score += 3;
+      score += Math.round(review.rating * 2);
+      score += Math.min(Math.floor((review.viewCount ?? 0) / 100), 4);
+
+      return { review, score };
+    })
     .sort((left, right) => right.score - left.score || right.review.rating - left.review.rating)
     .map((entry) => entry.review)
     .slice(0, limit);
