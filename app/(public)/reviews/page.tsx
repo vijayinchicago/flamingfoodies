@@ -150,6 +150,12 @@ export default async function ReviewsIndexPage({
           >
             Best for tacos
           </Link>
+          <Link
+            href="/hot-sauces/under-15"
+            className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+          >
+            Best under $15
+          </Link>
         </div>
         <div className="mt-6 grid gap-4 lg:grid-cols-3">
           {topPicks.map((review) => (

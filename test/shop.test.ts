@@ -82,8 +82,9 @@ describe("shop helpers", () => {
   it("returns curated affiliate kits for the shop", () => {
     const collections = getShopAffiliateCollections();
 
-    expect(collections).toHaveLength(3);
+    expect(collections).toHaveLength(4);
     expect(collections[0]?.items).toHaveLength(3);
-    expect(collections[1]?.title).toMatch(/gift/i);
+    expect(collections.find((collection) => collection.key === "under-15")?.items).toHaveLength(3);
+    expect(collections.find((collection) => collection.key === "gift-guide")?.title).toMatch(/gift/i);
   });
 });

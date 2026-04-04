@@ -169,7 +169,7 @@ export default async function HomePage() {
                   <h3 className="mt-3 font-display text-3xl text-cream">{collection.ctaLabel}</h3>
                   <p className="mt-4 text-sm leading-7 text-cream/72">{collection.description}</p>
                   <Link
-                    href={collection.key === "gift-guide" ? "/shop#gift-ideas" : "/shop#starter-kits"}
+                    href={collection.key === "gift-guide" ? "/shop#gift-ideas" : `/shop#${collection.key}`}
                     className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
                   >
                     Explore

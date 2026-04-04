@@ -218,13 +218,13 @@ export default async function ShopPage() {
 
       <div id="starter-kits" className="mt-12">
         <SectionHeading
-          eyebrow="Starter kits"
-          title="Build a better first shelf in one move."
-          copy="These kits are grouped for intent, not just category. That makes them easier to buy and easier to merchandise."
+          eyebrow="Shop lanes"
+          title="Buy by intent instead of scrolling the whole shelf."
+          copy="These lanes are grouped around real decisions: build a starter shelf, fix taco night, stay under budget, or buy for someone else."
         />
-        <div className="mt-8 grid gap-6 xl:grid-cols-3">
+        <div className="mt-8 grid gap-6 xl:grid-cols-2">
           {curatedCollections.map((collection) => (
-            <article key={collection.key} className="panel p-6">
+            <article id={collection.key} key={collection.key} className="panel p-6">
               <p className="eyebrow">{collection.title}</p>
               <h3 className="mt-3 font-display text-4xl text-cream">{collection.ctaLabel}</h3>
               <p className="mt-3 text-sm leading-7 text-cream/72">{collection.description}</p>

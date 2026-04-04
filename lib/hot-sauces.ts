@@ -48,16 +48,22 @@ export const HOT_SAUCE_LANDING_LINKS = [
     description: "Bright, spoonable bottles that sharpen tacos instead of bullying them."
   },
   {
+    href: "/hot-sauces/best-for-wings",
+    eyebrow: "Wings and pizza",
+    title: "Best hot sauces for wings",
+    description: "Garlicky, clingy bottles and big hitters that still taste good on game-day food."
+  },
+  {
+    href: "/hot-sauces/under-15",
+    eyebrow: "Affordable",
+    title: "Best hot sauces under $15",
+    description: "Useful bottles that build a smarter shelf without spending gift-set money."
+  },
+  {
     href: "/hot-sauces/best-gift-sets",
     eyebrow: "Gifts",
     title: "Best gift sets and subscriptions",
     description: "The easiest way to gift heat without guessing at a single bottle."
-  },
-  {
-    href: "/reviews?filter=big-heat",
-    eyebrow: "Serious heat",
-    title: "Big-heat bottles",
-    description: "Small-dose sauces and shelf flexes for the people who want real fire."
   }
 ] as const;
 
@@ -260,6 +266,48 @@ export function getBestForTacosReviews(reviews: Review[], limit = 4) {
     .slice(0, limit);
 }
 
+export function getBestForWingsReviews(reviews: Review[], limit = 4) {
+  const scored = reviews.map((review) => {
+    let score = 0;
+
+    if (getHotSauceIntentLabel(review) === "Best for wings") score += 5;
+    if (isBigHeatHotSauceReview(review)) score += 4;
+    if (hasAnyToken(review, ["wings", "wing", "pizza", "garlic", "buffalo"])) score += 4;
+    if (hasAnyToken(review, ["fried chicken", "sandwich", "drizzle"])) score += 2;
+    if (review.recommended) score += 2;
+    if (review.featured) score += 1;
+
+    return { review, score };
+  });
+
+  return scored
+    .sort((left, right) => right.score - left.score || right.review.rating - left.review.rating)
+    .map((entry) => entry.review)
+    .slice(0, limit);
+}
+
+export function getAffordableHotSauceReviews(reviews: Review[], limit = 6) {
+  const scored = reviews
+    .filter((review) => typeof review.priceUsd === "number" && review.priceUsd <= 15)
+    .map((review) => {
+      let score = 0;
+
+      if (isEverydayHotSauceReview(review)) score += 4;
+      if (review.recommended) score += 3;
+      if (review.featured) score += 2;
+      if (hasAnyToken(review, ["taco", "tacos", "eggs", "pizza", "bowl", "weeknight"])) score += 2;
+      score += Math.round(review.rating * 2);
+      score += Math.min(Math.floor((review.viewCount ?? 0) / 100), 4);
+
+      return { review, score };
+    });
+
+  return scored
+    .sort((left, right) => right.score - left.score || right.review.rating - left.review.rating)
+    .map((entry) => entry.review)
+    .slice(0, limit);
+}
+
 export function getTacoFriendlyRecipes(recipes: Recipe[], limit = 3) {
   const scored = recipes.map((recipe) => {
     const corpus = normalizeText([recipe.title, recipe.description, recipe.tags.join(" ")].join(" "));
@@ -269,6 +317,28 @@ export function getTacoFriendlyRecipes(recipes: Recipe[], limit = 3) {
     if (corpus.includes("birria")) score += 3;
     if (corpus.includes("quesa")) score += 2;
     if (recipe.cuisineType === "mexican") score += 1;
+
+    return { recipe, score };
+  });
+
+  return scored
+    .filter((entry) => entry.score > 0)
+    .sort((left, right) => right.score - left.score)
+    .map((entry) => entry.recipe)
+    .slice(0, limit);
+}
+
+export function getWingFriendlyRecipes(recipes: Recipe[], limit = 3) {
+  const scored = recipes.map((recipe) => {
+    const corpus = normalizeText([recipe.title, recipe.description, recipe.tags.join(" ")].join(" "));
+    let score = 0;
+
+    if (corpus.includes("chicken")) score += 3;
+    if (corpus.includes("fried")) score += 3;
+    if (corpus.includes("wings")) score += 4;
+    if (corpus.includes("sandwich")) score += 2;
+    if (corpus.includes("burger")) score += 1;
+    if (recipe.cuisineType === "american") score += 1;
 
     return { recipe, score };
   });

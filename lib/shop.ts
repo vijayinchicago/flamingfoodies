@@ -16,7 +16,7 @@ export interface ShopMerchCollection {
 }
 
 export interface ShopAffiliateCollection {
-  key: "starter-kit" | "gift-guide" | "hot-sauce-shelf";
+  key: "starter-kit" | "taco-night" | "under-15" | "gift-guide";
   title: string;
   description: string;
   ctaLabel: string;
@@ -85,6 +85,30 @@ export function getShopAffiliateCollections(): ShopAffiliateCollection[] {
       ])
     },
     {
+      key: "taco-night",
+      title: "Taco night lane",
+      description:
+        "A bright red bottle, an everyday pour, and the tool that makes salsa and sauce work feel more intentional.",
+      ctaLabel: "Build taco night",
+      items: getAffiliateLinkEntries([
+        "heatonist-los-calientes-rojo",
+        "amazon-yellowbird-habanero",
+        "amazon-molcajete"
+      ])
+    },
+    {
+      key: "under-15",
+      title: "Under-$15 shelf builders",
+      description:
+        "Three low-friction buys that make the shop useful fast: one bottle, one pantry builder, and one finishing move.",
+      ctaLabel: "Shop under $15",
+      items: getAffiliateLinkEntries([
+        "amazon-yellowbird-habanero",
+        "amazon-gochujang-paste",
+        "mike-hot-honey-original"
+      ])
+    },
+    {
       key: "gift-guide",
       title: "Best gifts for spice lovers",
       description:
@@ -94,18 +118,6 @@ export function getShopAffiliateCollections(): ShopAffiliateCollection[] {
         SUBSCRIPTION_KEYS[1],
         SUBSCRIPTION_KEYS[2],
         SUBSCRIPTION_KEYS[0]
-      ])
-    },
-    {
-      key: "hot-sauce-shelf",
-      title: "Everyday hot sauce shelf",
-      description:
-        "A practical three-bottle lineup for tacos, eggs, wings, bowls, and the meals people repeat all week.",
-      ctaLabel: "Shop everyday bottles",
-      items: getAffiliateLinkEntries([
-        HOT_SAUCE_SPOTLIGHT_KEYS[1],
-        HOT_SAUCE_SPOTLIGHT_KEYS[0],
-        HOT_SAUCE_SPOTLIGHT_KEYS[3]
       ])
     }
   ];

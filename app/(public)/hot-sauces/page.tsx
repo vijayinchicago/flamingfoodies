@@ -68,9 +68,15 @@ export default async function HotSaucesHubPage() {
             >
               Shop pantry and gear picks
             </Link>
+            <Link
+              href="/hot-sauces/under-15"
+              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            >
+              Best bottles under $15
+            </Link>
           </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {HOT_SAUCE_LANDING_LINKS.map((item) => (
             <article key={item.href} className="panel p-5">
               <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.eyebrow}</p>
