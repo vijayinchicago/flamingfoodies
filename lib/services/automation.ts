@@ -868,8 +868,14 @@ function mergeAgentQaReview(report: RecipeQaReport, agentReview: AgentQaReview |
 }
 
 function buildAgentQaNotes(baseNote: string, agentReview: AgentQaReview | null) {
+  const QA_NOTES_MAX_LENGTH = 4000;
+  const truncateQaNotes = (value: string) =>
+    value.length <= QA_NOTES_MAX_LENGTH
+      ? value
+      : `${value.slice(0, QA_NOTES_MAX_LENGTH - 15).trimEnd()}\n[truncated]`;
+
   if (!agentReview) {
-    return baseNote;
+    return truncateQaNotes(baseNote);
   }
 
   const sections = [
@@ -885,7 +891,7 @@ function buildAgentQaNotes(baseNote: string, agentReview: AgentQaReview | null) 
       : null
   ].filter(Boolean);
 
-  return sections.join("\n");
+  return truncateQaNotes(sections.join("\n"));
 }
 
 async function fetchImageForQuery(query: string) {

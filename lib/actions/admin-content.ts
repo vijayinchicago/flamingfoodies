@@ -78,6 +78,7 @@ const cuisineTypes = [
 const difficulties = ["beginner", "intermediate", "advanced"] as const;
 const merchAvailability = ["preview", "waitlist", "live"] as const;
 const editorialStatuses = ["draft", "pending_review", "published"] as const;
+const QA_NOTES_MAX_LENGTH = 4000;
 
 const blogSchema = z.object({
   title: z.string().min(6).max(120),
@@ -115,7 +116,7 @@ const recipeSchema = z.object({
   makeAheadNotes: z.string().max(600).optional(),
   storageNotes: z.string().max(600).optional(),
   reheatNotes: z.string().max(600).optional(),
-  qaNotes: z.string().max(1200).optional(),
+  qaNotes: z.string().max(QA_NOTES_MAX_LENGTH).optional(),
   tags: z.string().optional(),
   imageUrl: z.string().url().optional(),
   imageAlt: z.string().max(180).optional(),
@@ -143,7 +144,7 @@ const reviewSchema = z.object({
   cuisineOrigin: z.enum(cuisineTypes).optional(),
   pros: z.string().optional(),
   cons: z.string().optional(),
-  qaNotes: z.string().max(1200).optional(),
+  qaNotes: z.string().max(QA_NOTES_MAX_LENGTH).optional(),
   tags: z.string().optional(),
   imageUrl: z.string().url().optional(),
   imageAlt: z.string().max(180).optional(),
