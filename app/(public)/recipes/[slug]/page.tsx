@@ -21,6 +21,30 @@ import {
 import type { HeatLevel, Recipe } from "@/lib/types";
 import { absoluteUrl, formatDate } from "@/lib/utils";
 
+const stepStopwords = new Set([
+  "and",
+  "with",
+  "from",
+  "then",
+  "into",
+  "until",
+  "your",
+  "this",
+  "that",
+  "just",
+  "have",
+  "make",
+  "keep",
+  "more",
+  "them",
+  "very",
+  "over",
+  "side",
+  "about",
+  "need",
+  "best"
+]);
+
 const heatNotes: Record<HeatLevel, { title: string; copy: string }> = {
   mild: {
     title: "Low-lift heat",
@@ -110,6 +134,102 @@ function getOccasionCard(recipe: Recipe) {
   };
 }
 
+function normalizeForMatch(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9\s-]+/g, " ");
+}
+
+function getIngredientTokens(value: string) {
+  return normalizeForMatch(value)
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 3 && !stepStopwords.has(token));
+}
+
+function getStepTitleAndBody(text: string) {
+  const normalized = text.trim();
+  const commaIndex = normalized.indexOf(",");
+  const sentenceIndex = normalized.indexOf(".");
+  const splitIndex = [commaIndex, sentenceIndex]
+    .filter((index) => index >= 0)
+    .sort((left, right) => left - right)[0];
+
+  if (splitIndex === undefined) {
+    return {
+      title: normalized.replace(/\.$/, ""),
+      body: ""
+    };
+  }
+
+  const title = normalized.slice(0, splitIndex).replace(/[,.]\s*$/, "").trim();
+  const body = normalized.slice(splitIndex + 1).trim();
+
+  return {
+    title: title || normalized.replace(/\.$/, ""),
+    body
+  };
+}
+
+function getStepPhaseLabel(stepIndex: number, totalSteps: number) {
+  if (stepIndex === 0) return "Prep and build flavor";
+  if (stepIndex === totalSteps - 1) return "Finish and serve";
+  if (stepIndex <= Math.max(1, Math.floor((totalSteps - 1) / 3))) return "Set the foundation";
+  return "Cook and develop";
+}
+
+function getStepIngredientMatches(
+  recipe: Recipe,
+  instruction: Recipe["instructions"][number]
+) {
+  const haystack = normalizeForMatch(`${instruction.text} ${instruction.tip || ""}`);
+
+  return recipe.ingredients.filter((ingredient) => {
+    const ingredientTokens = getIngredientTokens(
+      `${ingredient.item} ${ingredient.notes || ""}`
+    );
+
+    return ingredientTokens.some((token) => haystack.includes(token));
+  });
+}
+
+function getMethodPrepNotes(recipe: Recipe) {
+  const earlyIngredients = Array.from(
+    new Set(
+      recipe.instructions
+        .slice(0, Math.min(2, recipe.instructions.length))
+        .flatMap((instruction) =>
+          getStepIngredientMatches(recipe, instruction).map((ingredient) => ingredient.item)
+        )
+    )
+  ).slice(0, 4);
+
+  return [
+    {
+      label: "Before you start",
+      title: recipe.totalTimeMinutes >= 90 ? "Set up for a longer cook" : "Set your station first",
+      copy:
+        recipe.totalTimeMinutes >= 90
+          ? "Read the full method once, prep the first moves before heat starts, and give yourself room for the passive cooking stretch."
+          : "Measure the fast-moving ingredients up front so you can stay with the pan instead of stopping to search."
+    },
+    {
+      label: "Pull first",
+      title: earlyIngredients.length
+        ? earlyIngredients.join(", ")
+        : recipe.equipment.slice(0, 3).join(", "),
+      copy:
+        earlyIngredients.length
+          ? "These show up early in the recipe, so having them ready makes the first phase feel much cleaner."
+          : "Set out the tools you need before you start so the method reads like one continuous flow."
+    },
+    {
+      label: "Best cue",
+      title: "Cook to sight, smell, and texture",
+      copy:
+        "The strongest recipe experiences tell you what done looks like, not just what the clock says. Use the notes inside each step before moving on."
+    }
+  ];
+}
+
 export async function generateMetadata({
   params
 }: {
@@ -179,6 +299,7 @@ export default async function RecipePage({
       ...getOccasionCard(recipe)
     }
   ];
+  const prepNotes = getMethodPrepNotes(recipe);
 
   return (
     <article className="container-shell py-10 sm:py-16">
@@ -470,35 +591,99 @@ export default async function RecipePage({
               </p>
             </div>
 
-            <ol className="mt-8 space-y-5">
-              {recipe.instructions.map((instruction) => (
-                <li
-                  key={instruction.step}
-                  className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 sm:p-6"
+            <div className="mt-8 grid gap-4 lg:grid-cols-3">
+              {prepNotes.map((note) => (
+                <article
+                  key={note.label}
+                  className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5"
                 >
-                  <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-flame to-ember font-display text-3xl text-white">
-                      {instruction.step}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs uppercase tracking-[0.24em] text-ember">
-                        Step {instruction.step}
-                      </p>
-                      <p className="mt-3 text-lg leading-8 text-cream/82">
-                        {instruction.text}
-                      </p>
-                      {instruction.tip ? (
-                        <div className="mt-4 rounded-[1.5rem] border border-white/10 bg-charcoal/55 p-4">
-                          <p className="text-xs uppercase tracking-[0.2em] text-ember">
-                            Kitchen note
-                          </p>
-                          <p className="mt-2 text-sm leading-7 text-cream/68">{instruction.tip}</p>
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                </li>
+                  <p className="text-xs uppercase tracking-[0.24em] text-ember">{note.label}</p>
+                  <h3 className="mt-3 font-display text-3xl text-cream">{note.title}</h3>
+                  <p className="mt-3 text-sm leading-7 text-cream/68">{note.copy}</p>
+                </article>
               ))}
+            </div>
+
+            <ol className="mt-8 space-y-5">
+              {recipe.instructions.map((instruction, index) => {
+                const splitInstruction = getStepTitleAndBody(instruction.text);
+                const matchedIngredients = getStepIngredientMatches(recipe, instruction).slice(0, 5);
+                const phaseLabel = getStepPhaseLabel(index, recipe.instructions.length);
+
+                return (
+                  <li
+                    key={instruction.step}
+                    className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 sm:p-6"
+                  >
+                    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
+                      <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-flame to-ember font-display text-3xl text-white">
+                          {instruction.step}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-3">
+                            <p className="text-xs uppercase tracking-[0.24em] text-ember">
+                              Step {instruction.step} of {recipe.instructions.length}
+                            </p>
+                            <span className="rounded-full border border-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-cream/60">
+                              {phaseLabel}
+                            </span>
+                          </div>
+                          <h3 className="mt-3 font-display text-4xl leading-tight text-cream">
+                            {splitInstruction.title}
+                          </h3>
+                          <p className="mt-3 text-lg leading-8 text-cream/82">
+                            {splitInstruction.body || instruction.text}
+                          </p>
+                          <div className="mt-5 h-1.5 overflow-hidden rounded-full bg-white/10">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-flame to-ember"
+                              style={{
+                                width: `${((instruction.step || index + 1) / recipe.instructions.length) * 100}%`
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <aside className="space-y-4 rounded-[1.75rem] border border-white/10 bg-charcoal/35 p-4">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.22em] text-ember">
+                            You&apos;ll use
+                          </p>
+                          {matchedIngredients.length ? (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {matchedIngredients.map((ingredient) => (
+                                <span
+                                  key={`${instruction.step}-${ingredient.item}`}
+                                  className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs text-cream/72"
+                                >
+                                  {ingredient.item}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="mt-3 text-sm leading-7 text-cream/58">
+                              Focus on the technique here and keep your setup tight before moving on.
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="rounded-[1.25rem] border border-white/10 bg-white/[0.04] p-4">
+                          <p className="text-xs uppercase tracking-[0.22em] text-ember">
+                            What to watch for
+                          </p>
+                          <p className="mt-3 text-sm leading-7 text-cream/68">
+                            {instruction.tip
+                              ? instruction.tip
+                              : "Move on when the texture, color, and aroma match the direction instead of blindly trusting the clock."}
+                          </p>
+                        </div>
+                      </aside>
+                    </div>
+                  </li>
+                );
+              })}
             </ol>
           </section>
 
@@ -564,7 +749,7 @@ export default async function RecipePage({
                       ) : null}
                     </div>
                     <h4 className="mt-3 font-display text-3xl text-cream">{link.product}</h4>
-                    <p className="mt-3 text-sm leading-7 text-cream/7 2">{link.description}</p>
+                    <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
                     <Link
                       href={`/go/${link.key}?source=/recipes/${recipe.slug}&position=recipe-detail`}
                       className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
