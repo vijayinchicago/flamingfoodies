@@ -1,5 +1,6 @@
 import { AFFILIATE_LINKS } from "@/lib/affiliates";
 import { flags } from "@/lib/env";
+import { buildShareAnalytics } from "@/lib/share-analytics";
 import {
   sampleBlogPosts,
   sampleRecipes,
@@ -53,6 +54,10 @@ function average(values: number[]) {
 
 function getFallbackArray<T>(items: T[]) {
   return flags.allowSampleFallbacks ? items : [];
+}
+
+function isoDaysAgo(days: number) {
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 }
 
 export async function getAffiliateAnalytics() {
@@ -275,4 +280,80 @@ export async function getTrafficAnalytics() {
     bySection,
     topPages: [...pages].sort((left, right) => right.views - left.views).slice(0, 8)
   };
+}
+
+export async function getShareAnalytics(windowDays = 30) {
+  const fallbackRows = getFallbackArray([
+    {
+      eventName: "recipe_share",
+      path: "/recipes/birria-quesatacos-with-arbol-salsa",
+      contentType: "recipe",
+      contentSlug: "birria-quesatacos-with-arbol-salsa",
+      sessionId: "fallback-session-1",
+      occurredAt: isoDaysAgo(2),
+      metadata: {
+        platform: "pinterest",
+        shareAction: "saved_image"
+      }
+    },
+    {
+      eventName: "recipe_share",
+      path: "/blog/best-hot-sauces-for-taco-night",
+      contentType: "blog_post",
+      contentSlug: "best-hot-sauces-for-taco-night",
+      sessionId: "fallback-session-2",
+      occurredAt: isoDaysAgo(1),
+      metadata: {
+        platform: "whatsapp",
+        shareAction: "opened"
+      }
+    },
+    {
+      eventName: "page_view",
+      path: "/recipes/birria-quesatacos-with-arbol-salsa",
+      sessionId: "fallback-session-3",
+      occurredAt: isoDaysAgo(1),
+      utmSource: "pinterest",
+      utmCampaign: "organic_share"
+    }
+  ]);
+
+  if (!flags.hasSupabaseAdmin) {
+    return buildShareAnalytics(fallbackRows, windowDays);
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return buildShareAnalytics(fallbackRows, windowDays);
+  }
+
+  const cutoff = isoDaysAgo(windowDays);
+  const { data } = await supabase
+    .from("telemetry_events")
+    .select(
+      "event_name, path, content_type, content_slug, session_id, anonymous_id, user_id, occurred_at, utm_source, utm_campaign, metadata"
+    )
+    .gte("occurred_at", cutoff)
+    .in("event_name", ["page_view", "recipe_share"])
+    .order("occurred_at", { ascending: true });
+
+  if (!data?.length) {
+    return buildShareAnalytics([], windowDays);
+  }
+
+  const rows = data.map((row) => ({
+    eventName: row.event_name,
+    path: row.path,
+    contentType: row.content_type,
+    contentSlug: row.content_slug,
+    sessionId: row.session_id,
+    anonymousId: row.anonymous_id,
+    userId: row.user_id,
+    occurredAt: row.occurred_at,
+    utmSource: row.utm_source,
+    utmCampaign: row.utm_campaign,
+    metadata: row.metadata ?? {}
+  }));
+
+  return buildShareAnalytics(rows, windowDays);
 }

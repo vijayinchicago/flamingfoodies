@@ -1,6 +1,8 @@
+import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import { CommentSection } from "@/components/community/comment-section";
+import { PinterestSaveButton } from "@/components/content/pinterest-save-button";
 import { ShareBar } from "@/components/content/share-bar";
 import { ArticleSchema } from "@/components/schema/article-schema";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
@@ -66,6 +68,29 @@ export default async function BlogPostPage({
         <span>{formatDate(post.publishedAt)}</span>
         <span>{post.readTimeMinutes || 4} min read</span>
       </div>
+      {post.imageUrl ? (
+        <div className="relative mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05]">
+          <PinterestSaveButton
+            title={post.title}
+            description={post.description}
+            url={absoluteUrl(`/blog/${post.slug}`)}
+            imageUrl={post.imageUrl}
+            contentType="blog_post"
+            contentId={post.id}
+            contentSlug={post.slug}
+            className="absolute right-4 top-4 z-10 inline-flex rounded-full border border-white/15 bg-charcoal/70 px-4 py-2 text-sm font-semibold text-cream backdrop-blur-md transition hover:border-white/30 hover:bg-charcoal/80"
+          />
+          <div className="relative h-[360px]">
+            <Image
+              src={post.imageUrl}
+              alt={post.imageAlt || post.title}
+              fill
+              sizes="(min-width: 1280px) 960px, 100vw"
+              className="object-cover"
+            />
+          </div>
+        </div>
+      ) : null}
       <div className="mt-8 max-w-4xl">
         <ShareBar
           title={post.title}

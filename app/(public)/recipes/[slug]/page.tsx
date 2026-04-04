@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { CommentSection } from "@/components/community/comment-section";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { AffiliateLink } from "@/components/content/affiliate-link";
+import { PinterestSaveButton } from "@/components/content/pinterest-save-button";
 import { ShareBar } from "@/components/content/share-bar";
 import { RecipeDisplayControls } from "@/components/recipes/recipe-display-controls";
 import { RecipeIngredientRail } from "@/components/recipes/recipe-ingredient-rail";
@@ -451,6 +452,16 @@ export default async function RecipePage({
             </div>
 
             <div className="recipe-hero-media relative min-h-[340px] border-t border-white/10 xl:min-h-full xl:border-l xl:border-t-0">
+              <PinterestSaveButton
+                title={recipe.title}
+                description={recipe.description}
+                url={absoluteUrl(`/recipes/${recipe.slug}`)}
+                imageUrl={hero.imageUrl}
+                contentType="recipe"
+                contentId={recipe.id}
+                contentSlug={recipe.slug}
+                className="absolute right-4 top-4 z-10 inline-flex rounded-full border border-white/15 bg-charcoal/70 px-4 py-2 text-sm font-semibold text-cream backdrop-blur-md transition hover:border-white/30 hover:bg-charcoal/80"
+              />
               <Image
                 src={hero.imageUrl}
                 alt={hero.imageAlt || recipe.title}

@@ -1,9 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CommentSection } from "@/components/community/comment-section";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { AffiliateLink } from "@/components/content/affiliate-link";
+import { PinterestSaveButton } from "@/components/content/pinterest-save-button";
 import { ShareBar } from "@/components/content/share-bar";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { ReviewSchema } from "@/components/schema/review-schema";
@@ -108,6 +110,29 @@ export default async function ReviewPage({
       <div className="mt-6 max-w-3xl">
         <AffiliateDisclosure compact />
       </div>
+      {review.imageUrl ? (
+        <div className="relative mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05]">
+          <PinterestSaveButton
+            title={review.title}
+            description={review.description}
+            url={absoluteUrl(`/reviews/${review.slug}`)}
+            imageUrl={review.imageUrl}
+            contentType="review"
+            contentId={review.id}
+            contentSlug={review.slug}
+            className="absolute right-4 top-4 z-10 inline-flex rounded-full border border-white/15 bg-charcoal/70 px-4 py-2 text-sm font-semibold text-cream backdrop-blur-md transition hover:border-white/30 hover:bg-charcoal/80"
+          />
+          <div className="relative h-[340px]">
+            <Image
+              src={review.imageUrl}
+              alt={review.imageAlt || review.title}
+              fill
+              sizes="(min-width: 1280px) 960px, 100vw"
+              className="object-cover"
+            />
+          </div>
+        </div>
+      ) : null}
       <div className="mt-12 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="prose-guide" dangerouslySetInnerHTML={{ __html: html }} />
         <aside className="space-y-6">
