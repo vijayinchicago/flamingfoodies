@@ -17,7 +17,7 @@ export function Footer() {
           </h2>
           <div className="mt-4 flex flex-col gap-3 text-sm text-cream/75">
             <Link href="/recipes">Recipes</Link>
-            <Link href="/reviews">Hot Sauce Reviews</Link>
+            <Link href="/hot-sauces">Hot Sauces</Link>
             <Link href="/community">Community Feed</Link>
             <Link href="/competitions">Competitions</Link>
           </div>

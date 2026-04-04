@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { getHotSauceIntentLabel } from "@/lib/hot-sauces";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import type { Review } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
@@ -12,6 +13,7 @@ function formatHeatLabel(heatLevel?: Review["heatLevel"]) {
 
 export function ReviewCard({ review }: { review: Review }) {
   const hero = getReviewHeroFields(review);
+  const intentLabel = getHotSauceIntentLabel(review);
 
   return (
     <Link
@@ -38,6 +40,7 @@ export function ReviewCard({ review }: { review: Review }) {
         </div>
         <h3 className="mt-4 font-display text-3xl leading-tight text-cream">{review.title}</h3>
         <p className="mt-3 text-sm leading-7 text-cream/72">{review.description}</p>
+        <p className="mt-4 text-xs uppercase tracking-[0.22em] text-ember">{intentLabel}</p>
         <div className="mt-5 flex flex-wrap items-center gap-3">
           <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-sm font-semibold text-amber-100">
             {review.rating.toFixed(1)}/5
