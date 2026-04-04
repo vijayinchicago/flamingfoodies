@@ -1,12 +1,15 @@
 import Link from "next/link";
 
+import { SearchForm } from "@/components/search/search-form";
+
 const nav = [
   { href: "/recipes", label: "Recipes" },
   { href: "/blog", label: "Blog" },
   { href: "/reviews", label: "Reviews" },
   { href: "/community", label: "Community" },
   { href: "/competitions", label: "Competitions" },
-  { href: "/quiz", label: "Heat Quiz" }
+  { href: "/quiz", label: "Heat Quiz" },
+  { href: "/search", label: "Search" }
 ];
 
 export function Header() {
@@ -35,7 +38,16 @@ export function Header() {
             </Link>
           ))}
         </nav>
+        <div className="hidden xl:block xl:w-[320px]">
+          <SearchForm source="header" compact />
+        </div>
         <div className="flex items-center gap-3">
+          <Link
+            href="/search"
+            className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream/85 hover:border-white/30 hover:text-white xl:hidden"
+          >
+            Search
+          </Link>
           <Link
             href="/login"
             className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream/85 hover:border-white/30 hover:text-white"

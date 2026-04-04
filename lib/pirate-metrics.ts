@@ -50,6 +50,7 @@ const SEARCH_HOST_LABELS = [
 const ACTIVATION_EVENT_LABELS: Array<{ name: string; label: string }> = [
   { name: ANALYTICS_EVENTS.emailSignup, label: "Email signups" },
   { name: ANALYTICS_EVENTS.onboardingComplete, label: "Completed onboarding" },
+  { name: ANALYTICS_EVENTS.searchPerformed, label: "Searches performed" },
   { name: ANALYTICS_EVENTS.recipeSave, label: "Recipe saves" },
   { name: ANALYTICS_EVENTS.recipeRating, label: "Recipe ratings" },
   { name: ANALYTICS_EVENTS.commentPosted, label: "Comments posted" },
@@ -238,7 +239,7 @@ export function buildPirateMetrics(
       {
         stage: "Activation",
         status: "live",
-        detail: "Signups, onboarding, saves, ratings, comments, community posts, and competition actions are tracked."
+        detail: "Signups, onboarding, internal search, saves, ratings, comments, community posts, quiz completions, and competition actions are tracked."
       },
       {
         stage: "Retention",

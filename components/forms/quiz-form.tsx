@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+import { trackEvent } from "@/lib/analytics";
 import { getQuizResult } from "@/lib/quiz";
+import { ANALYTICS_EVENTS } from "@/lib/telemetry-events";
 
 type Answers = Record<number, string>;
 
@@ -32,6 +34,9 @@ const questions = [
 
 export function QuizForm() {
   const [answers, setAnswers] = useState<Answers>({});
+  const [quizStarted, setQuizStarted] = useState(false);
+  const answerCount = Object.keys(answers).length;
+  const allAnswered = answerCount === questions.length;
   const result = useMemo(
     () => getQuizResult(Object.values(answers).map((value) => Number(value))),
     [answers]
@@ -52,12 +57,20 @@ export function QuizForm() {
                   type="radio"
                   name={`question-${index}`}
                   value={optionIndex}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    if (!quizStarted) {
+                      setQuizStarted(true);
+                      trackEvent(ANALYTICS_EVENTS.quizStart, {
+                        path: "/quiz",
+                        answerCount: 1
+                      });
+                    }
+
                     setAnswers((current) => ({
                       ...current,
                       [index]: event.target.value
-                    }))
-                  }
+                    }));
+                  }}
                 />
                 <span>{option}</span>
               </label>
@@ -68,9 +81,28 @@ export function QuizForm() {
       <div className="panel flex flex-col items-start gap-4 p-6">
         <p className="text-sm uppercase tracking-[0.24em] text-ember">Current result</p>
         <h2 className="font-display text-4xl text-cream">{result.replace(/-/g, " ")}</h2>
+        <p className="text-sm text-cream/68">
+          {allAnswered
+            ? "Quiz complete. Open the result to get the matching content path."
+            : `Answer ${questions.length - answerCount} more question${questions.length - answerCount === 1 ? "" : "s"} to lock in the result.`}
+        </p>
         <Link
-          href={`/quiz/results/${result}`}
-          className="rounded-full bg-gradient-to-r from-flame to-ember px-6 py-3 font-semibold text-white"
+          href={allAnswered ? `/quiz/results/${result}` : "/quiz"}
+          aria-disabled={!allAnswered}
+          onClick={(event) => {
+            if (!allAnswered) {
+              event.preventDefault();
+              return;
+            }
+
+            trackEvent(ANALYTICS_EVENTS.quizComplete, {
+              path: "/quiz",
+              result,
+              answerCount,
+              value: answerCount
+            });
+          }}
+          className={`rounded-full px-6 py-3 font-semibold ${allAnswered ? "bg-gradient-to-r from-flame to-ember text-white" : "cursor-not-allowed border border-white/10 text-cream/45"}`}
         >
           See your results
         </Link>

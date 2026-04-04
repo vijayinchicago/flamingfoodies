@@ -357,3 +357,96 @@ export async function getShareAnalytics(windowDays = 30) {
 
   return buildShareAnalytics(rows, windowDays);
 }
+
+export async function getSearchAnalytics(windowDays = 30) {
+  const fallbackRows = getFallbackArray([
+    {
+      occurred_at: isoDaysAgo(2),
+      path: "/search",
+      metadata: {
+        query: "birria tacos",
+        source: "header",
+        hasResults: true,
+        resultCount: 3
+      }
+    },
+    {
+      occurred_at: isoDaysAgo(1),
+      path: "/search",
+      metadata: {
+        query: "reaper honey",
+        source: "search-page",
+        hasResults: false,
+        resultCount: 0
+      }
+    }
+  ]);
+
+  if (!flags.hasSupabaseAdmin) {
+    return buildSearchAnalyticsFromRows(fallbackRows);
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return buildSearchAnalyticsFromRows(fallbackRows);
+  }
+
+  const { data } = await supabase
+    .from("telemetry_events")
+    .select("occurred_at, path, metadata")
+    .eq("event_name", "search_performed")
+    .gte("occurred_at", isoDaysAgo(windowDays))
+    .order("occurred_at", { ascending: false });
+
+  return buildSearchAnalyticsFromRows(data ?? []);
+}
+
+function buildSearchAnalyticsFromRows(
+  rows: Array<{
+    occurred_at: string;
+    path?: string | null;
+    metadata?: Record<string, unknown> | null;
+  }>
+) {
+  const queryCounts = new Map<string, number>();
+  const sourceCounts = new Map<string, number>();
+  const noResultCounts = new Map<string, number>();
+  let totalSearches = 0;
+  let noResultSearches = 0;
+
+  for (const row of rows) {
+    const query = String(row.metadata?.query || "").trim();
+    const source = String(row.metadata?.source || "direct").trim() || "direct";
+    const hasResults = Boolean(row.metadata?.hasResults);
+
+    if (!query) continue;
+
+    totalSearches += 1;
+    queryCounts.set(query, (queryCounts.get(query) ?? 0) + 1);
+    sourceCounts.set(source, (sourceCounts.get(source) ?? 0) + 1);
+
+    if (!hasResults) {
+      noResultSearches += 1;
+      noResultCounts.set(query, (noResultCounts.get(query) ?? 0) + 1);
+    }
+  }
+
+  return {
+    totalSearches,
+    noResultSearches,
+    noResultRate:
+      totalSearches > 0 ? `${Math.round((noResultSearches / totalSearches) * 100)}%` : "0%",
+    topQueries: Array.from(queryCounts.entries())
+      .map(([query, count]) => ({ query, count }))
+      .sort((left, right) => right.count - left.count)
+      .slice(0, 8),
+    topSources: Array.from(sourceCounts.entries())
+      .map(([source, count]) => ({ source, count }))
+      .sort((left, right) => right.count - left.count)
+      .slice(0, 6),
+    noResultQueries: Array.from(noResultCounts.entries())
+      .map(([query, count]) => ({ query, count }))
+      .sort((left, right) => right.count - left.count)
+      .slice(0, 8)
+  };
+}
