@@ -20,7 +20,7 @@ export function RecipeIngredientRail({
   const factor = safeTargetServings / safeBaseServings;
 
   return (
-    <section id="ingredients" className="panel p-6 sm:p-7">
+    <section id="ingredients" className="recipe-print-section panel p-6 sm:p-7">
       <div className="flex items-end justify-between gap-4">
         <div>
           <p className="eyebrow">Shopping rail</p>
@@ -32,7 +32,7 @@ export function RecipeIngredientRail({
         </div>
       </div>
 
-      <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+      <div className="recipe-ingredient-controls mt-6 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4 print-hidden">
         <p className="text-xs uppercase tracking-[0.22em] text-ember">Scale the recipe</p>
         <div className="mt-4 flex items-center gap-3">
           <button
@@ -83,7 +83,7 @@ export function RecipeIngredientRail({
                 return (
                   <li
                     key={key}
-                    className={`grid grid-cols-[auto_84px_minmax(0,1fr)] gap-4 rounded-[1.5rem] border px-4 py-4 transition ${
+                    className={`recipe-print-keep recipe-ingredient-item grid grid-cols-[auto_84px_minmax(0,1fr)] gap-4 rounded-[1.5rem] border px-4 py-4 transition ${
                       checked
                         ? "border-emerald-400/30 bg-emerald-500/10"
                         : "border-white/10 bg-white/[0.04]"

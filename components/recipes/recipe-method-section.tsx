@@ -38,7 +38,7 @@ function StepTimer({ minutes }: { minutes: number }) {
   }, [running]);
 
   return (
-    <div className="rounded-[1.25rem] border border-white/10 bg-white/[0.04] p-4">
+    <div className="recipe-timer rounded-[1.25rem] border border-white/10 bg-white/[0.04] p-4 print-hidden">
       <p className="text-xs uppercase tracking-[0.22em] text-ember">Step timer</p>
       <p className="mt-3 font-display text-3xl text-cream">{formatTimer(remainingSeconds)}</p>
       <div className="mt-4 flex flex-wrap gap-2">
@@ -74,7 +74,7 @@ export function RecipeMethodSection({
   const [activeStep, setActiveStep] = useState(steps[0]?.step || 1);
 
   return (
-    <section id="method" className="panel p-6 sm:p-8">
+    <section id="method" className="recipe-print-section panel p-6 sm:p-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow">Method</p>
@@ -85,7 +85,7 @@ export function RecipeMethodSection({
         </p>
       </div>
 
-      <div className="mt-8 overflow-x-auto rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-3 print-hidden">
+      <div className="recipe-step-nav mt-8 overflow-x-auto rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-3 print-hidden">
         <div className="flex min-w-max gap-3">
           {steps.map((step) => (
             <button
@@ -118,7 +118,7 @@ export function RecipeMethodSection({
             <li
               key={step.step}
               id={`recipe-step-${step.step}`}
-              className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 sm:p-6"
+              className="recipe-step-card recipe-print-keep rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 sm:p-6"
             >
               <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
                 <div>
@@ -139,7 +139,7 @@ export function RecipeMethodSection({
                     {step.body}
                   </p>
                   {step.imageUrl ? (
-                    <div className="relative mt-6 overflow-hidden rounded-[1.75rem] border border-white/10">
+                    <div className="recipe-step-image relative mt-6 overflow-hidden rounded-[1.75rem] border border-white/10">
                       <div className="relative aspect-[16/9]">
                         <Image
                           src={step.imageUrl}
@@ -153,7 +153,7 @@ export function RecipeMethodSection({
                   ) : null}
                 </div>
 
-                <aside className="space-y-4 rounded-[1.75rem] border border-white/10 bg-charcoal/35 p-4">
+                <aside className="recipe-step-aside space-y-4 rounded-[1.75rem] border border-white/10 bg-charcoal/35 p-4">
                   <div>
                     <p className="text-xs uppercase tracking-[0.22em] text-ember">You&apos;ll use</p>
                     {matchedIngredients.length ? (

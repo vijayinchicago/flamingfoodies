@@ -194,9 +194,36 @@ export default async function RecipePage({
         ]}
       />
 
-      <div id="recipe-detail-shell" className="recipe-detail-shell space-y-10">
-        <section className="recipe-core-panel relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#140b09] shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(230,57,70,0.28),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(244,162,97,0.18),transparent_30%)]" />
+      <section className="recipe-print-header print-only">
+        <p className="eyebrow">FlamingFoodies recipe</p>
+        <h1 className="mt-3 font-display text-5xl text-charcoal">{recipe.title}</h1>
+        <p className="mt-4 max-w-4xl text-lg leading-8 text-charcoal/80">{recipe.description}</p>
+        <div className="recipe-print-meta mt-6">
+          {planningStats.map((stat) => (
+            <div key={`print-${stat.label}`}>
+              <p>{stat.label}</p>
+              <strong>{stat.value}</strong>
+            </div>
+          ))}
+          <div>
+            <p>Heat</p>
+            <strong>{formatLabel(recipe.heatLevel)}</strong>
+          </div>
+          <div>
+            <p>Difficulty</p>
+            <strong>{formatLabel(recipe.difficulty)}</strong>
+          </div>
+          <div>
+            <p>Published</p>
+            <strong>{formatDate(recipe.publishedAt)}</strong>
+          </div>
+        </div>
+        <p className="mt-5 text-base leading-7 text-charcoal/78">{heroSummary}</p>
+      </section>
+
+      <div id="recipe-detail-shell" className="recipe-detail-shell recipe-print-shell space-y-10">
+        <section className="recipe-hero-shell recipe-core-panel relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#140b09] shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
+          <div className="recipe-hero-bg absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(230,57,70,0.28),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(244,162,97,0.18),transparent_30%)]" />
           <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_460px]">
             <div className="p-6 sm:p-8 lg:p-10 xl:p-12">
               <div className="flex flex-wrap items-center gap-3 text-sm text-cream/65">
@@ -271,7 +298,7 @@ export default async function RecipePage({
               </div>
             </div>
 
-            <div className="relative min-h-[340px] border-t border-white/10 xl:min-h-full xl:border-l xl:border-t-0">
+            <div className="recipe-hero-media relative min-h-[340px] border-t border-white/10 xl:min-h-full xl:border-l xl:border-t-0">
               {recipe.imageUrl ? (
                 <Image
                   src={recipe.imageUrl}
@@ -305,7 +332,7 @@ export default async function RecipePage({
           </div>
         </section>
 
-        <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4 print-hidden">
           <article className="recipe-core-panel rounded-[2rem] border border-white/10 bg-white/[0.05] p-6">
             <p className="text-xs uppercase tracking-[0.24em] text-ember">Heat profile</p>
             <h2 className="mt-3 font-display text-3xl text-cream">{heatNotes[recipe.heatLevel].title}</h2>
@@ -338,7 +365,7 @@ export default async function RecipePage({
           <p className="text-sm text-rose-300">{searchParams.error}</p>
         ) : null}
 
-        <div className="grid gap-8 xl:grid-cols-[380px_minmax(0,1fr)]">
+        <div className="recipe-print-layout grid gap-8 xl:grid-cols-[380px_minmax(0,1fr)]">
           <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
             <RecipeIngredientRail sections={ingredientSections} baseServings={recipe.servings} />
 
@@ -416,7 +443,7 @@ export default async function RecipePage({
           </aside>
 
           <div className="space-y-8">
-            <section className="recipe-core-panel panel p-6 sm:p-8">
+            <section className="recipe-print-section recipe-core-panel panel p-6 sm:p-8">
               <p className="eyebrow">Why this recipe works</p>
               <h2 className="mt-3 font-display text-5xl text-cream">Editorial notes before you cook</h2>
               <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_0.8fr]">
@@ -429,14 +456,14 @@ export default async function RecipePage({
                   </p>
                 </div>
                 <div className="grid gap-4">
-                  <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
+                <div className="recipe-print-keep rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
                     <p className="text-xs uppercase tracking-[0.22em] text-ember">Best use</p>
                     <p className="mt-2 font-display text-3xl text-cream">
                       {recipe.totalTimeMinutes >= 90 ? "Slow meal, big payoff" : "Fast table win"}
                     </p>
                     <p className="mt-2 text-sm leading-7 text-cream/65">{projectCard.copy}</p>
                   </div>
-                  <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
+                  <div className="recipe-print-keep rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
                     <p className="text-xs uppercase tracking-[0.22em] text-ember">Why readers stick with it</p>
                     <p className="mt-2 font-display text-3xl text-cream">{occasionCard.title}</p>
                     <p className="mt-2 text-sm leading-7 text-cream/65">{occasionCard.copy}</p>
@@ -449,7 +476,7 @@ export default async function RecipePage({
 
             <section className="grid gap-6 lg:grid-cols-2">
               {recipe.tips.length ? (
-                <div className="recipe-core-panel panel p-6 sm:p-7">
+                <div className="recipe-print-section recipe-core-panel panel p-6 sm:p-7">
                   <p className="eyebrow">Troubleshooting</p>
                   <h3 className="mt-3 font-display text-4xl text-cream">Tips that matter</h3>
                   <ul className="mt-6 space-y-4">
@@ -466,7 +493,7 @@ export default async function RecipePage({
               ) : null}
 
               {(substitutions.length || recipe.variations.length) ? (
-                <div className="recipe-core-panel panel p-6 sm:p-7">
+                <div className="recipe-print-section recipe-core-panel panel p-6 sm:p-7">
                   <p className="eyebrow">Substitutions and variations</p>
                   <h3 className="mt-3 font-display text-4xl text-cream">Remix without losing the point</h3>
                   <div className="mt-6 space-y-4">
@@ -491,7 +518,7 @@ export default async function RecipePage({
               ) : null}
 
               {(recipe.storageNotes || recipe.reheatNotes || recipe.makeAheadNotes) ? (
-                <div className="recipe-core-panel panel p-6 sm:p-7">
+                <div className="recipe-print-section recipe-core-panel panel p-6 sm:p-7">
                   <p className="eyebrow">Storage and leftovers</p>
                   <h3 className="mt-3 font-display text-4xl text-cream">Plan ahead and reheat well</h3>
                   <div className="mt-6 space-y-4">
@@ -518,7 +545,7 @@ export default async function RecipePage({
               ) : null}
 
               {servingSuggestions.length ? (
-                <div className="recipe-core-panel panel p-6 sm:p-7">
+                <div className="recipe-print-section recipe-core-panel panel p-6 sm:p-7">
                   <p className="eyebrow">Serve it like you mean it</p>
                   <h3 className="mt-3 font-display text-4xl text-cream">Finish, pair, and plate</h3>
                   <ul className="mt-6 space-y-4">
@@ -536,14 +563,14 @@ export default async function RecipePage({
             </section>
 
             {faqs.length ? (
-              <section id="faqs" className="recipe-core-panel panel p-6 sm:p-7">
+              <section id="faqs" className="recipe-print-section recipe-core-panel panel p-6 sm:p-7">
                 <p className="eyebrow">FAQ</p>
                 <h3 className="mt-3 font-display text-4xl text-cream">The repeat questions</h3>
                 <div className="mt-6 space-y-4">
                   {faqs.map((faq) => (
                     <details
                       key={faq.question}
-                      className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4"
+                      className="recipe-print-keep rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4"
                     >
                       <summary className="cursor-pointer list-none text-base font-semibold text-cream">
                         {faq.question}
@@ -555,7 +582,7 @@ export default async function RecipePage({
               </section>
             ) : null}
 
-            <section className="recipe-core-panel">
+            <section className="recipe-core-panel print-hidden">
               <CommentSection
                 contentType="recipe"
                 contentId={recipe.id}
