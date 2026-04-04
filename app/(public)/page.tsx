@@ -12,22 +12,21 @@ import {
   getAffiliateLinkEntries,
   resolveAffiliateLink
 } from "@/lib/affiliates";
-import { getMerchThemeClasses } from "@/lib/merch";
 import {
   getFeaturedCollection,
-  getCompetitions,
-  getMerchProducts
+  getCompetitions
 } from "@/lib/services/content";
 import { getGuides } from "@/lib/content/guides";
+import { getShopAffiliateCollections } from "@/lib/shop";
 
 export default async function HomePage() {
-  const [{ recipes, blogPosts, reviews }, competitions, guides, merchItems] = await Promise.all([
+  const [{ recipes, blogPosts, reviews }, competitions, guides] = await Promise.all([
     getFeaturedCollection(),
     getCompetitions(),
-    getGuides(),
-    getMerchProducts()
+    getGuides()
   ]);
   const homeAffiliateLinks = getAffiliateLinkEntries(HOME_FEATURED_AFFILIATE_KEYS);
+  const shopCollections = getShopAffiliateCollections();
   const resolvedHomeAffiliateLinks = homeAffiliateLinks
     .map((link) => ({
       link,
@@ -37,7 +36,6 @@ export default async function HomePage() {
       })
     }))
     .filter((entry): entry is { link: (typeof homeAffiliateLinks)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
-  const merchPreview = merchItems.slice(0, 3);
 
   return (
     <>
@@ -67,7 +65,7 @@ export default async function HomePage() {
                   href="/shop"
                   className="rounded-full bg-white px-6 py-3 font-semibold text-charcoal"
                 >
-                  Shop merch and gear
+                  Shop sauces and gear
                 </Link>
                 <Link
                   href="/quiz"
@@ -88,9 +86,9 @@ export default async function HomePage() {
                   <p className="mt-2 leading-6">Reviews built to drive useful clicks instead of empty hype.</p>
                 </div>
                 <div className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Merch and gear</p>
-                  <p className="mt-2 font-display text-3xl text-cream">{merchItems.length}+</p>
-                  <p className="mt-2 leading-6">Owned merch previews backed by partner tools and sauce picks.</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Shop lanes</p>
+                  <p className="mt-2 font-display text-3xl text-cream">{shopCollections.length}+</p>
+                  <p className="mt-2 leading-6">Giftable bottles, kitchen gear, pantry heat, and subscription picks.</p>
                 </div>
               </div>
             </div>
@@ -141,42 +139,40 @@ export default async function HomePage() {
       <section className="container-shell py-10">
         <SectionHeading
           eyebrow="Shop the heat"
-          title="Put merch up front and keep the affiliate picks useful."
-          copy="The commercial layer should feel like part of the brand: drop-preview merch on one side, trusted sauce and kitchen picks on the other."
+          title="Keep the store useful before it gets big."
+          copy="At launch, the commercial layer should be practical: better bottles, useful gear, giftable sets, and pantry picks that actually support the cooking."
         />
         <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
         <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="panel p-8">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="eyebrow">Merch preview</p>
+                <p className="eyebrow">Shop lanes</p>
                 <h2 className="mt-3 font-display text-4xl text-cream">
-                  Flame Club goods deserve homepage space.
+                  Start with curated buying paths, not fake inventory.
                 </h2>
               </div>
               <Link
-                href="/shop#merch-preview"
+                href="/shop#starter-kits"
                 className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
               >
-                View the drop
+                Open the shop
               </Link>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-3">
-              {merchPreview.map((item) => (
+              {shopCollections.map((collection) => (
                 <article
-                  key={item.slug}
-                  className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-5`}
+                  key={collection.key}
+                  className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5"
                 >
-                  <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
-                  <h3 className="mt-3 font-display text-3xl text-cream">{item.name}</h3>
-                  <p className="mt-2 text-sm text-cream/60">{item.category}</p>
-                  <p className="mt-4 text-sm leading-7 text-cream/72">{item.description}</p>
-                  <p className="mt-4 text-sm font-semibold text-cream">{item.priceLabel}</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-ember">{collection.title}</p>
+                  <h3 className="mt-3 font-display text-3xl text-cream">{collection.ctaLabel}</h3>
+                  <p className="mt-4 text-sm leading-7 text-cream/72">{collection.description}</p>
                   <Link
-                    href={item.href}
+                    href={collection.key === "gift-guide" ? "/shop#gift-ideas" : "/shop#starter-kits"}
                     className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
                   >
-                    {item.ctaLabel}
+                    Explore
                   </Link>
                 </article>
               ))}

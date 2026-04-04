@@ -47,7 +47,7 @@ export default async function RecipesIndexPage() {
       <SectionHeading
         eyebrow="Recipes"
         title="Searchable spicy cooking, built to scale."
-        copy="Recipes are the anchor inventory for organic growth, affiliate placements, merch demand, and future community saves."
+        copy="Recipes are the anchor inventory for organic growth, affiliate placements, and future community saves."
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
@@ -64,7 +64,7 @@ export default async function RecipesIndexPage() {
             href="/shop"
             className="mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
           >
-            Shop merch and gear
+            Shop sauces and gear
           </Link>
         </div>
         <div className="grid gap-4 md:grid-cols-3">

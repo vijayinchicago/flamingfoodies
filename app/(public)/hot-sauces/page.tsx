@@ -66,7 +66,7 @@ export default async function HotSaucesHubPage() {
               href="/shop"
               className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
             >
-              Shop pantry and merch picks
+              Shop pantry and gear picks
             </Link>
           </div>
         </div>

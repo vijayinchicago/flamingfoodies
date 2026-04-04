@@ -14,7 +14,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata = buildMetadata({
   title: "Spicy Subscription Boxes | FlamingFoodies",
   description:
-    "Curated hot sauce subscriptions, spicy gifts, merch waitlist offers, and recurring heat-forward picks.",
+    "Curated hot sauce subscriptions, spicy gifts, and recurring heat-forward picks.",
   path: "/subscriptions"
 });
 
@@ -35,7 +35,7 @@ export default function SubscriptionsPage() {
       <SectionHeading
         eyebrow="Subscriptions"
         title="Curated spicy subscriptions and partner offers."
-        copy="This page now leans into recurring offers, giftable collections, and the merch waitlist instead of only pushing one box."
+        copy="This page leans into recurring offers and giftable collections instead of pretending we already run a merch line."
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-4">
@@ -62,17 +62,14 @@ export default function SubscriptionsPage() {
       </div>
       <div className="mt-10 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="panel p-8">
-          <p className="eyebrow">Owned offer next</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Merch waitlist plugs the gap.</h2>
+          <p className="eyebrow">Next best action</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">Stay close to the gift and gear picks.</h2>
           <p className="mt-4 text-sm leading-7 text-cream/75">
-            Until the first merch drop is live, this page should still capture recurring intent
-            from readers who want the gear side of the brand, not just partner products.
+            We do not need to force a merch story at launch. This signup keeps people warm for new
+            gift guides, recurring boxes, and the next strong store recommendations.
           </p>
-          <Link
-            href="/shop#merch-waitlist"
-            className="mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
-          >
-            Join merch waitlist
+          <Link href="/shop" className="mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream">
+            Browse the shop
           </Link>
         </div>
         <div>

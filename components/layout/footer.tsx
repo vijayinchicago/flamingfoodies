@@ -29,7 +29,7 @@ export function Footer() {
           <div className="mt-4 flex flex-col gap-3 text-sm text-cream/75">
             <Link href="/quiz">Heat Quiz</Link>
             <Link href="/subscriptions">Subscription Boxes</Link>
-            <Link href="/shop">Merch</Link>
+            <Link href="/shop">Shop</Link>
             <Link href="/leaderboard">Leaderboard</Link>
           </div>
         </div>
