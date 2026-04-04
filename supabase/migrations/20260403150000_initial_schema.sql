@@ -599,26 +599,38 @@ CREATE TRIGGER set_updated_at BEFORE UPDATE ON community_posts   FOR EACH ROW EX
 CREATE TRIGGER set_updated_at BEFORE UPDATE ON competitions      FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- Auto-create profile on Supabase Auth signup
-CREATE OR REPLACE FUNCTION handle_new_user()
+CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO profiles (id, username, display_name, avatar_url)
+  INSERT INTO public.profiles (id, username, display_name, avatar_url)
   VALUES (
     NEW.id,
+    CASE
+      WHEN NULLIF(NEW.raw_user_meta_data->>'user_name', '') IS NOT NULL THEN
+        NEW.raw_user_meta_data->>'user_name'
+      ELSE
+        COALESCE(
+          NULLIF(
+            regexp_replace(lower(split_part(COALESCE(NEW.email, ''), '@', 1)), '[^a-z0-9-]+', '-', 'g'),
+            ''
+          ),
+          'user'
+        ) || '-' || substr(NEW.id::text, 1, 6)
+    END,
     COALESCE(
-      NEW.raw_user_meta_data->>'user_name',
-      split_part(NEW.email, '@', 1) || '_' || substr(NEW.id::text, 1, 4)
+      NULLIF(NEW.raw_user_meta_data->>'full_name', ''),
+      NULLIF(split_part(COALESCE(NEW.email, ''), '@', 1), ''),
+      'FlamingFoodies Member'
     ),
-    COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
     NEW.raw_user_meta_data->>'avatar_url'
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE TRIGGER on_auth_user_created
 AFTER INSERT ON auth.users
-FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- Update recipe rating_avg + rating_count when a rating is added/updated
 CREATE OR REPLACE FUNCTION update_recipe_rating()
