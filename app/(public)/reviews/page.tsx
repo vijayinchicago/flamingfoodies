@@ -48,7 +48,7 @@ export default async function ReviewsIndexPage() {
         }))}
       />
       <SectionHeading
-        eyebrow="Reviews"
+        eyebrow="Hot Sauces"
         title="Heat-tested buying advice that can monetize without losing trust."
         copy="Standardized scoring, flavor notes, and use-case guidance make the review layer useful enough to earn affiliate clicks and push the shop harder."
       />

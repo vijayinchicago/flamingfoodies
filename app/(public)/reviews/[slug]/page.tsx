@@ -85,7 +85,7 @@ export default async function ReviewPage({
       <BreadcrumbSchema
         items={[
           { name: "Home", item: absoluteUrl("/") },
-          { name: "Reviews", item: absoluteUrl("/reviews") },
+          { name: "Hot Sauces", item: absoluteUrl("/reviews") },
           { name: review.title, item: absoluteUrl(`/reviews/${review.slug}`) }
         ]}
       />
