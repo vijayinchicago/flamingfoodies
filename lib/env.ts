@@ -27,6 +27,7 @@ const envSchema = z.object({
   KV_REST_API_URL: z.string().optional(),
   KV_REST_API_TOKEN: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
+  ANTHROPIC_MODEL: z.string().optional(),
   CRON_SECRET: z.string().optional(),
   UNSPLASH_ACCESS_KEY: z.string().optional(),
   PEXELS_API_KEY: z.string().optional(),

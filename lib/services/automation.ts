@@ -228,6 +228,7 @@ const generatedReviewSchema = z
 
 const AUTOMATED_RECIPE_PUBLISH_SCORE = 84;
 const AUTOMATED_REVIEW_PUBLISH_SCORE = 86;
+const ANTHROPIC_TEXT_MODEL = env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
 type ValidatedGeneratedPayloadMap = {
   recipe: z.infer<typeof generatedRecipeSchema>;
   blog_post: z.infer<typeof generatedBlogSchema>;
@@ -370,7 +371,7 @@ async function runEditorialQaReview(
   }
 
   const response = await anthropic.messages.create({
-    model: "claude-3-7-sonnet-latest",
+    model: ANTHROPIC_TEXT_MODEL,
     max_tokens: 1100,
     messages: [
       {
@@ -857,7 +858,7 @@ async function generateStructuredDraft(
   }
 
   const response = await anthropic.messages.create({
-    model: "claude-3-7-sonnet-latest",
+    model: ANTHROPIC_TEXT_MODEL,
     max_tokens: 1800,
     messages: [
       {
@@ -1120,6 +1121,7 @@ export async function runGenerationPipeline(
       .from("content_generation_jobs")
       .insert({
         job_type: generationType,
+        model_used: ANTHROPIC_TEXT_MODEL,
         prompt_template:
           generationType === "recipe"
             ? "RECIPE_PROMPT"
@@ -1144,6 +1146,7 @@ export async function runGenerationPipeline(
         .from("content_generation_jobs")
         .update({
           status: "generating",
+          model_used: ANTHROPIC_TEXT_MODEL,
           started_at: new Date().toISOString(),
           attempts: (job.attempts ?? 0) + 1
         })
@@ -1170,6 +1173,7 @@ export async function runGenerationPipeline(
         .from("content_generation_jobs")
         .update({
           status: "completed",
+          model_used: ANTHROPIC_TEXT_MODEL,
           result_id: inserted.resultId,
           result_type: inserted.resultType,
           tokens_used: generated.tokensUsed,
@@ -1190,6 +1194,7 @@ export async function runGenerationPipeline(
         .from("content_generation_jobs")
         .update({
           status: "failed",
+          model_used: ANTHROPIC_TEXT_MODEL,
           error_message: error instanceof Error ? error.message : "Generation failed",
           completed_at: new Date().toISOString()
         })
