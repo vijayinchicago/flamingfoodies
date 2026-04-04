@@ -2,11 +2,12 @@ import {
   runDueNewsletterSendsAction,
   runNewsletterDigestAction,
   runPublishScheduledAction,
-  runSocialSchedulerAction,
-  triggerGenerationAction
+  runSocialSchedulerAction
 } from "@/lib/actions/admin-automation";
+import { ManualGenerationPanel } from "@/components/admin/manual-generation-panel";
 import { AdminSubmitButton } from "@/components/admin/admin-submit-button";
 import { AdminPage } from "@/components/admin/admin-page";
+import { getGenerationJobs } from "@/lib/services/admin";
 
 const triggers = [
   { type: "recipe", qty: 3, copy: "Generate recipe drafts that land in editorial review." },
@@ -14,7 +15,7 @@ const triggers = [
   { type: "review", qty: 1, copy: "Create a product review draft with ratings and notes." }
 ] as const;
 
-export default function AdminTriggerPage({
+export default async function AdminTriggerPage({
   searchParams
 }: {
   searchParams?: {
@@ -29,6 +30,8 @@ export default function AdminTriggerPage({
     error?: string;
   };
 }) {
+  const initialJobs = await getGenerationJobs();
+
   return (
     <AdminPage
       title="Manual trigger"
@@ -67,35 +70,7 @@ export default function AdminTriggerPage({
           {searchParams.failedNewsletters || "0"}.
         </p>
       ) : null}
-      <div className="grid gap-4 md:grid-cols-2">
-        {triggers.map((trigger) => (
-          <form
-            key={trigger.type}
-            action={triggerGenerationAction}
-            className="panel-light px-6 py-8 text-left"
-          >
-            <input type="hidden" name="type" value={trigger.type} />
-            <p className="eyebrow">Trigger</p>
-            <h2 className="mt-3 font-display text-4xl text-charcoal">{trigger.type}</h2>
-            <p className="mt-3 text-sm text-charcoal/65">{trigger.copy}</p>
-            <div className="mt-6 flex items-center gap-3">
-              <input
-                name="qty"
-                type="number"
-                min="1"
-                max="20"
-                defaultValue={trigger.qty}
-                className="w-24 rounded-full border border-charcoal/10 px-4 py-2 text-sm outline-none focus:border-ember"
-              />
-              <AdminSubmitButton
-                idleLabel="Generate now"
-                pendingLabel="Generating..."
-                className="rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 text-sm font-semibold text-white"
-              />
-            </div>
-          </form>
-        ))}
-      </div>
+      <ManualGenerationPanel triggers={triggers} initialJobs={initialJobs} />
       <div className="grid gap-4 lg:grid-cols-3">
         <form action={runPublishScheduledAction} className="panel-light p-6">
           <p className="eyebrow">Publish</p>
