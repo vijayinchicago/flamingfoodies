@@ -6,7 +6,12 @@ import { ArticleSchema } from "@/components/schema/article-schema";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { buildMetadata } from "@/lib/seo";
 import { absoluteUrl, formatDate, markdownToHtml } from "@/lib/utils";
-import { getBlogPost } from "@/lib/services/content";
+import { getBlogPost, getBlogPosts } from "@/lib/services/content";
+
+export async function generateStaticParams() {
+  const posts = await getBlogPosts();
+  return posts.map((post) => ({ slug: post.slug }));
+}
 
 export async function generateMetadata({
   params

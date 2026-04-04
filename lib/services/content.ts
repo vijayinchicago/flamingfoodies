@@ -392,8 +392,27 @@ export async function getBlogPosts() {
 }
 
 export async function getBlogPost(slug: string) {
-  const posts = await getBlogPosts();
-  return posts.find((post) => post.slug === slug) ?? null;
+  if (!flags.hasSupabaseAdmin) {
+    return getFallbackItem(sampleBlogPosts.find((post) => post.slug === slug) ?? null);
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return getFallbackItem(sampleBlogPosts.find((post) => post.slug === slug) ?? null);
+  }
+
+  const { data } = await supabase
+    .from("blog_posts")
+    .select("*")
+    .eq("slug", slug)
+    .eq("status", "published")
+    .maybeSingle();
+
+  if (!data) {
+    return getFallbackItem(sampleBlogPosts.find((post) => post.slug === slug) ?? null);
+  }
+
+  return mapBlogRow(data);
 }
 
 export async function getAdminBlogPosts() {
