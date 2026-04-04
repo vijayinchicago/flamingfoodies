@@ -24,10 +24,50 @@ export interface AffiliateLinkEntry extends AffiliateLinkDefinition {
   key: string;
 }
 
+export type AffiliateMonetizationStrategy =
+  | "amazon_tag_redirect"
+  | "skimlinks_javascript"
+  | "merchant_redirect";
+
+export type AffiliateClickTrackingMode = "server_redirect" | "client_beacon";
+
+export interface ResolvedAffiliateLink extends AffiliateLinkEntry {
+  href: string;
+  isExternal: boolean;
+  monetizationStrategy: AffiliateMonetizationStrategy;
+  trackingMode: AffiliateClickTrackingMode;
+}
+
 const AMAZON_TAG = env.NEXT_PUBLIC_AMAZON_TAG || "flamingfoodies-20";
+const SKIMLINKS_ENABLED = Boolean(env.NEXT_PUBLIC_SKIMLINKS_ID);
+
+export const AFFILIATE_DISCLOSURE_SUMMARY =
+  "Some outbound links are affiliate links. If you buy through them, FlamingFoodies may earn a commission at no extra cost to you.";
+
+export const AFFILIATE_DISCLOSURE_DETAIL =
+  "FlamingFoodies may earn commissions from qualifying purchases made through commerce links, including Amazon and selected retail partners. We only want those links next to content where they help the reader cook, compare, or buy more confidently.";
 
 export function buildAmazonSearchUrl(query: string) {
   return `https://www.amazon.com/s?k=${encodeURIComponent(query)}&tag=${AMAZON_TAG}`;
+}
+
+function buildAffiliateRedirectHref(
+  partnerKey: string,
+  sourcePage?: string,
+  position?: string
+) {
+  const params = new URLSearchParams();
+
+  if (sourcePage) {
+    params.set("source", sourcePage);
+  }
+
+  if (position) {
+    params.set("position", position);
+  }
+
+  const suffix = params.toString();
+  return suffix ? `/go/${partnerKey}?${suffix}` : `/go/${partnerKey}`;
 }
 
 export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
@@ -407,4 +447,82 @@ export function getReviewAffiliateRecommendations({
     .sort((left, right) => right.score - left.score)
     .slice(0, limit)
     .map(({ score: _score, ...entry }) => entry);
+}
+
+export function getAffiliateMonetizationStrategy(
+  entry: AffiliateLinkEntry | AffiliateLinkDefinition,
+  options?: {
+    hasSkimlinksJavascript?: boolean;
+  }
+): AffiliateMonetizationStrategy {
+  const hasSkimlinksJavascript =
+    options?.hasSkimlinksJavascript ?? SKIMLINKS_ENABLED;
+
+  if (entry.partner === "amazon") {
+    return "amazon_tag_redirect";
+  }
+
+  if (hasSkimlinksJavascript) {
+    return "skimlinks_javascript";
+  }
+
+  return "merchant_redirect";
+}
+
+export function getAffiliateMonetizationLabel(
+  strategy: AffiliateMonetizationStrategy
+) {
+  switch (strategy) {
+    case "amazon_tag_redirect":
+      return "Amazon tag";
+    case "skimlinks_javascript":
+      return "Skimlinks JS";
+    case "merchant_redirect":
+    default:
+      return "Direct merchant";
+  }
+}
+
+export function resolveAffiliateLink(
+  partnerKey: string,
+  options?: {
+    sourcePage?: string;
+    position?: string;
+    hasSkimlinksJavascript?: boolean;
+  }
+): ResolvedAffiliateLink | null {
+  const entry = AFFILIATE_LINKS[partnerKey];
+  if (!entry) {
+    return null;
+  }
+
+  const monetizationStrategy = getAffiliateMonetizationStrategy(entry, {
+    hasSkimlinksJavascript: options?.hasSkimlinksJavascript
+  });
+
+  return {
+    key: partnerKey,
+    ...entry,
+    href:
+      monetizationStrategy === "skimlinks_javascript"
+        ? entry.url
+        : buildAffiliateRedirectHref(partnerKey, options?.sourcePage, options?.position),
+    isExternal: monetizationStrategy === "skimlinks_javascript",
+    monetizationStrategy,
+    trackingMode:
+      monetizationStrategy === "skimlinks_javascript"
+        ? "client_beacon"
+        : "server_redirect"
+  };
+}
+
+export function getAffiliateRegistry() {
+  return Object.entries(AFFILIATE_LINKS).map(([key, entry]) => ({
+    key,
+    ...entry,
+    monetizationStrategy: getAffiliateMonetizationStrategy(entry),
+    monetizationLabel: getAffiliateMonetizationLabel(
+      getAffiliateMonetizationStrategy(entry)
+    )
+  }));
 }

@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
+import { AffiliateLink } from "@/components/content/affiliate-link";
 import { EmailCapture } from "@/components/forms/email-capture";
 import { SectionHeading } from "@/components/layout/section-heading";
 import {
@@ -7,7 +9,8 @@ import {
   KITCHEN_GEAR_KEYS,
   PANTRY_HEAT_KEYS,
   SUBSCRIPTION_KEYS,
-  getAffiliateLinkEntries
+  getAffiliateLinkEntries,
+  resolveAffiliateLink
 } from "@/lib/affiliates";
 import { getMerchThemeClasses } from "@/lib/merch";
 import { buildMetadata } from "@/lib/seo";
@@ -26,6 +29,21 @@ export default async function ShopPage() {
   const gearLinks = getAffiliateLinkEntries(KITCHEN_GEAR_KEYS);
   const pantryLinks = getAffiliateLinkEntries(PANTRY_HEAT_KEYS);
   const subscriptionLinks = getAffiliateLinkEntries(SUBSCRIPTION_KEYS);
+  const resolveLinks = (entries: typeof hotSauceLinks, position: string) =>
+    entries
+      .map((link) => ({
+        link,
+        resolved: resolveAffiliateLink(link.key, {
+          sourcePage: "/shop",
+          position
+        })
+      }))
+      .filter((entry): entry is { link: (typeof hotSauceLinks)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
+  const resolvedMerchSidebarLinks = resolveLinks(subscriptionLinks.slice(0, 2), "merch-sidebar");
+  const resolvedHotSauceLinks = resolveLinks(hotSauceLinks, "hot-sauce-column");
+  const resolvedGearLinks = resolveLinks(gearLinks, "gear-column");
+  const resolvedPantryLinks = resolveLinks(pantryLinks, "pantry-column");
+  const resolvedSubscriptionLinks = resolveLinks(subscriptionLinks, "subscription-grid");
 
   return (
     <section className="container-shell py-16">
@@ -34,6 +52,7 @@ export default async function ShopPage() {
         title="Merch, hot sauce, and kitchen gear all in one storefront."
         copy="This page should feel like a real commerce hub, not a placeholder: merch previews first, then the sauce, gear, and pantry links that support the editorial side of the site."
       />
+      <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div id="merch-preview" className="panel p-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -89,17 +108,21 @@ export default async function ShopPage() {
             </p>
           </div>
           <div className="mt-8 grid gap-4">
-            {subscriptionLinks.slice(0, 2).map((link) => (
+            {resolvedMerchSidebarLinks.map(({ link, resolved }) => (
               <article key={link.key} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
                 <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
                 <h3 className="mt-3 font-display text-3xl text-cream">{link.product}</h3>
                 <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
-                <Link
-                  href={`/go/${link.key}?source=/shop&position=merch-sidebar`}
+                <AffiliateLink
+                  href={resolved.href}
+                  partnerKey={resolved.key}
+                  trackingMode={resolved.trackingMode}
+                  sourcePage="/shop"
+                  position="merch-sidebar"
                   className="mt-5 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 text-sm font-semibold text-white"
                 >
                   Open offer
-                </Link>
+                </AffiliateLink>
               </article>
             ))}
           </div>
@@ -110,7 +133,7 @@ export default async function ShopPage() {
         <div className="panel p-8">
           <p className="eyebrow">Hot sauce picks</p>
           <div className="mt-6 space-y-4">
-            {hotSauceLinks.map((link) => (
+            {resolvedHotSauceLinks.map(({ link, resolved }) => (
               <article key={link.key} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
@@ -118,12 +141,16 @@ export default async function ShopPage() {
                 </div>
                 <h3 className="mt-3 font-display text-3xl text-cream">{link.product}</h3>
                 <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
-                <Link
-                  href={`/go/${link.key}?source=/shop&position=hot-sauce-column`}
+                <AffiliateLink
+                  href={resolved.href}
+                  partnerKey={resolved.key}
+                  trackingMode={resolved.trackingMode}
+                  sourcePage="/shop"
+                  position="hot-sauce-column"
                   className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                 >
                   Shop this pick
-                </Link>
+                </AffiliateLink>
               </article>
             ))}
           </div>
@@ -131,7 +158,7 @@ export default async function ShopPage() {
         <div className="panel p-8">
           <p className="eyebrow">Kitchen gear</p>
           <div className="mt-6 space-y-4">
-            {gearLinks.map((link) => (
+            {resolvedGearLinks.map(({ link, resolved }) => (
               <article key={link.key} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
@@ -139,12 +166,16 @@ export default async function ShopPage() {
                 </div>
                 <h3 className="mt-3 font-display text-3xl text-cream">{link.product}</h3>
                 <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
-                <Link
-                  href={`/go/${link.key}?source=/shop&position=gear-column`}
+                <AffiliateLink
+                  href={resolved.href}
+                  partnerKey={resolved.key}
+                  trackingMode={resolved.trackingMode}
+                  sourcePage="/shop"
+                  position="gear-column"
                   className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                 >
                   Shop this pick
-                </Link>
+                </AffiliateLink>
               </article>
             ))}
           </div>
@@ -152,7 +183,7 @@ export default async function ShopPage() {
         <div className="panel p-8">
           <p className="eyebrow">Pantry heat</p>
           <div className="mt-6 space-y-4">
-            {pantryLinks.map((link) => (
+            {resolvedPantryLinks.map(({ link, resolved }) => (
               <article key={link.key} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
@@ -160,12 +191,16 @@ export default async function ShopPage() {
                 </div>
                 <h3 className="mt-3 font-display text-3xl text-cream">{link.product}</h3>
                 <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
-                <Link
-                  href={`/go/${link.key}?source=/shop&position=pantry-column`}
+                <AffiliateLink
+                  href={resolved.href}
+                  partnerKey={resolved.key}
+                  trackingMode={resolved.trackingMode}
+                  sourcePage="/shop"
+                  position="pantry-column"
                   className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                 >
                   Shop this pick
-                </Link>
+                </AffiliateLink>
               </article>
             ))}
           </div>
@@ -175,17 +210,21 @@ export default async function ShopPage() {
       <div className="mt-10 panel p-8">
         <p className="eyebrow">Subscriptions and gift plays</p>
         <div className="mt-6 grid gap-4 lg:grid-cols-4">
-          {subscriptionLinks.map((link) => (
+          {resolvedSubscriptionLinks.map(({ link, resolved }) => (
             <article key={link.key} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
               <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
               <h3 className="mt-3 font-display text-3xl text-cream">{link.product}</h3>
               <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
-              <Link
-                href={`/go/${link.key}?source=/shop&position=subscription-grid`}
+              <AffiliateLink
+                href={resolved.href}
+                partnerKey={resolved.key}
+                trackingMode={resolved.trackingMode}
+                sourcePage="/shop"
+                position="subscription-grid"
                 className="mt-5 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-4 py-2 text-sm font-semibold text-white"
               >
                 Open offer
-              </Link>
+              </AffiliateLink>
             </article>
           ))}
         </div>

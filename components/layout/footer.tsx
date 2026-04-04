@@ -34,6 +34,11 @@ export function Footer() {
           </div>
         </div>
       </div>
+      <div className="container-shell border-t border-white/10 py-5 text-xs text-cream/55">
+        <Link href="/affiliate-disclosure" className="underline underline-offset-4">
+          Affiliate disclosure
+        </Link>
+      </div>
     </footer>
   );
 }

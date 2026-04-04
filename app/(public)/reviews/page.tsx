@@ -1,9 +1,15 @@
 import Link from "next/link";
 
+import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
+import { AffiliateLink } from "@/components/content/affiliate-link";
 import { ReviewCard } from "@/components/cards/review-card";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
-import { HOT_SAUCE_SPOTLIGHT_KEYS, getAffiliateLinkEntries } from "@/lib/affiliates";
+import {
+  HOT_SAUCE_SPOTLIGHT_KEYS,
+  getAffiliateLinkEntries,
+  resolveAffiliateLink
+} from "@/lib/affiliates";
 import { buildMetadata } from "@/lib/seo";
 import { getReviews } from "@/lib/services/content";
 import { absoluteUrl } from "@/lib/utils";
@@ -18,6 +24,15 @@ export const metadata = buildMetadata({
 export default async function ReviewsIndexPage() {
   const reviews = await getReviews();
   const hotSauceLinks = getAffiliateLinkEntries(HOT_SAUCE_SPOTLIGHT_KEYS).slice(0, 3);
+  const resolvedHotSauceLinks = hotSauceLinks
+    .map((link) => ({
+      link,
+      resolved: resolveAffiliateLink(link.key, {
+        sourcePage: "/reviews",
+        position: "index-callout"
+      })
+    }))
+    .filter((entry): entry is { link: (typeof hotSauceLinks)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
 
   return (
     <section className="container-shell py-16">
@@ -34,6 +49,7 @@ export default async function ReviewsIndexPage() {
         title="Heat-tested buying advice that can monetize without losing trust."
         copy="Standardized scoring, flavor notes, and use-case guidance make the review layer useful enough to earn affiliate clicks and push the shop harder."
       />
+      <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="panel p-8">
           <p className="eyebrow">Shelf upgrade</p>
@@ -52,17 +68,21 @@ export default async function ReviewsIndexPage() {
           </Link>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
-          {hotSauceLinks.map((link) => (
+          {resolvedHotSauceLinks.map(({ link, resolved }) => (
             <article key={link.key} className="panel p-5">
               <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
               <h3 className="mt-3 font-display text-3xl text-cream">{link.product}</h3>
               <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
-              <Link
-                href={`/go/${link.key}?source=/reviews&position=index-callout`}
+              <AffiliateLink
+                href={resolved.href}
+                partnerKey={resolved.key}
+                trackingMode={resolved.trackingMode}
+                sourcePage="/reviews"
+                position="index-callout"
                 className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
               >
                 Open offer
-              </Link>
+              </AffiliateLink>
             </article>
           ))}
         </div>

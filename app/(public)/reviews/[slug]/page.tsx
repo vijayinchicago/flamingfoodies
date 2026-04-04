@@ -2,12 +2,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CommentSection } from "@/components/community/comment-section";
+import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
+import { AffiliateLink } from "@/components/content/affiliate-link";
 import { ShareBar } from "@/components/content/share-bar";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { ReviewSchema } from "@/components/schema/review-schema";
 import {
   findAffiliateLinkByUrl,
-  getReviewAffiliateRecommendations
+  getReviewAffiliateRecommendations,
+  resolveAffiliateLink
 } from "@/lib/affiliates";
 import { getMerchThemeClasses } from "@/lib/merch";
 import { buildMetadata } from "@/lib/seo";
@@ -54,6 +57,21 @@ export default async function ReviewPage({
     excludeKeys: primaryOffer ? [primaryOffer.key] : [],
     limit: 2
   });
+  const resolvedPrimaryOffer = primaryOffer
+    ? resolveAffiliateLink(primaryOffer.key, {
+        sourcePage: `/reviews/${review.slug}`,
+        position: "review-primary"
+      })
+    : null;
+  const resolvedRelatedOffers = relatedOffers
+    .map((offer) => ({
+      offer,
+      resolved: resolveAffiliateLink(offer.key, {
+        sourcePage: `/reviews/${review.slug}`,
+        position: "review-related"
+      })
+    }))
+    .filter((entry): entry is { offer: (typeof relatedOffers)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
   const merchPreview = await getFeaturedMerchProducts(2);
 
   return (
@@ -87,6 +105,9 @@ export default async function ReviewPage({
           contentSlug={review.slug}
         />
       </div>
+      <div className="mt-6 max-w-3xl">
+        <AffiliateDisclosure compact />
+      </div>
       <div className="mt-12 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="prose-guide" dangerouslySetInnerHTML={{ __html: html }} />
         <aside className="space-y-6">
@@ -111,21 +132,35 @@ export default async function ReviewPage({
             <p className="mt-4 text-sm leading-7 text-cream/75">
               You want a review framework with enough depth to justify an affiliate click.
             </p>
-            <Link
-              href={
-                primaryOffer
-                  ? `/go/${primaryOffer.key}?source=/reviews/${review.slug}&position=review-primary`
-                  : review.affiliateUrl
-              }
-              className="mt-6 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 font-semibold text-white"
-            >
-              View partner offer
-            </Link>
+            {resolvedPrimaryOffer ? (
+              <AffiliateLink
+                href={resolvedPrimaryOffer.href}
+                partnerKey={resolvedPrimaryOffer.key}
+                trackingMode={resolvedPrimaryOffer.trackingMode}
+                sourcePage={`/reviews/${review.slug}`}
+                position="review-primary"
+                contentType="review"
+                contentId={review.id}
+                contentSlug={review.slug}
+                className="mt-6 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 font-semibold text-white"
+              >
+                View partner offer
+              </AffiliateLink>
+            ) : (
+              <AffiliateLink
+                href={review.affiliateUrl}
+                partnerName={review.brand}
+                productName={review.productName}
+                className="mt-6 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 font-semibold text-white"
+              >
+                View partner offer
+              </AffiliateLink>
+            )}
           </div>
           <div className="panel p-6">
             <h2 className="font-display text-3xl text-cream">More shelf builders</h2>
             <div className="mt-4 space-y-4">
-              {relatedOffers.map((offer) => (
+              {resolvedRelatedOffers.map(({ offer, resolved }) => (
                 <article
                   key={offer.key}
                   className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4"
@@ -133,12 +168,19 @@ export default async function ReviewPage({
                   <p className="text-xs uppercase tracking-[0.24em] text-ember">{offer.badge}</p>
                   <h3 className="mt-2 font-display text-2xl text-cream">{offer.product}</h3>
                   <p className="mt-2 text-sm leading-6 text-cream/72">{offer.description}</p>
-                  <Link
-                    href={`/go/${offer.key}?source=/reviews/${review.slug}&position=review-related`}
+                  <AffiliateLink
+                    href={resolved.href}
+                    partnerKey={resolved.key}
+                    trackingMode={resolved.trackingMode}
+                    sourcePage={`/reviews/${review.slug}`}
+                    position="review-related"
+                    contentType="review"
+                    contentId={review.id}
+                    contentSlug={review.slug}
                     className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                   >
                     Open offer
-                  </Link>
+                  </AffiliateLink>
                 </article>
               ))}
             </div>

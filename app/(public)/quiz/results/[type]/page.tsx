@@ -1,5 +1,8 @@
 import Link from "next/link";
 
+import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
+import { AffiliateLink } from "@/components/content/affiliate-link";
+import { resolveAffiliateLink } from "@/lib/affiliates";
 import { buildMetadata } from "@/lib/seo";
 
 const resultCopy: Record<string, { title: string; description: string; tag: string }> = {
@@ -46,6 +49,15 @@ export default function QuizResultPage({
   params: { type: string };
 }) {
   const result = resultCopy[params.type] || resultCopy["balanced-burn"];
+  const resolvedOffer = resolveAffiliateLink(
+    params.type === "reaper-chaser"
+      ? "heatonist-hot-ones-season-22"
+      : "fuego-box-monthly-subscription",
+    {
+      sourcePage: `/quiz/results/${params.type}`,
+      position: "quiz-result"
+    }
+  );
 
   return (
     <section className="container-shell py-16">
@@ -62,13 +74,20 @@ export default function QuizResultPage({
           >
             Find matching recipes
           </Link>
-          <Link
-            href={`/go/${params.type === "reaper-chaser" ? "heatonist-hot-ones-season-22" : "fuego-box-monthly-subscription"}`}
-            className="rounded-full border border-white/15 px-6 py-3 font-semibold text-cream"
-          >
-            See product picks
-          </Link>
+          {resolvedOffer ? (
+            <AffiliateLink
+              href={resolvedOffer.href}
+              partnerKey={resolvedOffer.key}
+              trackingMode={resolvedOffer.trackingMode}
+              sourcePage={`/quiz/results/${params.type}`}
+              position="quiz-result"
+              className="rounded-full border border-white/15 px-6 py-3 font-semibold text-cream"
+            >
+              See product picks
+            </AffiliateLink>
+          ) : null}
         </div>
+        <AffiliateDisclosure className="mx-auto mt-8 max-w-2xl text-left" compact />
         <p className="mt-6 text-sm text-cream/50">
           Suggested email tag: <code>{result.tag}</code>
         </p>

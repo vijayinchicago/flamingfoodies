@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CommentSection } from "@/components/community/comment-section";
+import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
+import { AffiliateLink } from "@/components/content/affiliate-link";
 import { ShareBar } from "@/components/content/share-bar";
 import { RecipeDisplayControls } from "@/components/recipes/recipe-display-controls";
 import { RecipeIngredientRail } from "@/components/recipes/recipe-ingredient-rail";
@@ -14,7 +16,10 @@ import {
   rateRecipeAction,
   toggleRecipeSaveAction
 } from "@/lib/actions/engagement";
-import { getRecipeAffiliateRecommendations } from "@/lib/affiliates";
+import {
+  getRecipeAffiliateRecommendations,
+  resolveAffiliateLink
+} from "@/lib/affiliates";
 import { getMerchThemeClasses } from "@/lib/merch";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import {
@@ -225,6 +230,15 @@ export default async function RecipePage({
     heatLevel: recipe.heatLevel,
     limit: 3
   });
+  const resolvedRecommendedLinks = recommendedLinks
+    .map((link) => ({
+      link,
+      resolved: resolveAffiliateLink(link.key, {
+        sourcePage: `/recipes/${recipe.slug}`,
+        position: "recipe-detail"
+      })
+    }))
+    .filter((entry): entry is { link: (typeof recommendedLinks)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
   const ingredientSections = getRecipeIngredientSections(recipe);
   const methodSteps = getRecipeMethodSteps(recipe);
   const faqs = getRecipeFaqs(recipe);
@@ -430,6 +444,9 @@ export default async function RecipePage({
                   contentId={recipe.id}
                   contentSlug={recipe.slug}
                 />
+              </div>
+              <div className="mt-4 max-w-3xl print-hidden">
+                <AffiliateDisclosure compact />
               </div>
             </div>
 
@@ -724,9 +741,9 @@ export default async function RecipePage({
           </div>
         </div>
 
-        {(recommendedLinks.length || merchPreview.length) ? (
+        {(resolvedRecommendedLinks.length || merchPreview.length) ? (
           <section className="recipe-secondary-utility grid gap-6 lg:grid-cols-[1.05fr_0.95fr] print-hidden">
-            {recommendedLinks.length ? (
+            {resolvedRecommendedLinks.length ? (
               <div className="panel p-6 sm:p-7">
                 <p className="eyebrow">Gear and pantry upgrades</p>
                 <h3 className="mt-3 font-display text-4xl text-cream">Smart affiliate picks for this cook</h3>
@@ -735,7 +752,7 @@ export default async function RecipePage({
                   make this style of recipe cleaner, faster, or more repeatable.
                 </p>
                 <div className="mt-6 grid gap-4">
-                  {recommendedLinks.map((link) => (
+                  {resolvedRecommendedLinks.map(({ link, resolved }) => (
                     <article
                       key={link.key}
                       className="rounded-[1.75rem] border border-white/10 bg-white/[0.05] p-5"
@@ -748,12 +765,19 @@ export default async function RecipePage({
                       </div>
                       <h4 className="mt-3 font-display text-3xl text-cream">{link.product}</h4>
                       <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
-                      <Link
-                        href={`/go/${link.key}?source=/recipes/${recipe.slug}&position=recipe-detail`}
+                      <AffiliateLink
+                        href={resolved.href}
+                        partnerKey={resolved.key}
+                        trackingMode={resolved.trackingMode}
+                        sourcePage={`/recipes/${recipe.slug}`}
+                        position="recipe-detail"
+                        contentType="recipe"
+                        contentId={recipe.id}
+                        contentSlug={recipe.slug}
                         className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                       >
                         Shop this pick
-                      </Link>
+                      </AffiliateLink>
                     </article>
                   ))}
                 </div>

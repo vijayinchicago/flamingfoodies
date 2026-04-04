@@ -1,13 +1,16 @@
 import Link from "next/link";
 
 import { RecipeCard } from "@/components/cards/recipe-card";
+import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
+import { AffiliateLink } from "@/components/content/affiliate-link";
 import { ReviewCard } from "@/components/cards/review-card";
 import { EmailCapture } from "@/components/forms/email-capture";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { OrganizationSchema } from "@/components/schema/organization-schema";
 import {
   HOME_FEATURED_AFFILIATE_KEYS,
-  getAffiliateLinkEntries
+  getAffiliateLinkEntries,
+  resolveAffiliateLink
 } from "@/lib/affiliates";
 import { getMerchThemeClasses } from "@/lib/merch";
 import {
@@ -25,6 +28,15 @@ export default async function HomePage() {
     getMerchProducts()
   ]);
   const homeAffiliateLinks = getAffiliateLinkEntries(HOME_FEATURED_AFFILIATE_KEYS);
+  const resolvedHomeAffiliateLinks = homeAffiliateLinks
+    .map((link) => ({
+      link,
+      resolved: resolveAffiliateLink(link.key, {
+        sourcePage: "/",
+        position: "home-commerce"
+      })
+    }))
+    .filter((entry): entry is { link: (typeof homeAffiliateLinks)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
   const merchPreview = merchItems.slice(0, 3);
 
   return (
@@ -132,6 +144,7 @@ export default async function HomePage() {
           title="Put merch up front and keep the affiliate picks useful."
           copy="The commercial layer should feel like part of the brand: drop-preview merch on one side, trusted sauce and kitchen picks on the other."
         />
+        <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
         <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="panel p-8">
             <div className="flex items-center justify-between gap-4">
@@ -175,7 +188,7 @@ export default async function HomePage() {
               Products that make the content more actionable.
             </h2>
             <div className="mt-8 space-y-4">
-              {homeAffiliateLinks.map((link) => (
+              {resolvedHomeAffiliateLinks.map(({ link, resolved }) => (
                 <article
                   key={link.key}
                   className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5"
@@ -191,12 +204,16 @@ export default async function HomePage() {
                   <p className="mt-3 text-xs uppercase tracking-[0.18em] text-cream/48">
                     Best for: {link.bestFor}
                   </p>
-                  <Link
-                    href={`/go/${link.key}?source=/&position=home-commerce`}
+                  <AffiliateLink
+                    href={resolved.href}
+                    partnerKey={resolved.key}
+                    trackingMode={resolved.trackingMode}
+                    sourcePage="/"
+                    position="home-commerce"
                     className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                   >
                     Open offer
-                  </Link>
+                  </AffiliateLink>
                 </article>
               ))}
             </div>
