@@ -21,6 +21,7 @@ describe("pirate metrics helpers", () => {
 
   it("detects social sources", () => {
     expect(isSocialSource("pinterest")).toBe(true);
+    expect(isSocialSource("whatsapp")).toBe(true);
     expect(isSocialSource("google")).toBe(false);
   });
 

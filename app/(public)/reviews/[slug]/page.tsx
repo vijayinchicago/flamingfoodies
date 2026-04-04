@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CommentSection } from "@/components/community/comment-section";
+import { ShareBar } from "@/components/content/share-bar";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { ReviewSchema } from "@/components/schema/review-schema";
 import {
@@ -74,6 +75,17 @@ export default async function ReviewPage({
         <span>{review.rating.toFixed(1)}/5</span>
         <span>{review.heatLevel || "all heat levels"}</span>
         <span>{formatDate(review.publishedAt)}</span>
+      </div>
+      <div className="mt-8 max-w-3xl">
+        <ShareBar
+          title={review.title}
+          description={review.description}
+          url={absoluteUrl(`/reviews/${review.slug}`)}
+          imageUrl={review.imageUrl}
+          contentType="review"
+          contentId={review.id}
+          contentSlug={review.slug}
+        />
       </div>
       <div className="mt-12 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="prose-guide" dangerouslySetInnerHTML={{ __html: html }} />

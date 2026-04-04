@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { CommentSection } from "@/components/community/comment-section";
+import { ShareBar } from "@/components/content/share-bar";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { buildMetadata } from "@/lib/seo";
 import { absoluteUrl, formatDate, markdownToHtml } from "@/lib/utils";
@@ -57,6 +58,17 @@ export default async function BlogPostPage({
         <span>{post.authorName}</span>
         <span>{formatDate(post.publishedAt)}</span>
         <span>{post.readTimeMinutes || 4} min read</span>
+      </div>
+      <div className="mt-8 max-w-4xl">
+        <ShareBar
+          title={post.title}
+          description={post.description}
+          url={absoluteUrl(`/blog/${post.slug}`)}
+          imageUrl={post.imageUrl}
+          contentType="blog_post"
+          contentId={post.id}
+          contentSlug={post.slug}
+        />
       </div>
       <div
         className="prose-guide mt-12"

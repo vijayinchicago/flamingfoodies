@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CommentSection } from "@/components/community/comment-section";
+import { ShareBar } from "@/components/content/share-bar";
 import { RecipeDisplayControls } from "@/components/recipes/recipe-display-controls";
 import { RecipeIngredientRail } from "@/components/recipes/recipe-ingredient-rail";
 import { RecipeMethodSection } from "@/components/recipes/recipe-method-section";
@@ -415,6 +416,18 @@ export default async function RecipePage({
                     {tag}
                   </span>
                 ))}
+              </div>
+
+              <div className="mt-8 max-w-3xl print-hidden">
+                <ShareBar
+                  title={recipe.title}
+                  description={recipe.description}
+                  url={absoluteUrl(`/recipes/${recipe.slug}`)}
+                  imageUrl={hero.imageUrl}
+                  contentType="recipe"
+                  contentId={recipe.id}
+                  contentSlug={recipe.slug}
+                />
               </div>
             </div>
 
