@@ -2,6 +2,9 @@
 
 import { useState, type FormEvent } from "react";
 
+import { trackEvent } from "@/lib/analytics";
+import { ANALYTICS_EVENTS } from "@/lib/telemetry-events";
+
 export function EmailCapture({
   source = "homepage",
   tag = "homepage-hero"
@@ -39,6 +42,11 @@ export function EmailCapture({
 
     setState("success");
     setMessage("You’re in. Expect weekly heat, not inbox sludge.");
+    trackEvent(ANALYTICS_EVENTS.emailSignup, {
+      path: window.location.pathname,
+      source,
+      tag
+    });
     event.currentTarget.reset();
   }
 

@@ -48,6 +48,45 @@ function sortMerch(items: MerchProduct[]) {
   });
 }
 
+const UNKNOWN_PROFILE: Profile = {
+  id: "unknown-profile",
+  username: "unknown",
+  displayName: "Unknown member",
+  heatScore: 0,
+  role: "user",
+  isBanned: false
+};
+
+function getFallbackProfile() {
+  return flags.allowSampleFallbacks ? sampleProfiles[0] : UNKNOWN_PROFILE;
+}
+
+function getFallbackProfileMap() {
+  return flags.allowSampleFallbacks
+    ? new Map(sampleProfiles.map((profile) => [profile.id, profile]))
+    : new Map<string, Profile>();
+}
+
+function getFallbackArray<T>(items: T[]) {
+  return flags.allowSampleFallbacks ? items : [];
+}
+
+function getFallbackItem<T>(item: T | null) {
+  return flags.allowSampleFallbacks ? item : null;
+}
+
+function getFallbackPublished<T extends { publishedAt?: string }>(items: T[]) {
+  return sortPublished(getFallbackArray(items));
+}
+
+function getFallbackMerch(items: MerchProduct[]) {
+  return sortMerch(getFallbackArray(items));
+}
+
+function getFallbackProfilesSorted() {
+  return [...getFallbackArray(sampleProfiles)].sort((left, right) => right.heatScore - left.heatScore);
+}
+
 function mapProfileRow(row: any): Profile {
   return {
     id: row.id,
@@ -252,7 +291,7 @@ function mapCommunityRow(
     isPinned: row.is_pinned ?? false,
     status: row.status,
     createdAt: row.created_at,
-    user: profiles.get(row.user_id) ?? sampleProfiles[0],
+    user: profiles.get(row.user_id) ?? getFallbackProfile(),
     structuredRecipe: recipesByPostId?.get(row.id)
   };
 }
@@ -264,7 +303,7 @@ function mapCompetitionEntryRow(
   return {
     id: row.id,
     competitionId: row.competition_id,
-    user: profiles.get(row.user_id) ?? sampleProfiles[0],
+    user: profiles.get(row.user_id) ?? getFallbackProfile(),
     title: row.title ?? undefined,
     caption: row.caption,
     mediaUrl: row.media_url ?? undefined,
@@ -304,7 +343,7 @@ function mapCommentRow(
 ): ContentComment {
   return {
     id: row.id,
-    user: profiles.get(row.user_id) ?? sampleProfiles[0],
+    user: profiles.get(row.user_id) ?? getFallbackProfile(),
     contentType: row.content_type,
     contentId: row.content_id,
     parentId: row.parent_id ?? undefined,
@@ -318,7 +357,7 @@ function mapCommentRow(
 async function getProfileMap(userIds: string[]) {
   const supabase = createSupabaseAdminClient();
   if (!supabase || !userIds.length) {
-    return new Map(sampleProfiles.map((profile) => [profile.id, profile]));
+    return getFallbackProfileMap();
   }
 
   const { data: profiles } = await supabase
@@ -326,7 +365,7 @@ async function getProfileMap(userIds: string[]) {
     .select("*")
     .in("id", Array.from(new Set(userIds)));
 
-  const profileMap = new Map(sampleProfiles.map((profile) => [profile.id, profile]));
+  const profileMap = getFallbackProfileMap();
 
   for (const profile of profiles ?? []) {
     profileMap.set(profile.id, mapProfileRow(profile));
@@ -336,10 +375,10 @@ async function getProfileMap(userIds: string[]) {
 }
 
 export async function getBlogPosts() {
-  if (!flags.hasSupabaseAdmin) return sortPublished(sampleBlogPosts);
+  if (!flags.hasSupabaseAdmin) return getFallbackPublished(sampleBlogPosts);
 
   const supabase = createSupabaseAdminClient();
-  if (!supabase) return sortPublished(sampleBlogPosts);
+  if (!supabase) return getFallbackPublished(sampleBlogPosts);
 
   const { data } = await supabase
     .from("blog_posts")
@@ -347,7 +386,7 @@ export async function getBlogPosts() {
     .eq("status", "published")
     .order("published_at", { ascending: false });
 
-  if (!data?.length) return sortPublished(sampleBlogPosts);
+  if (!data?.length) return getFallbackPublished(sampleBlogPosts);
 
   return data.map(mapBlogRow);
 }
@@ -358,29 +397,29 @@ export async function getBlogPost(slug: string) {
 }
 
 export async function getAdminBlogPosts() {
-  if (!flags.hasSupabaseAdmin) return sortPublished(sampleBlogPosts);
+  if (!flags.hasSupabaseAdmin) return getFallbackPublished(sampleBlogPosts);
 
   const supabase = createSupabaseAdminClient();
-  if (!supabase) return sortPublished(sampleBlogPosts);
+  if (!supabase) return getFallbackPublished(sampleBlogPosts);
 
   const { data } = await supabase
     .from("blog_posts")
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (!data?.length) return sortPublished(sampleBlogPosts);
+  if (!data?.length) return getFallbackPublished(sampleBlogPosts);
 
   return data.map(mapBlogRow);
 }
 
 export async function getAdminBlogPostById(id: number) {
   if (!flags.hasSupabaseAdmin) {
-    return sampleBlogPosts.find((post) => post.id === id) ?? null;
+    return getFallbackItem(sampleBlogPosts.find((post) => post.id === id) ?? null);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleBlogPosts.find((post) => post.id === id) ?? null;
+    return getFallbackItem(sampleBlogPosts.find((post) => post.id === id) ?? null);
   }
 
   const { data } = await supabase
@@ -390,17 +429,17 @@ export async function getAdminBlogPostById(id: number) {
     .maybeSingle();
 
   if (!data) {
-    return sampleBlogPosts.find((post) => post.id === id) ?? null;
+    return getFallbackItem(sampleBlogPosts.find((post) => post.id === id) ?? null);
   }
 
   return mapBlogRow(data);
 }
 
 export async function getRecipes() {
-  if (!flags.hasSupabaseAdmin) return sortPublished(sampleRecipes);
+  if (!flags.hasSupabaseAdmin) return getFallbackPublished(sampleRecipes);
 
   const supabase = createSupabaseAdminClient();
-  if (!supabase) return sortPublished(sampleRecipes);
+  if (!supabase) return getFallbackPublished(sampleRecipes);
 
   const { data } = await supabase
     .from("recipes")
@@ -408,7 +447,7 @@ export async function getRecipes() {
     .eq("status", "published")
     .order("published_at", { ascending: false });
 
-  if (!data?.length) return sortPublished(sampleRecipes);
+  if (!data?.length) return getFallbackPublished(sampleRecipes);
 
   return data.map(mapRecipeRow);
 }
@@ -419,29 +458,29 @@ export async function getRecipe(slug: string) {
 }
 
 export async function getAdminRecipes() {
-  if (!flags.hasSupabaseAdmin) return sortPublished(sampleRecipes);
+  if (!flags.hasSupabaseAdmin) return getFallbackPublished(sampleRecipes);
 
   const supabase = createSupabaseAdminClient();
-  if (!supabase) return sortPublished(sampleRecipes);
+  if (!supabase) return getFallbackPublished(sampleRecipes);
 
   const { data } = await supabase
     .from("recipes")
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (!data?.length) return sortPublished(sampleRecipes);
+  if (!data?.length) return getFallbackPublished(sampleRecipes);
 
   return data.map(mapRecipeRow);
 }
 
 export async function getAdminRecipeById(id: number) {
   if (!flags.hasSupabaseAdmin) {
-    return sampleRecipes.find((recipe) => recipe.id === id) ?? null;
+    return getFallbackItem(sampleRecipes.find((recipe) => recipe.id === id) ?? null);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleRecipes.find((recipe) => recipe.id === id) ?? null;
+    return getFallbackItem(sampleRecipes.find((recipe) => recipe.id === id) ?? null);
   }
 
   const { data } = await supabase
@@ -451,17 +490,17 @@ export async function getAdminRecipeById(id: number) {
     .maybeSingle();
 
   if (!data) {
-    return sampleRecipes.find((recipe) => recipe.id === id) ?? null;
+    return getFallbackItem(sampleRecipes.find((recipe) => recipe.id === id) ?? null);
   }
 
   return mapRecipeRow(data);
 }
 
 export async function getReviews() {
-  if (!flags.hasSupabaseAdmin) return sortPublished(sampleReviews);
+  if (!flags.hasSupabaseAdmin) return getFallbackPublished(sampleReviews);
 
   const supabase = createSupabaseAdminClient();
-  if (!supabase) return sortPublished(sampleReviews);
+  if (!supabase) return getFallbackPublished(sampleReviews);
 
   const { data } = await supabase
     .from("reviews")
@@ -469,7 +508,7 @@ export async function getReviews() {
     .eq("status", "published")
     .order("published_at", { ascending: false });
 
-  if (!data?.length) return sortPublished(sampleReviews);
+  if (!data?.length) return getFallbackPublished(sampleReviews);
 
   return data.map(mapReviewRow);
 }
@@ -480,29 +519,29 @@ export async function getReview(slug: string) {
 }
 
 export async function getAdminReviews() {
-  if (!flags.hasSupabaseAdmin) return sortPublished(sampleReviews);
+  if (!flags.hasSupabaseAdmin) return getFallbackPublished(sampleReviews);
 
   const supabase = createSupabaseAdminClient();
-  if (!supabase) return sortPublished(sampleReviews);
+  if (!supabase) return getFallbackPublished(sampleReviews);
 
   const { data } = await supabase
     .from("reviews")
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (!data?.length) return sortPublished(sampleReviews);
+  if (!data?.length) return getFallbackPublished(sampleReviews);
 
   return data.map(mapReviewRow);
 }
 
 export async function getAdminReviewById(id: number) {
   if (!flags.hasSupabaseAdmin) {
-    return sampleReviews.find((review) => review.id === id) ?? null;
+    return getFallbackItem(sampleReviews.find((review) => review.id === id) ?? null);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleReviews.find((review) => review.id === id) ?? null;
+    return getFallbackItem(sampleReviews.find((review) => review.id === id) ?? null);
   }
 
   const { data } = await supabase
@@ -512,7 +551,7 @@ export async function getAdminReviewById(id: number) {
     .maybeSingle();
 
   if (!data) {
-    return sampleReviews.find((review) => review.id === id) ?? null;
+    return getFallbackItem(sampleReviews.find((review) => review.id === id) ?? null);
   }
 
   return mapReviewRow(data);
@@ -520,14 +559,14 @@ export async function getAdminReviewById(id: number) {
 
 export async function getMerchProducts() {
   if (!flags.hasSupabaseAdmin) {
-    return sortMerch(
+    return getFallbackMerch(
       sampleMerchProducts.filter((product) => product.status === "published")
     );
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sortMerch(
+    return getFallbackMerch(
       sampleMerchProducts.filter((product) => product.status === "published")
     );
   }
@@ -541,7 +580,7 @@ export async function getMerchProducts() {
     .order("created_at", { ascending: false });
 
   if (!data?.length) {
-    return sortMerch(
+    return getFallbackMerch(
       sampleMerchProducts.filter((product) => product.status === "published")
     );
   }
@@ -556,12 +595,12 @@ export async function getFeaturedMerchProducts(limit = 3) {
 
 export async function getAdminMerchProducts() {
   if (!flags.hasSupabaseAdmin) {
-    return sortMerch(sampleMerchProducts);
+    return getFallbackMerch(sampleMerchProducts);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sortMerch(sampleMerchProducts);
+    return getFallbackMerch(sampleMerchProducts);
   }
 
   const { data } = await supabase
@@ -572,7 +611,7 @@ export async function getAdminMerchProducts() {
     .order("created_at", { ascending: false });
 
   if (!data?.length) {
-    return sortMerch(sampleMerchProducts);
+    return getFallbackMerch(sampleMerchProducts);
   }
 
   return data.map(mapMerchRow);
@@ -580,12 +619,12 @@ export async function getAdminMerchProducts() {
 
 export async function getAdminMerchProductById(id: number) {
   if (!flags.hasSupabaseAdmin) {
-    return sampleMerchProducts.find((product) => product.id === id) ?? null;
+    return getFallbackItem(sampleMerchProducts.find((product) => product.id === id) ?? null);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleMerchProducts.find((product) => product.id === id) ?? null;
+    return getFallbackItem(sampleMerchProducts.find((product) => product.id === id) ?? null);
   }
 
   const { data } = await supabase
@@ -595,7 +634,7 @@ export async function getAdminMerchProductById(id: number) {
     .maybeSingle();
 
   if (!data) {
-    return sampleMerchProducts.find((product) => product.id === id) ?? null;
+    return getFallbackItem(sampleMerchProducts.find((product) => product.id === id) ?? null);
   }
 
   return mapMerchRow(data);
@@ -603,12 +642,12 @@ export async function getAdminMerchProductById(id: number) {
 
 export async function getCommunityPosts() {
   if (!flags.hasSupabaseAdmin) {
-    return sampleCommunityPosts.filter((post) => post.status === "published");
+    return getFallbackArray(sampleCommunityPosts.filter((post) => post.status === "published"));
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleCommunityPosts.filter((post) => post.status === "published");
+    return getFallbackArray(sampleCommunityPosts.filter((post) => post.status === "published"));
   }
 
   const { data: posts } = await supabase
@@ -619,7 +658,7 @@ export async function getCommunityPosts() {
     .order("created_at", { ascending: false });
 
   if (!posts?.length) {
-    return sampleCommunityPosts.filter((post) => post.status === "published");
+    return getFallbackArray(sampleCommunityPosts.filter((post) => post.status === "published"));
   }
 
   const recipePostIds = posts
@@ -653,15 +692,15 @@ export async function getCommunityPosts() {
 
 export async function getAdminCommunityPosts(status?: string) {
   if (!flags.hasSupabaseAdmin) {
-    return sampleCommunityPosts.filter((post) =>
-      status ? post.status === status : true
+    return getFallbackArray(
+      sampleCommunityPosts.filter((post) => (status ? post.status === status : true))
     );
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleCommunityPosts.filter((post) =>
-      status ? post.status === status : true
+    return getFallbackArray(
+      sampleCommunityPosts.filter((post) => (status ? post.status === status : true))
     );
   }
 
@@ -677,8 +716,8 @@ export async function getAdminCommunityPosts(status?: string) {
   const { data: posts } = await query;
 
   if (!posts?.length) {
-    return sampleCommunityPosts.filter((post) =>
-      status ? post.status === status : true
+    return getFallbackArray(
+      sampleCommunityPosts.filter((post) => (status ? post.status === status : true))
     );
   }
 
@@ -705,12 +744,12 @@ export async function getAdminCommunityPosts(status?: string) {
 
 export async function getLeaderboard() {
   if (!flags.hasSupabaseAdmin) {
-    return [...sampleProfiles].sort((left, right) => right.heatScore - left.heatScore);
+    return getFallbackProfilesSorted();
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return [...sampleProfiles].sort((left, right) => right.heatScore - left.heatScore);
+    return getFallbackProfilesSorted();
   }
 
   const { data } = await supabase
@@ -721,7 +760,7 @@ export async function getLeaderboard() {
     .limit(100);
 
   if (!data?.length) {
-    return [...sampleProfiles].sort((left, right) => right.heatScore - left.heatScore);
+    return getFallbackProfilesSorted();
   }
 
   return data.map(mapProfileRow);
@@ -729,12 +768,12 @@ export async function getLeaderboard() {
 
 export async function getAdminUsers() {
   if (!flags.hasSupabaseAdmin) {
-    return [...sampleProfiles].sort((left, right) => right.heatScore - left.heatScore);
+    return getFallbackProfilesSorted();
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return [...sampleProfiles].sort((left, right) => right.heatScore - left.heatScore);
+    return getFallbackProfilesSorted();
   }
 
   const { data } = await supabase
@@ -743,7 +782,7 @@ export async function getAdminUsers() {
     .order("created_at", { ascending: false });
 
   if (!data?.length) {
-    return [...sampleProfiles].sort((left, right) => right.heatScore - left.heatScore);
+    return getFallbackProfilesSorted();
   }
 
   const counts = await Promise.all(
@@ -780,12 +819,12 @@ export async function getAdminUsers() {
 
 export async function getProfile(username: string): Promise<Profile | null> {
   if (!flags.hasSupabaseAdmin) {
-    return sampleProfiles.find((profile) => profile.username === username) ?? null;
+    return getFallbackItem(sampleProfiles.find((profile) => profile.username === username) ?? null);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleProfiles.find((profile) => profile.username === username) ?? null;
+    return getFallbackItem(sampleProfiles.find((profile) => profile.username === username) ?? null);
   }
 
   const { data } = await supabase
@@ -795,7 +834,7 @@ export async function getProfile(username: string): Promise<Profile | null> {
     .maybeSingle();
 
   if (!data) {
-    return sampleProfiles.find((profile) => profile.username === username) ?? null;
+    return getFallbackItem(sampleProfiles.find((profile) => profile.username === username) ?? null);
   }
   const profile = mapProfileRow(data);
 
@@ -819,12 +858,12 @@ export async function getProfile(username: string): Promise<Profile | null> {
 
 export async function getCompetitions() {
   if (!flags.hasSupabaseAdmin) {
-    return sampleCompetitions as Competition[];
+    return getFallbackArray(sampleCompetitions as Competition[]);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleCompetitions as Competition[];
+    return getFallbackArray(sampleCompetitions as Competition[]);
   }
 
   const { data: competitions } = await supabase
@@ -833,7 +872,7 @@ export async function getCompetitions() {
     .order("start_date", { ascending: false });
 
   if (!competitions?.length) {
-    return sampleCompetitions as Competition[];
+    return getFallbackArray(sampleCompetitions as Competition[]);
   }
 
   const competitionIds = competitions.map((competition) => competition.id);
@@ -866,12 +905,12 @@ export async function getCompetitions() {
 
 export async function getCompetition(slug: string) {
   if (!flags.hasSupabaseAdmin) {
-    return sampleCompetitions.find((competition) => competition.slug === slug) ?? null;
+    return getFallbackItem(sampleCompetitions.find((competition) => competition.slug === slug) ?? null);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleCompetitions.find((competition) => competition.slug === slug) ?? null;
+    return getFallbackItem(sampleCompetitions.find((competition) => competition.slug === slug) ?? null);
   }
 
   const { data: competition } = await supabase
@@ -881,7 +920,7 @@ export async function getCompetition(slug: string) {
     .maybeSingle();
 
   if (!competition) {
-    return sampleCompetitions.find((entry) => entry.slug === slug) ?? null;
+    return getFallbackItem(sampleCompetitions.find((entry) => entry.slug === slug) ?? null);
   }
 
   const { data: entries } = await supabase
@@ -903,12 +942,12 @@ export async function getCompetition(slug: string) {
 
 export async function getAdminCompetitions() {
   if (!flags.hasSupabaseAdmin) {
-    return sampleCompetitions as Competition[];
+    return getFallbackArray(sampleCompetitions as Competition[]);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleCompetitions as Competition[];
+    return getFallbackArray(sampleCompetitions as Competition[]);
   }
 
   const { data: competitions } = await supabase
@@ -917,7 +956,7 @@ export async function getAdminCompetitions() {
     .order("start_date", { ascending: false });
 
   if (!competitions?.length) {
-    return sampleCompetitions as Competition[];
+    return getFallbackArray(sampleCompetitions as Competition[]);
   }
 
   const competitionIds = competitions.map((competition) => competition.id);
@@ -1003,21 +1042,25 @@ export async function getCommentsForContent(
   contentId: number
 ): Promise<ContentComment[]> {
   if (!flags.hasSupabaseAdmin) {
-    return sampleComments.filter(
-      (comment) =>
-        comment.contentType === contentType &&
-        comment.contentId === contentId &&
-        comment.isApproved
+    return getFallbackArray(
+      sampleComments.filter(
+        (comment) =>
+          comment.contentType === contentType &&
+          comment.contentId === contentId &&
+          comment.isApproved
+      )
     );
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleComments.filter(
-      (comment) =>
-        comment.contentType === contentType &&
-        comment.contentId === contentId &&
-        comment.isApproved
+    return getFallbackArray(
+      sampleComments.filter(
+        (comment) =>
+          comment.contentType === contentType &&
+          comment.contentId === contentId &&
+          comment.isApproved
+      )
     );
   }
 
@@ -1030,11 +1073,13 @@ export async function getCommentsForContent(
     .order("created_at", { ascending: false });
 
   if (!comments?.length) {
-    return sampleComments.filter(
-      (comment) =>
-        comment.contentType === contentType &&
-        comment.contentId === contentId &&
-        comment.isApproved
+    return getFallbackArray(
+      sampleComments.filter(
+        (comment) =>
+          comment.contentType === contentType &&
+          comment.contentId === contentId &&
+          comment.isApproved
+      )
     );
   }
 
@@ -1044,12 +1089,12 @@ export async function getCommentsForContent(
 
 export async function getAdminComments(): Promise<ContentComment[]> {
   if (!flags.hasSupabaseAdmin) {
-    return sampleComments;
+    return getFallbackArray(sampleComments);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleComments;
+    return getFallbackArray(sampleComments);
   }
 
   const { data: comments } = await supabase
@@ -1059,7 +1104,7 @@ export async function getAdminComments(): Promise<ContentComment[]> {
     .order("created_at", { ascending: false });
 
   if (!comments?.length) {
-    return sampleComments;
+    return getFallbackArray(sampleComments);
   }
 
   const profileMap = await getProfileMap(comments.map((comment) => comment.user_id));
@@ -1072,23 +1117,27 @@ export async function getRecipeUserState(recipeId: number, userId?: string | nul
   }
 
   if (!flags.hasSupabaseAdmin) {
-    const saved = sampleRecipeSaves.some(
-      (save) => save.userId === userId && save.recipeId === recipeId
-    );
-    const rating = sampleRecipeRatings.find(
-      (entry) => entry.userId === userId && entry.recipeId === recipeId
-    )?.rating;
+    const saved = flags.allowSampleFallbacks
+      ? sampleRecipeSaves.some((save) => save.userId === userId && save.recipeId === recipeId)
+      : false;
+    const rating = flags.allowSampleFallbacks
+      ? sampleRecipeRatings.find(
+          (entry) => entry.userId === userId && entry.recipeId === recipeId
+        )?.rating
+      : undefined;
     return { saved, rating };
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    const saved = sampleRecipeSaves.some(
-      (save) => save.userId === userId && save.recipeId === recipeId
-    );
-    const rating = sampleRecipeRatings.find(
-      (entry) => entry.userId === userId && entry.recipeId === recipeId
-    )?.rating;
+    const saved = flags.allowSampleFallbacks
+      ? sampleRecipeSaves.some((save) => save.userId === userId && save.recipeId === recipeId)
+      : false;
+    const rating = flags.allowSampleFallbacks
+      ? sampleRecipeRatings.find(
+          (entry) => entry.userId === userId && entry.recipeId === recipeId
+        )?.rating
+      : undefined;
     return { saved, rating };
   }
 
@@ -1119,18 +1168,22 @@ export async function getFollowState(targetUserId: string, viewerUserId?: string
   }
 
   if (!flags.hasSupabaseAdmin) {
-    return sampleFollows.some(
-      (follow) =>
-        follow.followerId === viewerUserId && follow.followingId === targetUserId
-    );
+    return flags.allowSampleFallbacks
+      ? sampleFollows.some(
+          (follow) =>
+            follow.followerId === viewerUserId && follow.followingId === targetUserId
+        )
+      : false;
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleFollows.some(
-      (follow) =>
-        follow.followerId === viewerUserId && follow.followingId === targetUserId
-    );
+    return flags.allowSampleFallbacks
+      ? sampleFollows.some(
+          (follow) =>
+            follow.followerId === viewerUserId && follow.followingId === targetUserId
+        )
+      : false;
   }
 
   const { data } = await supabase

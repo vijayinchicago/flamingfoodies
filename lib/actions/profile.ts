@@ -5,8 +5,10 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { flags } from "@/lib/env";
+import { recordTelemetryEvent } from "@/lib/services/telemetry";
 import { getCurrentAuthUser, requireUser } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ANALYTICS_EVENTS } from "@/lib/telemetry-events";
 import { slugify } from "@/lib/utils";
 
 const onboardingSchema = z.object({
@@ -128,6 +130,15 @@ export async function completeOnboardingAction(formData: FormData) {
   if (error) {
     redirect(`/onboarding?error=${encodeURIComponent(error.message)}`);
   }
+
+  await recordTelemetryEvent({
+    eventName: ANALYTICS_EVENTS.onboardingComplete,
+    userId: user.id,
+    path: "/onboarding",
+    metadata: {
+      username: parsed.data.username
+    }
+  });
 
   revalidatePath("/");
   revalidatePath(`/profile/${parsed.data.username}`);

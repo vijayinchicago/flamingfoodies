@@ -1,6 +1,14 @@
 import { completeOnboardingAction } from "@/lib/actions/profile";
 import { SimpleFormShell } from "@/components/forms/simple-form-shell";
+import { buildMetadata } from "@/lib/seo";
 import { requireUser } from "@/lib/supabase/auth";
+
+export const metadata = buildMetadata({
+  title: "Complete Onboarding | FlamingFoodies",
+  description: "Finish setting up your FlamingFoodies account by choosing your public username.",
+  path: "/onboarding",
+  noIndex: true
+});
 
 export default async function OnboardingPage({
   searchParams

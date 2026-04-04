@@ -1,5 +1,13 @@
 import { SectionHeading } from "@/components/layout/section-heading";
+import { buildMetadata } from "@/lib/seo";
 import { getLeaderboard } from "@/lib/services/content";
+
+export const metadata = buildMetadata({
+  title: "Community Leaderboard | FlamingFoodies",
+  description:
+    "See the hottest contributors, top heat scores, and the community members driving FlamingFoodies.",
+  path: "/leaderboard"
+});
 
 export default async function LeaderboardPage() {
   const profiles = await getLeaderboard();

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Suspense } from "react";
 
 import "@/app/globals.css";
+import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { env } from "@/lib/env";
@@ -22,6 +24,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <Suspense fallback={null}>
+          <PageViewTracker />
+        </Suspense>
         <div className="min-h-screen bg-flame-gradient">
           <Header />
           <main>{children}</main>

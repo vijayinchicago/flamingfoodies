@@ -2,7 +2,15 @@ import Link from "next/link";
 
 import { CommunityCard } from "@/components/cards/community-card";
 import { SectionHeading } from "@/components/layout/section-heading";
+import { buildMetadata } from "@/lib/seo";
 import { getCommunityPosts } from "@/lib/services/content";
+
+export const metadata = buildMetadata({
+  title: "Spicy Food Community | FlamingFoodies",
+  description:
+    "Community posts, spicy recipe submissions, and heat-chasing members sharing what they cooked.",
+  path: "/community"
+});
 
 export default async function CommunityPage() {
   const posts = await getCommunityPosts();

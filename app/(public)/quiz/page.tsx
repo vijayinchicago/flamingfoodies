@@ -1,5 +1,13 @@
 import { QuizForm } from "@/components/forms/quiz-form";
 import { SectionHeading } from "@/components/layout/section-heading";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "Spice Personality Quiz | FlamingFoodies",
+  description:
+    "Take the heat quiz to find your spice profile and get better recipe, hot sauce, and product recommendations.",
+  path: "/quiz"
+});
 
 export default function QuizPage() {
   return (

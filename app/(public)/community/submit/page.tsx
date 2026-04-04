@@ -1,6 +1,14 @@
 import { submitCommunityPostAction } from "@/lib/actions/community";
 import { SimpleFormShell } from "@/components/forms/simple-form-shell";
+import { buildMetadata } from "@/lib/seo";
 import { requireUser } from "@/lib/supabase/auth";
+
+export const metadata = buildMetadata({
+  title: "Submit to Community | FlamingFoodies",
+  description: "Submit a spicy post or recipe to the FlamingFoodies community feed.",
+  path: "/community/submit",
+  noIndex: true
+});
 
 export default async function CommunitySubmitPage({
   searchParams

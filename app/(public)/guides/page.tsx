@@ -2,6 +2,14 @@ import Link from "next/link";
 
 import { SectionHeading } from "@/components/layout/section-heading";
 import { getGuides } from "@/lib/content/guides";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "Spicy Food Guides | FlamingFoodies",
+  description:
+    "Evergreen guides for Scoville heat, fermentation, hot sauce technique, and spicy cooking reference.",
+  path: "/guides"
+});
 
 export default async function GuidesPage() {
   const guides = await getGuides();

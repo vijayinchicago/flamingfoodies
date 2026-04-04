@@ -5,8 +5,10 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { flags } from "@/lib/env";
+import { recordTelemetryEvent } from "@/lib/services/telemetry";
 import { requireAdmin, requireUser } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { ANALYTICS_EVENTS } from "@/lib/telemetry-events";
 import { slugify } from "@/lib/utils";
 
 type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
@@ -477,6 +479,15 @@ export async function submitCompetitionEntryAction(formData: FormData) {
     );
   }
 
+  await recordTelemetryEvent({
+    eventName: ANALYTICS_EVENTS.competitionEnter,
+    userId: profile.id,
+    path: `/competitions/${parsed.data.competitionSlug}`,
+    contentType: "competition",
+    contentId: parsed.data.competitionId,
+    contentSlug: parsed.data.competitionSlug
+  });
+
   revalidatePath(`/competitions/${parsed.data.competitionSlug}`);
   redirect(`/competitions/${parsed.data.competitionSlug}?submitted=1`);
 }
@@ -544,6 +555,17 @@ export async function voteCompetitionEntryAction(formData: FormData) {
     .from("competition_entries")
     .update({ vote_count: (entry?.vote_count ?? 0) + 1 })
     .eq("id", parsed.data.entryId);
+
+  await recordTelemetryEvent({
+    eventName: ANALYTICS_EVENTS.voteCast,
+    userId: profile.id,
+    path: `/competitions/${parsed.data.competitionSlug}`,
+    contentType: "competition_entry",
+    contentId: parsed.data.entryId,
+    metadata: {
+      competitionId: parsed.data.competitionId
+    }
+  });
 
   revalidatePath(`/competitions/${parsed.data.competitionSlug}`);
   redirect(`/competitions/${parsed.data.competitionSlug}?voted=1`);

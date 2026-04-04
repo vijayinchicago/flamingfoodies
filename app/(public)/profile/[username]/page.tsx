@@ -3,12 +3,28 @@ import { notFound } from "next/navigation";
 
 import { CommunityCard } from "@/components/cards/community-card";
 import { toggleFollowAction } from "@/lib/actions/engagement";
+import { buildMetadata } from "@/lib/seo";
 import { getCurrentProfile } from "@/lib/supabase/auth";
 import {
   getCommunityPosts,
   getFollowState,
   getProfile
 } from "@/lib/services/content";
+
+export async function generateMetadata({
+  params
+}: {
+  params: { username: string };
+}) {
+  const profile = await getProfile(params.username);
+
+  return buildMetadata({
+    title: profile ? `${profile.displayName} | FlamingFoodies` : "Member Profile | FlamingFoodies",
+    description:
+      profile?.bio || `See spicy posts, competition activity, and community stats for @${params.username}.`,
+    path: `/profile/${params.username}`
+  });
+}
 
 export default async function ProfilePage({
   params,

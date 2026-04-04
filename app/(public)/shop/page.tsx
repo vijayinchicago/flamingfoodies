@@ -10,7 +10,15 @@ import {
   getAffiliateLinkEntries
 } from "@/lib/affiliates";
 import { getMerchThemeClasses } from "@/lib/merch";
+import { buildMetadata } from "@/lib/seo";
 import { getMerchProducts } from "@/lib/services/content";
+
+export const metadata = buildMetadata({
+  title: "Shop Hot Sauce, Gear, and Merch | FlamingFoodies",
+  description:
+    "Shop spicy merch previews, hot sauce picks, kitchen gear, pantry heat, and curated affiliate offers.",
+  path: "/shop"
+});
 
 export default async function ShopPage() {
   const merchItems = await getMerchProducts();

@@ -3,6 +3,14 @@ import Link from "next/link";
 import { EmailCapture } from "@/components/forms/email-capture";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { SUBSCRIPTION_KEYS, getAffiliateLinkEntries } from "@/lib/affiliates";
+import { buildMetadata } from "@/lib/seo";
+
+export const metadata = buildMetadata({
+  title: "Spicy Subscription Boxes | FlamingFoodies",
+  description:
+    "Curated hot sauce subscriptions, spicy gifts, merch waitlist offers, and recurring heat-forward picks.",
+  path: "/subscriptions"
+});
 
 export default function SubscriptionsPage() {
   const subscriptions = getAffiliateLinkEntries(SUBSCRIPTION_KEYS);

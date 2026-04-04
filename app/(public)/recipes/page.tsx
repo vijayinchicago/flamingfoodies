@@ -3,7 +3,15 @@ import Link from "next/link";
 import { RecipeCard } from "@/components/cards/recipe-card";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { KITCHEN_GEAR_KEYS, getAffiliateLinkEntries } from "@/lib/affiliates";
+import { buildMetadata } from "@/lib/seo";
 import { getRecipes } from "@/lib/services/content";
+
+export const metadata = buildMetadata({
+  title: "Spicy Recipes | FlamingFoodies",
+  description:
+    "Browse spicy recipes for tacos, noodles, burgers, chicken, seafood, and high-heat weeknight cooking.",
+  path: "/recipes"
+});
 
 export default async function RecipesIndexPage() {
   const recipes = await getRecipes();

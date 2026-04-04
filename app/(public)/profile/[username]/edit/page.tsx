@@ -3,7 +3,21 @@ import { redirect } from "next/navigation";
 
 import { updateProfileAction } from "@/lib/actions/profile";
 import { SimpleFormShell } from "@/components/forms/simple-form-shell";
+import { buildMetadata } from "@/lib/seo";
 import { requireUser } from "@/lib/supabase/auth";
+
+export function generateMetadata({
+  params
+}: {
+  params: { username: string };
+}) {
+  return buildMetadata({
+    title: "Edit Profile | FlamingFoodies",
+    description: `Update your FlamingFoodies member profile, avatar, and public bio.`,
+    path: `/profile/${params.username}/edit`,
+    noIndex: true
+  });
+}
 
 export default async function EditProfilePage({
   params,

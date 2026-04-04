@@ -2,9 +2,30 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { voteCompetitionEntryAction } from "@/lib/actions/competitions";
+import { buildMetadata } from "@/lib/seo";
 import { getCurrentProfile } from "@/lib/supabase/auth";
 import { getCompetition, getCompetitionVoteIdsForUser } from "@/lib/services/content";
 import { formatDate } from "@/lib/utils";
+
+export async function generateMetadata({
+  params
+}: {
+  params: { slug: string };
+}) {
+  const competition = await getCompetition(params.slug);
+
+  return buildMetadata({
+    title:
+      competition?.title
+        ? `${competition.title} | FlamingFoodies`
+        : "Competition | FlamingFoodies",
+    description:
+      competition?.description
+        || "Join spicy cooking competitions, community voting, and heat-driven challenges on FlamingFoodies.",
+    path: `/competitions/${params.slug}`,
+    images: competition?.imageUrl ? [competition.imageUrl] : undefined
+  });
+}
 
 export default async function CompetitionPage({
   params,

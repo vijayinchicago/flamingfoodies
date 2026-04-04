@@ -23,6 +23,10 @@ import type {
   SocialPost
 } from "@/lib/types";
 
+function getFallbackArray<T>(items: T[]) {
+  return flags.allowSampleFallbacks ? items : [];
+}
+
 function mapGenerationJob(row: any): GenerationJob {
   return {
     id: row.id,
@@ -175,25 +179,42 @@ function toCompactMetric(label: string, value: number, delta = "live"): Dashboar
 }
 
 export async function getAdminDashboard() {
+  const emptyDashboard = {
+    metrics: [
+      toCompactMetric("Published posts", 0),
+      toCompactMetric("Affiliate clicks", 0),
+      toCompactMetric("Pending moderation", 0),
+      toCompactMetric("Newsletter subs", 0)
+    ],
+    topRecipe: "No published recipe yet",
+    pendingModerationCount: 0,
+    queuedSocialPosts: 0,
+    subscriberGrowth: "0 active"
+  };
+
   if (!flags.hasSupabaseAdmin) {
-    return {
+    return flags.allowSampleFallbacks
+      ? {
       metrics: sampleDashboardMetrics,
       topRecipe: "Spicy Korean Gochujang Noodles",
       pendingModerationCount: 7,
       queuedSocialPosts: sampleSocialPosts.filter((post) => post.status === "scheduled").length,
       subscriberGrowth: "+11%"
-    };
+        }
+      : emptyDashboard;
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return {
-      metrics: sampleDashboardMetrics,
-      topRecipe: "Spicy Korean Gochujang Noodles",
-      pendingModerationCount: 7,
-      queuedSocialPosts: sampleSocialPosts.filter((post) => post.status === "scheduled").length,
-      subscriberGrowth: "+11%"
-    };
+    return flags.allowSampleFallbacks
+      ? {
+          metrics: sampleDashboardMetrics,
+          topRecipe: "Spicy Korean Gochujang Noodles",
+          pendingModerationCount: 7,
+          queuedSocialPosts: sampleSocialPosts.filter((post) => post.status === "scheduled").length,
+          subscriberGrowth: "+11%"
+        }
+      : emptyDashboard;
   }
 
   const [
@@ -244,7 +265,7 @@ export async function getAdminDashboard() {
 
   return {
     metrics,
-    topRecipe: topRecipeRow?.title ?? sampleRecipes[0]?.title ?? "No published recipe yet",
+    topRecipe: topRecipeRow?.title ?? (flags.allowSampleFallbacks ? sampleRecipes[0]?.title : undefined) ?? "No published recipe yet",
     pendingModerationCount: moderationCount,
     queuedSocialPosts: scheduledSocialCount ?? 0,
     subscriberGrowth: `${subscriberCount ?? 0} active`
@@ -253,12 +274,12 @@ export async function getAdminDashboard() {
 
 export async function getGenerationJobs() {
   if (!flags.hasSupabaseAdmin) {
-    return sampleGenerationJobs;
+    return getFallbackArray(sampleGenerationJobs);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleGenerationJobs;
+    return getFallbackArray(sampleGenerationJobs);
   }
 
   const { data } = await supabase
@@ -268,7 +289,7 @@ export async function getGenerationJobs() {
     .limit(50);
 
   if (!data?.length) {
-    return sampleGenerationJobs;
+    return getFallbackArray(sampleGenerationJobs);
   }
 
   return data.map(mapGenerationJob);
@@ -276,12 +297,12 @@ export async function getGenerationJobs() {
 
 export async function getGenerationSchedule() {
   if (!flags.hasSupabaseAdmin) {
-    return sampleGenerationSchedule;
+    return getFallbackArray(sampleGenerationSchedule);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleGenerationSchedule;
+    return getFallbackArray(sampleGenerationSchedule);
   }
 
   const { data } = await supabase
@@ -290,7 +311,7 @@ export async function getGenerationSchedule() {
     .order("created_at", { ascending: true });
 
   if (!data?.length) {
-    return sampleGenerationSchedule;
+    return getFallbackArray(sampleGenerationSchedule);
   }
 
   return data.map(mapGenerationSchedule);
@@ -298,18 +319,18 @@ export async function getGenerationSchedule() {
 
 export async function getSiteSettings() {
   if (!flags.hasSupabaseAdmin) {
-    return sampleSettings;
+    return getFallbackArray(sampleSettings);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleSettings;
+    return getFallbackArray(sampleSettings);
   }
 
   const { data } = await supabase.from("site_settings").select("*").order("key");
 
   if (!data?.length) {
-    return sampleSettings;
+    return getFallbackArray(sampleSettings);
   }
 
   return data.map(mapSetting);
@@ -317,16 +338,16 @@ export async function getSiteSettings() {
 
 export async function getSocialQueue(status?: SocialPost["status"]) {
   if (!flags.hasSupabaseAdmin) {
-    return status
-      ? sampleSocialPosts.filter((post) => post.status === status)
-      : sampleSocialPosts;
+    return getFallbackArray(
+      status ? sampleSocialPosts.filter((post) => post.status === status) : sampleSocialPosts
+    );
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return status
-      ? sampleSocialPosts.filter((post) => post.status === status)
-      : sampleSocialPosts;
+    return getFallbackArray(
+      status ? sampleSocialPosts.filter((post) => post.status === status) : sampleSocialPosts
+    );
   }
 
   let query = supabase.from("social_posts").select("*").order("created_at", { ascending: false });
@@ -338,9 +359,9 @@ export async function getSocialQueue(status?: SocialPost["status"]) {
   const { data } = await query;
 
   if (!data?.length) {
-    return status
-      ? sampleSocialPosts.filter((post) => post.status === status)
-      : sampleSocialPosts;
+    return getFallbackArray(
+      status ? sampleSocialPosts.filter((post) => post.status === status) : sampleSocialPosts
+    );
   }
 
   return data.map(mapSocialPost);
@@ -348,12 +369,12 @@ export async function getSocialQueue(status?: SocialPost["status"]) {
 
 export async function getSubscribers() {
   if (!flags.hasSupabaseAdmin) {
-    return sampleSubscribers;
+    return getFallbackArray(sampleSubscribers);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleSubscribers;
+    return getFallbackArray(sampleSubscribers);
   }
 
   const { data } = await supabase
@@ -362,7 +383,7 @@ export async function getSubscribers() {
     .order("subscribed_at", { ascending: false });
 
   if (!data?.length) {
-    return sampleSubscribers;
+    return getFallbackArray(sampleSubscribers);
   }
 
   return data.map(mapSubscriber);
@@ -370,12 +391,12 @@ export async function getSubscribers() {
 
 export async function getNewsletterCampaigns() {
   if (!flags.hasSupabaseAdmin) {
-    return sampleNewsletterCampaigns;
+    return getFallbackArray(sampleNewsletterCampaigns);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleNewsletterCampaigns;
+    return getFallbackArray(sampleNewsletterCampaigns);
   }
 
   const { data } = await supabase
@@ -384,7 +405,7 @@ export async function getNewsletterCampaigns() {
     .order("created_at", { ascending: false });
 
   if (!data?.length) {
-    return sampleNewsletterCampaigns;
+    return getFallbackArray(sampleNewsletterCampaigns);
   }
 
   return data.map(mapNewsletterCampaign);
@@ -392,12 +413,12 @@ export async function getNewsletterCampaigns() {
 
 export async function getAuditLog() {
   if (!flags.hasSupabaseAdmin) {
-    return sampleAuditLog;
+    return getFallbackArray(sampleAuditLog);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return sampleAuditLog;
+    return getFallbackArray(sampleAuditLog);
   }
 
   const { data } = await supabase
@@ -407,7 +428,7 @@ export async function getAuditLog() {
     .limit(50);
 
   if (!data?.length) {
-    return sampleAuditLog;
+    return getFallbackArray(sampleAuditLog);
   }
 
   const adminMap = await getAuditAdminMap(data.map((entry) => entry.admin_id));

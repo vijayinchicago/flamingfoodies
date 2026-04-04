@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { buildMetadata } from "@/lib/seo";
+
 const resultCopy: Record<string, { title: string; description: string; tag: string }> = {
   "mild-adventurer": {
     title: "Mild Adventurer",
@@ -22,6 +24,21 @@ const resultCopy: Record<string, { title: string; description: string; tag: stri
     tag: "quiz-reaper-chaser"
   }
 };
+
+export function generateMetadata({
+  params
+}: {
+  params: { type: string };
+}) {
+  const result = resultCopy[params.type] || resultCopy["balanced-burn"];
+
+  return buildMetadata({
+    title: `${result.title} Quiz Result | FlamingFoodies`,
+    description: result.description,
+    path: `/quiz/results/${params.type}`,
+    noIndex: true
+  });
+}
 
 export default function QuizResultPage({
   params

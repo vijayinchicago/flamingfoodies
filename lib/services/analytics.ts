@@ -51,14 +51,18 @@ function average(values: number[]) {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
+function getFallbackArray<T>(items: T[]) {
+  return flags.allowSampleFallbacks ? items : [];
+}
+
 export async function getAffiliateAnalytics() {
   if (!flags.hasSupabaseAdmin) {
-    return getFallbackAffiliateAnalytics();
+    return flags.allowSampleFallbacks ? getFallbackAffiliateAnalytics() : [];
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return getFallbackAffiliateAnalytics();
+    return flags.allowSampleFallbacks ? getFallbackAffiliateAnalytics() : [];
   }
 
   const { data } = await supabase
@@ -129,7 +133,7 @@ export async function getContentAnalytics() {
     }))
   ];
 
-  const contentRows = fallbackContent;
+  const contentRows = getFallbackArray(fallbackContent);
 
   if (flags.hasSupabaseAdmin) {
     const supabase = createSupabaseAdminClient();
@@ -218,7 +222,7 @@ export async function getTrafficAnalytics() {
     }))
   ];
 
-  const pages = fallbackPages;
+  const pages = getFallbackArray(fallbackPages);
 
   if (flags.hasSupabaseAdmin) {
     const supabase = createSupabaseAdminClient();

@@ -10,6 +10,7 @@ const inferredSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
 const envSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z.string().url().default(inferredSiteUrl),
   NEXT_PUBLIC_SITE_NAME: z.string().default("FlamingFoodies"),
+  ALLOW_SAMPLE_FALLBACKS: z.string().optional(),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().optional(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().optional(),
@@ -60,6 +61,8 @@ export const flags = {
   hasAnthropic: Boolean(env.ANTHROPIC_API_KEY),
   hasUpstash: Boolean(env.KV_REST_API_URL && env.KV_REST_API_TOKEN),
   hasBuffer: Boolean(env.BUFFER_ACCESS_TOKEN),
+  allowSampleFallbacks:
+    env.ALLOW_SAMPLE_FALLBACKS === "true" || process.env.NODE_ENV !== "production",
   mockAdminEnabled:
     env.NEXT_PUBLIC_ALLOW_MOCK_ADMIN !== "false" &&
     process.env.NODE_ENV !== "production"

@@ -3,7 +3,15 @@ import Link from "next/link";
 import { ReviewCard } from "@/components/cards/review-card";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { HOT_SAUCE_SPOTLIGHT_KEYS, getAffiliateLinkEntries } from "@/lib/affiliates";
+import { buildMetadata } from "@/lib/seo";
 import { getReviews } from "@/lib/services/content";
+
+export const metadata = buildMetadata({
+  title: "Hot Sauce Reviews | FlamingFoodies",
+  description:
+    "Heat-tested reviews of hot sauces, spicy pantry staples, and flavor-first products worth buying.",
+  path: "/reviews"
+});
 
 export default async function ReviewsIndexPage() {
   const reviews = await getReviews();

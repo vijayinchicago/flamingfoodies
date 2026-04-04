@@ -2,8 +2,27 @@ import { notFound } from "next/navigation";
 
 import { submitCompetitionEntryAction } from "@/lib/actions/competitions";
 import { SimpleFormShell } from "@/components/forms/simple-form-shell";
+import { buildMetadata } from "@/lib/seo";
 import { requireUser } from "@/lib/supabase/auth";
 import { getCompetition } from "@/lib/services/content";
+
+export async function generateMetadata({
+  params
+}: {
+  params: { slug: string };
+}) {
+  const competition = await getCompetition(params.slug);
+
+  return buildMetadata({
+    title: competition ? `Enter ${competition.title} | FlamingFoodies` : "Enter Competition | FlamingFoodies",
+    description:
+      competition
+        ? `Submit your entry for ${competition.title} on FlamingFoodies.`
+        : "Submit your competition entry on FlamingFoodies.",
+    path: `/competitions/${params.slug}/enter`,
+    noIndex: true
+  });
+}
 
 export default async function CompetitionEntryPage({
   params,

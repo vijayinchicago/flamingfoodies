@@ -1,6 +1,14 @@
 import { ContentCard } from "@/components/cards/content-card";
 import { SectionHeading } from "@/components/layout/section-heading";
+import { buildMetadata } from "@/lib/seo";
 import { getBlogPosts } from "@/lib/services/content";
+
+export const metadata = buildMetadata({
+  title: "Spicy Food Blog | FlamingFoodies",
+  description:
+    "Editorial coverage on spicy food culture, hot sauce gear, chili techniques, and heat-forward cooking.",
+  path: "/blog"
+});
 
 export default async function BlogIndexPage() {
   const posts = await getBlogPosts();

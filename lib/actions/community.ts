@@ -10,8 +10,10 @@ import {
   parseRecipeIngredients,
   parseRecipeInstructions
 } from "@/lib/parsers";
+import { recordTelemetryEvent } from "@/lib/services/telemetry";
 import { requireUser } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ANALYTICS_EVENTS } from "@/lib/telemetry-events";
 
 const cuisineTypeSchema = z.enum([
   "american",
@@ -255,6 +257,19 @@ export async function submitCommunityPostAction(formData: FormData) {
       redirect(`/community/submit?error=${encodeURIComponent(recipeError.message)}`);
     }
   }
+
+  await recordTelemetryEvent({
+    eventName: ANALYTICS_EVENTS.communitySubmit,
+    userId: profile.id,
+    path: "/community/submit",
+    contentType: parsed.data.type === "recipe" ? "community_recipe" : "community_post",
+    contentId: post.id,
+    metadata: {
+      type: parsed.data.type,
+      heatLevel: parsed.data.heatLevel ?? null,
+      cuisineType: parsed.data.cuisineType ?? null
+    }
+  });
 
   revalidatePath("/community");
   redirect("/community?submitted=1");

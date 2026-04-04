@@ -6,12 +6,14 @@ export function buildMetadata({
   title,
   description,
   path,
-  images
+  images,
+  noIndex
 }: {
   title: string;
   description: string;
   path?: string;
   images?: string[];
+  noIndex?: boolean;
 }): Metadata {
   const url = absoluteUrl(path);
   return {
@@ -32,6 +34,12 @@ export function buildMetadata({
       title,
       description,
       images: images?.length ? images : [absoluteUrl("/api/og?title=FlamingFoodies")]
-    }
+    },
+    robots: noIndex
+      ? {
+          index: false,
+          follow: false
+        }
+      : undefined
   };
 }

@@ -5,8 +5,10 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { flags } from "@/lib/env";
+import { recordTelemetryEvent } from "@/lib/services/telemetry";
 import { requireAdmin, requireUser } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { ANALYTICS_EVENTS } from "@/lib/telemetry-events";
 
 const commentSchema = z.object({
   contentType: z.string().min(1),
@@ -91,6 +93,14 @@ export async function submitCommentAction(formData: FormData) {
       .eq("id", parsed.data.contentId);
   }
 
+  await recordTelemetryEvent({
+    eventName: ANALYTICS_EVENTS.commentPosted,
+    userId: profile.id,
+    path: parsed.data.contentPath,
+    contentType: parsed.data.contentType,
+    contentId: parsed.data.contentId
+  });
+
   revalidatePath(parsed.data.contentPath);
   redirect(`${parsed.data.contentPath}?commented=1#comments`);
 }
@@ -150,6 +160,15 @@ export async function toggleRecipeSaveAction(formData: FormData) {
       .from("recipes")
       .update({ save_count: (recipe?.save_count ?? 0) + 1 })
       .eq("id", parsed.data.recipeId);
+
+    await recordTelemetryEvent({
+      eventName: ANALYTICS_EVENTS.recipeSave,
+      userId: profile.id,
+      path: `/recipes/${parsed.data.recipeSlug}`,
+      contentType: "recipe",
+      contentId: parsed.data.recipeId,
+      contentSlug: parsed.data.recipeSlug
+    });
   }
 
   revalidatePath(`/recipes/${parsed.data.recipeSlug}`);
@@ -199,6 +218,16 @@ export async function rateRecipeAction(formData: FormData) {
     redirect(`/recipes/${parsed.data.recipeSlug}?error=${encodeURIComponent(error.message)}`);
   }
 
+  await recordTelemetryEvent({
+    eventName: ANALYTICS_EVENTS.recipeRating,
+    userId: profile.id,
+    path: `/recipes/${parsed.data.recipeSlug}`,
+    contentType: "recipe",
+    contentId: parsed.data.recipeId,
+    contentSlug: parsed.data.recipeSlug,
+    value: parsed.data.rating
+  });
+
   revalidatePath(`/recipes/${parsed.data.recipeSlug}`);
   redirect(`/recipes/${parsed.data.recipeSlug}?rated=1`);
 }
@@ -245,6 +274,16 @@ export async function toggleFollowAction(formData: FormData) {
     await supabase.from("follows").insert({
       follower_id: profile.id,
       following_id: parsed.data.targetUserId
+    });
+
+    await recordTelemetryEvent({
+      eventName: ANALYTICS_EVENTS.userFollow,
+      userId: profile.id,
+      path: `/profile/${parsed.data.targetUsername}`,
+      metadata: {
+        targetUserId: parsed.data.targetUserId,
+        targetUsername: parsed.data.targetUsername
+      }
     });
   }
 
