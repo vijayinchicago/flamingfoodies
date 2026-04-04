@@ -4,6 +4,7 @@ import { createRecipeAction, updateRecipeStateAction } from "@/lib/actions/admin
 import { AdminPage } from "@/components/admin/admin-page";
 import { ContentTable } from "@/components/admin/content-table";
 import { RecipeEditorForm } from "@/components/admin/recipe-editor-form";
+import { buildRecipeQaReport, getRecipeQaPublishError } from "@/lib/recipe-qa";
 import { getAdminRecipes } from "@/lib/services/content";
 
 export default async function AdminRecipesPage({
@@ -15,6 +16,17 @@ export default async function AdminRecipesPage({
   const aiReviewQueue = recipes.filter(
     (recipe) => recipe.source === "ai_generated" && recipe.status !== "published"
   );
+  const aiQueueEntries = aiReviewQueue.map((recipe) => {
+    const qaReport = buildRecipeQaReport(recipe);
+    const publishError = getRecipeQaPublishError(qaReport);
+
+    return {
+      recipe,
+      qaReport,
+      publishError,
+      publishReady: !publishError
+    };
+  });
   const displayRecipes = [
     ...aiReviewQueue,
     ...recipes.filter((recipe) => !aiReviewQueue.some((queued) => queued.id === recipe.id))
@@ -25,31 +37,54 @@ export default async function AdminRecipesPage({
       title="Recipe content"
       description="Recipe inventory with heat level, cuisine, featured state, and performance metrics."
     >
-      <ContentTable
-        title="Recipes"
-        filters={["status", "source", "heat_level", "cuisine_type"]}
-        rows={recipes.map((recipe) => ({
-          title: recipe.title,
-          source: recipe.source,
-          cuisine: recipe.cuisineType,
-          heat: recipe.heatLevel,
-          saves: recipe.saveCount,
-          rating: recipe.ratingAvg,
-          status: recipe.status
-        }))}
-      />
-      {aiReviewQueue.length ? (
-        <section className="panel-light p-6">
-          <p className="eyebrow">Review queue</p>
-          <h2 className="mt-2 font-display text-4xl text-charcoal">
-            AI-generated recipes awaiting review
-          </h2>
-          <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/65">
-            Successful AI runs land here first. They stay off the public `/recipes` page until you
-            publish them or their scheduled publish time arrives.
+      {searchParams?.error ? (
+        <section className="rounded-[1.5rem] border border-rose-200 bg-rose-50 p-5 text-rose-900">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-700">
+            Publish blocked
           </p>
+          <p className="mt-2 text-sm leading-7">
+            {searchParams.error}
+          </p>
+        </section>
+      ) : null}
+      {searchParams?.updated ? (
+        <section className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+            Updated
+          </p>
+          <p className="mt-2 text-sm leading-7">Recipe state updated successfully.</p>
+        </section>
+      ) : null}
+      {aiQueueEntries.length ? (
+        <section id="ai-review-queue" className="panel-light p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="eyebrow">Review queue</p>
+              <h2 className="mt-2 font-display text-4xl text-charcoal">
+                AI-generated recipes awaiting review
+              </h2>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/65">
+                Successful AI runs land here first. They stay off the public `/recipes` page until
+                you publish them or their scheduled publish time arrives.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href={`/admin/content/recipes/${aiQueueEntries[0].recipe.id}`}
+                className="rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
+              >
+                Review latest AI recipe
+              </Link>
+              <Link
+                href={`/admin/content/recipes/${aiQueueEntries[0].recipe.id}`}
+                className="rounded-full border border-charcoal/10 px-5 py-3 text-sm font-semibold text-charcoal"
+              >
+                Open editor
+              </Link>
+            </div>
+          </div>
           <div className="mt-6 grid gap-4">
-            {aiReviewQueue.slice(0, 6).map((recipe) => (
+            {aiQueueEntries.slice(0, 6).map(({ recipe, qaReport, publishError, publishReady }) => (
               <article
                 key={`queue-${recipe.id}`}
                 className="rounded-[1.5rem] border border-charcoal/10 bg-white p-5"
@@ -70,7 +105,33 @@ export default async function AdminRecipesPage({
                   <span>Slug: {recipe.slug}</span>
                   <span>Hero reviewed: {recipe.heroImageReviewed ? "Yes" : "No"}</span>
                   <span>Cuisine QA: {recipe.cuisineQaReviewed ? "Yes" : "No"}</span>
+                  <span>QA score: {qaReport.score}/100</span>
                 </div>
+                {publishError ? (
+                  <div className="mt-4 rounded-[1.25rem] border border-amber-200 bg-amber-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">
+                      What is blocking publish
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-amber-950">{publishError}</p>
+                    {qaReport.blockers.length > 1 ? (
+                      <ul className="mt-3 space-y-2 text-sm leading-7 text-amber-900">
+                        {qaReport.blockers.slice(1).map((issue) => (
+                          <li key={issue.code}>• {issue.message}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="mt-4 rounded-[1.25rem] border border-emerald-200 bg-emerald-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                      Ready to publish
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-emerald-900">
+                      QA blockers are clear. You can publish this recipe now or open it for a
+                      final editorial pass.
+                    </p>
+                  </div>
+                )}
                 <div className="mt-5 flex flex-wrap gap-3">
                   <Link
                     href={`/admin/content/recipes/${recipe.id}`}
@@ -78,22 +139,44 @@ export default async function AdminRecipesPage({
                   >
                     Open review
                   </Link>
-                  <form action={updateRecipeStateAction} className="flex flex-wrap gap-3">
-                    <input type="hidden" name="id" value={recipe.id} />
-                    <button
-                      name="intent"
-                      value="publish"
-                      className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+                  {publishReady ? (
+                    <form action={updateRecipeStateAction} className="flex flex-wrap gap-3">
+                      <input type="hidden" name="id" value={recipe.id} />
+                      <button
+                        name="intent"
+                        value="publish"
+                        className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+                      >
+                        Publish now
+                      </button>
+                    </form>
+                  ) : (
+                    <Link
+                      href={`/admin/content/recipes/${recipe.id}`}
+                      className="rounded-full bg-amber-600 px-4 py-2 text-sm font-semibold text-white"
                     >
-                      Publish now
-                    </button>
-                  </form>
+                      Complete QA to publish
+                    </Link>
+                  )}
                 </div>
               </article>
             ))}
           </div>
         </section>
       ) : null}
+      <ContentTable
+        title="Recipes"
+        filters={["status", "source", "heat_level", "cuisine_type"]}
+        rows={recipes.map((recipe) => ({
+          title: recipe.title,
+          source: recipe.source,
+          cuisine: recipe.cuisineType,
+          heat: recipe.heatLevel,
+          saves: recipe.saveCount,
+          rating: recipe.ratingAvg,
+          status: recipe.status
+        }))}
+      />
       <div className="panel-light p-6">
         <h2 className="font-display text-4xl text-charcoal">Create a recipe</h2>
         <p className="mt-3 text-sm leading-7 text-charcoal/65">
