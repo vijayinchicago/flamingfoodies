@@ -95,6 +95,19 @@ export interface RecipeFaq {
   answer: string;
 }
 
+export interface RecipeQaIssue {
+  code: string;
+  severity: "blocker" | "warning";
+  message: string;
+}
+
+export interface RecipeQaReport {
+  status: "pass" | "warn" | "fail";
+  score: number;
+  blockers: RecipeQaIssue[];
+  warnings: RecipeQaIssue[];
+}
+
 export interface Recipe extends BaseContent {
   type: "recipe";
   authorName: string;
@@ -121,6 +134,10 @@ export interface Recipe extends BaseContent {
   substitutions?: string[];
   faqs?: RecipeFaq[];
   equipment: string[];
+  heroImageReviewed?: boolean;
+  cuisineQaReviewed?: boolean;
+  qaNotes?: string;
+  qaReport?: RecipeQaReport;
   seoTitle?: string;
   seoDescription?: string;
   ratingAvg?: number;

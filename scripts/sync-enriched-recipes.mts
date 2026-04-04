@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 import recipesModule from "../lib/recipes.ts";
+import recipeQaModule from "../lib/recipe-qa.ts";
 import sampleDataModule from "../lib/sample-data/index.ts";
 import type { Recipe } from "../lib/types.ts";
 
@@ -11,9 +12,17 @@ const {
   getRecipeMethodSteps,
   getRecipeSupportList
 } = recipesModule;
+const { buildRecipeQaReport, getRecipeManualReviewState } = recipeQaModule;
 const { sampleRecipes } = sampleDataModule;
 
 function mapRecipeForUpsert(recipe: Recipe) {
+  const manualReview = getRecipeManualReviewState(recipe);
+  const qaReport = buildRecipeQaReport({
+    ...recipe,
+    heroImageReviewed: manualReview.heroImageReviewed,
+    cuisineQaReviewed: manualReview.cuisineQaReviewed
+  });
+
   return {
     slug: recipe.slug,
     title: recipe.title,
@@ -46,6 +55,10 @@ function mapRecipeForUpsert(recipe: Recipe) {
     tags: recipe.tags,
     image_url: recipe.imageUrl ?? null,
     image_alt: recipe.imageAlt ?? null,
+    hero_image_reviewed: manualReview.heroImageReviewed,
+    cuisine_qa_reviewed: manualReview.cuisineQaReviewed,
+    qa_notes: manualReview.qaNotes ?? null,
+    qa_report: qaReport,
     featured: recipe.featured ?? false,
     status: recipe.status,
     source: recipe.source,

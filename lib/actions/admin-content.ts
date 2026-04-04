@@ -7,6 +7,11 @@ import { z } from "zod";
 import { flags } from "@/lib/env";
 import { merchThemeOptions } from "@/lib/merch";
 import {
+  buildRecipeQaReport,
+  getRecipeManualReviewState,
+  getRecipeQaPublishError
+} from "@/lib/recipe-qa";
+import {
   getRecipeFaqs,
   getRecipeHeroSummary,
   getRecipeIngredientSections,
@@ -103,9 +108,12 @@ const recipeSchema = z.object({
   makeAheadNotes: z.string().max(600).optional(),
   storageNotes: z.string().max(600).optional(),
   reheatNotes: z.string().max(600).optional(),
+  qaNotes: z.string().max(1200).optional(),
   tags: z.string().optional(),
   imageUrl: z.string().url().optional(),
   imageAlt: z.string().max(180).optional(),
+  heroImageReviewed: z.boolean().optional(),
+  cuisineQaReviewed: z.boolean().optional(),
   status: z.enum(["draft", "published"]),
   featured: z.boolean().optional(),
   redirectTo: z.string().optional()
@@ -388,6 +396,122 @@ function parseStructuredRecipeContent(formData: FormData) {
   };
 }
 
+function buildRecipeQaPayload({
+  parsed,
+  structuredContent,
+  methodSteps,
+  image
+}: {
+  parsed: z.infer<typeof recipeSchema>;
+  structuredContent: ReturnType<typeof parseStructuredRecipeContent>;
+  methodSteps: RecipeMethodStep[];
+  image: { imageUrl: string | null; imageAlt?: string };
+}) {
+  const qaCandidate: Recipe = {
+    id: 0,
+    type: "recipe",
+    slug: "draft",
+    title: parsed.title,
+    description: parsed.description,
+    intro: parsed.intro,
+    heroSummary: parsed.heroSummary,
+    authorName: "QA",
+    heatLevel: parsed.heatLevel,
+    cuisineType: parsed.cuisineType,
+    prepTimeMinutes: parsed.prepTimeMinutes,
+    cookTimeMinutes: parsed.cookTimeMinutes,
+    totalTimeMinutes: parsed.prepTimeMinutes + parsed.cookTimeMinutes,
+    activeTimeMinutes: parsed.activeTimeMinutes,
+    servings: parsed.servings,
+    difficulty: parsed.difficulty,
+    ingredients: structuredContent.ingredients,
+    ingredientSections: structuredContent.ingredientSections,
+    instructions: structuredContent.instructions,
+    methodSteps,
+    tips: structuredContent.tips,
+    variations: structuredContent.variations,
+    makeAheadNotes: parsed.makeAheadNotes,
+    storageNotes: parsed.storageNotes,
+    reheatNotes: parsed.reheatNotes,
+    servingSuggestions: structuredContent.servingSuggestions,
+    substitutions: structuredContent.substitutions,
+    faqs: structuredContent.faqs,
+    equipment: structuredContent.equipment,
+    tags: parseCsvList(parsed.tags || ""),
+    imageUrl: image.imageUrl ?? undefined,
+    imageAlt: image.imageAlt,
+    heroImageReviewed: parsed.heroImageReviewed ?? false,
+    cuisineQaReviewed: parsed.cuisineQaReviewed ?? false,
+    featured: parsed.featured ?? false,
+    source: "editorial",
+    status: parsed.status,
+    viewCount: 0,
+    likeCount: 0,
+    ratingCount: 0,
+    saveCount: 0
+  };
+  const qaReport = buildRecipeQaReport(qaCandidate);
+
+  return {
+    heroImageReviewed: qaCandidate.heroImageReviewed ?? false,
+    cuisineQaReviewed: qaCandidate.cuisineQaReviewed ?? false,
+    qaNotes: parsed.qaNotes ?? null,
+    qaReport
+  };
+}
+
+function mapRecipeRowToQaCandidate(row: any): Recipe {
+  return {
+    id: row.id,
+    type: "recipe",
+    slug: row.slug,
+    title: row.title,
+    description: row.description,
+    intro: row.intro ?? undefined,
+    heroSummary: row.hero_summary ?? undefined,
+    authorName: row.author_name,
+    heatLevel: row.heat_level,
+    cuisineType: row.cuisine_type,
+    prepTimeMinutes: row.prep_time_minutes ?? 0,
+    cookTimeMinutes: row.cook_time_minutes ?? 0,
+    totalTimeMinutes: row.total_time_minutes ?? 0,
+    activeTimeMinutes: row.active_time_minutes ?? undefined,
+    servings: row.servings ?? 0,
+    difficulty: row.difficulty ?? "beginner",
+    ingredients: row.ingredients ?? [],
+    ingredientSections: row.ingredient_sections ?? [],
+    instructions: row.instructions ?? [],
+    methodSteps: row.method_steps ?? [],
+    tips: row.tips ?? [],
+    variations: row.variations ?? [],
+    makeAheadNotes: row.make_ahead_notes ?? undefined,
+    storageNotes: row.storage_notes ?? undefined,
+    reheatNotes: row.reheat_notes ?? undefined,
+    servingSuggestions: row.serving_suggestions ?? [],
+    substitutions: row.substitutions ?? [],
+    faqs: row.faqs ?? [],
+    equipment: row.equipment ?? [],
+    tags: row.tags ?? [],
+    imageUrl: row.image_url ?? undefined,
+    imageAlt: row.image_alt ?? undefined,
+    heroImageReviewed: row.hero_image_reviewed ?? false,
+    cuisineQaReviewed: row.cuisine_qa_reviewed ?? false,
+    qaNotes: row.qa_notes ?? undefined,
+    qaReport: row.qa_report ?? undefined,
+    featured: row.featured ?? false,
+    source: row.source,
+    status: row.status,
+    seoTitle: row.seo_title ?? undefined,
+    seoDescription: row.seo_description ?? undefined,
+    viewCount: row.view_count ?? 0,
+    likeCount: row.like_count ?? 0,
+    ratingAvg: Number(row.rating_avg ?? 0) || undefined,
+    ratingCount: row.rating_count ?? 0,
+    saveCount: row.save_count ?? 0,
+    publishedAt: row.published_at ?? undefined
+  };
+}
+
 async function resolveMethodStepImages({
   formData,
   supabase,
@@ -460,6 +584,13 @@ function revalidateCatalogBootstrapPaths() {
 }
 
 function mapSampleRecipeForInsert(recipe: Recipe) {
+  const manualReview = getRecipeManualReviewState(recipe);
+  const qaReport = buildRecipeQaReport({
+    ...recipe,
+    heroImageReviewed: manualReview.heroImageReviewed,
+    cuisineQaReviewed: manualReview.cuisineQaReviewed
+  });
+
   return {
     slug: recipe.slug,
     title: recipe.title,
@@ -492,6 +623,10 @@ function mapSampleRecipeForInsert(recipe: Recipe) {
     tags: recipe.tags,
     image_url: recipe.imageUrl ?? null,
     image_alt: recipe.imageAlt ?? null,
+    hero_image_reviewed: manualReview.heroImageReviewed,
+    cuisine_qa_reviewed: manualReview.cuisineQaReviewed,
+    qa_notes: manualReview.qaNotes ?? null,
+    qa_report: qaReport,
     featured: recipe.featured ?? false,
     status: recipe.status,
     source: recipe.source,
@@ -829,9 +964,12 @@ export async function createRecipeAction(formData: FormData) {
     makeAheadNotes: getOptionalText(formData, "makeAheadNotes"),
     storageNotes: getOptionalText(formData, "storageNotes"),
     reheatNotes: getOptionalText(formData, "reheatNotes"),
+    qaNotes: getOptionalText(formData, "qaNotes"),
     tags: getOptionalText(formData, "tags"),
     imageUrl: getOptionalText(formData, "imageUrl"),
     imageAlt: getOptionalText(formData, "imageAlt"),
+    heroImageReviewed: formData.get("heroImageReviewed") === "on",
+    cuisineQaReviewed: formData.get("cuisineQaReviewed") === "on",
     status: String(formData.get("status") || "draft"),
     featured: formData.get("featured") === "on"
   });
@@ -870,6 +1008,19 @@ export async function createRecipeAction(formData: FormData) {
     supabase,
     methodSteps: structuredContent.methodSteps
   });
+  const qa = buildRecipeQaPayload({
+    parsed: parsed.data,
+    structuredContent,
+    methodSteps,
+    image
+  });
+
+  if (parsed.data.status === "published") {
+    const qaError = getRecipeQaPublishError(qa.qaReport);
+    if (qaError) {
+      redirect(`/admin/content/recipes?error=${encodeURIComponent(qaError)}`);
+    }
+  }
   const slug = await makeUniqueSlug(supabase, "recipes", parsed.data.title);
 
   const { data, error } = await supabase
@@ -905,6 +1056,12 @@ export async function createRecipeAction(formData: FormData) {
       tags: parseCsvList(parsed.data.tags || ""),
       image_url: image.imageUrl,
       image_alt: image.imageAlt ?? null,
+      hero_image_reviewed: qa.heroImageReviewed,
+      cuisine_qa_reviewed: qa.cuisineQaReviewed,
+      qa_notes: qa.qaNotes,
+      qa_report: qa.qaReport,
+      qa_checked_at:
+        qa.heroImageReviewed || qa.cuisineQaReviewed ? new Date().toISOString() : null,
       featured: parsed.data.featured ?? false,
       status: parsed.data.status,
       source: "editorial",
@@ -959,9 +1116,12 @@ export async function updateRecipeAction(formData: FormData) {
     makeAheadNotes: getOptionalText(formData, "makeAheadNotes"),
     storageNotes: getOptionalText(formData, "storageNotes"),
     reheatNotes: getOptionalText(formData, "reheatNotes"),
+    qaNotes: getOptionalText(formData, "qaNotes"),
     tags: getOptionalText(formData, "tags"),
     imageUrl: getOptionalText(formData, "imageUrl"),
     imageAlt: getOptionalText(formData, "imageAlt"),
+    heroImageReviewed: formData.get("heroImageReviewed") === "on",
+    cuisineQaReviewed: formData.get("cuisineQaReviewed") === "on",
     status: String(formData.get("status") || "draft"),
     featured: formData.get("featured") === "on",
     redirectTo: getOptionalText(formData, "redirectTo")
@@ -1017,6 +1177,19 @@ export async function updateRecipeAction(formData: FormData) {
     supabase,
     methodSteps: structuredContent.methodSteps
   });
+  const qa = buildRecipeQaPayload({
+    parsed: parsed.data,
+    structuredContent,
+    methodSteps,
+    image
+  });
+
+  if (parsed.data.status === "published") {
+    const qaError = getRecipeQaPublishError(qa.qaReport);
+    if (qaError) {
+      redirect(`${redirectTo}?error=${encodeURIComponent(qaError)}`);
+    }
+  }
   const slug =
     existing.title === parsed.data.title
       ? existing.slug
@@ -1053,6 +1226,12 @@ export async function updateRecipeAction(formData: FormData) {
       tags: parseCsvList(parsed.data.tags || ""),
       image_url: image.imageUrl,
       image_alt: image.imageAlt ?? null,
+      hero_image_reviewed: qa.heroImageReviewed,
+      cuisine_qa_reviewed: qa.cuisineQaReviewed,
+      qa_notes: qa.qaNotes,
+      qa_report: qa.qaReport,
+      qa_checked_at:
+        qa.heroImageReviewed || qa.cuisineQaReviewed ? new Date().toISOString() : null,
       featured: parsed.data.featured ?? false,
       status: parsed.data.status,
       seo_title: parsed.data.title.slice(0, 60),
@@ -1100,9 +1279,38 @@ export async function updateRecipeStateAction(formData: FormData) {
     redirect("/admin/content/recipes?error=Supabase%20admin%20is%20not%20configured");
   }
 
+  let qaReportForPublish: ReturnType<typeof buildRecipeQaReport> | undefined;
+
+  if (parsed.data.intent === "publish") {
+    const { data: recipeRow, error: recipeError } = await supabase
+      .from("recipes")
+      .select("*")
+      .eq("id", parsed.data.id)
+      .single();
+
+    if (recipeError) {
+      redirect(`/admin/content/recipes?error=${encodeURIComponent(recipeError.message)}`);
+    }
+
+    qaReportForPublish = buildRecipeQaReport(mapRecipeRowToQaCandidate(recipeRow));
+    const qaError = getRecipeQaPublishError(qaReportForPublish);
+
+    if (qaError) {
+      redirect(`/admin/content/recipes?error=${encodeURIComponent(qaError)}`);
+    }
+  }
+
   const { data, error } = await supabase
     .from("recipes")
-    .update(buildStatusUpdates(parsed.data.intent))
+    .update({
+      ...buildStatusUpdates(parsed.data.intent),
+      ...(parsed.data.intent === "publish"
+        ? {
+            qa_checked_at: new Date().toISOString(),
+            qa_report: qaReportForPublish
+          }
+        : {})
+    })
     .eq("id", parsed.data.id)
     .select("id, slug")
     .single();

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { updateRecipeAction } from "@/lib/actions/admin-content";
 import { AdminPage } from "@/components/admin/admin-page";
 import { RecipeEditorForm } from "@/components/admin/recipe-editor-form";
+import { buildRecipeQaReport } from "@/lib/recipe-qa";
 import { getAdminRecipeById } from "@/lib/services/content";
 
 export default async function AdminRecipeEditPage({
@@ -33,6 +34,7 @@ export default async function AdminRecipeEditPage({
       <RecipeEditorForm
         formAction={updateRecipeAction}
         recipe={recipe}
+        qaReport={buildRecipeQaReport(recipe)}
         redirectTo={`/admin/content/recipes/${recipe.id}`}
         submitLabel="Save changes"
         errorMessage={searchParams?.error}

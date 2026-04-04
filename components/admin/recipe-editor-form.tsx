@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import { getRecipeFaqs, getRecipeHeroSummary, getRecipeIngredientSections, getRecipeMethodSteps } from "@/lib/recipes";
-import type { Recipe } from "@/lib/types";
+import type { Recipe, RecipeQaReport } from "@/lib/types";
 
 type RecipeEditorAction = (formData: FormData) => void | Promise<void>;
 
@@ -129,6 +129,7 @@ function ListEditor({
 export function RecipeEditorForm({
   formAction,
   recipe,
+  qaReport,
   submitLabel,
   successMessage,
   errorMessage,
@@ -136,6 +137,7 @@ export function RecipeEditorForm({
 }: {
   formAction: RecipeEditorAction;
   recipe?: Recipe;
+  qaReport?: RecipeQaReport;
   submitLabel: string;
   successMessage?: string;
   errorMessage?: string;
@@ -865,6 +867,85 @@ export function RecipeEditorForm({
           accept="image/*"
           className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 text-sm outline-none file:mr-4 file:rounded-full file:border-0 file:bg-charcoal file:px-4 file:py-2 file:text-white"
         />
+      </section>
+
+      <section className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.03] p-5">
+        <p className="eyebrow">QA gate</p>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 className="font-display text-3xl text-charcoal">Cuisine and image signoff</h3>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-charcoal/65">
+              Drafts can save without approval, but publishing now requires both manual review
+              boxes plus a clean blocker list from the recipe QA validator.
+            </p>
+          </div>
+          {qaReport ? (
+            <div className="rounded-full bg-charcoal px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-white">
+              QA {qaReport.status} · {qaReport.score}/100
+            </div>
+          ) : null}
+        </div>
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <label className="flex items-center gap-3 rounded-2xl border border-charcoal/10 bg-white px-4 py-3 text-sm text-charcoal/80">
+            <input
+              type="checkbox"
+              name="heroImageReviewed"
+              defaultChecked={recipe?.heroImageReviewed}
+            />
+            Hero image manually reviewed against the actual dish
+          </label>
+          <label className="flex items-center gap-3 rounded-2xl border border-charcoal/10 bg-white px-4 py-3 text-sm text-charcoal/80">
+            <input
+              type="checkbox"
+              name="cuisineQaReviewed"
+              defaultChecked={recipe?.cuisineQaReviewed}
+            />
+            Cuisine and technique reviewed for authenticity and coherence
+          </label>
+        </div>
+        <textarea
+          name="qaNotes"
+          defaultValue={recipe?.qaNotes}
+          rows={3}
+          placeholder="Internal QA notes, sourcing concerns, or image validation notes"
+          className="mt-4 w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
+        />
+        {qaReport ? (
+          <div className="mt-5 grid gap-4 lg:grid-cols-2">
+            <div className="rounded-[1.5rem] border border-rose-200 bg-rose-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-700">
+                Blockers
+              </p>
+              {qaReport.blockers.length ? (
+                <ul className="mt-3 space-y-2 text-sm leading-7 text-rose-800">
+                  {qaReport.blockers.map((issue) => (
+                    <li key={issue.code}>• {issue.message}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm leading-7 text-emerald-700">
+                  No blocker issues. This recipe can publish if the manual reviews stay checked.
+                </p>
+              )}
+            </div>
+            <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">
+                Warnings
+              </p>
+              {qaReport.warnings.length ? (
+                <ul className="mt-3 space-y-2 text-sm leading-7 text-amber-900">
+                  {qaReport.warnings.map((issue) => (
+                    <li key={issue.code}>• {issue.message}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm leading-7 text-emerald-700">
+                  No warning-level issues right now.
+                </p>
+              )}
+            </div>
+          </div>
+        ) : null}
       </section>
 
       {errorMessage ? <p className="text-sm text-rose-600">{errorMessage}</p> : null}

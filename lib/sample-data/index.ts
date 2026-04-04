@@ -256,8 +256,8 @@ export const sampleRecipes: Recipe[] = [
     heroSummary:
       "Fast-grilled shrimp with real jerk character, a sticky lime glaze, and enough char to make the whole platter taste bigger than the ingredient list.",
     imageUrl:
-      "https://images.unsplash.com/photo-1625944230945-1b7dd3b949ab?auto=format&fit=crop&w=1200&q=80",
-    imageAlt: "Jerk shrimp skewers on a grill with lime wedges",
+      "https://images.unsplash.com/photo-1746212087584-edcdb21f44b9?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=1200",
+    imageAlt: "Grilled shrimp cooking on a barbecue grill",
     featured: true,
     source: "ai_generated",
     status: "published",
@@ -368,8 +368,8 @@ export const sampleRecipes: Recipe[] = [
         durationMinutes: 6,
         ingredientRefs: ["large shrimp", "melted butter"],
         imageUrl:
-          "https://images.unsplash.com/photo-1625944230945-1b7dd3b949ab?auto=format&fit=crop&w=1000&q=80",
-        imageAlt: "Jerk shrimp skewers charring over high heat"
+          "https://images.unsplash.com/photo-1746212087584-edcdb21f44b9?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=60&w=1000",
+        imageAlt: "Shrimp charring over high heat on a grill"
       },
       {
         step: 4,
@@ -480,8 +480,8 @@ export const sampleRecipes: Recipe[] = [
     heroSummary:
       "A real crunchy-hot sandwich with juicy thigh meat, cayenne oil, cold slaw, and just enough pickle snap to make the heat addictive.",
     imageUrl:
-      "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80",
-    imageAlt: "Hot chicken sandwich with pickles and slaw",
+      "https://images.unsplash.com/photo-1700768400970-428c50bffc11?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGhvdCUyMGNoaWNrZW4lMjBzYW5kd2ljaHxlbnwwfHwwfHx8MA%3D%3D&ixlib=rb-4.1.0&q=60&w=1200",
+    imageAlt: "Fried chicken sandwich with pickles and mayonnaise",
     featured: true,
     source: "editorial",
     status: "published",
@@ -1261,8 +1261,8 @@ export const sampleRecipes: Recipe[] = [
     heroSummary:
       "A fast pantry dinner with plush dumplings, a nutty sesame sauce, and enough chili crisp crunch to make the bowl feel far more ambitious than the effort.",
     imageUrl:
-      "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1200&q=80",
-    imageAlt: "Dumpling bowl topped with chili crisp and scallions",
+      "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZHVtcGxpbmd8ZW58MHx8MHx8fDA%3D&ixlib=rb-4.1.0&q=60&w=1200",
+    imageAlt: "Dumplings on a wooden plate with chopsticks",
     featured: true,
     source: "ai_generated",
     status: "published",
@@ -1368,8 +1368,8 @@ export const sampleRecipes: Recipe[] = [
         durationMinutes: 3,
         ingredientRefs: ["frozen dumplings", "sesame-chile sauce"],
         imageUrl:
-          "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=1000&q=80",
-        imageAlt: "Dumplings coated in sesame chili crisp sauce in a bowl"
+          "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZHVtcGxpbmd8ZW58MHx8MHx8fDA%3D&ixlib=rb-4.1.0&q=60&w=1000",
+        imageAlt: "Dumplings plated with chopsticks"
       },
       {
         step: 4,

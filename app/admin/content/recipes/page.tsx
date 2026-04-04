@@ -70,6 +70,8 @@ export default async function AdminRecipesPage({
               <span>Slug: {recipe.slug}</span>
               <span>Saves: {recipe.saveCount}</span>
               <span>Featured: {recipe.featured ? "Yes" : "No"}</span>
+              <span>Hero reviewed: {recipe.heroImageReviewed ? "Yes" : "No"}</span>
+              <span>Cuisine QA: {recipe.cuisineQaReviewed ? "Yes" : "No"}</span>
             </div>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link
