@@ -1,6 +1,8 @@
 import type { Review } from "@/lib/types";
+import { getReviewHeroFields } from "@/lib/review-hero";
 
 export function ReviewSchema({ review }: { review: Review }) {
+  const hero = getReviewHeroFields(review);
   const schema = {
     "@context": "https://schema.org",
     "@type": "Review",
@@ -9,7 +11,8 @@ export function ReviewSchema({ review }: { review: Review }) {
     itemReviewed: {
       "@type": "Product",
       name: review.productName,
-      brand: review.brand
+      brand: review.brand,
+      image: hero.imageUrl
     },
     reviewRating: {
       "@type": "Rating",

@@ -1,4 +1,5 @@
 import { getGuides } from "@/lib/content/guides";
+import { getReviewHeroFields } from "@/lib/review-hero";
 import { getBlogPosts, getRecipes, getReviews } from "@/lib/services/content";
 import type { BlogPost, Recipe, Review } from "@/lib/types";
 
@@ -130,7 +131,7 @@ export async function searchSite(query: string) {
         title: review.title,
         description: review.description,
         href: `/reviews/${review.slug}`,
-        imageUrl: review.imageUrl,
+        imageUrl: getReviewHeroFields(review).imageUrl,
         meta: `${review.brand} review`,
         score: scoreReview(review, tokens)
       }))

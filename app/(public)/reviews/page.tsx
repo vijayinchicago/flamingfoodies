@@ -12,6 +12,7 @@ import {
   getAffiliateLinkEntries,
   resolveAffiliateLink
 } from "@/lib/affiliates";
+import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
 import { getReviews } from "@/lib/services/content";
 import { absoluteUrl } from "@/lib/utils";
@@ -44,7 +45,7 @@ export default async function ReviewsIndexPage() {
         items={reviews.map((review) => ({
           name: review.title,
           url: absoluteUrl(`/reviews/${review.slug}`),
-          image: review.imageUrl
+          image: getReviewHeroFields(review).imageUrl
         }))}
       />
       <SectionHeading

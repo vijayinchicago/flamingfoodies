@@ -68,6 +68,16 @@ describe("review QA", () => {
     expect(report.blockers).toHaveLength(0);
   });
 
+  it("warns when a review relies on a generic stock image host", () => {
+    const report = buildReviewQaReport({
+      ...baseReview,
+      imageUrl: "https://images.unsplash.com/photo-123",
+      imageAlt: "Yellowbird habanero hot sauce bottle on a wooden table"
+    });
+
+    expect(report.warnings.map((issue) => issue.code)).toContain("generic-stock-review-image");
+  });
+
   it("auto-approves the curated sample review set for imports", () => {
     expect(
       getReviewManualReviewState({

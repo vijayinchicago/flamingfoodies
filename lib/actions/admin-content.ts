@@ -7,6 +7,7 @@ import { z } from "zod";
 import { flags } from "@/lib/env";
 import { merchThemeOptions } from "@/lib/merch";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
+import { getReviewHeroFields } from "@/lib/review-hero";
 import {
   buildRecipeQaReport,
   getRecipeManualReviewState,
@@ -493,6 +494,15 @@ function buildReviewQaPayload({
   parsed: z.infer<typeof reviewSchema>;
   image: { imageUrl: string | null; imageAlt?: string };
 }) {
+  const hero = getReviewHeroFields({
+    title: parsed.title,
+    productName: parsed.productName,
+    brand: parsed.brand,
+    category: parsed.category,
+    heatLevel: parsed.heatLevel,
+    imageUrl: image.imageUrl ?? undefined,
+    imageAlt: image.imageAlt ?? undefined
+  });
   const qaCandidate: Review = {
     id: 0,
     type: "review",
@@ -513,9 +523,9 @@ function buildReviewQaPayload({
     category: parsed.category,
     pros: parseLineList(parsed.pros || ""),
     cons: parseLineList(parsed.cons || ""),
-    imageUrl: image.imageUrl ?? undefined,
-    imageAlt: image.imageAlt,
-    imageReviewed: parsed.imageReviewed ?? false,
+    imageUrl: hero.imageUrl,
+    imageAlt: hero.imageAlt,
+    imageReviewed: Boolean(parsed.imageReviewed) || hero.usesGeneratedHeroCard,
     factQaReviewed: parsed.factQaReviewed ?? false,
     qaNotes: parsed.qaNotes ?? undefined,
     qaReport: undefined,
@@ -530,6 +540,8 @@ function buildReviewQaPayload({
   const qaReport = buildReviewQaReport(qaCandidate);
 
   return {
+    imageUrl: hero.imageUrl,
+    imageAlt: hero.imageAlt,
     imageReviewed: qaCandidate.imageReviewed ?? false,
     factQaReviewed: qaCandidate.factQaReviewed ?? false,
     qaNotes: parsed.qaNotes ?? null,
@@ -598,6 +610,16 @@ function mapRecipeRowToQaCandidate(row: any): Recipe {
 }
 
 function mapReviewRowToQaCandidate(row: any): Review {
+  const hero = getReviewHeroFields({
+    title: row.title,
+    productName: row.product_name,
+    brand: row.brand,
+    category: row.category,
+    heatLevel: row.heat_level ?? undefined,
+    imageUrl: row.image_url ?? undefined,
+    imageAlt: row.image_alt ?? undefined
+  });
+
   return {
     id: row.id,
     type: "review",
@@ -609,8 +631,8 @@ function mapReviewRowToQaCandidate(row: any): Review {
     rating: Number(row.rating),
     priceUsd: Number(row.price_usd ?? 0) || undefined,
     affiliateUrl: row.affiliate_url,
-    imageUrl: row.image_url ?? undefined,
-    imageAlt: row.image_alt ?? undefined,
+    imageUrl: hero.imageUrl,
+    imageAlt: hero.imageAlt,
     source: row.source,
     status: row.status,
     publishedAt: row.published_at ?? undefined,
@@ -626,7 +648,7 @@ function mapReviewRowToQaCandidate(row: any): Review {
     category: row.category,
     pros: row.pros ?? [],
     cons: row.cons ?? [],
-    imageReviewed: row.image_reviewed ?? false,
+    imageReviewed: Boolean(row.image_reviewed) || hero.usesGeneratedHeroCard,
     factQaReviewed: row.fact_qa_reviewed ?? false,
     qaNotes: row.qa_notes ?? undefined,
     qaReport: row.qa_report ?? undefined,
@@ -830,9 +852,20 @@ function mapSampleRecipeForInsert(recipe: Recipe) {
 
 function mapSampleReviewForInsert(review: Review) {
   const manualReview = getReviewManualReviewState(review);
+  const hero = getReviewHeroFields({
+    title: review.title,
+    productName: review.productName,
+    brand: review.brand,
+    category: review.category,
+    heatLevel: review.heatLevel,
+    imageUrl: review.imageUrl ?? undefined,
+    imageAlt: review.imageAlt ?? undefined
+  });
   const qaReport = buildReviewQaReport({
     ...review,
-    imageReviewed: manualReview.imageReviewed,
+    imageUrl: hero.imageUrl,
+    imageAlt: hero.imageAlt,
+    imageReviewed: manualReview.imageReviewed || hero.usesGeneratedHeroCard,
     factQaReviewed: manualReview.factQaReviewed
   });
 
@@ -846,8 +879,8 @@ function mapSampleReviewForInsert(review: Review) {
     rating: review.rating,
     price_usd: review.priceUsd ?? null,
     affiliate_url: review.affiliateUrl,
-    image_url: review.imageUrl ?? null,
-    image_alt: review.imageAlt ?? null,
+    image_url: hero.imageUrl,
+    image_alt: hero.imageAlt ?? null,
     heat_level: review.heatLevel ?? null,
     scoville_min: review.scovilleMin ?? null,
     scoville_max: review.scovilleMax ?? null,
@@ -856,7 +889,7 @@ function mapSampleReviewForInsert(review: Review) {
     category: review.category,
     pros: review.pros,
     cons: review.cons,
-    image_reviewed: manualReview.imageReviewed,
+    image_reviewed: manualReview.imageReviewed || hero.usesGeneratedHeroCard,
     fact_qa_reviewed: manualReview.factQaReviewed,
     qa_notes: manualReview.qaNotes ?? null,
     qa_report: qaReport,
@@ -1657,8 +1690,8 @@ export async function createReviewAction(formData: FormData) {
       rating: parsed.data.rating,
       price_usd: parsed.data.priceUsd ?? null,
       affiliate_url: parsed.data.affiliateUrl,
-      image_url: image.imageUrl,
-      image_alt: image.imageAlt ?? null,
+      image_url: qa.imageUrl,
+      image_alt: qa.imageAlt ?? null,
       heat_level: parsed.data.heatLevel ?? null,
       scoville_min: parsed.data.scovilleMin ?? null,
       scoville_max: parsed.data.scovilleMax ?? null,
@@ -1800,8 +1833,8 @@ export async function updateReviewAction(formData: FormData) {
       rating: parsed.data.rating,
       price_usd: parsed.data.priceUsd ?? null,
       affiliate_url: parsed.data.affiliateUrl,
-      image_url: image.imageUrl,
-      image_alt: image.imageAlt ?? null,
+      image_url: qa.imageUrl,
+      image_alt: qa.imageAlt ?? null,
       heat_level: parsed.data.heatLevel ?? null,
       scoville_min: parsed.data.scovilleMin ?? null,
       scoville_max: parsed.data.scovilleMax ?? null,
@@ -1847,7 +1880,7 @@ export async function updateReviewAction(formData: FormData) {
       contentId: data.id,
       title: parsed.data.title,
       slug: data.slug,
-      imageUrl: image.imageUrl
+      imageUrl: qa.imageUrl
     });
   }
 
@@ -1878,6 +1911,9 @@ export async function updateReviewStateAction(formData: FormData) {
 
   let qaReportForPublish: ReturnType<typeof buildReviewQaReport> | undefined;
   let reviewRowForPublish: any | undefined;
+  let publishHeroFields:
+    | ReturnType<typeof getReviewHeroFields>
+    | undefined;
 
   if (parsed.data.intent === "publish") {
     const { data: reviewRow, error: reviewError } = await supabase
@@ -1891,6 +1927,15 @@ export async function updateReviewStateAction(formData: FormData) {
     }
 
     reviewRowForPublish = reviewRow;
+    publishHeroFields = getReviewHeroFields({
+      title: reviewRow.title,
+      productName: reviewRow.product_name,
+      brand: reviewRow.brand,
+      category: reviewRow.category,
+      heatLevel: reviewRow.heat_level ?? undefined,
+      imageUrl: reviewRow.image_url ?? undefined,
+      imageAlt: reviewRow.image_alt ?? undefined
+    });
     qaReportForPublish = buildReviewQaReport(mapReviewRowToQaCandidate(reviewRow));
     const qaError = getReviewQaPublishError(qaReportForPublish);
 
@@ -1905,6 +1950,11 @@ export async function updateReviewStateAction(formData: FormData) {
       ...buildStatusUpdates(parsed.data.intent),
       ...(parsed.data.intent === "publish"
         ? {
+            image_url: publishHeroFields?.imageUrl ?? reviewRowForPublish?.image_url ?? null,
+            image_alt: publishHeroFields?.imageAlt ?? reviewRowForPublish?.image_alt ?? null,
+            image_reviewed:
+              Boolean(reviewRowForPublish?.image_reviewed) ||
+              Boolean(publishHeroFields?.usesGeneratedHeroCard),
             qa_checked_at: new Date().toISOString(),
             qa_report: qaReportForPublish
           }

@@ -17,6 +17,7 @@ import {
 } from "@/lib/affiliates";
 import { getAdRuntimeConfig } from "@/lib/ads";
 import { getMerchThemeClasses } from "@/lib/merch";
+import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
 import { getFeaturedMerchProducts, getReview } from "@/lib/services/content";
 import { absoluteUrl, formatDate, markdownToHtml } from "@/lib/utils";
@@ -35,11 +36,13 @@ export async function generateMetadata({
     });
   }
 
+  const hero = getReviewHeroFields(review);
+
   return buildMetadata({
     title: review.title,
     description: review.description,
     path: `/reviews/${review.slug}`,
-    images: review.imageUrl ? [review.imageUrl] : undefined
+    images: hero.imageUrl ? [hero.imageUrl] : undefined
   });
 }
 
@@ -51,6 +54,7 @@ export default async function ReviewPage({
   const review = await getReview(params.slug);
 
   if (!review) notFound();
+  const hero = getReviewHeroFields(review);
 
   const html = await markdownToHtml(review.content);
   const primaryOffer = findAffiliateLinkByUrl(review.affiliateUrl);
@@ -104,7 +108,7 @@ export default async function ReviewPage({
           title={review.title}
           description={review.description}
           url={absoluteUrl(`/reviews/${review.slug}`)}
-          imageUrl={review.imageUrl}
+          imageUrl={hero.imageUrl}
           contentType="review"
           contentId={review.id}
           contentSlug={review.slug}
@@ -113,13 +117,13 @@ export default async function ReviewPage({
       <div className="mt-6 max-w-3xl">
         <AffiliateDisclosure compact />
       </div>
-      {review.imageUrl ? (
+      {hero.imageUrl ? (
         <div className="relative mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05]">
           <PinterestSaveButton
             title={review.title}
             description={review.description}
             url={absoluteUrl(`/reviews/${review.slug}`)}
-            imageUrl={review.imageUrl}
+            imageUrl={hero.imageUrl}
             contentType="review"
             contentId={review.id}
             contentSlug={review.slug}
@@ -127,8 +131,8 @@ export default async function ReviewPage({
           />
           <div className="relative h-[340px]">
             <Image
-              src={review.imageUrl}
-              alt={review.imageAlt || review.title}
+              src={hero.imageUrl}
+              alt={hero.imageAlt}
               fill
               sizes="(min-width: 1280px) 960px, 100vw"
               className="object-cover"

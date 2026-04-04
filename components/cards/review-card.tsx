@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { getReviewHeroFields } from "@/lib/review-hero";
 import type { Review } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
@@ -10,16 +11,18 @@ function formatHeatLabel(heatLevel?: Review["heatLevel"]) {
 }
 
 export function ReviewCard({ review }: { review: Review }) {
+  const hero = getReviewHeroFields(review);
+
   return (
     <Link
       href={`/reviews/${review.slug}`}
       className="group overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 transition hover:-translate-y-1 hover:border-white/20 hover:bg-white/10"
     >
-      {review.imageUrl ? (
+      {hero.imageUrl ? (
         <div className="relative h-56 overflow-hidden">
           <Image
-            src={review.imageUrl}
-            alt={review.imageAlt || review.title}
+            src={hero.imageUrl}
+            alt={hero.imageAlt}
             fill
             className="object-cover transition duration-500 group-hover:scale-105"
           />

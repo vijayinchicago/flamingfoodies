@@ -4,6 +4,7 @@ import type {
   RecipeQaReport,
   Review
 } from "@/lib/types";
+import { isLikelyGenericStockReviewImageUrl } from "@/lib/review-hero";
 
 const tokenStopwords = new Set([
   "and",
@@ -208,6 +209,16 @@ export function buildReviewQaReport(review: ReviewQaCandidate): RecipeQaReport {
         "blocker",
         "review-fact-check-required",
         "Manual tasting and fact QA signoff is required before publishing."
+      )
+    );
+  }
+
+  if (isLikelyGenericStockReviewImageUrl(review.imageUrl)) {
+    warnings.push(
+      createIssue(
+        "warning",
+        "generic-stock-review-image",
+        "Replace the generic stock hero with product-faithful bottle art or a branded review card."
       )
     );
   }
