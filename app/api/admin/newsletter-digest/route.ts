@@ -3,7 +3,9 @@ import { createWeeklyDigest } from "@/lib/services/automation";
 import { processScheduledNewsletterCampaigns } from "@/lib/services/newsletter";
 import { jsonResponse } from "@/lib/utils";
 
-export async function POST(request: Request) {
+export const dynamic = "force-dynamic";
+
+async function handleRequest(request: Request) {
   const unauthorized = requireCronAuthorization(request);
   if (unauthorized) {
     return unauthorized;
@@ -33,4 +35,12 @@ export async function POST(request: Request) {
 
   const result = await createWeeklyDigest();
   return jsonResponse({ ok: true, requestMode: mode, ...result });
+}
+
+export async function GET(request: Request) {
+  return handleRequest(request);
+}
+
+export async function POST(request: Request) {
+  return handleRequest(request);
 }

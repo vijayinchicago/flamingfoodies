@@ -69,6 +69,9 @@ export async function triggerGenerationAction(formData: FormData) {
   }
 
   const result = await runGenerationPipeline(parsed.data.type, parsed.data.qty);
+  if ("skippedReason" in result && result.skippedReason) {
+    redirect(`/admin/automation/trigger?error=${encodeURIComponent(result.skippedReason)}`);
+  }
   const supabase = createSupabaseAdminClient();
 
   await writeAuditLog(supabase, {

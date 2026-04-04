@@ -1,5 +1,20 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+async function importGenerateRoute({
+  runGenerationPipeline = vi.fn().mockResolvedValue({ mode: "live", createdJobs: [] })
+} = {}) {
+  vi.resetModules();
+  vi.doMock("@/lib/services/automation", () => ({
+    runGenerationPipeline
+  }));
+
+  const route = await import("@/app/api/admin/generate/route");
+  return {
+    route,
+    runGenerationPipeline
+  };
+}
+
 async function importNewsletterRoute({
   createWeeklyDigest = vi.fn().mockResolvedValue({ mode: "mock", subject: "Digest" }),
   processScheduledNewsletterCampaigns = vi
@@ -197,6 +212,50 @@ describe("newsletter digest cron route", () => {
     });
     expect(createWeeklyDigest).toHaveBeenCalledTimes(1);
     expect(processScheduledNewsletterCampaigns).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("content generation cron route", () => {
+  it("rejects unauthorized GET requests when CRON_SECRET is set", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
+    const { route, runGenerationPipeline } = await importGenerateRoute();
+
+    const response = await route.GET(
+      new Request("https://flamingfoodies.com/api/admin/generate?type=recipe")
+    );
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ ok: false, error: "Unauthorized" });
+    expect(runGenerationPipeline).not.toHaveBeenCalled();
+  });
+
+  it("runs scheduled generation through GET when authorized", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
+    const runGenerationPipeline = vi.fn().mockResolvedValue({
+      mode: "live",
+      createdJobs: [{ id: 12, type: "recipe", slug: "daily-fire-noodles" }]
+    });
+    const { route } = await importGenerateRoute({
+      runGenerationPipeline
+    });
+
+    const response = await route.GET(
+      new Request("https://flamingfoodies.com/api/admin/generate?type=recipe", {
+        headers: {
+          authorization: "Bearer topsecret"
+        }
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      ok: true,
+      mode: "live",
+      createdJobs: [{ id: 12, type: "recipe", slug: "daily-fire-noodles" }]
+    });
+    expect(runGenerationPipeline).toHaveBeenCalledWith("recipe", undefined, {
+      source: "cron"
+    });
   });
 });
 

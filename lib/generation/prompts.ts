@@ -18,22 +18,53 @@ Generate a complete, authentic recipe. Requirements:
 - Cuisine: ${params.cuisine_type}
 - Heat level: ${params.heat_level} (${HEAT_DESCRIPTIONS[params.heat_level]})
 - The dish should use chilli heat in the way that cuisine does.
+- Do not invent impossible ingredients, techniques, or plating details.
+- The recipe must feel like a real dish a strong home cook could execute.
+- Prefer specificity over fluff. Use actual ingredients, doneness cues, timings, and finishing details.
+- Group ingredients into logical sections when the dish has components like marinade, sauce, garnish, slaw, glaze, salsa, or assembly.
+- Write at least 4 method steps with action-led titles, concise bodies, at least 1 timed step, and at least 2 sensory cues across the method.
+- Include make-ahead, storage, reheating, serving suggestions, substitutions, and FAQs.
 
 Return ONLY valid JSON matching this structure:
 {
   "title": "...",
   "description": "...",
   "intro": "...",
+  "hero_summary": "...",
   "heat_level": "${params.heat_level}",
   "cuisine_type": "${params.cuisine_type}",
   "prep_time_minutes": 0,
   "cook_time_minutes": 0,
+  "active_time_minutes": 0,
   "servings": 0,
   "difficulty": "beginner|intermediate|advanced",
   "ingredients": [{"amount": "1", "unit": "cup", "item": "ingredient name", "notes": "optional"}],
+  "ingredient_sections": [
+    {
+      "title": "Sauce",
+      "items": [{"amount": "1", "unit": "cup", "item": "ingredient name", "notes": "optional"}]
+    }
+  ],
   "instructions": [{"step": 1, "text": "instruction", "tip": "optional"}],
+  "method_steps": [
+    {
+      "step": 1,
+      "title": "Action-led step title",
+      "body": "2-4 sentence explanation of what to do",
+      "tip": "optional",
+      "cue": "what to watch for",
+      "duration_minutes": 5,
+      "ingredient_refs": ["ingredient name"]
+    }
+  ],
   "tips": ["make-ahead tip"],
   "variations": ["make it hotter"],
+  "make_ahead_notes": "...",
+  "storage_notes": "...",
+  "reheat_notes": "...",
+  "serving_suggestions": ["serve with rice"],
+  "substitutions": ["swap ingredient x for y"],
+  "faqs": [{"question": "...", "answer": "..."}],
   "equipment": ["cast iron skillet"],
   "tags": ["spicy"],
   "seo_title": "...",

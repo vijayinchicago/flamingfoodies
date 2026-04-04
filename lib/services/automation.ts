@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { z } from "zod";
 
 import { env, flags } from "@/lib/env";
 import {
@@ -39,6 +40,7 @@ import { calculateReadTime, slugify } from "@/lib/utils";
 
 type GenerationType = "recipe" | "blog_post" | "review";
 type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
+type GenerationTriggerSource = "manual" | "cron";
 type AgentQaReview = {
   verdict?: "pass" | "revise" | "fail";
   blockers?: string[];
@@ -47,6 +49,189 @@ type AgentQaReview = {
   image_assessment?: string;
   method_assessment?: string;
   suggested_fixes?: string[];
+};
+
+const recipeIngredientSchema = z.object({
+  amount: z.string().min(1),
+  unit: z.string().optional().default(""),
+  item: z.string().min(2),
+  notes: z.string().optional()
+});
+
+const recipeInstructionSchema = z.object({
+  step: z.coerce.number().int().positive(),
+  text: z.string().min(16),
+  tip: z.string().optional()
+});
+
+const recipeMethodStepSchema = z.object({
+  step: z.coerce.number().int().positive(),
+  title: z.string().min(6),
+  body: z.string().min(24),
+  tip: z.string().optional(),
+  cue: z.string().optional(),
+  duration_minutes: z.coerce.number().int().positive().optional(),
+  ingredient_refs: z.array(z.string().min(2)).optional(),
+  image_url: z.string().url().optional(),
+  image_alt: z.string().optional()
+});
+
+const recipeIngredientSectionSchema = z.object({
+  title: z.string().min(2),
+  items: z.array(recipeIngredientSchema).min(1)
+});
+
+const recipeFaqSchema = z.object({
+  question: z.string().min(8),
+  answer: z.string().min(12)
+});
+
+const generatedRecipeSchema = z
+  .object({
+    title: z.string().min(10),
+    description: z.string().min(40),
+    intro: z.string().min(40),
+    hero_summary: z.string().min(30).optional(),
+    heat_level: z.enum(["mild", "medium", "hot", "inferno", "reaper"]).optional(),
+    cuisine_type: z
+      .enum([
+        "american",
+        "mexican",
+        "thai",
+        "korean",
+        "indian",
+        "ethiopian",
+        "peruvian",
+        "jamaican",
+        "cajun",
+        "szechuan",
+        "vietnamese",
+        "west_african",
+        "middle_eastern",
+        "caribbean",
+        "moroccan",
+        "japanese",
+        "italian",
+        "chinese",
+        "other"
+      ])
+      .optional(),
+    prep_time_minutes: z.coerce.number().int().positive(),
+    cook_time_minutes: z.coerce.number().int().positive(),
+    active_time_minutes: z.coerce.number().int().positive().optional(),
+    servings: z.coerce.number().int().positive(),
+    difficulty: z.enum(["beginner", "intermediate", "advanced"]),
+    ingredients: z.array(recipeIngredientSchema).min(4),
+    ingredient_sections: z.array(recipeIngredientSectionSchema).min(1).optional(),
+    instructions: z.array(recipeInstructionSchema).min(4),
+    method_steps: z.array(recipeMethodStepSchema).min(4).optional(),
+    tips: z.array(z.string().min(8)).min(1),
+    variations: z.array(z.string().min(8)).min(1),
+    make_ahead_notes: z.string().min(16).optional(),
+    storage_notes: z.string().min(16).optional(),
+    reheat_notes: z.string().min(16).optional(),
+    serving_suggestions: z.array(z.string().min(8)).min(1).optional(),
+    substitutions: z.array(z.string().min(8)).min(1).optional(),
+    faqs: z.array(recipeFaqSchema).min(2).optional(),
+    equipment: z.array(z.string().min(2)).min(1),
+    tags: z.array(z.string().min(2)).min(2),
+    seo_title: z.string().min(10),
+    seo_description: z.string().min(40),
+    image_alt: z.string().min(12)
+  })
+  .passthrough();
+
+const generatedBlogSchema = z
+  .object({
+    title: z.string().min(10),
+    description: z.string().min(40),
+    content: z.string().min(500),
+    category: z.string().min(2),
+    tags: z.array(z.string().min(2)).min(2),
+    heat_level: z.enum(["mild", "medium", "hot", "inferno", "reaper"]).optional(),
+    cuisine_type: z
+      .enum([
+        "american",
+        "mexican",
+        "thai",
+        "korean",
+        "indian",
+        "ethiopian",
+        "peruvian",
+        "jamaican",
+        "cajun",
+        "szechuan",
+        "vietnamese",
+        "west_african",
+        "middle_eastern",
+        "caribbean",
+        "moroccan",
+        "japanese",
+        "italian",
+        "chinese",
+        "other"
+      ])
+      .optional(),
+    seo_title: z.string().min(10),
+    seo_description: z.string().min(40),
+    image_alt: z.string().min(12)
+  })
+  .passthrough();
+
+const generatedReviewSchema = z
+  .object({
+    title: z.string().min(10),
+    description: z.string().min(32),
+    content: z.string().min(280),
+    product_name: z.string().min(4),
+    brand: z.string().min(2),
+    rating: z.coerce.number().min(1).max(5),
+    price_usd: z.coerce.number().positive(),
+    affiliate_url: z.string().url(),
+    category: z.string().min(2),
+    heat_level: z.enum(["mild", "medium", "hot", "inferno", "reaper"]).optional(),
+    scoville_min: z.coerce.number().nonnegative().optional(),
+    scoville_max: z.coerce.number().nonnegative().optional(),
+    flavor_notes: z.array(z.string().min(2)).min(2),
+    cuisine_origin: z
+      .enum([
+        "american",
+        "mexican",
+        "thai",
+        "korean",
+        "indian",
+        "ethiopian",
+        "peruvian",
+        "jamaican",
+        "cajun",
+        "szechuan",
+        "vietnamese",
+        "west_african",
+        "middle_eastern",
+        "caribbean",
+        "moroccan",
+        "japanese",
+        "italian",
+        "chinese",
+        "other"
+      ])
+      .optional(),
+    pros: z.array(z.string().min(6)).min(2),
+    cons: z.array(z.string().min(6)).min(1),
+    tags: z.array(z.string().min(2)).min(2),
+    seo_title: z.string().min(10),
+    seo_description: z.string().min(40),
+    image_alt: z.string().min(12),
+    recommended: z.boolean()
+  })
+  .passthrough();
+
+const AUTOMATED_RECIPE_PUBLISH_SCORE = 84;
+const AUTOMATED_REVIEW_PUBLISH_SCORE = 86;
+type ValidatedGeneratedPayloadMap = {
+  recipe: z.infer<typeof generatedRecipeSchema>;
+  blog_post: z.infer<typeof generatedBlogSchema>;
+  review: z.infer<typeof generatedReviewSchema>;
 };
 
 function stripCodeFence(value: string) {
@@ -59,6 +244,61 @@ function parseJsonResponse<T>(value: string): T | null {
   } catch {
     return null;
   }
+}
+
+function validateGeneratedPayload<T extends GenerationType>(
+  type: T,
+  payload: Record<string, any> | null
+): ValidatedGeneratedPayloadMap[T] {
+  if (!payload) {
+    throw new Error(`AI generation returned an empty ${type} payload.`);
+  }
+
+  const schema =
+    type === "recipe"
+      ? generatedRecipeSchema
+      : type === "blog_post"
+        ? generatedBlogSchema
+        : generatedReviewSchema;
+  const parsed = schema.safeParse(payload);
+
+  if (!parsed.success) {
+    throw new Error(
+      `AI generation returned an invalid ${type} payload: ${parsed.error.issues[0]?.message || "schema mismatch"}`
+    );
+  }
+
+  return parsed.data as ValidatedGeneratedPayloadMap[T];
+}
+
+function buildAutomationHeroImageUrl(type: GenerationType, title: string, cuisine: CuisineType) {
+  const params = new URLSearchParams({
+    title,
+    eyebrow:
+      type === "recipe"
+        ? "AI Recipe"
+        : type === "review"
+          ? "AI Review"
+          : "AI Story",
+    subtitle:
+      type === "recipe"
+        ? `${cuisine.replace(/_/g, " ")} heat`
+        : type === "review"
+          ? `${cuisine.replace(/_/g, " ")} tasting notes`
+          : `${cuisine.replace(/_/g, " ")} editorial`
+  });
+
+  return `${env.NEXT_PUBLIC_SITE_URL}/api/og?${params.toString()}`;
+}
+
+function usesAutomationHeroCard(imageUrl?: string | null) {
+  if (!imageUrl) return false;
+
+  return imageUrl.includes("/api/og?");
+}
+
+function isAgentQaPass(agentReview: AgentQaReview | null) {
+  return Boolean(agentReview && agentReview.verdict === "pass" && !(agentReview.blockers ?? []).length);
 }
 
 function getHeatLevel(index: number): HeatLevel {
@@ -288,9 +528,8 @@ async function makeUniqueSlug(
 function buildRecipeDraft(
   cuisine: CuisineType,
   index: number,
-  generated?: Record<string, any>,
-  imageUrl?: string,
-  publishAt?: string | null
+  generated?: z.infer<typeof generatedRecipeSchema>,
+  imageUrl?: string
 ) {
   const fallbackTitle = `${cuisine.replace(/_/g, " ")} fire recipe ${index + 1}`;
   const title = generated?.title || fallbackTitle;
@@ -305,11 +544,15 @@ function buildRecipeDraft(
     title,
     description,
     intro,
+    hero_summary: generated?.hero_summary || intro,
     author_name: "FlamingFoodies AI Test Kitchen",
     heat_level: generated?.heat_level || getHeatLevel(index),
     cuisine_type: generated?.cuisine_type || cuisine,
     prep_time_minutes: Number(generated?.prep_time_minutes ?? 20),
     cook_time_minutes: Number(generated?.cook_time_minutes ?? 25),
+    active_time_minutes: Number(
+      generated?.active_time_minutes ?? generated?.prep_time_minutes ?? 20
+    ),
     servings: Number(generated?.servings ?? 4),
     difficulty: generated?.difficulty || "intermediate",
     ingredients:
@@ -317,34 +560,49 @@ function buildRecipeDraft(
         { amount: "2", unit: "tbsp", item: "chili paste", notes: "adjust to taste" },
         { amount: "1", unit: "lb", item: "main ingredient" }
       ],
+    ingredient_sections: generated?.ingredient_sections ?? null,
     instructions:
       generated?.instructions ?? [
         { step: 1, text: "Build the aromatic base and season aggressively." },
         { step: 2, text: "Cook until the sauce turns glossy and the heat blooms." },
         { step: 3, text: "Serve hot and finish with a bright counterpoint." }
       ],
+    method_steps: generated?.method_steps
+      ? generated.method_steps.map((step) => ({
+          step: step.step,
+          title: step.title,
+          body: step.body,
+          tip: step.tip ?? null,
+          cue: step.cue ?? null,
+          duration_minutes: step.duration_minutes ?? null,
+          ingredient_refs: step.ingredient_refs ?? []
+        }))
+      : null,
     tips: generated?.tips ?? ["Taste for balance before adding more heat."],
     variations: generated?.variations ?? ["Add a fermented pepper element for more depth."],
+    make_ahead_notes: generated?.make_ahead_notes ?? null,
+    storage_notes: generated?.storage_notes ?? null,
+    reheat_notes: generated?.reheat_notes ?? null,
+    serving_suggestions: generated?.serving_suggestions ?? [],
+    substitutions: generated?.substitutions ?? generated?.variations ?? [],
+    faqs: generated?.faqs ?? [],
     equipment: generated?.equipment ?? ["large skillet", "mixing bowl"],
     tags: generated?.tags ?? [cuisine, "ai-generated", "spicy"],
     image_url: imageUrl ?? null,
-    image_alt: generated?.image_alt || `${title} plated for FlamingFoodies`,
+    image_alt: generated?.image_alt || `FlamingFoodies recipe card for ${title}`,
     featured: false,
-    status: "pending_review",
     source: "ai_generated",
     seo_title: generated?.seo_title || `${title} Recipe | FlamingFoodies`,
     seo_description: generated?.seo_description || description.slice(0, 160),
-    affiliate_disclosure: true,
-    published_at: publishAt ?? null
+    affiliate_disclosure: true
   };
 }
 
 function buildBlogDraft(
   cuisine: CuisineType,
   index: number,
-  generated?: Record<string, any>,
-  imageUrl?: string,
-  publishAt?: string | null
+  generated?: z.infer<typeof generatedBlogSchema>,
+  imageUrl?: string
 ) {
   const title =
     generated?.title ||
@@ -364,7 +622,7 @@ function buildBlogDraft(
     category: generated?.category || ["culture", "science", "guides", "gear"][index % 4],
     tags: generated?.tags ?? [cuisine, "spicy-food", "ai-generated"],
     image_url: imageUrl ?? null,
-    image_alt: generated?.image_alt || `${title} feature image`,
+    image_alt: generated?.image_alt || `FlamingFoodies story card for ${title}`,
     heat_level: generated?.heat_level || getHeatLevel(index),
     cuisine_type: generated?.cuisine_type || cuisine,
     scoville_rating: 7 + (index % 3),
@@ -374,17 +632,15 @@ function buildBlogDraft(
     source: "ai_generated",
     seo_title: generated?.seo_title || `${title} | FlamingFoodies`,
     seo_description: generated?.seo_description || description.slice(0, 160),
-    read_time_minutes: calculateReadTime(content),
-    published_at: publishAt ?? null
+    read_time_minutes: calculateReadTime(content)
   };
 }
 
 function buildReviewDraft(
   cuisine: CuisineType,
   index: number,
-  generated?: Record<string, any>,
-  imageUrl?: string,
-  publishAt?: string | null
+  generated?: z.infer<typeof generatedReviewSchema>,
+  imageUrl?: string
 ) {
   const productName =
     generated?.product_name || `${cuisine.replace(/_/g, " ")} pepper sauce reserve`;
@@ -407,7 +663,7 @@ function buildReviewDraft(
     affiliate_url:
       generated?.affiliate_url || "https://fuegobox.com/products/monthly-subscription",
     image_url: imageUrl ?? null,
-    image_alt: generated?.image_alt || `${productName} bottle`,
+    image_alt: generated?.image_alt || `FlamingFoodies review card for ${productName}`,
     heat_level: generated?.heat_level || getHeatLevel(index),
     scoville_min: Number(generated?.scoville_min ?? 1500),
     scoville_max: Number(generated?.scoville_max ?? 4500),
@@ -419,11 +675,9 @@ function buildReviewDraft(
     tags: generated?.tags ?? [cuisine, "review", "ai-generated"],
     recommended: Boolean(generated?.recommended ?? true),
     featured: false,
-    status: "pending_review",
     source: "ai_generated",
     seo_title: generated?.seo_title || `${title} | FlamingFoodies`,
-    seo_description: generated?.seo_description || description.slice(0, 160),
-    published_at: publishAt ?? null
+    seo_description: generated?.seo_description || description.slice(0, 160)
   };
 }
 
@@ -431,7 +685,11 @@ function buildGeneratedRecipeQaState(
   payload: ReturnType<typeof buildRecipeDraft>,
   agentReview: AgentQaReview | null
 ) {
-  const baseQaNote = "AI-generated draft awaiting editorial image review and cuisine QA.";
+  const usesSafeHeroCard = usesAutomationHeroCard(payload.image_url);
+  const automatedCuisineQa = isAgentQaPass(agentReview);
+  const baseQaNote = usesSafeHeroCard
+    ? "AI-generated draft uses a branded hero card and passed automated editorial QA checks where noted."
+    : "AI-generated draft awaiting editorial image review and cuisine QA.";
   const recipeQaCandidate: Recipe = {
     id: 0,
     type: "recipe",
@@ -439,44 +697,55 @@ function buildGeneratedRecipeQaState(
     title: payload.title,
     description: payload.description,
     intro: payload.intro,
-    heroSummary: getRecipeHeroSummary({
-      description: payload.description,
-      intro: payload.intro,
-      heroSummary: payload.intro
-    }),
+    heroSummary:
+      payload.hero_summary ||
+      getRecipeHeroSummary({
+        description: payload.description,
+        intro: payload.intro,
+        heroSummary: payload.intro
+      }),
     authorName: payload.author_name,
     heatLevel: payload.heat_level,
     cuisineType: payload.cuisine_type,
     prepTimeMinutes: payload.prep_time_minutes,
     cookTimeMinutes: payload.cook_time_minutes,
     totalTimeMinutes: payload.prep_time_minutes + payload.cook_time_minutes,
-    activeTimeMinutes: payload.prep_time_minutes,
+    activeTimeMinutes: payload.active_time_minutes ?? payload.prep_time_minutes,
     servings: payload.servings,
     difficulty: payload.difficulty,
     ingredients: payload.ingredients,
     ingredientSections: getRecipeIngredientSections({
       ingredients: payload.ingredients,
-      ingredientSections: []
+      ingredientSections: payload.ingredient_sections ?? []
     }),
     instructions: payload.instructions,
     methodSteps: getRecipeMethodSteps({
       instructions: payload.instructions,
-      methodSteps: []
+      methodSteps:
+        payload.method_steps?.map((step) => ({
+          step: step.step,
+          title: step.title,
+          body: step.body,
+          tip: step.tip ?? undefined,
+          cue: step.cue ?? undefined,
+          durationMinutes: step.duration_minutes ?? undefined,
+          ingredientRefs: step.ingredient_refs ?? []
+        })) ?? []
     }),
     tips: payload.tips,
     variations: payload.variations,
-    makeAheadNotes: undefined,
-    storageNotes: undefined,
-    reheatNotes: undefined,
-    servingSuggestions: [],
-    substitutions: payload.variations ?? [],
-    faqs: [],
+    makeAheadNotes: payload.make_ahead_notes ?? undefined,
+    storageNotes: payload.storage_notes ?? undefined,
+    reheatNotes: payload.reheat_notes ?? undefined,
+    servingSuggestions: payload.serving_suggestions ?? [],
+    substitutions: payload.substitutions ?? payload.variations ?? [],
+    faqs: payload.faqs ?? [],
     equipment: payload.equipment,
     tags: payload.tags,
     imageUrl: payload.image_url ?? undefined,
     imageAlt: payload.image_alt,
-    heroImageReviewed: false,
-    cuisineQaReviewed: false,
+    heroImageReviewed: usesSafeHeroCard,
+    cuisineQaReviewed: automatedCuisineQa,
     qaNotes: buildAgentQaNotes(baseQaNote, agentReview),
     featured: payload.featured,
     source: "ai_generated",
@@ -490,18 +759,26 @@ function buildGeneratedRecipeQaState(
   const qaReport = mergeAgentQaReview(buildRecipeQaReport(recipeQaCandidate), agentReview);
 
   return {
-    hero_summary: getRecipeHeroSummary(recipeQaCandidate),
-    active_time_minutes: payload.prep_time_minutes,
+    hero_summary: payload.hero_summary || getRecipeHeroSummary(recipeQaCandidate),
+    active_time_minutes: payload.active_time_minutes ?? payload.prep_time_minutes,
     ingredient_sections: getRecipeIngredientSections(recipeQaCandidate),
     method_steps: getRecipeMethodSteps(recipeQaCandidate),
-    substitutions: payload.variations ?? [],
-    serving_suggestions: [],
-    faqs: getRecipeFaqs({ faqs: [] }),
-    hero_image_reviewed: false,
-    cuisine_qa_reviewed: false,
+    substitutions: payload.substitutions ?? payload.variations ?? [],
+    serving_suggestions: payload.serving_suggestions ?? [],
+    faqs: getRecipeFaqs({ faqs: payload.faqs ?? [] }),
+    make_ahead_notes: payload.make_ahead_notes ?? null,
+    storage_notes: payload.storage_notes ?? null,
+    reheat_notes: payload.reheat_notes ?? null,
+    hero_image_reviewed: usesSafeHeroCard,
+    cuisine_qa_reviewed: automatedCuisineQa,
     qa_notes: buildAgentQaNotes(baseQaNote, agentReview),
     qa_report: qaReport,
-    qa_checked_at: null
+    qa_checked_at: usesSafeHeroCard || automatedCuisineQa ? new Date().toISOString() : null,
+    automated_publish_eligible:
+      usesSafeHeroCard &&
+      automatedCuisineQa &&
+      qaReport.blockers.length === 0 &&
+      qaReport.score >= AUTOMATED_RECIPE_PUBLISH_SCORE
   };
 }
 
@@ -509,7 +786,11 @@ function buildGeneratedReviewQaState(
   payload: ReturnType<typeof buildReviewDraft>,
   agentReview: AgentQaReview | null
 ) {
-  const baseQaNote = "AI-generated draft awaiting editorial product-image and fact QA.";
+  const usesSafeReviewCard = usesAutomationHeroCard(payload.image_url);
+  const automatedFactQa = isAgentQaPass(agentReview);
+  const baseQaNote = usesSafeReviewCard
+    ? "AI-generated review uses a branded review card and passed automated editorial QA checks where noted."
+    : "AI-generated draft awaiting editorial product-image and fact QA.";
   const reviewQaCandidate: Review = {
     id: 0,
     type: "review",
@@ -532,8 +813,8 @@ function buildGeneratedReviewQaState(
     cons: payload.cons,
     imageUrl: payload.image_url ?? undefined,
     imageAlt: payload.image_alt,
-    imageReviewed: false,
-    factQaReviewed: false,
+    imageReviewed: usesSafeReviewCard,
+    factQaReviewed: automatedFactQa,
     qaNotes: buildAgentQaNotes(baseQaNote, agentReview),
     qaReport: undefined,
     recommended: payload.recommended,
@@ -548,11 +829,16 @@ function buildGeneratedReviewQaState(
   const qaReport = mergeAgentQaReview(buildReviewQaReport(reviewQaCandidate), agentReview);
 
   return {
-    image_reviewed: false,
-    fact_qa_reviewed: false,
+    image_reviewed: usesSafeReviewCard,
+    fact_qa_reviewed: automatedFactQa,
     qa_notes: buildAgentQaNotes(baseQaNote, agentReview),
     qa_report: qaReport,
-    qa_checked_at: null
+    qa_checked_at: usesSafeReviewCard || automatedFactQa ? new Date().toISOString() : null,
+    automated_publish_eligible:
+      usesSafeReviewCard &&
+      automatedFactQa &&
+      qaReport.blockers.length === 0 &&
+      qaReport.score >= AUTOMATED_REVIEW_PUBLISH_SCORE
   };
 }
 
@@ -599,6 +885,19 @@ async function getSettingMap(supabase: AdminClient) {
   return new Map((data ?? []).map((row) => [row.key, row.value]));
 }
 
+async function getGenerationScheduleRow(
+  supabase: AdminClient,
+  type: GenerationType
+) {
+  const { data } = await supabase
+    .from("generation_schedule")
+    .select("id, quantity, is_active, last_run_at")
+    .eq("job_type", type)
+    .maybeSingle();
+
+  return data ?? null;
+}
+
 async function insertGeneratedContent(
   supabase: AdminClient,
   anthropic: Anthropic | null,
@@ -614,18 +913,14 @@ async function insertGeneratedContent(
     ? new Date(Date.now() + delayHours * 60 * 60 * 1000).toISOString()
     : null;
 
-  const imageQuery =
-    generated?.image_search_query ||
-    `${cuisine.replace(/_/g, " ")} spicy food`;
-  const imageUrl = await fetchImageForQuery(imageQuery);
-
   if (type === "recipe") {
+    const validatedGenerated = validateGeneratedPayload(type, generated);
+    const imageUrl = buildAutomationHeroImageUrl(type, validatedGenerated.title, cuisine);
     const payload = buildRecipeDraft(
       cuisine,
       index,
-      generated ?? undefined,
-      imageUrl,
-      publishAt
+      validatedGenerated,
+      imageUrl
     );
     const slug = await makeUniqueSlug(supabase, "recipes", payload.title);
     const agentReview = await runEditorialQaReview(anthropic, "recipe", {
@@ -633,15 +928,23 @@ async function insertGeneratedContent(
       ...payload
     });
     const qaState = buildGeneratedRecipeQaState(payload, agentReview);
+    const { automated_publish_eligible: automatedPublishEligible, ...persistedQaState } = qaState;
+    const shouldScheduleAutoPublish = Boolean(autoPublish && automatedPublishEligible && publishAt);
     const { data, error } = await supabase
       .from("recipes")
-      .insert({ ...payload, ...qaState, slug })
+      .insert({
+        ...payload,
+        ...persistedQaState,
+        slug,
+        status: shouldScheduleAutoPublish ? "draft" : "pending_review",
+        published_at: shouldScheduleAutoPublish ? publishAt : null
+      })
       .select("id, slug, title, image_url")
       .single();
 
     if (error) throw new Error(error.message);
 
-    if (payload.status === "draft") {
+    if (shouldScheduleAutoPublish) {
       await createSocialPostsForContent({
         contentType: "recipe",
         contentId: data.id,
@@ -657,22 +960,27 @@ async function insertGeneratedContent(
       resultType: "recipe",
       slug: data.slug,
       title: data.title,
-      publishAt
+      publishAt: shouldScheduleAutoPublish ? publishAt : null
     };
   }
 
   if (type === "blog_post") {
+    const validatedGenerated = validateGeneratedPayload(type, generated);
+    const imageUrl = buildAutomationHeroImageUrl(type, validatedGenerated.title, cuisine);
     const payload = buildBlogDraft(
       cuisine,
       index,
-      generated ?? undefined,
-      imageUrl,
-      publishAt
+      validatedGenerated,
+      imageUrl
     );
     const slug = await makeUniqueSlug(supabase, "blog_posts", payload.title);
     const { data, error } = await supabase
       .from("blog_posts")
-      .insert({ ...payload, slug })
+      .insert({
+        ...payload,
+        slug,
+        published_at: publishAt ?? null
+      })
       .select("id, slug, title, image_url")
       .single();
 
@@ -696,12 +1004,13 @@ async function insertGeneratedContent(
     };
   }
 
+  const validatedGenerated = validateGeneratedPayload(type, generated);
+  const imageUrl = buildAutomationHeroImageUrl(type, validatedGenerated.title, cuisine);
   const payload = buildReviewDraft(
     cuisine,
     index,
-    generated ?? undefined,
-    imageUrl,
-    publishAt
+    validatedGenerated,
+    imageUrl
   );
   const slug = await makeUniqueSlug(supabase, "reviews", payload.title);
   const agentReview = await runEditorialQaReview(anthropic, "review", {
@@ -709,45 +1018,48 @@ async function insertGeneratedContent(
     ...payload
   });
   const qaState = buildGeneratedReviewQaState(payload, agentReview);
+  const { automated_publish_eligible: _reviewAutoPublishEligible, ...persistedQaState } = qaState;
   const { data, error } = await supabase
     .from("reviews")
-    .insert({ ...payload, ...qaState, slug })
+    .insert({
+      ...payload,
+      ...persistedQaState,
+      slug,
+      status: "pending_review",
+      published_at: null
+    })
     .select("id, slug, title, image_url")
     .single();
 
   if (error) throw new Error(error.message);
-
-  if (payload.status === "draft") {
-    await createSocialPostsForContent({
-      contentType: "review",
-      contentId: data.id,
-      title: data.title,
-      slug: data.slug,
-      imageUrl: data.image_url ?? undefined,
-      scheduledAt: publishAt
-    });
-  }
 
   return {
     resultId: data.id,
     resultType: "review",
     slug: data.slug,
     title: data.title,
-    publishAt
+    publishAt: null
   };
 }
 
-export async function runGenerationPipeline(type: string, qty: number) {
+export async function runGenerationPipeline(
+  type: string,
+  qty?: number,
+  options?: {
+    source?: GenerationTriggerSource;
+  }
+) {
   const generationType = (type === "recipe" || type === "blog_post" || type === "review"
     ? type
     : "recipe") as GenerationType;
-  const safeQty = Math.min(Math.max(qty, 1), 20);
-  const scheduledCuisines = getTodayCuisines(safeQty);
+  const source = options?.source ?? "manual";
+  const requestedQty = Math.min(Math.max(qty ?? 1, 1), 20);
+  const scheduledCuisines = getTodayCuisines(requestedQty);
 
   if (!flags.hasSupabaseAdmin) {
     return {
       mode: "mock",
-      createdJobs: Array.from({ length: safeQty }, (_, index) => ({
+      createdJobs: Array.from({ length: requestedQty }, (_, index) => ({
         id: sampleGenerationJobs.length + index + 1,
         type: generationType,
         slug: slugify(
@@ -762,7 +1074,7 @@ export async function runGenerationPipeline(type: string, qty: number) {
   if (!supabase) {
     return {
       mode: "mock",
-      createdJobs: Array.from({ length: safeQty }, (_, index) => ({
+      createdJobs: Array.from({ length: requestedQty }, (_, index) => ({
         id: sampleGenerationJobs.length + index + 1,
         type: generationType,
         slug: slugify(
@@ -773,7 +1085,35 @@ export async function runGenerationPipeline(type: string, qty: number) {
     };
   }
 
+  if (!flags.hasAnthropic) {
+    return {
+      mode: "disabled",
+      createdJobs: [],
+      skippedReason:
+        source === "cron"
+          ? "ANTHROPIC_API_KEY is not configured for scheduled generation."
+          : "ANTHROPIC_API_KEY is not configured."
+    };
+  }
+
   const settings = await getSettingMap(supabase);
+  const scheduleRow = await getGenerationScheduleRow(supabase, generationType);
+  if (source === "cron" && scheduleRow?.is_active === false) {
+    return {
+      mode: "disabled",
+      createdJobs: [],
+      skippedReason: `${generationType} generation is currently inactive in generation_schedule.`
+    };
+  }
+
+  const effectiveQty = Math.min(
+    Math.max(
+      source === "cron" && scheduleRow?.quantity ? Number(scheduleRow.quantity) : requestedQty,
+      1
+    ),
+    20
+  );
+  const effectiveCuisines = getTodayCuisines(effectiveQty);
   const anthropic = flags.hasAnthropic
     ? new Anthropic({
         apiKey: env.ANTHROPIC_API_KEY
@@ -782,8 +1122,8 @@ export async function runGenerationPipeline(type: string, qty: number) {
 
   const createdJobs: Array<Record<string, unknown>> = [];
 
-  for (let index = 0; index < safeQty; index += 1) {
-    const cuisine = scheduledCuisines[index] ?? CUISINE_ROTATION[index % CUISINE_ROTATION.length];
+  for (let index = 0; index < effectiveQty; index += 1) {
+    const cuisine = effectiveCuisines[index] ?? CUISINE_ROTATION[index % CUISINE_ROTATION.length];
     const { data: job, error: jobError } = await supabase
       .from("content_generation_jobs")
       .insert({
@@ -872,6 +1212,15 @@ export async function runGenerationPipeline(type: string, qty: number) {
     }
   }
 
+  if (source === "cron" && scheduleRow?.id) {
+    await supabase
+      .from("generation_schedule")
+      .update({
+        last_run_at: new Date().toISOString()
+      })
+      .eq("id", scheduleRow.id);
+  }
+
   return {
     mode: anthropic ? "live" : "mock",
     createdJobs
@@ -929,10 +1278,11 @@ export async function publishScheduledContent() {
     };
   }
 
+  const recipes = await publishFromTable(supabase, "recipes");
   const blogPosts = await publishFromTable(supabase, "blog_posts");
 
   return {
-    published: blogPosts
+    published: [...recipes, ...blogPosts]
   };
 }
 

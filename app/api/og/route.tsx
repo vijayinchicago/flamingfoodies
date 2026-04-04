@@ -5,6 +5,8 @@ export const runtime = "edge";
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const title = searchParams.get("title") || "FlamingFoodies";
+  const eyebrow = searchParams.get("eyebrow") || "FlamingFoodies";
+  const subtitle = searchParams.get("subtitle") || "Turn Up the Heat";
 
   return new ImageResponse(
     (
@@ -21,14 +23,14 @@ export async function GET(request: Request) {
           color: "white"
         }}
       >
-        <div style={{ fontSize: 54, letterSpacing: 8, textTransform: "uppercase", opacity: 0.85 }}>
-          FlamingFoodies
+        <div style={{ fontSize: 44, letterSpacing: 8, textTransform: "uppercase", opacity: 0.82 }}>
+          {eyebrow}
         </div>
         <div style={{ fontSize: 86, lineHeight: 1.04, fontWeight: 700, maxWidth: "80%" }}>
           {title}
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 28, opacity: 0.8 }}>
-          <span>Turn Up the Heat</span>
+          <span>{subtitle}</span>
           <span>flamingfoodies.com</span>
         </div>
       </div>
