@@ -979,28 +979,20 @@ async function insertGeneratedContent(
       .insert({
         ...payload,
         slug,
-        published_at: publishAt ?? null
+        status: "pending_review",
+        published_at: null
       })
       .select("id, slug, title, image_url")
       .single();
 
     if (error) throw new Error(error.message);
 
-    await createSocialPostsForContent({
-      contentType: "blog_post",
-      contentId: data.id,
-      title: data.title,
-      slug: data.slug,
-      imageUrl: data.image_url ?? undefined,
-      scheduledAt: publishAt
-    });
-
     return {
       resultId: data.id,
       resultType: "blog_post",
       slug: data.slug,
       title: data.title,
-      publishAt
+      publishAt: null
     };
   }
 
