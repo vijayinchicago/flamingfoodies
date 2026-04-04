@@ -13,7 +13,8 @@
     "typecheck": "rm -rf .next/types && tsc --noEmit",
     "test": "vitest run",
     "env:check": "node scripts/validate-env.mjs",
-    "env:check:prod": "node scripts/validate-env.mjs --production"
+    "env:check:prod": "node scripts/validate-env.mjs --production",
+    "recipes:backfill-heroes": "node scripts/backfill-recipe-hero-images.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",

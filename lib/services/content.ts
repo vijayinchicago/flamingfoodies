@@ -12,6 +12,7 @@ import {
   sampleReviews
 } from "@/lib/sample-data";
 import { flags } from "@/lib/env";
+import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type {
   BlogPost,
@@ -90,6 +91,14 @@ function mapBlogRow(row: any): BlogPost {
 }
 
 function mapRecipeRow(row: any): Recipe {
+  const hero = getRecipeHeroFields({
+    title: row.title,
+    cuisineType: row.cuisine_type,
+    heatLevel: row.heat_level,
+    imageUrl: row.image_url ?? undefined,
+    imageAlt: row.image_alt ?? undefined
+  });
+
   return {
     id: row.id,
     type: "recipe",
@@ -121,9 +130,9 @@ function mapRecipeRow(row: any): Recipe {
     faqs: row.faqs ?? [],
     equipment: row.equipment ?? [],
     tags: row.tags ?? [],
-    imageUrl: row.image_url ?? undefined,
-    imageAlt: row.image_alt ?? undefined,
-    heroImageReviewed: row.hero_image_reviewed ?? undefined,
+    imageUrl: hero.imageUrl,
+    imageAlt: hero.imageAlt,
+    heroImageReviewed: Boolean(row.hero_image_reviewed) || hero.usesGeneratedHeroCard,
     cuisineQaReviewed: row.cuisine_qa_reviewed ?? undefined,
     qaNotes: row.qa_notes ?? undefined,
     qaReport: row.qa_report ?? undefined,

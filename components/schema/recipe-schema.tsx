@@ -1,15 +1,17 @@
 import type { Recipe } from "@/lib/types";
+import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import { getRecipeIngredientSections, getRecipeMethodSteps } from "@/lib/recipes";
 
 export function RecipeSchema({ recipe }: { recipe: Recipe }) {
   const ingredientSections = getRecipeIngredientSections(recipe);
   const methodSteps = getRecipeMethodSteps(recipe);
+  const hero = getRecipeHeroFields(recipe);
   const schema = {
     "@context": "https://schema.org",
     "@type": "Recipe",
     name: recipe.title,
     description: recipe.description,
-    image: recipe.imageUrl,
+    image: hero.imageUrl,
     author: { "@type": "Person", name: recipe.authorName },
     datePublished: recipe.publishedAt,
     prepTime: `PT${recipe.prepTimeMinutes}M`,

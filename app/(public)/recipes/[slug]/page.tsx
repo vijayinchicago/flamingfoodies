@@ -14,6 +14,7 @@ import {
 } from "@/lib/actions/engagement";
 import { getRecipeAffiliateRecommendations } from "@/lib/affiliates";
 import { getMerchThemeClasses } from "@/lib/merch";
+import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import {
   getRecipeFaqs,
   getRecipeHeroSummary,
@@ -189,11 +190,13 @@ export async function generateMetadata({
     });
   }
 
+  const hero = getRecipeHeroFields(recipe);
+
   return buildMetadata({
     title: recipe.seoTitle || recipe.title,
     description: recipe.seoDescription || recipe.description,
     path: `/recipes/${recipe.slug}`,
-    images: recipe.imageUrl ? [recipe.imageUrl] : undefined
+    images: [hero.imageUrl]
   });
 }
 
@@ -226,6 +229,7 @@ export default async function RecipePage({
   const substitutions = getRecipeSupportList(recipe.substitutions);
   const servingSuggestions = getRecipeSupportList(recipe.servingSuggestions);
   const heroSummary = getRecipeHeroSummary(recipe);
+  const hero = getRecipeHeroFields(recipe);
   const projectCard = getProjectCard(recipe);
   const occasionCard = getOccasionCard(recipe);
   const printNoteBlocks = getPrintNoteBlocks(recipe, substitutions, servingSuggestions);
@@ -415,18 +419,14 @@ export default async function RecipePage({
             </div>
 
             <div className="recipe-hero-media relative min-h-[340px] border-t border-white/10 xl:min-h-full xl:border-l xl:border-t-0">
-              {recipe.imageUrl ? (
-                <Image
-                  src={recipe.imageUrl}
-                  alt={recipe.imageAlt || recipe.title}
-                  fill
-                  sizes="(min-width: 1280px) 460px, 100vw"
-                  className="object-cover"
-                  priority
-                />
-              ) : (
-                <div className="h-full w-full bg-gradient-to-br from-flame/40 via-ember/10 to-charcoal" />
-              )}
+              <Image
+                src={hero.imageUrl}
+                alt={hero.imageAlt || recipe.title}
+                fill
+                sizes="(min-width: 1280px) 460px, 100vw"
+                className="object-cover"
+                priority
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/35 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
                 <div className="rounded-[2rem] border border-white/10 bg-charcoal/75 p-6 backdrop-blur-md">
