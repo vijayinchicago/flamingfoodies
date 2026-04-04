@@ -27,6 +27,7 @@ export const metadata = buildMetadata({
 export default async function ShopPage() {
   const merchItems = await getMerchProducts();
   const merchCollections = getShopMerchCollections(merchItems);
+  const hasLiveMerch = merchItems.length > 0;
   const hotSauceLinks = getAffiliateLinkEntries(HOT_SAUCE_SPOTLIGHT_KEYS);
   const gearLinks = getAffiliateLinkEntries(KITCHEN_GEAR_KEYS);
   const pantryLinks = getAffiliateLinkEntries(PANTRY_HEAT_KEYS);
@@ -111,7 +112,9 @@ export default async function ShopPage() {
             </div>
             <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-5">
               <p className="text-xs uppercase tracking-[0.22em] text-ember">Merch categories</p>
-              <p className="mt-3 font-display text-4xl text-cream">{merchCollections.length}</p>
+              <p className="mt-3 font-display text-4xl text-cream">
+                {hasLiveMerch ? merchCollections.length : "Soon"}
+              </p>
               <p className="mt-2 text-sm leading-7 text-cream/68">
                 Wearables, cook gear, and giftable merch grouped like a real store.
               </p>
@@ -127,21 +130,37 @@ export default async function ShopPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-          {merchCollections.map((collection) => (
-            <article key={collection.key} className="panel p-5">
-              <p className="text-xs uppercase tracking-[0.24em] text-ember">{collection.title}</p>
-              <h2 className="mt-3 font-display text-3xl text-cream">
-                {collection.items.length} products
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-cream/72">{collection.description}</p>
+          {merchCollections.length ? (
+            merchCollections.map((collection) => (
+              <article key={collection.key} className="panel p-5">
+                <p className="text-xs uppercase tracking-[0.24em] text-ember">{collection.title}</p>
+                <h2 className="mt-3 font-display text-3xl text-cream">
+                  {collection.items.length} products
+                </h2>
+                <p className="mt-3 text-sm leading-7 text-cream/72">{collection.description}</p>
+                <Link
+                  href={`#${collection.key}`}
+                  className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                >
+                  Open collection
+                </Link>
+              </article>
+            ))
+          ) : (
+            <article className="panel p-5">
+              <p className="text-xs uppercase tracking-[0.24em] text-ember">Merch drop in progress</p>
+              <h2 className="mt-3 font-display text-3xl text-cream">The storefront is ready for the first drop.</h2>
+              <p className="mt-3 text-sm leading-7 text-cream/72">
+                The page structure is in place now, and the next live merch upload will populate these collections automatically.
+              </p>
               <Link
-                href={`#${collection.key}`}
+                href="#merch-waitlist"
                 className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
               >
-                Open collection
+                Join merch waitlist
               </Link>
             </article>
-          ))}
+          )}
         </div>
       </div>
 
@@ -162,26 +181,42 @@ export default async function ShopPage() {
             </Link>
           </div>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {featuredMerch.map((item) => (
-              <article
-                key={item.slug}
-                className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-5`}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
-                  <span className="text-xs text-cream/55">{item.priceLabel}</span>
-                </div>
-                <h3 className="mt-3 font-display text-3xl text-cream">{item.name}</h3>
-                <p className="mt-2 text-sm text-cream/60">{item.category}</p>
-                <p className="mt-4 text-sm leading-7 text-cream/72">{item.description}</p>
+            {featuredMerch.length ? (
+              featuredMerch.map((item) => (
+                <article
+                  key={item.slug}
+                  className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-5`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
+                    <span className="text-xs text-cream/55">{item.priceLabel}</span>
+                  </div>
+                  <h3 className="mt-3 font-display text-3xl text-cream">{item.name}</h3>
+                  <p className="mt-2 text-sm text-cream/60">{item.category}</p>
+                  <p className="mt-4 text-sm leading-7 text-cream/72">{item.description}</p>
+                  <Link
+                    href={item.href}
+                    className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                  >
+                    {item.ctaLabel}
+                  </Link>
+                </article>
+              ))
+            ) : (
+              <article className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6 md:col-span-3">
+                <p className="text-xs uppercase tracking-[0.24em] text-ember">Merch preview coming next</p>
+                <h3 className="mt-3 font-display text-4xl text-cream">Join the list before the first drop goes live.</h3>
+                <p className="mt-4 max-w-2xl text-sm leading-7 text-cream/72">
+                  The storefront layout is ready. Once the first live merch products are published, they will land here automatically.
+                </p>
                 <Link
-                  href={item.href}
+                  href="#merch-waitlist"
                   className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                 >
-                  {item.ctaLabel}
+                  Join merch waitlist
                 </Link>
               </article>
-            ))}
+            )}
           </div>
         </div>
 
@@ -275,39 +310,41 @@ export default async function ShopPage() {
         </div>
       </div>
 
-      <div className="mt-12 space-y-12">
-        {merchCollections.map((collection) => (
-          <div id={collection.key} key={collection.key}>
-            <SectionHeading
-              eyebrow={collection.title}
-              title={collection.title}
-              copy={collection.description}
-            />
-            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {collection.items.map((item) => (
-                <article
-                  key={item.slug}
-                  className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-5`}
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
-                    <span className="text-xs text-cream/55">{item.priceLabel}</span>
-                  </div>
-                  <h3 className="mt-3 font-display text-3xl text-cream">{item.name}</h3>
-                  <p className="mt-2 text-sm text-cream/60">{item.category}</p>
-                  <p className="mt-4 text-sm leading-7 text-cream/72">{item.description}</p>
-                  <Link
-                    href={item.href}
-                    className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+      {merchCollections.length ? (
+        <div className="mt-12 space-y-12">
+          {merchCollections.map((collection) => (
+            <div id={collection.key} key={collection.key}>
+              <SectionHeading
+                eyebrow={collection.title}
+                title={collection.title}
+                copy={collection.description}
+              />
+              <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {collection.items.map((item) => (
+                  <article
+                    key={item.slug}
+                    className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-5`}
                   >
-                    {item.ctaLabel}
-                  </Link>
-                </article>
-              ))}
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
+                      <span className="text-xs text-cream/55">{item.priceLabel}</span>
+                    </div>
+                    <h3 className="mt-3 font-display text-3xl text-cream">{item.name}</h3>
+                    <p className="mt-2 text-sm text-cream/60">{item.category}</p>
+                    <p className="mt-4 text-sm leading-7 text-cream/72">{item.description}</p>
+                    <Link
+                      href={item.href}
+                      className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                    >
+                      {item.ctaLabel}
+                    </Link>
+                  </article>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      ) : null}
 
       <div className="mt-12 grid gap-6 xl:grid-cols-4">
         <div className="panel p-8">
