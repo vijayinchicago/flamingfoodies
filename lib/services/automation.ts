@@ -82,6 +82,11 @@ const recipeIngredientSectionSchema = z.object({
   items: z.array(recipeIngredientSchema).min(1)
 });
 
+const recipeIngredientSectionLooseSchema = z.object({
+  title: z.string().optional().default("For the recipe"),
+  items: z.array(recipeIngredientSchema).optional().default([])
+});
+
 const recipeFaqSchema = z.object({
   question: z.string().min(8),
   answer: z.string().min(12)
@@ -177,20 +182,20 @@ const generatedRecipeLooseSchema = z
     active_time_minutes: z.coerce.number().int().positive().optional(),
     servings: z.coerce.number().int().positive(),
     difficulty: z.enum(["beginner", "intermediate", "advanced"]).optional(),
-    ingredients: z.array(recipeIngredientSchema).min(1).optional(),
-    ingredient_sections: z.array(recipeIngredientSectionSchema).min(1).optional(),
-    instructions: z.array(recipeInstructionSchema).min(1).optional(),
-    method_steps: z.array(recipeMethodStepSchema).min(1).optional(),
-    tips: z.array(z.string().min(8)).min(1).optional(),
-    variations: z.array(z.string().min(8)).min(1).optional(),
+    ingredients: z.array(recipeIngredientSchema).optional(),
+    ingredient_sections: z.array(recipeIngredientSectionLooseSchema).optional(),
+    instructions: z.array(recipeInstructionSchema).optional(),
+    method_steps: z.array(recipeMethodStepSchema).optional(),
+    tips: z.array(z.string().min(8)).optional(),
+    variations: z.array(z.string().min(8)).optional(),
     make_ahead_notes: z.string().min(16).optional(),
     storage_notes: z.string().min(16).optional(),
     reheat_notes: z.string().min(16).optional(),
-    serving_suggestions: z.array(z.string().min(8)).min(1).optional(),
-    substitutions: z.array(z.string().min(8)).min(1).optional(),
-    faqs: z.array(recipeFaqSchema).min(1).optional(),
-    equipment: z.array(z.string().min(2)).min(1).optional(),
-    tags: z.array(z.string().min(2)).min(1).optional(),
+    serving_suggestions: z.array(z.string().min(8)).optional(),
+    substitutions: z.array(z.string().min(8)).optional(),
+    faqs: z.array(recipeFaqSchema).optional(),
+    equipment: z.array(z.string().min(2)).optional(),
+    tags: z.array(z.string().min(2)).optional(),
     seo_title: z.string().min(10),
     seo_description: z.string().min(40),
     image_alt: z.string().min(12)

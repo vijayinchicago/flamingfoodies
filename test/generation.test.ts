@@ -63,4 +63,46 @@ describe("generation prompts", () => {
     expect(payload.faqs?.length).toBeGreaterThan(0);
     expect(payload.tags).toContain("spicy");
   });
+
+  it("treats empty optional recipe arrays as missing and backfills them", () => {
+    const payload = normalizeGeneratedRecipePayload({
+      title: "Georgian Khachapuri with Mild Chili Oil",
+      description:
+        "Traditional Georgian cheese-filled bread boat topped with a gently spiced chili oil that adds warmth without overwhelming the rich, creamy filling.",
+      intro:
+        "This softer khachapuri variation keeps the bread rich and comforting while using a restrained chili oil for warmth rather than aggressive heat.",
+      heat_level: "mild",
+      cuisine_type: "other",
+      prep_time_minutes: 30,
+      cook_time_minutes: 20,
+      servings: 4,
+      difficulty: "intermediate",
+      ingredients: [
+        { amount: "2", unit: "cups", item: "flour" },
+        { amount: "1", unit: "cup", item: "mozzarella" }
+      ],
+      instructions: [
+        { step: 1, text: "Mix and knead the dough until smooth, then let it rest until supple." }
+      ],
+      tips: [],
+      variations: [],
+      serving_suggestions: [],
+      substitutions: [],
+      faqs: [],
+      equipment: [],
+      tags: [],
+      seo_title: "Khachapuri with Mild Chili Oil | FlamingFoodies",
+      seo_description:
+        "Bake Georgian-style khachapuri with a gentle chili oil finish for warmth without overwhelming the rich cheese filling.",
+      image_alt: "A Georgian khachapuri with mild chili oil"
+    });
+
+    expect(payload.tips.length).toBeGreaterThan(0);
+    expect(payload.variations.length).toBeGreaterThan(0);
+    expect(payload.serving_suggestions?.length).toBeGreaterThan(0);
+    expect(payload.substitutions?.length).toBeGreaterThan(0);
+    expect(payload.faqs?.length).toBeGreaterThan(0);
+    expect(payload.equipment.length).toBeGreaterThan(0);
+    expect(payload.tags).toContain("spicy");
+  });
 });
