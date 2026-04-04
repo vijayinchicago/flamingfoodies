@@ -15,6 +15,7 @@ import {
 import { getMerchThemeClasses } from "@/lib/merch";
 import { buildMetadata } from "@/lib/seo";
 import { getMerchProducts } from "@/lib/services/content";
+import { getShopAffiliateCollections, getShopMerchCollections } from "@/lib/shop";
 
 export const metadata = buildMetadata({
   title: "Shop Hot Sauce, Gear, and Merch | FlamingFoodies",
@@ -25,6 +26,7 @@ export const metadata = buildMetadata({
 
 export default async function ShopPage() {
   const merchItems = await getMerchProducts();
+  const merchCollections = getShopMerchCollections(merchItems);
   const hotSauceLinks = getAffiliateLinkEntries(HOT_SAUCE_SPOTLIGHT_KEYS);
   const gearLinks = getAffiliateLinkEntries(KITCHEN_GEAR_KEYS);
   const pantryLinks = getAffiliateLinkEntries(PANTRY_HEAT_KEYS);
@@ -44,22 +46,112 @@ export default async function ShopPage() {
   const resolvedGearLinks = resolveLinks(gearLinks, "gear-column");
   const resolvedPantryLinks = resolveLinks(pantryLinks, "pantry-column");
   const resolvedSubscriptionLinks = resolveLinks(subscriptionLinks, "subscription-grid");
+  const featuredMerch = merchItems.filter((item) => item.featured).slice(0, 3);
+  const curatedCollections = getShopAffiliateCollections().map((collection) => ({
+    ...collection,
+    items: collection.items
+      .map((link) => ({
+        link,
+        resolved: resolveAffiliateLink(link.key, {
+          sourcePage: "/shop",
+          position: collection.key
+        })
+      }))
+      .filter((entry): entry is { link: (typeof collection.items)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved))
+  }));
 
   return (
     <section className="container-shell py-16">
       <SectionHeading
         eyebrow="Shop"
-        title="Merch, hot sauce, and kitchen gear all in one storefront."
-        copy="This page should feel like a real commerce hub, not a placeholder: merch previews first, then the sauce, gear, and pantry links that support the editorial side of the site."
+        title="A storefront built around what people are actually trying to buy."
+        copy="Shop by use case first: starter shelves, gift ideas, wearables, kitchen gear, and the hot sauce picks that deserve the clicks."
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div id="merch-preview" className="panel p-8">
+        <div className="panel p-8">
+          <p className="eyebrow">Shop by intent</p>
+          <h2 className="mt-3 font-display text-5xl text-cream">
+            Start with starter kits, gift ideas, or the merch drop.
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
+            The strongest storefronts tell people where to go next. Build a first serious shelf,
+            pick a gift that actually lands, or jump straight into the brand pieces that make the
+            site feel bigger than content alone.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="#starter-kits"
+              className="inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
+            >
+              Shop starter kits
+            </Link>
+            <Link
+              href="#gift-ideas"
+              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            >
+              Browse gift ideas
+            </Link>
+            <Link
+              href="#merch-preview"
+              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            >
+              View merch drop
+            </Link>
+          </div>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-5">
+              <p className="text-xs uppercase tracking-[0.22em] text-ember">Starter shelves</p>
+              <p className="mt-3 font-display text-4xl text-cream">
+                {curatedCollections[0]?.items.length || 0}
+              </p>
+              <p className="mt-2 text-sm leading-7 text-cream/68">
+                Fast-buy bundles for new readers and first-time shoppers.
+              </p>
+            </div>
+            <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-5">
+              <p className="text-xs uppercase tracking-[0.22em] text-ember">Merch categories</p>
+              <p className="mt-3 font-display text-4xl text-cream">{merchCollections.length}</p>
+              <p className="mt-2 text-sm leading-7 text-cream/68">
+                Wearables, cook gear, and giftable merch grouped like a real store.
+              </p>
+            </div>
+            <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-5">
+              <p className="text-xs uppercase tracking-[0.22em] text-ember">Gift routes</p>
+              <p className="mt-3 font-display text-4xl text-cream">{resolvedSubscriptionLinks.length}</p>
+              <p className="mt-2 text-sm leading-7 text-cream/68">
+                Curated subscriptions and gift-ready heat without guesswork.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+          {merchCollections.map((collection) => (
+            <article key={collection.key} className="panel p-5">
+              <p className="text-xs uppercase tracking-[0.24em] text-ember">{collection.title}</p>
+              <h2 className="mt-3 font-display text-3xl text-cream">
+                {collection.items.length} products
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-cream/72">{collection.description}</p>
+              <Link
+                href={`#${collection.key}`}
+                className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+              >
+                Open collection
+              </Link>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <div id="merch-preview" className="mt-12 grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
+        <div className="panel p-8">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="eyebrow">Merch preview</p>
+              <p className="eyebrow">Featured merch</p>
               <h2 className="mt-3 font-display text-5xl text-cream">
-                Make the brand wearable, giftable, and visible.
+                Make the brand wearable, giftable, and easy to spot.
               </h2>
             </div>
             <Link
@@ -69,8 +161,8 @@ export default async function ShopPage() {
               Join merch waitlist
             </Link>
           </div>
-          <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {merchItems.map((item) => (
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {featuredMerch.map((item) => (
               <article
                 key={item.slug}
                 className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-5`}
@@ -92,24 +184,28 @@ export default async function ShopPage() {
             ))}
           </div>
         </div>
-        <div className="panel p-8">
-          <p className="eyebrow">Commerce strategy</p>
+
+        <div id="gift-ideas" className="panel p-8">
+          <p className="eyebrow">Gift routes</p>
           <h2 className="mt-3 font-display text-4xl text-cream">
-            Push the merch harder without losing editorial trust.
+            The easiest “buy for someone else” paths on the site.
           </h2>
           <div className="mt-6 space-y-4 text-sm leading-7 text-cream/72">
             <p>
-              Recipes create discovery. Reviews earn authority. The shop page should turn that
-              attention into merch demand and affiliate clicks while readers are already in buying mode.
+              Most gift buyers do not want to guess at one perfect bottle. The better move is a
+              curated set, a subscription, or a merch item that still feels tied to the culture.
             </p>
             <p>
-              For now, merch cards collect intent and partner links monetize immediately. When the
-              first Printful drop is ready, the card structure already has room for direct checkout.
+              This keeps the shop useful for holidays, birthdays, and house gifts without turning
+              the whole page into a generic marketplace.
             </p>
           </div>
           <div className="mt-8 grid gap-4">
             {resolvedMerchSidebarLinks.map(({ link, resolved }) => (
-              <article key={link.key} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
+              <article
+                key={link.key}
+                className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5"
+              >
                 <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
                 <h3 className="mt-3 font-display text-3xl text-cream">{link.product}</h3>
                 <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
@@ -125,13 +221,98 @@ export default async function ShopPage() {
                 </AffiliateLink>
               </article>
             ))}
+            <Link
+              href="/hot-sauces/best-gift-sets"
+              className="inline-flex justify-center rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            >
+              See the full gift guide
+            </Link>
           </div>
         </div>
       </div>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-3">
+      <div id="starter-kits" className="mt-12">
+        <SectionHeading
+          eyebrow="Starter kits"
+          title="Build a better first shelf in one move."
+          copy="These kits are grouped for intent, not just category. That makes them easier to buy and easier to merchandise."
+        />
+        <div className="mt-8 grid gap-6 xl:grid-cols-3">
+          {curatedCollections.map((collection) => (
+            <article key={collection.key} className="panel p-6">
+              <p className="eyebrow">{collection.title}</p>
+              <h3 className="mt-3 font-display text-4xl text-cream">{collection.ctaLabel}</h3>
+              <p className="mt-3 text-sm leading-7 text-cream/72">{collection.description}</p>
+              <div className="mt-6 space-y-4">
+                {collection.items.map(({ link, resolved }) => (
+                  <div
+                    key={link.key}
+                    className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs uppercase tracking-[0.22em] text-ember">{link.badge}</p>
+                      {link.priceLabel ? (
+                        <span className="text-xs text-cream/55">{link.priceLabel}</span>
+                      ) : null}
+                    </div>
+                    <h4 className="mt-3 font-display text-3xl text-cream">{link.product}</h4>
+                    <p className="mt-3 text-sm leading-7 text-cream/72">{link.bestFor}</p>
+                    <AffiliateLink
+                      href={resolved.href}
+                      partnerKey={resolved.key}
+                      trackingMode={resolved.trackingMode}
+                      sourcePage="/shop"
+                      position={collection.key}
+                      className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                    >
+                      View on Amazon
+                    </AffiliateLink>
+                  </div>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-12 space-y-12">
+        {merchCollections.map((collection) => (
+          <div id={collection.key} key={collection.key}>
+            <SectionHeading
+              eyebrow={collection.title}
+              title={collection.title}
+              copy={collection.description}
+            />
+            <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {collection.items.map((item) => (
+                <article
+                  key={item.slug}
+                  className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-5`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
+                    <span className="text-xs text-cream/55">{item.priceLabel}</span>
+                  </div>
+                  <h3 className="mt-3 font-display text-3xl text-cream">{item.name}</h3>
+                  <p className="mt-2 text-sm text-cream/60">{item.category}</p>
+                  <p className="mt-4 text-sm leading-7 text-cream/72">{item.description}</p>
+                  <Link
+                    href={item.href}
+                    className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                  >
+                    {item.ctaLabel}
+                  </Link>
+                </article>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-12 grid gap-6 xl:grid-cols-4">
         <div className="panel p-8">
           <p className="eyebrow">Hot sauce picks</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">Everyday bottles and shelf builders.</h2>
           <div className="mt-6 space-y-4">
             {resolvedHotSauceLinks.map(({ link, resolved }) => (
               <article key={link.key} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
@@ -157,6 +338,7 @@ export default async function ShopPage() {
         </div>
         <div className="panel p-8">
           <p className="eyebrow">Kitchen gear</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">Tools worth keeping near the stove.</h2>
           <div className="mt-6 space-y-4">
             {resolvedGearLinks.map(({ link, resolved }) => (
               <article key={link.key} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
@@ -182,6 +364,7 @@ export default async function ShopPage() {
         </div>
         <div className="panel p-8">
           <p className="eyebrow">Pantry heat</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">Flavor builders that earn repeat use.</h2>
           <div className="mt-6 space-y-4">
             {resolvedPantryLinks.map(({ link, resolved }) => (
               <article key={link.key} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
@@ -205,11 +388,10 @@ export default async function ShopPage() {
             ))}
           </div>
         </div>
-      </div>
-
-      <div className="mt-10 panel p-8">
-        <p className="eyebrow">Subscriptions and gift plays</p>
-        <div className="mt-6 grid gap-4 lg:grid-cols-4">
+        <div className="panel p-8">
+          <p className="eyebrow">Subscriptions and gift plays</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">Recurring heat and better gifts.</h2>
+          <div className="mt-6 space-y-4">
           {resolvedSubscriptionLinks.map(({ link, resolved }) => (
             <article key={link.key} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
               <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
@@ -227,6 +409,7 @@ export default async function ShopPage() {
               </AffiliateLink>
             </article>
           ))}
+          </div>
         </div>
       </div>
 
