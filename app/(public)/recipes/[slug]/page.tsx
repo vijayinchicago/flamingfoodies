@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { RecipeCard } from "@/components/cards/recipe-card";
 import { CommentSection } from "@/components/community/comment-section";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { AffiliateLink } from "@/components/content/affiliate-link";
@@ -18,11 +19,20 @@ import {
   toggleRecipeSaveAction
 } from "@/lib/actions/engagement";
 import {
-  getRecipeAffiliateRecommendations,
+  buildAmazonSearchUrl,
+  findAffiliateLinkByUrl,
   resolveAffiliateLink
 } from "@/lib/affiliates";
+import { getHotSauceIntentLabel } from "@/lib/hot-sauces";
 import { getMerchThemeClasses } from "@/lib/merch";
+import {
+  getRecipeGearRecommendations,
+  getRecipePantryRecommendations,
+  getRecipeSaucePairings,
+  getRelatedRecipesForRecipe
+} from "@/lib/recipe-commerce";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
+import { getReviewHeroFields } from "@/lib/review-hero";
 import {
   getRecipeFaqs,
   getRecipeHeroSummary,
@@ -35,6 +45,8 @@ import { getCurrentProfile } from "@/lib/supabase/auth";
 import {
   getFeaturedMerchProducts,
   getRecipe,
+  getRecipes,
+  getReviews,
   getRecipeUserState
 } from "@/lib/services/content";
 import type { HeatLevel, Recipe } from "@/lib/types";
@@ -222,24 +234,12 @@ export default async function RecipePage({
   }
 
   const profile = await getCurrentProfile();
-  const [userState, merchPreview] = await Promise.all([
+  const [userState, merchPreview, reviews, recipes] = await Promise.all([
     getRecipeUserState(recipe.id, profile?.id),
-    getFeaturedMerchProducts(2)
+    getFeaturedMerchProducts(2),
+    getReviews(),
+    getRecipes()
   ]);
-  const recommendedLinks = getRecipeAffiliateRecommendations({
-    cuisineType: recipe.cuisineType,
-    heatLevel: recipe.heatLevel,
-    limit: 3
-  });
-  const resolvedRecommendedLinks = recommendedLinks
-    .map((link) => ({
-      link,
-      resolved: resolveAffiliateLink(link.key, {
-        sourcePage: `/recipes/${recipe.slug}`,
-        position: "recipe-detail"
-      })
-    }))
-    .filter((entry): entry is { link: (typeof recommendedLinks)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
   const ingredientSections = getRecipeIngredientSections(recipe);
   const methodSteps = getRecipeMethodSteps(recipe);
   const faqs = getRecipeFaqs(recipe);
@@ -247,6 +247,45 @@ export default async function RecipePage({
   const servingSuggestions = getRecipeSupportList(recipe.servingSuggestions);
   const heroSummary = getRecipeHeroSummary(recipe);
   const hero = getRecipeHeroFields(recipe);
+  const saucePairings = getRecipeSaucePairings(recipe, reviews, 2);
+  const pantryLinks = getRecipePantryRecommendations(recipe, 3);
+  const gearLinks = getRecipeGearRecommendations(recipe, 2);
+  const relatedRecipes = getRelatedRecipesForRecipe(recipe, recipes, 3);
+  const resolvedPantryLinks = pantryLinks
+    .map((link) => ({
+      link,
+      resolved: resolveAffiliateLink(link.key, {
+        sourcePage: `/recipes/${recipe.slug}`,
+        position: "recipe-pantry"
+      })
+    }))
+    .filter((entry): entry is { link: (typeof pantryLinks)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
+  const resolvedGearLinks = gearLinks
+    .map((link) => ({
+      link,
+      resolved: resolveAffiliateLink(link.key, {
+        sourcePage: `/recipes/${recipe.slug}`,
+        position: "recipe-gear"
+      })
+    }))
+    .filter((entry): entry is { link: (typeof gearLinks)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
+  const saucePairingCards = saucePairings.map((pairing) => {
+    const hero = getReviewHeroFields(pairing.review);
+    const primaryOffer = findAffiliateLinkByUrl(pairing.review.affiliateUrl);
+    const resolvedOffer = primaryOffer
+      ? resolveAffiliateLink(primaryOffer.key, {
+          sourcePage: `/recipes/${recipe.slug}`,
+          position: "recipe-sauce-pairing"
+        })
+      : null;
+
+    return {
+      ...pairing,
+      hero,
+      resolvedOffer,
+      fallbackAffiliateHref: buildAmazonSearchUrl(pairing.review.productName)
+    };
+  });
   const projectCard = getProjectCard(recipe);
   const occasionCard = getOccasionCard(recipe);
   const printNoteBlocks = getPrintNoteBlocks(recipe, substitutions, servingSuggestions);
@@ -752,74 +791,270 @@ export default async function RecipePage({
           </div>
         </div>
 
-        {(resolvedRecommendedLinks.length || merchPreview.length) ? (
-          <section className="recipe-secondary-utility grid gap-6 lg:grid-cols-[1.05fr_0.95fr] print-hidden">
-            {resolvedRecommendedLinks.length ? (
-              <div className="panel p-6 sm:p-7">
-                <p className="eyebrow">Gear and pantry upgrades</p>
-                <h3 className="mt-3 font-display text-4xl text-cream">Smart affiliate picks for this cook</h3>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-cream/64">
-                  The point here is not random product stuffing. These are the pieces that actually
-                  make this style of recipe cleaner, faster, or more repeatable.
-                </p>
-                <div className="mt-6 grid gap-4">
-                  {resolvedRecommendedLinks.map(({ link, resolved }) => (
-                    <article
-                      key={link.key}
-                      className="rounded-[1.75rem] border border-white/10 bg-white/[0.05] p-5"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
-                        {link.priceLabel ? (
-                          <span className="text-xs text-cream/52">{link.priceLabel}</span>
-                        ) : null}
+        {(saucePairingCards.length ||
+          resolvedPantryLinks.length ||
+          resolvedGearLinks.length ||
+          relatedRecipes.length ||
+          merchPreview.length) ? (
+          <div className="recipe-secondary-utility space-y-6 print-hidden">
+            {(saucePairingCards.length ||
+              resolvedPantryLinks.length ||
+              resolvedGearLinks.length) ? (
+              <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+                {saucePairingCards.length ? (
+                  <div className="panel p-6 sm:p-7">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div>
+                        <p className="eyebrow">Pair this with</p>
+                        <h3 className="mt-3 font-display text-4xl text-cream">
+                          The right bottle for this recipe
+                        </h3>
                       </div>
-                      <h4 className="mt-3 font-display text-3xl text-cream">{link.product}</h4>
-                      <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
-                      <AffiliateLink
-                        href={resolved.href}
-                        partnerKey={resolved.key}
-                        trackingMode={resolved.trackingMode}
-                        sourcePage={`/recipes/${recipe.slug}`}
-                        position="recipe-detail"
-                        contentType="recipe"
-                        contentId={recipe.id}
-                        contentSlug={recipe.slug}
-                        className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                      <Link
+                        href="/hot-sauces"
+                        className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                       >
-                        View on Amazon
-                      </AffiliateLink>
-                    </article>
-                  ))}
+                        Browse hot sauces
+                      </Link>
+                    </div>
+                    <p className="mt-3 max-w-2xl text-sm leading-7 text-cream/64">
+                      These sauce picks are matched to the dish itself, not dropped in at random.
+                      Use them to finish, sharpen, or push the heat where it helps.
+                    </p>
+                    <div className="mt-6 grid gap-4 lg:grid-cols-2">
+                      {saucePairingCards.map(({ review, reason, hero, resolvedOffer, fallbackAffiliateHref }) => (
+                        <article
+                          key={review.slug}
+                          className="overflow-hidden rounded-[1.9rem] border border-white/10 bg-white/[0.05]"
+                        >
+                          <div className="relative aspect-[4/3]">
+                            <Image
+                              src={hero.imageUrl}
+                              alt={hero.imageAlt}
+                              fill
+                              sizes="(min-width: 1280px) 420px, (min-width: 768px) 50vw, 100vw"
+                              className="object-cover"
+                            />
+                          </div>
+                          <div className="p-5">
+                            <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.22em] text-ember">
+                              <span>{review.brand}</span>
+                              <span>{getHotSauceIntentLabel(review)}</span>
+                            </div>
+                            <h4 className="mt-3 font-display text-3xl text-cream">
+                              {review.productName}
+                            </h4>
+                            <div className="mt-3 flex flex-wrap gap-2 text-sm">
+                              <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 font-semibold text-amber-100">
+                                {review.rating.toFixed(1)}/5
+                              </span>
+                              {review.heatLevel ? (
+                                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-cream/70">
+                                  {formatLabel(review.heatLevel)} heat
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="mt-4 text-sm leading-7 text-cream/72">{reason}</p>
+                            <p className="mt-3 text-sm leading-7 text-cream/56">
+                              {review.description}
+                            </p>
+                            <div className="mt-5 flex flex-wrap gap-3">
+                              <Link
+                                href={`/reviews/${review.slug}`}
+                                className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                              >
+                                Read review
+                              </Link>
+                              <AffiliateLink
+                                href={resolvedOffer?.href || fallbackAffiliateHref}
+                                partnerKey={resolvedOffer?.key}
+                                partnerName={review.brand}
+                                productName={review.productName}
+                                trackingMode={resolvedOffer?.trackingMode || "client_beacon"}
+                                sourcePage={`/recipes/${recipe.slug}`}
+                                position="recipe-sauce-pairing"
+                                contentType="recipe"
+                                contentId={recipe.id}
+                                contentSlug={recipe.slug}
+                                className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
+                              >
+                                View on Amazon
+                              </AffiliateLink>
+                            </div>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="space-y-6">
+                  {resolvedPantryLinks.length ? (
+                    <div className="panel p-6 sm:p-7">
+                      <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                          <p className="eyebrow">Shop the pantry</p>
+                          <h3 className="mt-3 font-display text-4xl text-cream">
+                            Staples for this flavor lane
+                          </h3>
+                        </div>
+                        <Link
+                          href="/shop"
+                          className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                        >
+                          Visit the shop
+                        </Link>
+                      </div>
+                      <div className="mt-6 space-y-4">
+                        {resolvedPantryLinks.map(({ link, resolved }) => (
+                          <article
+                            key={link.key}
+                            className="rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-5"
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="text-xs uppercase tracking-[0.22em] text-ember">
+                                {link.badge}
+                              </p>
+                              {link.priceLabel ? (
+                                <span className="text-xs text-cream/52">{link.priceLabel}</span>
+                              ) : null}
+                            </div>
+                            <h4 className="mt-3 font-display text-3xl text-cream">
+                              {link.product}
+                            </h4>
+                            <p className="mt-3 text-sm leading-7 text-cream/72">
+                              {link.bestFor}. {link.description}
+                            </p>
+                            <AffiliateLink
+                              href={resolved.href}
+                              partnerKey={resolved.key}
+                              trackingMode={resolved.trackingMode}
+                              sourcePage={`/recipes/${recipe.slug}`}
+                              position="recipe-pantry"
+                              contentType="recipe"
+                              contentId={recipe.id}
+                              contentSlug={recipe.slug}
+                              className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                            >
+                              View on Amazon
+                            </AffiliateLink>
+                          </article>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {resolvedGearLinks.length ? (
+                    <div className="panel p-6 sm:p-7">
+                      <p className="eyebrow">Gear that pays off</p>
+                      <h3 className="mt-3 font-display text-4xl text-cream">
+                        Tools that make this easier to repeat
+                      </h3>
+                      <div className="mt-6 space-y-4">
+                        {resolvedGearLinks.map(({ link, resolved }) => (
+                          <article
+                            key={link.key}
+                            className="rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-5"
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="text-xs uppercase tracking-[0.22em] text-ember">
+                                {link.badge}
+                              </p>
+                              {link.priceLabel ? (
+                                <span className="text-xs text-cream/52">{link.priceLabel}</span>
+                              ) : null}
+                            </div>
+                            <h4 className="mt-3 font-display text-3xl text-cream">
+                              {link.product}
+                            </h4>
+                            <p className="mt-3 text-sm leading-7 text-cream/72">
+                              {link.bestFor}. {link.description}
+                            </p>
+                            <AffiliateLink
+                              href={resolved.href}
+                              partnerKey={resolved.key}
+                              trackingMode={resolved.trackingMode}
+                              sourcePage={`/recipes/${recipe.slug}`}
+                              position="recipe-gear"
+                              contentType="recipe"
+                              contentId={recipe.id}
+                              contentSlug={recipe.slug}
+                              className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                            >
+                              View on Amazon
+                            </AffiliateLink>
+                          </article>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
-              </div>
+              </section>
             ) : null}
 
-            {merchPreview.length ? (
-              <div className="panel p-6 sm:p-7">
-                <p className="eyebrow">FlamingFoodies merch</p>
-                <h3 className="mt-3 font-display text-4xl text-cream">Brand pieces that belong next to the food</h3>
-                <div className="mt-6 space-y-4">
-                  {merchPreview.map((item) => (
-                    <article
-                      key={item.slug}
-                      className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-5`}
-                    >
-                      <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
-                      <h4 className="mt-3 font-display text-3xl text-cream">{item.name}</h4>
-                      <p className="mt-3 text-sm leading-7 text-cream/72">{item.description}</p>
+            {(relatedRecipes.length || merchPreview.length) ? (
+              <section className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+                {relatedRecipes.length ? (
+                  <div className="panel p-6 sm:p-7">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                      <div>
+                        <p className="eyebrow">Cook next</p>
+                        <h3 className="mt-3 font-display text-4xl text-cream">
+                          Stay in the same heat lane
+                        </h3>
+                      </div>
                       <Link
-                        href={item.href}
-                        className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
+                        href="/recipes"
+                        className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                       >
-                        {item.ctaLabel}
+                        Browse recipes
                       </Link>
-                    </article>
-                  ))}
-                </div>
-              </div>
+                    </div>
+                    <p className="mt-3 max-w-2xl text-sm leading-7 text-cream/64">
+                      These are the next recipes most likely to fit the same mood, pantry, or heat
+                      level once this one is in your rotation.
+                    </p>
+                    <div className="mt-6 grid gap-4 md:grid-cols-3">
+                      {relatedRecipes.map((relatedRecipe) => (
+                        <RecipeCard key={relatedRecipe.slug} recipe={relatedRecipe} />
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+
+                {merchPreview.length ? (
+                  <div className="panel p-6 sm:p-7">
+                    <p className="eyebrow">FlamingFoodies merch</p>
+                    <h3 className="mt-3 font-display text-4xl text-cream">
+                      Brand pieces that belong next to the food
+                    </h3>
+                    <div className="mt-6 space-y-4">
+                      {merchPreview.map((item) => (
+                        <article
+                          key={item.slug}
+                          className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-5`}
+                        >
+                          <p className="text-xs uppercase tracking-[0.24em] text-ember">
+                            {item.badge}
+                          </p>
+                          <h4 className="mt-3 font-display text-3xl text-cream">{item.name}</h4>
+                          <p className="mt-3 text-sm leading-7 text-cream/72">
+                            {item.description}
+                          </p>
+                          <Link
+                            href={item.href}
+                            className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
+                          >
+                            {item.ctaLabel}
+                          </Link>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+              </section>
             ) : null}
-          </section>
+          </div>
         ) : null}
       </div>
     </article>

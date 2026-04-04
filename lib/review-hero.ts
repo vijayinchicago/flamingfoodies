@@ -93,10 +93,14 @@ export function getReviewHeroFields(
     Review,
     "title" | "productName" | "brand" | "category" | "heatLevel" | "imageUrl" | "imageAlt"
   >
-) {
+): {
+  imageUrl: string;
+  imageAlt: string;
+  usesGeneratedHeroCard: boolean;
+} {
   const shouldUseGeneratedHero =
     !review.imageUrl || isLikelyGenericStockReviewImageUrl(review.imageUrl);
-  const imageUrl = shouldUseGeneratedHero
+  const imageUrl: string = shouldUseGeneratedHero
     ? buildReviewHeroImageUrl({
         title: review.title,
         productName: review.productName,
@@ -104,7 +108,13 @@ export function getReviewHeroFields(
         category: review.category,
         heatLevel: review.heatLevel
       })
-    : review.imageUrl;
+    : (review.imageUrl ?? buildReviewHeroImageUrl({
+        title: review.title,
+        productName: review.productName,
+        brand: review.brand,
+        category: review.category,
+        heatLevel: review.heatLevel
+      }));
   const imageAlt =
     shouldUseGeneratedHero || !review.imageAlt
       ? buildReviewHeroImageAlt(review.title, review.productName)
