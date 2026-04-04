@@ -23,6 +23,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {env.NEXT_PUBLIC_ADSENSE_ID ? (
+          <meta name="google-adsense-account" content={env.NEXT_PUBLIC_ADSENSE_ID} />
+        ) : null}
+      </head>
       <body>
         <Suspense fallback={null}>
           <PageViewTracker />
