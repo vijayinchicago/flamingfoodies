@@ -343,7 +343,7 @@ export const sampleRecipes: Recipe[] = [
     description:
       "Crisp-edged tacos dipped in chile-rich broth, loaded with melty cheese, and finished with a sharper salsa for extra lift.",
     intro:
-      "Birria is already rich, so the salsa matters. Arbol and lime keep the whole thing from getting muddy while the consome carries the deep chile tone.",
+      "This version leans into the things that make birria worth the time: a broth that tastes deep instead of flat, beef that shreds without drying out, and a finishing salsa with enough lift to keep every taco from collapsing into pure richness. The arbol gives the last bite a sharper edge, which is exactly what keeps the whole plate moving.",
     imageUrl:
       "https://images.unsplash.com/photo-1613514785940-daed07799d9b?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Birria tacos with dipping broth",
@@ -363,19 +363,75 @@ export const sampleRecipes: Recipe[] = [
     servings: 6,
     difficulty: "advanced",
     ingredients: [
-      { amount: "3", unit: "lb", item: "beef chuck roast" },
-      { amount: "5", unit: "", item: "guajillo chiles" },
-      { amount: "8", unit: "", item: "corn tortillas" },
-      { amount: "2", unit: "cups", item: "Oaxaca cheese", notes: "shredded" }
+      { amount: "3", unit: "lb", item: "beef chuck roast", notes: "cut into large chunks" },
+      { amount: "1", unit: "lb", item: "beef short ribs", notes: "optional but great for richer broth" },
+      { amount: "2", unit: "tsp", item: "kosher salt" },
+      { amount: "1", unit: "tsp", item: "black pepper" },
+      { amount: "5", unit: "", item: "guajillo chiles", notes: "stemmed and seeded" },
+      { amount: "3", unit: "", item: "ancho chiles", notes: "stemmed and seeded" },
+      { amount: "6", unit: "", item: "dried arbol chiles", notes: "split between broth and salsa" },
+      { amount: "1", unit: "", item: "white onion", notes: "quartered" },
+      { amount: "6", unit: "", item: "garlic cloves" },
+      { amount: "1", unit: "14-oz can", item: "fire-roasted tomatoes" },
+      { amount: "2", unit: "tsp", item: "Mexican oregano" },
+      { amount: "1", unit: "tsp", item: "ground cumin" },
+      { amount: "4", unit: "cups", item: "beef stock" },
+      { amount: "2", unit: "tbsp", item: "apple cider vinegar" },
+      { amount: "16", unit: "", item: "corn tortillas" },
+      { amount: "3", unit: "cups", item: "Oaxaca cheese", notes: "shredded" },
+      { amount: "1", unit: "cup", item: "white onion", notes: "finely chopped for serving" },
+      { amount: "1/2", unit: "cup", item: "cilantro", notes: "chopped" },
+      { amount: "4", unit: "", item: "limes", notes: "cut into wedges" }
     ],
     instructions: [
-      { step: 1, text: "Blend the chile base, braise the beef until shreddable, and reserve the broth." },
-      { step: 2, text: "Dip tortillas in the fat-slicked broth, then griddle with beef and cheese." },
-      { step: 3, text: "Serve with hot consome and a quick arbol salsa on the side." }
+      {
+        step: 1,
+        text:
+          "Season the beef with salt and pepper. Toast the guajillo, ancho, and half of the arbol chiles just until fragrant, then soak them in hot water until pliable.",
+        tip: "Do not blacken the chiles or the broth will pick up bitterness fast."
+      },
+      {
+        step: 2,
+        text:
+          "Blend the soaked chiles with onion, garlic, tomatoes, oregano, cumin, vinegar, and a splash of stock until completely smooth.",
+        tip: "A silky blend gives you a broth that tastes long-cooked even before the braise starts."
+      },
+      {
+        step: 3,
+        text:
+          "Sear the beef in a Dutch oven, pour in the chile base and remaining stock, then braise until the meat shreds easily and the broth tastes deep and savory.",
+        tip: "If the liquid reduces too hard during the braise, add a little water so the consome stays brothy."
+      },
+      {
+        step: 4,
+        text:
+          "Shred the beef, skim some of the red fat to the surface, and blitz the remaining arbol chiles with lime and a spoonful of broth for the salsa.",
+        tip: "That fat on top of the consome is what gives quesatacos their signature color and crust."
+      },
+      {
+        step: 5,
+        text:
+          "Dip each tortilla into the fat-slicked broth, griddle it, then fold in birria and Oaxaca cheese until the outside is crisp and the cheese fully melts.",
+        tip: "Work in batches and keep the griddle hot so the tortillas fry instead of steaming."
+      },
+      {
+        step: 6,
+        text:
+          "Serve immediately with hot consome, arbol salsa, chopped onion, cilantro, and plenty of lime for the sharp finish.",
+        tip: "The garnishes are not optional here, because they are what keep the tacos feeling bright."
+      }
     ],
-    tips: ["Make the birria a day ahead and skim the fat after chilling."],
-    variations: ["Use lamb shoulder for a richer version."],
-    equipment: ["Dutch oven", "blender", "griddle"],
+    tips: [
+      "Make the birria a day ahead and skim the fat after chilling for an even cleaner broth.",
+      "Keep the consome hot on the stove while you griddle tacos so every plate hits the table ready to dip.",
+      "Shred the cheese yourself if you can, because bagged cheese does not melt as cleanly into the meat."
+    ],
+    variations: [
+      "Use lamb shoulder for a richer version that leans even more celebratory.",
+      "Swap in Monterey Jack if Oaxaca is hard to find, but keep the melt high and stretchy.",
+      "Turn leftovers into birria ramen or breakfast hash the next day."
+    ],
+    equipment: ["Dutch oven", "high-speed blender", "cast-iron griddle", "fine-mesh strainer"],
     ratingAvg: 4.9,
     ratingCount: 206,
     saveCount: 1452
