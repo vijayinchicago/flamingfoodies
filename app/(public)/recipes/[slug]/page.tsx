@@ -8,6 +8,7 @@ import { RecipeDisplayControls } from "@/components/recipes/recipe-display-contr
 import { RecipeIngredientRail } from "@/components/recipes/recipe-ingredient-rail";
 import { RecipeMethodSection } from "@/components/recipes/recipe-method-section";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
+import { FaqSchema } from "@/components/schema/faq-schema";
 import { RecipeSchema } from "@/components/schema/recipe-schema";
 import {
   rateRecipeAction,
@@ -247,6 +248,7 @@ export default async function RecipePage({
   return (
     <article className="container-shell py-10 sm:py-16">
       <RecipeSchema recipe={recipe} />
+      <FaqSchema faqs={faqs} />
       <BreadcrumbSchema
         items={[
           { name: "Home", item: absoluteUrl("/") },

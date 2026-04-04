@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { CommentSection } from "@/components/community/comment-section";
 import { ShareBar } from "@/components/content/share-bar";
+import { ArticleSchema } from "@/components/schema/article-schema";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { buildMetadata } from "@/lib/seo";
 import { absoluteUrl, formatDate, markdownToHtml } from "@/lib/utils";
@@ -42,6 +43,7 @@ export default async function BlogPostPage({
 
   return (
     <article className="container-shell py-16">
+      <ArticleSchema post={post} />
       <BreadcrumbSchema
         items={[
           { name: "Home", item: absoluteUrl("/") },

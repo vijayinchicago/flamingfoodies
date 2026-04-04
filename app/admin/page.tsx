@@ -8,6 +8,7 @@ export default async function AdminDashboardPage({
 }: {
   searchParams?: {
     imported?: string;
+    blogs?: string;
     recipes?: string;
     reviews?: string;
     merch?: string;
@@ -49,11 +50,12 @@ export default async function AdminDashboardPage({
           Copy the current fallback catalog into Supabase.
         </h2>
         <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/65">
-          This seeds the real CMS tables for recipes, reviews, and merch so the public site can stop
-          depending on static fallback arrays once your Supabase project is wired.
+          This seeds the real CMS tables for blog posts, recipes, reviews, and merch so the public
+          site can stop depending on static fallback arrays once your Supabase project is wired.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           {[
+            { label: "Import blogs", value: "blogs" },
             { label: "Import recipes", value: "recipes" },
             { label: "Import reviews", value: "reviews" },
             { label: "Import merch", value: "merch" },
@@ -73,8 +75,9 @@ export default async function AdminDashboardPage({
         ) : null}
         {searchParams?.imported ? (
           <p className="mt-4 text-sm text-emerald-700">
-            Imported {searchParams.imported}. Recipes: {searchParams.recipes || 0}, reviews:{" "}
-            {searchParams.reviews || 0}, merch: {searchParams.merch || 0}.
+            Imported {searchParams.imported}. Blogs: {searchParams.blogs || 0}, recipes:{" "}
+            {searchParams.recipes || 0}, reviews: {searchParams.reviews || 0}, merch:{" "}
+            {searchParams.merch || 0}.
           </p>
         ) : null}
       </div>

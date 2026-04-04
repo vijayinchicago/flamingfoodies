@@ -2,9 +2,11 @@ import Link from "next/link";
 
 import { ReviewCard } from "@/components/cards/review-card";
 import { SectionHeading } from "@/components/layout/section-heading";
+import { ItemListSchema } from "@/components/schema/item-list-schema";
 import { HOT_SAUCE_SPOTLIGHT_KEYS, getAffiliateLinkEntries } from "@/lib/affiliates";
 import { buildMetadata } from "@/lib/seo";
 import { getReviews } from "@/lib/services/content";
+import { absoluteUrl } from "@/lib/utils";
 
 export const metadata = buildMetadata({
   title: "Hot Sauce Reviews | FlamingFoodies",
@@ -19,6 +21,14 @@ export default async function ReviewsIndexPage() {
 
   return (
     <section className="container-shell py-16">
+      <ItemListSchema
+        name="FlamingFoodies review archive"
+        items={reviews.map((review) => ({
+          name: review.title,
+          url: absoluteUrl(`/reviews/${review.slug}`),
+          image: review.imageUrl
+        }))}
+      />
       <SectionHeading
         eyebrow="Reviews"
         title="Heat-tested buying advice that can monetize without losing trust."

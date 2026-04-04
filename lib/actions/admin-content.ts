@@ -33,6 +33,7 @@ import {
   parseStringListJson
 } from "@/lib/parsers";
 import {
+  sampleBlogPosts,
   sampleMerchProducts,
   sampleRecipes,
   sampleReviews
@@ -41,6 +42,7 @@ import { createSocialPostsForContent } from "@/lib/services/social";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type {
+  BlogPost,
   MerchProduct,
   Recipe,
   RecipeFaq,
@@ -202,7 +204,7 @@ const contentStateSchema = z.object({
 });
 
 const importCatalogSchema = z.object({
-  catalog: z.enum(["recipes", "reviews", "merch", "all"]),
+  catalog: z.enum(["blogs", "recipes", "reviews", "merch", "all"]),
   redirectTo: z.string().optional()
 });
 
@@ -699,9 +701,36 @@ function revalidateMerchPaths() {
 
 function revalidateCatalogBootstrapPaths() {
   revalidatePath("/admin");
+  revalidatePath("/blog");
   revalidatePath("/recipes");
   revalidatePath("/reviews");
   revalidateMerchPaths();
+}
+
+function mapSampleBlogForInsert(post: BlogPost) {
+  return {
+    slug: post.slug,
+    title: post.title,
+    description: post.description,
+    content: post.content,
+    author_name: post.authorName,
+    category: post.category,
+    tags: post.tags,
+    image_url: post.imageUrl ?? null,
+    image_alt: post.imageAlt ?? null,
+    featured: post.featured ?? false,
+    source: post.source,
+    status: post.status,
+    seo_title: post.seoTitle ?? post.title.slice(0, 60),
+    seo_description: post.seoDescription ?? post.description.slice(0, 160),
+    cuisine_type: post.cuisineType ?? null,
+    heat_level: post.heatLevel ?? null,
+    scoville_rating: post.scovilleRating ?? null,
+    read_time_minutes: post.readTimeMinutes ?? calculateReadTime(post.content),
+    view_count: post.viewCount,
+    like_count: post.likeCount,
+    published_at: post.publishedAt ?? null
+  };
 }
 
 async function ensureSocialPostsForPublishedContent({
@@ -2180,10 +2209,24 @@ export async function importSampleCatalogAction(formData: FormData) {
   }
 
   const counts = {
+    blogs: 0,
     recipes: 0,
     reviews: 0,
     merch: 0
   };
+
+  if (parsed.data.catalog === "blogs" || parsed.data.catalog === "all") {
+    const { error } = await supabase.from("blog_posts").upsert(
+      sampleBlogPosts.map(mapSampleBlogForInsert),
+      { onConflict: "slug" }
+    );
+
+    if (error) {
+      redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
+    }
+
+    counts.blogs = sampleBlogPosts.length;
+  }
 
   if (parsed.data.catalog === "recipes" || parsed.data.catalog === "all") {
     const { error } = await supabase.from("recipes").upsert(
@@ -2234,6 +2277,6 @@ export async function importSampleCatalogAction(formData: FormData) {
 
   revalidateCatalogBootstrapPaths();
   redirect(
-    `${redirectTo}?imported=${parsed.data.catalog}&recipes=${counts.recipes}&reviews=${counts.reviews}&merch=${counts.merch}`
+    `${redirectTo}?imported=${parsed.data.catalog}&blogs=${counts.blogs}&recipes=${counts.recipes}&reviews=${counts.reviews}&merch=${counts.merch}`
   );
 }

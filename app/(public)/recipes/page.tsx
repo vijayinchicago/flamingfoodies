@@ -2,9 +2,11 @@ import Link from "next/link";
 
 import { RecipeCard } from "@/components/cards/recipe-card";
 import { SectionHeading } from "@/components/layout/section-heading";
+import { ItemListSchema } from "@/components/schema/item-list-schema";
 import { KITCHEN_GEAR_KEYS, getAffiliateLinkEntries } from "@/lib/affiliates";
 import { buildMetadata } from "@/lib/seo";
 import { getRecipes } from "@/lib/services/content";
+import { absoluteUrl } from "@/lib/utils";
 
 export const metadata = buildMetadata({
   title: "Spicy Recipes | FlamingFoodies",
@@ -19,6 +21,14 @@ export default async function RecipesIndexPage() {
 
   return (
     <section className="container-shell py-16">
+      <ItemListSchema
+        name="FlamingFoodies recipe archive"
+        items={recipes.map((recipe) => ({
+          name: recipe.title,
+          url: absoluteUrl(`/recipes/${recipe.slug}`),
+          image: recipe.imageUrl
+        }))}
+      />
       <SectionHeading
         eyebrow="Recipes"
         title="Searchable spicy cooking, built to scale."
