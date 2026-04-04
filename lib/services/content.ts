@@ -170,6 +170,10 @@ function mapReviewRow(row: any): Review {
     category: row.category,
     pros: row.pros ?? [],
     cons: row.cons ?? [],
+    imageReviewed: row.image_reviewed ?? undefined,
+    factQaReviewed: row.fact_qa_reviewed ?? undefined,
+    qaNotes: row.qa_notes ?? undefined,
+    qaReport: row.qa_report ?? undefined,
     recommended: row.recommended ?? false,
     featured: row.featured ?? false
   };

@@ -161,6 +161,10 @@ export interface Review extends BaseContent {
   category: string;
   pros: string[];
   cons: string[];
+  imageReviewed?: boolean;
+  factQaReviewed?: boolean;
+  qaNotes?: string;
+  qaReport?: RecipeQaReport;
   recommended: boolean;
 }
 

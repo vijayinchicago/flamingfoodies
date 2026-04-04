@@ -843,6 +843,7 @@ export function RecipeEditorForm({
           className="rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
         >
           <option value="draft">draft</option>
+          <option value="pending_review">pending review</option>
           <option value="published">published</option>
         </select>
         <label className="flex items-center gap-3 rounded-2xl border border-charcoal/10 px-4 py-3 text-sm text-charcoal/70">

@@ -8,6 +8,14 @@ import {
   RECIPE_PROMPT,
   REVIEW_PROMPT
 } from "@/lib/generation/prompts";
+import { buildRecipeQaReport } from "@/lib/recipe-qa";
+import {
+  getRecipeFaqs,
+  getRecipeHeroSummary,
+  getRecipeIngredientSections,
+  getRecipeMethodSteps
+} from "@/lib/recipes";
+import { buildReviewQaReport } from "@/lib/review-qa";
 import {
   sampleBlogPosts,
   sampleGenerationJobs,
@@ -19,11 +27,27 @@ import {
   publishDueScheduledSocialPosts
 } from "@/lib/services/social";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import type { CuisineType, HeatLevel } from "@/lib/types";
+import type {
+  CuisineType,
+  HeatLevel,
+  Recipe,
+  RecipeQaIssue,
+  RecipeQaReport,
+  Review
+} from "@/lib/types";
 import { calculateReadTime, slugify } from "@/lib/utils";
 
 type GenerationType = "recipe" | "blog_post" | "review";
 type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
+type AgentQaReview = {
+  verdict?: "pass" | "revise" | "fail";
+  blockers?: string[];
+  warnings?: string[];
+  cuisine_assessment?: string;
+  image_assessment?: string;
+  method_assessment?: string;
+  suggested_fixes?: string[];
+};
 
 function stripCodeFence(value: string) {
   return value.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
@@ -62,6 +86,132 @@ function buildPrompt(type: GenerationType, cuisine: CuisineType, index: number) 
     cuisine_origin: cuisine,
     heat_level: getHeatLevel(index)
   });
+}
+
+function buildEditorialQaPrompt(type: "recipe" | "review", payload: Record<string, any>) {
+  const scope =
+    type === "recipe"
+      ? "a spicy recipe draft for publication readiness"
+      : "a spicy product review draft for publication readiness";
+
+  return `You are the FlamingFoodies Cuisine QA agent.
+
+Your job is to review ${scope}.
+Be strict, concrete, and editorially useful.
+
+Evaluate:
+1. Dish or product identity
+2. Cuisine fit or origin credibility
+3. Method or tasting-note credibility
+4. Heat credibility
+5. Image accuracy based on the provided alt text and named content
+6. Missing support or context that would make this feel weak in production
+
+Return valid JSON with:
+- verdict: pass | revise | fail
+- blockers: array of concise blocker strings
+- warnings: array of concise warning strings
+- cuisine_assessment: short paragraph
+- image_assessment: short paragraph
+- method_assessment: short paragraph
+- suggested_fixes: array of specific edits
+
+Draft payload:
+${JSON.stringify(payload, null, 2)}`;
+}
+
+async function runEditorialQaReview(
+  anthropic: Anthropic | null,
+  type: "recipe" | "review",
+  payload: Record<string, any>
+) {
+  if (!anthropic) {
+    return null;
+  }
+
+  const response = await anthropic.messages.create({
+    model: "claude-3-7-sonnet-latest",
+    max_tokens: 1100,
+    messages: [
+      {
+        role: "user",
+        content: buildEditorialQaPrompt(type, payload)
+      }
+    ]
+  });
+
+  const output = response.content
+    .map((item) => (item.type === "text" ? item.text : ""))
+    .join("\n")
+    .trim();
+
+  return parseJsonResponse<AgentQaReview>(output);
+}
+
+function buildQaIssue(
+  severity: "blocker" | "warning",
+  prefix: string,
+  index: number,
+  message: string
+): RecipeQaIssue {
+  return {
+    severity,
+    code: `${prefix}-${index + 1}`,
+    message
+  };
+}
+
+function mergeAgentQaReview(report: RecipeQaReport, agentReview: AgentQaReview | null) {
+  if (!agentReview) {
+    return report;
+  }
+
+  const blockers = [
+    ...report.blockers,
+    ...(agentReview.blockers ?? []).map((message, index) =>
+      buildQaIssue("blocker", "agent-blocker", index, message)
+    )
+  ];
+  const warnings = [
+    ...report.warnings,
+    ...(agentReview.warnings ?? []).map((message, index) =>
+      buildQaIssue("warning", "agent-warning", index, message)
+    )
+  ];
+
+  const score = Math.max(
+    0,
+    100 - blockers.length * 18 - warnings.length * 5 - ((agentReview.suggested_fixes?.length ?? 0) > 3 ? 4 : 0)
+  );
+  const status = blockers.length ? "fail" : warnings.length ? "warn" : "pass";
+
+  return {
+    status,
+    score,
+    blockers,
+    warnings
+  } satisfies RecipeQaReport;
+}
+
+function buildAgentQaNotes(baseNote: string, agentReview: AgentQaReview | null) {
+  if (!agentReview) {
+    return baseNote;
+  }
+
+  const sections = [
+    baseNote,
+    `AI editorial QA verdict: ${agentReview.verdict ?? "revise"}.`,
+    agentReview.cuisine_assessment
+      ? `Cuisine assessment: ${agentReview.cuisine_assessment}`
+      : null,
+    agentReview.image_assessment ? `Image assessment: ${agentReview.image_assessment}` : null,
+    agentReview.method_assessment ? `Method assessment: ${agentReview.method_assessment}` : null,
+    agentReview.suggested_fixes?.length
+      ? `Suggested fixes: ${agentReview.suggested_fixes.join("; ")}`
+      : null
+  ].filter(Boolean);
+
+  return sections.join("\n");
 }
 
 async function fetchImageForQuery(query: string) {
@@ -180,7 +330,7 @@ function buildRecipeDraft(
     image_url: imageUrl ?? null,
     image_alt: generated?.image_alt || `${title} plated for FlamingFoodies`,
     featured: false,
-    status: "draft",
+    status: "pending_review",
     source: "ai_generated",
     seo_title: generated?.seo_title || `${title} Recipe | FlamingFoodies`,
     seo_description: generated?.seo_description || description.slice(0, 160),
@@ -269,11 +419,140 @@ function buildReviewDraft(
     tags: generated?.tags ?? [cuisine, "review", "ai-generated"],
     recommended: Boolean(generated?.recommended ?? true),
     featured: false,
-    status: "draft",
+    status: "pending_review",
     source: "ai_generated",
     seo_title: generated?.seo_title || `${title} | FlamingFoodies`,
     seo_description: generated?.seo_description || description.slice(0, 160),
     published_at: publishAt ?? null
+  };
+}
+
+function buildGeneratedRecipeQaState(
+  payload: ReturnType<typeof buildRecipeDraft>,
+  agentReview: AgentQaReview | null
+) {
+  const baseQaNote = "AI-generated draft awaiting editorial image review and cuisine QA.";
+  const recipeQaCandidate: Recipe = {
+    id: 0,
+    type: "recipe",
+    slug: "draft",
+    title: payload.title,
+    description: payload.description,
+    intro: payload.intro,
+    heroSummary: getRecipeHeroSummary({
+      description: payload.description,
+      intro: payload.intro,
+      heroSummary: payload.intro
+    }),
+    authorName: payload.author_name,
+    heatLevel: payload.heat_level,
+    cuisineType: payload.cuisine_type,
+    prepTimeMinutes: payload.prep_time_minutes,
+    cookTimeMinutes: payload.cook_time_minutes,
+    totalTimeMinutes: payload.prep_time_minutes + payload.cook_time_minutes,
+    activeTimeMinutes: payload.prep_time_minutes,
+    servings: payload.servings,
+    difficulty: payload.difficulty,
+    ingredients: payload.ingredients,
+    ingredientSections: getRecipeIngredientSections({
+      ingredients: payload.ingredients,
+      ingredientSections: []
+    }),
+    instructions: payload.instructions,
+    methodSteps: getRecipeMethodSteps({
+      instructions: payload.instructions,
+      methodSteps: []
+    }),
+    tips: payload.tips,
+    variations: payload.variations,
+    makeAheadNotes: undefined,
+    storageNotes: undefined,
+    reheatNotes: undefined,
+    servingSuggestions: [],
+    substitutions: payload.variations ?? [],
+    faqs: [],
+    equipment: payload.equipment,
+    tags: payload.tags,
+    imageUrl: payload.image_url ?? undefined,
+    imageAlt: payload.image_alt,
+    heroImageReviewed: false,
+    cuisineQaReviewed: false,
+    qaNotes: buildAgentQaNotes(baseQaNote, agentReview),
+    featured: payload.featured,
+    source: "ai_generated",
+    status: "pending_review",
+    viewCount: 0,
+    likeCount: 0,
+    ratingCount: 0,
+    saveCount: 0
+  };
+
+  const qaReport = mergeAgentQaReview(buildRecipeQaReport(recipeQaCandidate), agentReview);
+
+  return {
+    hero_summary: getRecipeHeroSummary(recipeQaCandidate),
+    active_time_minutes: payload.prep_time_minutes,
+    ingredient_sections: getRecipeIngredientSections(recipeQaCandidate),
+    method_steps: getRecipeMethodSteps(recipeQaCandidate),
+    substitutions: payload.variations ?? [],
+    serving_suggestions: [],
+    faqs: getRecipeFaqs({ faqs: [] }),
+    hero_image_reviewed: false,
+    cuisine_qa_reviewed: false,
+    qa_notes: buildAgentQaNotes(baseQaNote, agentReview),
+    qa_report: qaReport,
+    qa_checked_at: null
+  };
+}
+
+function buildGeneratedReviewQaState(
+  payload: ReturnType<typeof buildReviewDraft>,
+  agentReview: AgentQaReview | null
+) {
+  const baseQaNote = "AI-generated draft awaiting editorial product-image and fact QA.";
+  const reviewQaCandidate: Review = {
+    id: 0,
+    type: "review",
+    slug: "draft",
+    title: payload.title,
+    description: payload.description,
+    productName: payload.product_name,
+    brand: payload.brand,
+    rating: payload.rating,
+    priceUsd: payload.price_usd,
+    affiliateUrl: payload.affiliate_url,
+    content: payload.content,
+    heatLevel: payload.heat_level,
+    scovilleMin: payload.scoville_min,
+    scovilleMax: payload.scoville_max,
+    flavorNotes: payload.flavor_notes,
+    cuisineOrigin: payload.cuisine_origin,
+    category: payload.category,
+    pros: payload.pros,
+    cons: payload.cons,
+    imageUrl: payload.image_url ?? undefined,
+    imageAlt: payload.image_alt,
+    imageReviewed: false,
+    factQaReviewed: false,
+    qaNotes: buildAgentQaNotes(baseQaNote, agentReview),
+    qaReport: undefined,
+    recommended: payload.recommended,
+    featured: payload.featured,
+    source: "ai_generated",
+    status: "pending_review",
+    tags: payload.tags,
+    viewCount: 0,
+    likeCount: 0
+  };
+
+  const qaReport = mergeAgentQaReview(buildReviewQaReport(reviewQaCandidate), agentReview);
+
+  return {
+    image_reviewed: false,
+    fact_qa_reviewed: false,
+    qa_notes: buildAgentQaNotes(baseQaNote, agentReview),
+    qa_report: qaReport,
+    qa_checked_at: null
   };
 }
 
@@ -322,6 +601,7 @@ async function getSettingMap(supabase: AdminClient) {
 
 async function insertGeneratedContent(
   supabase: AdminClient,
+  anthropic: Anthropic | null,
   type: GenerationType,
   index: number,
   settings: Map<string, any>,
@@ -348,22 +628,29 @@ async function insertGeneratedContent(
       publishAt
     );
     const slug = await makeUniqueSlug(supabase, "recipes", payload.title);
+    const agentReview = await runEditorialQaReview(anthropic, "recipe", {
+      slug,
+      ...payload
+    });
+    const qaState = buildGeneratedRecipeQaState(payload, agentReview);
     const { data, error } = await supabase
       .from("recipes")
-      .insert({ ...payload, slug })
+      .insert({ ...payload, ...qaState, slug })
       .select("id, slug, title, image_url")
       .single();
 
     if (error) throw new Error(error.message);
 
-    await createSocialPostsForContent({
-      contentType: "recipe",
-      contentId: data.id,
-      title: data.title,
-      slug: data.slug,
-      imageUrl: data.image_url ?? undefined,
-      scheduledAt: publishAt
-    });
+    if (payload.status === "draft") {
+      await createSocialPostsForContent({
+        contentType: "recipe",
+        contentId: data.id,
+        title: data.title,
+        slug: data.slug,
+        imageUrl: data.image_url ?? undefined,
+        scheduledAt: publishAt
+      });
+    }
 
     return {
       resultId: data.id,
@@ -417,22 +704,29 @@ async function insertGeneratedContent(
     publishAt
   );
   const slug = await makeUniqueSlug(supabase, "reviews", payload.title);
+  const agentReview = await runEditorialQaReview(anthropic, "review", {
+    slug,
+    ...payload
+  });
+  const qaState = buildGeneratedReviewQaState(payload, agentReview);
   const { data, error } = await supabase
     .from("reviews")
-    .insert({ ...payload, slug })
+    .insert({ ...payload, ...qaState, slug })
     .select("id, slug, title, image_url")
     .single();
 
   if (error) throw new Error(error.message);
 
-  await createSocialPostsForContent({
-    contentType: "review",
-    contentId: data.id,
-    title: data.title,
-    slug: data.slug,
-    imageUrl: data.image_url ?? undefined,
-    scheduledAt: publishAt
-  });
+  if (payload.status === "draft") {
+    await createSocialPostsForContent({
+      contentType: "review",
+      contentId: data.id,
+      title: data.title,
+      slug: data.slug,
+      imageUrl: data.image_url ?? undefined,
+      scheduledAt: publishAt
+    });
+  }
 
   return {
     resultId: data.id,
@@ -532,6 +826,7 @@ export async function runGenerationPipeline(type: string, qty: number) {
 
       const inserted = await insertGeneratedContent(
         supabase,
+        anthropic,
         generationType,
         index,
         settings,
@@ -591,7 +886,7 @@ async function publishFromTable(
     .from(table)
     .select("id, slug, title, published_at, status, source")
     .eq("source", "ai_generated")
-    .neq("status", "published")
+    .eq("status", "draft")
     .not("published_at", "is", null)
     .lte("published_at", new Date().toISOString());
 
@@ -634,14 +929,10 @@ export async function publishScheduledContent() {
     };
   }
 
-  const [blogPosts, recipes, reviews] = await Promise.all([
-    publishFromTable(supabase, "blog_posts"),
-    publishFromTable(supabase, "recipes"),
-    publishFromTable(supabase, "reviews")
-  ]);
+  const blogPosts = await publishFromTable(supabase, "blog_posts");
 
   return {
-    published: [...blogPosts, ...recipes, ...reviews]
+    published: blogPosts
   };
 }
 

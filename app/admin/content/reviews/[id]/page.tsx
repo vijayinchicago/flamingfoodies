@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { updateReviewAction } from "@/lib/actions/admin-content";
 import { AdminPage } from "@/components/admin/admin-page";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { buildReviewQaReport } from "@/lib/review-qa";
 import { getAdminReviewById } from "@/lib/services/content";
 
 export default async function AdminReviewEditPage({
@@ -18,6 +19,8 @@ export default async function AdminReviewEditPage({
   if (!review) {
     notFound();
   }
+
+  const qaReport = buildReviewQaReport(review);
 
   return (
     <AdminPage
@@ -87,6 +90,7 @@ export default async function AdminReviewEditPage({
             <input name="tags" defaultValue={review.tags.join(", ")} className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember" />
             <select name="status" defaultValue={review.status} className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember">
               <option value="draft">draft</option>
+              <option value="pending_review">pending review</option>
               <option value="published">published</option>
             </select>
             <label className="flex items-center gap-3 text-sm text-charcoal/70">
@@ -99,6 +103,66 @@ export default async function AdminReviewEditPage({
             </label>
           </div>
         </div>
+        <section className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.03] p-5">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="eyebrow">QA gate</p>
+              <h2 className="mt-3 font-display text-3xl text-charcoal">
+                Review QA {qaReport.status} · {qaReport.score}/100
+              </h2>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/65">
+                Publishing is blocked until the product image and tasting or fact review are both
+                signed off.
+              </p>
+            </div>
+            <div className="rounded-full bg-charcoal/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-charcoal/70">
+              {qaReport.blockers.length} blockers · {qaReport.warnings.length} warnings
+            </div>
+          </div>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <label className="flex items-center gap-3 rounded-2xl border border-charcoal/10 px-4 py-3 text-sm text-charcoal/70">
+              <input type="checkbox" name="imageReviewed" defaultChecked={review.imageReviewed} />
+              Product image manually confirmed
+            </label>
+            <label className="flex items-center gap-3 rounded-2xl border border-charcoal/10 px-4 py-3 text-sm text-charcoal/70">
+              <input type="checkbox" name="factQaReviewed" defaultChecked={review.factQaReviewed} />
+              Tasting notes and factual claims reviewed
+            </label>
+          </div>
+          <textarea
+            name="qaNotes"
+            defaultValue={review.qaNotes}
+            placeholder="Internal QA notes, sourcing concerns, or tasting validation details"
+            rows={4}
+            className="mt-4 w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
+          />
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <div className="rounded-[1.5rem] border border-rose-200 bg-rose-50/80 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-700">Blockers</p>
+              {qaReport.blockers.length ? (
+                <ul className="mt-3 space-y-2 text-sm leading-7 text-rose-700">
+                  {qaReport.blockers.map((issue) => (
+                    <li key={issue.code}>{issue.message}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm text-emerald-700">No blocker-level issues right now.</p>
+              )}
+            </div>
+            <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50/80 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">Warnings</p>
+              {qaReport.warnings.length ? (
+                <ul className="mt-3 space-y-2 text-sm leading-7 text-amber-700">
+                  {qaReport.warnings.map((issue) => (
+                    <li key={issue.code}>{issue.message}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm text-emerald-700">No warning-level issues right now.</p>
+              )}
+            </div>
+          </div>
+        </section>
         {searchParams?.error ? <p className="text-sm text-rose-600">{searchParams.error}</p> : null}
         {searchParams?.updated ? <p className="text-sm text-emerald-700">Review updated successfully.</p> : null}
         <button className="rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 font-semibold text-white">

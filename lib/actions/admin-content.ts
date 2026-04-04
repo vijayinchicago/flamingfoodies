@@ -12,6 +12,11 @@ import {
   getRecipeQaPublishError
 } from "@/lib/recipe-qa";
 import {
+  buildReviewQaReport,
+  getReviewManualReviewState,
+  getReviewQaPublishError
+} from "@/lib/review-qa";
+import {
   getRecipeFaqs,
   getRecipeHeroSummary,
   getRecipeIngredientSections,
@@ -31,6 +36,7 @@ import {
   sampleRecipes,
   sampleReviews
 } from "@/lib/sample-data";
+import { createSocialPostsForContent } from "@/lib/services/social";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type {
@@ -71,6 +77,7 @@ const cuisineTypes = [
 ] as const;
 const difficulties = ["beginner", "intermediate", "advanced"] as const;
 const merchAvailability = ["preview", "waitlist", "live"] as const;
+const editorialStatuses = ["draft", "pending_review", "published"] as const;
 
 const blogSchema = z.object({
   title: z.string().min(6).max(120),
@@ -114,7 +121,7 @@ const recipeSchema = z.object({
   imageAlt: z.string().max(180).optional(),
   heroImageReviewed: z.boolean().optional(),
   cuisineQaReviewed: z.boolean().optional(),
-  status: z.enum(["draft", "published"]),
+  status: z.enum(editorialStatuses),
   featured: z.boolean().optional(),
   redirectTo: z.string().optional()
 });
@@ -136,10 +143,13 @@ const reviewSchema = z.object({
   cuisineOrigin: z.enum(cuisineTypes).optional(),
   pros: z.string().optional(),
   cons: z.string().optional(),
+  qaNotes: z.string().max(1200).optional(),
   tags: z.string().optional(),
   imageUrl: z.string().url().optional(),
   imageAlt: z.string().max(180).optional(),
-  status: z.enum(["draft", "published"]),
+  imageReviewed: z.boolean().optional(),
+  factQaReviewed: z.boolean().optional(),
+  status: z.enum(editorialStatuses),
   featured: z.boolean().optional(),
   recommended: z.boolean().optional(),
   redirectTo: z.string().optional()
@@ -225,7 +235,10 @@ function getRedirectPath(value: string | undefined, fallback: string) {
   return value;
 }
 
-function getPublishedAt(status: "draft" | "published", existingPublishedAt?: string | null) {
+function getPublishedAt(
+  status: (typeof editorialStatuses)[number],
+  existingPublishedAt?: string | null
+) {
   if (status !== "published") {
     return null;
   }
@@ -460,6 +473,57 @@ function buildRecipeQaPayload({
   };
 }
 
+function buildReviewQaPayload({
+  parsed,
+  image
+}: {
+  parsed: z.infer<typeof reviewSchema>;
+  image: { imageUrl: string | null; imageAlt?: string };
+}) {
+  const qaCandidate: Review = {
+    id: 0,
+    type: "review",
+    slug: "draft",
+    title: parsed.title,
+    description: parsed.description,
+    productName: parsed.productName,
+    brand: parsed.brand,
+    rating: parsed.rating,
+    priceUsd: parsed.priceUsd,
+    affiliateUrl: parsed.affiliateUrl,
+    content: parsed.content,
+    heatLevel: parsed.heatLevel,
+    scovilleMin: parsed.scovilleMin,
+    scovilleMax: parsed.scovilleMax,
+    flavorNotes: parseCsvList(parsed.flavorNotes || ""),
+    cuisineOrigin: parsed.cuisineOrigin,
+    category: parsed.category,
+    pros: parseLineList(parsed.pros || ""),
+    cons: parseLineList(parsed.cons || ""),
+    imageUrl: image.imageUrl ?? undefined,
+    imageAlt: image.imageAlt,
+    imageReviewed: parsed.imageReviewed ?? false,
+    factQaReviewed: parsed.factQaReviewed ?? false,
+    qaNotes: parsed.qaNotes ?? undefined,
+    qaReport: undefined,
+    recommended: parsed.recommended ?? false,
+    featured: parsed.featured ?? false,
+    source: "editorial",
+    status: parsed.status,
+    tags: parseCsvList(parsed.tags || ""),
+    viewCount: 0,
+    likeCount: 0
+  };
+  const qaReport = buildReviewQaReport(qaCandidate);
+
+  return {
+    imageReviewed: qaCandidate.imageReviewed ?? false,
+    factQaReviewed: qaCandidate.factQaReviewed ?? false,
+    qaNotes: parsed.qaNotes ?? null,
+    qaReport
+  };
+}
+
 function mapRecipeRowToQaCandidate(row: any): Recipe {
   return {
     id: row.id,
@@ -509,6 +573,44 @@ function mapRecipeRowToQaCandidate(row: any): Recipe {
     ratingCount: row.rating_count ?? 0,
     saveCount: row.save_count ?? 0,
     publishedAt: row.published_at ?? undefined
+  };
+}
+
+function mapReviewRowToQaCandidate(row: any): Review {
+  return {
+    id: row.id,
+    type: "review",
+    slug: row.slug,
+    title: row.title,
+    description: row.description,
+    productName: row.product_name,
+    brand: row.brand,
+    rating: Number(row.rating),
+    priceUsd: Number(row.price_usd ?? 0) || undefined,
+    affiliateUrl: row.affiliate_url,
+    imageUrl: row.image_url ?? undefined,
+    imageAlt: row.image_alt ?? undefined,
+    source: row.source,
+    status: row.status,
+    publishedAt: row.published_at ?? undefined,
+    tags: row.tags ?? [],
+    viewCount: row.view_count ?? 0,
+    likeCount: row.like_count ?? 0,
+    content: row.content,
+    heatLevel: row.heat_level ?? undefined,
+    scovilleMin: row.scoville_min ?? undefined,
+    scovilleMax: row.scoville_max ?? undefined,
+    flavorNotes: row.flavor_notes ?? [],
+    cuisineOrigin: row.cuisine_origin ?? undefined,
+    category: row.category,
+    pros: row.pros ?? [],
+    cons: row.cons ?? [],
+    imageReviewed: row.image_reviewed ?? false,
+    factQaReviewed: row.fact_qa_reviewed ?? false,
+    qaNotes: row.qa_notes ?? undefined,
+    qaReport: row.qa_report ?? undefined,
+    recommended: row.recommended ?? false,
+    featured: row.featured ?? false
   };
 }
 
@@ -583,6 +685,42 @@ function revalidateCatalogBootstrapPaths() {
   revalidateMerchPaths();
 }
 
+async function ensureSocialPostsForPublishedContent({
+  supabase,
+  contentType,
+  contentId,
+  title,
+  slug,
+  imageUrl
+}: {
+  supabase: AdminClient;
+  contentType: "recipe" | "review";
+  contentId: number;
+  title: string;
+  slug: string;
+  imageUrl?: string | null;
+}) {
+  const { data } = await supabase
+    .from("social_posts")
+    .select("id")
+    .eq("content_type", contentType)
+    .eq("content_id", contentId)
+    .limit(1)
+    .maybeSingle();
+
+  if (data) {
+    return;
+  }
+
+  await createSocialPostsForContent({
+    contentType,
+    contentId,
+    title,
+    slug,
+    imageUrl: imageUrl ?? undefined
+  });
+}
+
 function mapSampleRecipeForInsert(recipe: Recipe) {
   const manualReview = getRecipeManualReviewState(recipe);
   const qaReport = buildRecipeQaReport({
@@ -643,6 +781,13 @@ function mapSampleRecipeForInsert(recipe: Recipe) {
 }
 
 function mapSampleReviewForInsert(review: Review) {
+  const manualReview = getReviewManualReviewState(review);
+  const qaReport = buildReviewQaReport({
+    ...review,
+    imageReviewed: manualReview.imageReviewed,
+    factQaReviewed: manualReview.factQaReviewed
+  });
+
   return {
     slug: review.slug,
     title: review.title,
@@ -663,6 +808,10 @@ function mapSampleReviewForInsert(review: Review) {
     category: review.category,
     pros: review.pros,
     cons: review.cons,
+    image_reviewed: manualReview.imageReviewed,
+    fact_qa_reviewed: manualReview.factQaReviewed,
+    qa_notes: manualReview.qaNotes ?? null,
+    qa_report: qaReport,
     tags: review.tags,
     recommended: review.recommended,
     featured: review.featured ?? false,
@@ -671,6 +820,10 @@ function mapSampleReviewForInsert(review: Review) {
     seo_title: review.title.slice(0, 60),
     seo_description: review.description.slice(0, 160),
     view_count: review.viewCount,
+    qa_checked_at:
+      manualReview.imageReviewed || manualReview.factQaReviewed
+        ? new Date().toISOString()
+        : null,
     published_at: review.publishedAt ?? null
   };
 }
@@ -1158,7 +1311,7 @@ export async function updateRecipeAction(formData: FormData) {
 
   const { data: existing, error: existingError } = await supabase
     .from("recipes")
-    .select("id, slug, title, image_url, published_at")
+    .select("id, slug, title, image_url, published_at, source")
     .eq("id", parsed.data.id)
     .single();
 
@@ -1254,6 +1407,17 @@ export async function updateRecipeAction(formData: FormData) {
     metadata: { slug: data.slug, previousSlug: existing.slug }
   });
 
+  if (parsed.data.status === "published" && existing.source === "ai_generated") {
+    await ensureSocialPostsForPublishedContent({
+      supabase,
+      contentType: "recipe",
+      contentId: data.id,
+      title: parsed.data.title,
+      slug: data.slug,
+      imageUrl: image.imageUrl
+    });
+  }
+
   revalidateRecipePaths(data.slug, existing.slug);
   redirect(`${redirectTo}?updated=1`);
 }
@@ -1280,6 +1444,7 @@ export async function updateRecipeStateAction(formData: FormData) {
   }
 
   let qaReportForPublish: ReturnType<typeof buildRecipeQaReport> | undefined;
+  let recipeRowForPublish: any | undefined;
 
   if (parsed.data.intent === "publish") {
     const { data: recipeRow, error: recipeError } = await supabase
@@ -1292,6 +1457,7 @@ export async function updateRecipeStateAction(formData: FormData) {
       redirect(`/admin/content/recipes?error=${encodeURIComponent(recipeError.message)}`);
     }
 
+    recipeRowForPublish = recipeRow;
     qaReportForPublish = buildRecipeQaReport(mapRecipeRowToQaCandidate(recipeRow));
     const qaError = getRecipeQaPublishError(qaReportForPublish);
 
@@ -1312,11 +1478,22 @@ export async function updateRecipeStateAction(formData: FormData) {
         : {})
     })
     .eq("id", parsed.data.id)
-    .select("id, slug")
+    .select("id, slug, title")
     .single();
 
   if (error) {
     redirect(`/admin/content/recipes?error=${encodeURIComponent(error.message)}`);
+  }
+
+  if (parsed.data.intent === "publish" && recipeRowForPublish?.source === "ai_generated") {
+    await ensureSocialPostsForPublishedContent({
+      supabase,
+      contentType: "recipe",
+      contentId: data.id,
+      title: data.title,
+      slug: data.slug,
+      imageUrl: recipeRowForPublish.image_url
+    });
   }
 
   await writeAuditLog(supabase, {
@@ -1351,9 +1528,12 @@ export async function createReviewAction(formData: FormData) {
     cuisineOrigin: getOptionalText(formData, "cuisineOrigin"),
     pros: getOptionalText(formData, "pros"),
     cons: getOptionalText(formData, "cons"),
+    qaNotes: getOptionalText(formData, "qaNotes"),
     tags: getOptionalText(formData, "tags"),
     imageUrl: getOptionalText(formData, "imageUrl"),
     imageAlt: getOptionalText(formData, "imageAlt"),
+    imageReviewed: formData.get("imageReviewed") === "on",
+    factQaReviewed: formData.get("factQaReviewed") === "on",
     status: String(formData.get("status") || "draft"),
     featured: formData.get("featured") === "on",
     recommended: formData.get("recommended") === "on"
@@ -1381,6 +1561,17 @@ export async function createReviewAction(formData: FormData) {
     supabase,
     folder: "reviews"
   });
+  const qa = buildReviewQaPayload({
+    parsed: parsed.data,
+    image
+  });
+
+  if (parsed.data.status === "published") {
+    const qaError = getReviewQaPublishError(qa.qaReport);
+    if (qaError) {
+      redirect(`/admin/content/reviews?error=${encodeURIComponent(qaError)}`);
+    }
+  }
   const slug = await makeUniqueSlug(supabase, "reviews", parsed.data.title);
 
   const { data, error } = await supabase
@@ -1405,6 +1596,12 @@ export async function createReviewAction(formData: FormData) {
       category: parsed.data.category,
       pros: parseLineList(parsed.data.pros || ""),
       cons: parseLineList(parsed.data.cons || ""),
+      image_reviewed: qa.imageReviewed,
+      fact_qa_reviewed: qa.factQaReviewed,
+      qa_notes: qa.qaNotes,
+      qa_report: qa.qaReport,
+      qa_checked_at:
+        qa.imageReviewed || qa.factQaReviewed ? new Date().toISOString() : null,
       tags: parseCsvList(parsed.data.tags || ""),
       recommended: parsed.data.recommended ?? false,
       featured: parsed.data.featured ?? false,
@@ -1454,9 +1651,12 @@ export async function updateReviewAction(formData: FormData) {
     cuisineOrigin: getOptionalText(formData, "cuisineOrigin"),
     pros: getOptionalText(formData, "pros"),
     cons: getOptionalText(formData, "cons"),
+    qaNotes: getOptionalText(formData, "qaNotes"),
     tags: getOptionalText(formData, "tags"),
     imageUrl: getOptionalText(formData, "imageUrl"),
     imageAlt: getOptionalText(formData, "imageAlt"),
+    imageReviewed: formData.get("imageReviewed") === "on",
+    factQaReviewed: formData.get("factQaReviewed") === "on",
     status: String(formData.get("status") || "draft"),
     featured: formData.get("featured") === "on",
     recommended: formData.get("recommended") === "on",
@@ -1487,7 +1687,7 @@ export async function updateReviewAction(formData: FormData) {
 
   const { data: existing, error: existingError } = await supabase
     .from("reviews")
-    .select("id, slug, title, image_url, published_at")
+    .select("id, slug, title, image_url, published_at, source")
     .eq("id", parsed.data.id)
     .single();
 
@@ -1501,6 +1701,17 @@ export async function updateReviewAction(formData: FormData) {
     folder: "reviews",
     existingImageUrl: existing.image_url
   });
+  const qa = buildReviewQaPayload({
+    parsed: parsed.data,
+    image
+  });
+
+  if (parsed.data.status === "published") {
+    const qaError = getReviewQaPublishError(qa.qaReport);
+    if (qaError) {
+      redirect(`${redirectTo}?error=${encodeURIComponent(qaError)}`);
+    }
+  }
   const slug =
     existing.title === parsed.data.title
       ? existing.slug
@@ -1528,6 +1739,12 @@ export async function updateReviewAction(formData: FormData) {
       category: parsed.data.category,
       pros: parseLineList(parsed.data.pros || ""),
       cons: parseLineList(parsed.data.cons || ""),
+      image_reviewed: qa.imageReviewed,
+      fact_qa_reviewed: qa.factQaReviewed,
+      qa_notes: qa.qaNotes,
+      qa_report: qa.qaReport,
+      qa_checked_at:
+        qa.imageReviewed || qa.factQaReviewed ? new Date().toISOString() : null,
       tags: parseCsvList(parsed.data.tags || ""),
       recommended: parsed.data.recommended ?? false,
       featured: parsed.data.featured ?? false,
@@ -1551,6 +1768,17 @@ export async function updateReviewAction(formData: FormData) {
     targetId: String(data.id),
     metadata: { slug: data.slug, previousSlug: existing.slug }
   });
+
+  if (parsed.data.status === "published" && existing.source === "ai_generated") {
+    await ensureSocialPostsForPublishedContent({
+      supabase,
+      contentType: "review",
+      contentId: data.id,
+      title: parsed.data.title,
+      slug: data.slug,
+      imageUrl: image.imageUrl
+    });
+  }
 
   revalidateReviewPaths(data.slug, existing.slug);
   redirect(`${redirectTo}?updated=1`);
@@ -1577,15 +1805,57 @@ export async function updateReviewStateAction(formData: FormData) {
     redirect("/admin/content/reviews?error=Supabase%20admin%20is%20not%20configured");
   }
 
+  let qaReportForPublish: ReturnType<typeof buildReviewQaReport> | undefined;
+  let reviewRowForPublish: any | undefined;
+
+  if (parsed.data.intent === "publish") {
+    const { data: reviewRow, error: reviewError } = await supabase
+      .from("reviews")
+      .select("*")
+      .eq("id", parsed.data.id)
+      .single();
+
+    if (reviewError) {
+      redirect(`/admin/content/reviews?error=${encodeURIComponent(reviewError.message)}`);
+    }
+
+    reviewRowForPublish = reviewRow;
+    qaReportForPublish = buildReviewQaReport(mapReviewRowToQaCandidate(reviewRow));
+    const qaError = getReviewQaPublishError(qaReportForPublish);
+
+    if (qaError) {
+      redirect(`/admin/content/reviews?error=${encodeURIComponent(qaError)}`);
+    }
+  }
+
   const { data, error } = await supabase
     .from("reviews")
-    .update(buildStatusUpdates(parsed.data.intent))
+    .update({
+      ...buildStatusUpdates(parsed.data.intent),
+      ...(parsed.data.intent === "publish"
+        ? {
+            qa_checked_at: new Date().toISOString(),
+            qa_report: qaReportForPublish
+          }
+        : {})
+    })
     .eq("id", parsed.data.id)
-    .select("id, slug")
+    .select("id, slug, title, image_url")
     .single();
 
   if (error) {
     redirect(`/admin/content/reviews?error=${encodeURIComponent(error.message)}`);
+  }
+
+  if (parsed.data.intent === "publish" && reviewRowForPublish?.source === "ai_generated") {
+    await ensureSocialPostsForPublishedContent({
+      supabase,
+      contentType: "review",
+      contentId: data.id,
+      title: data.title,
+      slug: data.slug,
+      imageUrl: data.image_url
+    });
   }
 
   await writeAuditLog(supabase, {

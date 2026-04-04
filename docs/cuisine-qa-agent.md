@@ -1,6 +1,6 @@
 # Cuisine QA Agent
 
-This document is internal-only. It defines the source-of-truth review pass for recipes before they move from `draft` to `published`.
+This document is internal-only. It defines the source-of-truth review pass for recipes and spicy-product reviews before they move from `draft` or `pending_review` to `published`.
 
 ## Goal
 
@@ -13,13 +13,14 @@ Catch the failures that make recipe pages feel untrustworthy:
 
 ## How We Use It
 
-Use this QA agent after recipe drafting and before publishing.
+Use this QA agent after drafting and before publishing.
 
 1. Run the deterministic recipe QA validator in the app.
-2. Resolve every blocker it returns.
-3. Run the cuisine QA agent prompt below against the full recipe payload.
-4. Manually verify the hero image against the actual dish.
-5. Record the outcome in the recipe's QA notes and only then mark the recipe publish-ready.
+2. Run the deterministic review QA validator for reviews and fix every blocker it returns.
+3. Resolve every blocker before changing status from `pending_review` to `published`.
+4. Run the cuisine QA agent prompt below against the full recipe payload when the content is cuisine-sensitive or AI-assisted.
+5. Manually verify the hero image against the actual dish or product.
+6. Record the outcome in the content item's QA notes and only then mark it publish-ready.
 
 ## Mandatory Checks
 
@@ -32,6 +33,8 @@ The QA reviewer must verify all of the following:
 - The method includes concrete sensory cues, not just vague instructions.
 - The page includes make-ahead, storage, reheating, serving, and FAQ support when applicable.
 - The alt text accurately describes the actual image, not the intended recipe.
+- Review pages include honest pros and cons, concrete flavor notes, and a credible product identity.
+- AI-generated recipes and reviews stay in `pending_review` until a human editor clears them.
 
 ## Recommended Prompt
 
@@ -69,6 +72,7 @@ Do not praise weak drafts. If the image looks wrong for the dish, say so plainly
 
 ## Notes
 
-- The deterministic validator blocks obvious failures in the admin publish flow.
+- The deterministic validators block obvious failures in the admin publish flow.
 - This agent layer is for deeper editorial and cuisine judgment, especially on AI-assisted drafts.
 - If there is tension between a catchy title and what the recipe actually is, prefer fixing the title or the image rather than hand-waving the mismatch.
+- Generated recipes and reviews should store their QA report at insert time so editors can see blocker context immediately.

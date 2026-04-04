@@ -4,6 +4,7 @@ import { createReviewAction, updateReviewStateAction } from "@/lib/actions/admin
 import { AdminPage } from "@/components/admin/admin-page";
 import { ContentTable } from "@/components/admin/content-table";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { buildReviewQaReport } from "@/lib/review-qa";
 import { getAdminReviews } from "@/lib/services/content";
 
 export default async function AdminReviewsPage({
@@ -33,7 +34,8 @@ export default async function AdminReviewsPage({
       <div className="panel-light p-6">
         <h2 className="font-display text-4xl text-charcoal">Create a review</h2>
         <p className="mt-3 text-sm leading-7 text-charcoal/65">
-          Use this for sauces, gear, books, or subscription boxes. Pros and cons are one item per line.
+          Use this for sauces, gear, books, or subscription boxes. Pros and cons are one item per
+          line, and published reviews must clear image plus fact QA before they can go live.
         </p>
         <form action={createReviewAction} encType="multipart/form-data" className="mt-6 space-y-4">
           <input name="title" placeholder="Title" className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember" />
@@ -93,6 +95,7 @@ export default async function AdminReviewsPage({
               <input name="tags" placeholder="tags, comma separated" className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember" />
               <select name="status" className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember">
                 <option value="draft">draft</option>
+                <option value="pending_review">pending review</option>
                 <option value="published">published</option>
               </select>
               <label className="flex items-center gap-3 text-sm text-charcoal/70">
@@ -105,6 +108,37 @@ export default async function AdminReviewsPage({
               </label>
             </div>
           </div>
+          <section className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.03] p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="eyebrow">QA gate</p>
+                <h3 className="mt-3 font-display text-3xl text-charcoal">Publish review guardrails</h3>
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/65">
+                  Reviews need both a product-image signoff and a fact or tasting signoff before
+                  the publish action will clear.
+                </p>
+              </div>
+              <div className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">
+                New reviews start unreviewed
+              </div>
+            </div>
+            <div className="mt-5 grid gap-4 md:grid-cols-2">
+              <label className="flex items-center gap-3 rounded-2xl border border-charcoal/10 px-4 py-3 text-sm text-charcoal/70">
+                <input type="checkbox" name="imageReviewed" />
+                Hero or product image manually confirmed
+              </label>
+              <label className="flex items-center gap-3 rounded-2xl border border-charcoal/10 px-4 py-3 text-sm text-charcoal/70">
+                <input type="checkbox" name="factQaReviewed" />
+                Tasting notes, claims, and facts reviewed
+              </label>
+            </div>
+            <textarea
+              name="qaNotes"
+              placeholder="Internal QA notes, sourcing concerns, or tasting validation details"
+              rows={4}
+              className="mt-4 w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
+            />
+          </section>
           {searchParams?.error ? <p className="text-sm text-rose-600">{searchParams.error}</p> : null}
           {searchParams?.created ? <p className="text-sm text-emerald-700">Review created successfully.</p> : null}
           {searchParams?.updated ? <p className="text-sm text-emerald-700">Review updated successfully.</p> : null}
@@ -114,8 +148,11 @@ export default async function AdminReviewsPage({
         </form>
       </div>
       <div className="grid gap-4">
-        {reviews.map((review) => (
-          <article key={review.id} className="panel-light p-6">
+        {reviews.map((review) => {
+          const qaReport = buildReviewQaReport(review);
+
+          return (
+            <article key={review.id} className="panel-light p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="eyebrow">
@@ -134,7 +171,19 @@ export default async function AdminReviewsPage({
               <span>Rating: {review.rating}</span>
               <span>Recommended: {review.recommended ? "Yes" : "No"}</span>
               <span>Featured: {review.featured ? "Yes" : "No"}</span>
+              <span>Image reviewed: {review.imageReviewed ? "Yes" : "No"}</span>
+              <span>Fact QA: {review.factQaReviewed ? "Yes" : "No"}</span>
+              <span>QA: {qaReport.status}</span>
             </div>
+            {qaReport.blockers.length ? (
+              <div className="mt-4 rounded-[1.5rem] border border-rose-200 bg-rose-50/80 p-4 text-sm text-rose-700">
+                {qaReport.blockers[0]?.message}
+              </div>
+            ) : qaReport.warnings.length ? (
+              <div className="mt-4 rounded-[1.5rem] border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-700">
+                {qaReport.warnings[0]?.message}
+              </div>
+            ) : null}
             <div className="mt-5 flex flex-wrap gap-3">
               <Link
                 href={`/admin/content/reviews/${review.id}`}
@@ -162,8 +211,9 @@ export default async function AdminReviewsPage({
                 </button>
               </form>
             </div>
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </div>
     </AdminPage>
   );
