@@ -239,12 +239,105 @@ function stripCodeFence(value: string) {
   return value.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
 }
 
-function parseJsonResponse<T>(value: string): T | null {
-  try {
-    return JSON.parse(stripCodeFence(value)) as T;
-  } catch {
+function extractFirstJsonPayload(value: string) {
+  const cleaned = stripCodeFence(value);
+  const startIndex = cleaned.search(/[\{\[]/);
+
+  if (startIndex === -1) {
     return null;
   }
+
+  const openingChar = cleaned[startIndex];
+  const closingChar = openingChar === "{" ? "}" : "]";
+  let depth = 0;
+  let inString = false;
+  let isEscaped = false;
+
+  for (let index = startIndex; index < cleaned.length; index += 1) {
+    const char = cleaned[index];
+
+    if (inString) {
+      if (isEscaped) {
+        isEscaped = false;
+        continue;
+      }
+
+      if (char === "\\") {
+        isEscaped = true;
+        continue;
+      }
+
+      if (char === "\"") {
+        inString = false;
+      }
+
+      continue;
+    }
+
+    if (char === "\"") {
+      inString = true;
+      continue;
+    }
+
+    if (char === openingChar) {
+      depth += 1;
+      continue;
+    }
+
+    if (char === closingChar) {
+      depth -= 1;
+
+      if (depth === 0) {
+        return cleaned.slice(startIndex, index + 1);
+      }
+    }
+  }
+
+  return null;
+}
+
+function parseJsonResponse<T>(value: string): T | null {
+  const cleaned = stripCodeFence(value);
+
+  try {
+    return JSON.parse(cleaned) as T;
+  } catch {
+    const extracted = extractFirstJsonPayload(cleaned);
+
+    if (!extracted) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(extracted) as T;
+    } catch {
+      return null;
+    }
+  }
+}
+
+function getAnthropicTextOutput(
+  content: Array<{ type: string; text?: string }>
+) {
+  return content
+    .map((item) => (item.type === "text" ? item.text || "" : ""))
+    .join("\n")
+    .trim();
+}
+
+function completeJsonPrefill(value: string) {
+  const trimmed = value.trimStart();
+
+  if (!trimmed) {
+    return "";
+  }
+
+  return trimmed.startsWith("{") || trimmed.startsWith("[") ? trimmed : `{${trimmed}`;
+}
+
+function summarizeModelOutput(value: string) {
+  const excerpt = stripCodeFence(value).replace(/\s+/g, " ").trim();
+  return excerpt.slice(0, 220);
 }
 
 function validateGeneratedPayload<T extends GenerationType>(
@@ -377,14 +470,15 @@ async function runEditorialQaReview(
       {
         role: "user",
         content: buildEditorialQaPrompt(type, payload)
+      },
+      {
+        role: "assistant",
+        content: "{"
       }
     ]
   });
 
-  const output = response.content
-    .map((item) => (item.type === "text" ? item.text : ""))
-    .join("\n")
-    .trim();
+  const output = completeJsonPrefill(getAnthropicTextOutput(response.content));
 
   return parseJsonResponse<AgentQaReview>(output);
 }
@@ -864,14 +958,15 @@ async function generateStructuredDraft(
       {
         role: "user",
         content: buildPrompt(type, cuisine, index)
+      },
+      {
+        role: "assistant",
+        content: "{"
       }
     ]
   });
 
-  const output = response.content
-    .map((item) => (item.type === "text" ? item.text : ""))
-    .join("\n")
-    .trim();
+  const output = completeJsonPrefill(getAnthropicTextOutput(response.content));
 
   return {
     payload: parseJsonResponse<Record<string, any>>(output),
@@ -1141,6 +1236,9 @@ export async function runGenerationPipeline(
       throw new Error(jobError.message);
     }
 
+    let lastOutput = "";
+    let lastTokensUsed = 0;
+
     try {
       await supabase
         .from("content_generation_jobs")
@@ -1158,6 +1256,8 @@ export async function runGenerationPipeline(
         cuisine,
         index
       );
+      lastOutput = generated.output;
+      lastTokensUsed = generated.tokensUsed;
 
       const inserted = await insertGeneratedContent(
         supabase,
@@ -1176,7 +1276,7 @@ export async function runGenerationPipeline(
           model_used: ANTHROPIC_TEXT_MODEL,
           result_id: inserted.resultId,
           result_type: inserted.resultType,
-          tokens_used: generated.tokensUsed,
+          tokens_used: lastTokensUsed,
           completed_at: new Date().toISOString()
         })
         .eq("id", job.id);
@@ -1190,12 +1290,17 @@ export async function runGenerationPipeline(
         publishAt: inserted.publishAt
       });
     } catch (error) {
+      const message = error instanceof Error ? error.message : "Generation failed";
       await supabase
         .from("content_generation_jobs")
         .update({
           status: "failed",
           model_used: ANTHROPIC_TEXT_MODEL,
-          error_message: error instanceof Error ? error.message : "Generation failed",
+          error_message:
+            typeof lastOutput === "string" && lastOutput.trim()
+              ? `${message} Output excerpt: ${summarizeModelOutput(lastOutput)}`
+              : message,
+          tokens_used: lastTokensUsed,
           completed_at: new Date().toISOString()
         })
         .eq("id", job.id);
@@ -1204,7 +1309,7 @@ export async function runGenerationPipeline(
         id: job.id,
         type: generationType,
         scheduledCuisine: cuisine,
-        error: error instanceof Error ? error.message : "Generation failed"
+        error: message
       });
     }
   }
