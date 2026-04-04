@@ -15,6 +15,7 @@ export const ANALYTICS_EVENTS = {
   commentPosted: "comment_posted",
   userFollow: "user_follow",
   searchPerformed: "search_performed",
+  adSlotRendered: "ad_slot_rendered",
   heatScoreMilestone: "heat_score_milestone",
   scrollDepth: "scroll_depth"
 } as const;

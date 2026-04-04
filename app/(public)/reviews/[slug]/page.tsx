@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { AdScript } from "@/components/ads/ad-script";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { CommentSection } from "@/components/community/comment-section";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { AffiliateLink } from "@/components/content/affiliate-link";
@@ -14,6 +16,7 @@ import {
   getReviewAffiliateRecommendations,
   resolveAffiliateLink
 } from "@/lib/affiliates";
+import { getAdRuntimeConfig } from "@/lib/ads";
 import { getMerchThemeClasses } from "@/lib/merch";
 import { buildMetadata } from "@/lib/seo";
 import { getFeaturedMerchProducts, getReview } from "@/lib/services/content";
@@ -75,9 +78,13 @@ export default async function ReviewPage({
     }))
     .filter((entry): entry is { offer: (typeof relatedOffers)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
   const merchPreview = await getFeaturedMerchProducts(2);
+  const ads = await getAdRuntimeConfig();
 
   return (
     <article className="container-shell py-16">
+      {ads.enabled && ads.clientId && ads.slotIds.reviewInline ? (
+        <AdScript clientId={ads.clientId} />
+      ) : null}
       <ReviewSchema review={review} />
       <BreadcrumbSchema
         items={[
@@ -233,6 +240,19 @@ export default async function ReviewPage({
           </div>
         </aside>
       </div>
+      {ads.enabled && ads.clientId && ads.slotIds.reviewInline ? (
+        <div className="mt-10 max-w-4xl">
+          <AdSlot
+            clientId={ads.clientId}
+            slotId={ads.slotIds.reviewInline}
+            slotName="review_detail_inline"
+            placement="review_detail"
+            contentType="review"
+            contentId={review.id}
+            contentSlug={review.slug}
+          />
+        </div>
+      ) : null}
       <div className="mt-12">
         <CommentSection
           contentType="review"

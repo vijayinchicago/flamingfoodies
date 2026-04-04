@@ -1,11 +1,14 @@
 import Image from "next/image";
 import { notFound } from "next/navigation";
 
+import { AdScript } from "@/components/ads/ad-script";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { CommentSection } from "@/components/community/comment-section";
 import { PinterestSaveButton } from "@/components/content/pinterest-save-button";
 import { ShareBar } from "@/components/content/share-bar";
 import { ArticleSchema } from "@/components/schema/article-schema";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
+import { getAdRuntimeConfig } from "@/lib/ads";
 import { buildMetadata } from "@/lib/seo";
 import { absoluteUrl, formatDate, markdownToHtml } from "@/lib/utils";
 import { getBlogPost, getBlogPosts } from "@/lib/services/content";
@@ -47,9 +50,13 @@ export default async function BlogPostPage({
   if (!post) notFound();
 
   const html = await markdownToHtml(post.content);
+  const ads = await getAdRuntimeConfig();
 
   return (
     <article className="container-shell py-16">
+      {ads.enabled && ads.clientId && ads.slotIds.blogInline ? (
+        <AdScript clientId={ads.clientId} />
+      ) : null}
       <ArticleSchema post={post} />
       <BreadcrumbSchema
         items={[
@@ -102,6 +109,19 @@ export default async function BlogPostPage({
           contentSlug={post.slug}
         />
       </div>
+      {ads.enabled && ads.clientId && ads.slotIds.blogInline ? (
+        <div className="mt-8 max-w-4xl">
+          <AdSlot
+            clientId={ads.clientId}
+            slotId={ads.slotIds.blogInline}
+            slotName="blog_post_inline"
+            placement="blog_post"
+            contentType="blog_post"
+            contentId={post.id}
+            contentSlug={post.slug}
+          />
+        </div>
+      ) : null}
       <div
         className="prose-guide mt-12"
         dangerouslySetInnerHTML={{ __html: html }}

@@ -450,3 +450,87 @@ function buildSearchAnalyticsFromRows(
       .slice(0, 8)
   };
 }
+
+export async function getAdAnalytics(windowDays = 30) {
+  const fallbackRows = getFallbackArray([
+    {
+      occurred_at: isoDaysAgo(1),
+      path: "/reviews/melindas-ghost-pepper-wing-sauce",
+      metadata: {
+        slotName: "review_detail_inline",
+        placement: "review_detail"
+      }
+    },
+    {
+      occurred_at: isoDaysAgo(2),
+      path: "/blog/best-hot-sauces-for-taco-night",
+      metadata: {
+        slotName: "blog_post_inline",
+        placement: "blog_post"
+      }
+    },
+    {
+      occurred_at: isoDaysAgo(3),
+      path: "/reviews",
+      metadata: {
+        slotName: "review_archive_feature",
+        placement: "review_archive"
+      }
+    }
+  ]);
+
+  if (!flags.hasSupabaseAdmin) {
+    return buildAdAnalyticsFromRows(fallbackRows);
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return buildAdAnalyticsFromRows(fallbackRows);
+  }
+
+  const { data } = await supabase
+    .from("telemetry_events")
+    .select("occurred_at, path, metadata")
+    .eq("event_name", "ad_slot_rendered")
+    .gte("occurred_at", isoDaysAgo(windowDays))
+    .order("occurred_at", { ascending: false });
+
+  return buildAdAnalyticsFromRows(data ?? []);
+}
+
+function buildAdAnalyticsFromRows(
+  rows: Array<{
+    occurred_at: string;
+    path?: string | null;
+    metadata?: Record<string, unknown> | null;
+  }>
+) {
+  const slotCounts = new Map<string, number>();
+  const placementCounts = new Map<string, number>();
+  const pathCounts = new Map<string, number>();
+
+  for (const row of rows) {
+    const slotName = String(row.metadata?.slotName || "unknown_slot");
+    const placement = String(row.metadata?.placement || "unknown");
+    const path = row.path || "/";
+
+    slotCounts.set(slotName, (slotCounts.get(slotName) ?? 0) + 1);
+    placementCounts.set(placement, (placementCounts.get(placement) ?? 0) + 1);
+    pathCounts.set(path, (pathCounts.get(path) ?? 0) + 1);
+  }
+
+  return {
+    totalImpressions: rows.length,
+    topSlots: Array.from(slotCounts.entries())
+      .map(([slotName, count]) => ({ slotName, count }))
+      .sort((left, right) => right.count - left.count)
+      .slice(0, 6),
+    topPlacements: Array.from(placementCounts.entries())
+      .map(([placement, count]) => ({ placement, count }))
+      .sort((left, right) => right.count - left.count),
+    topPages: Array.from(pathCounts.entries())
+      .map(([path, count]) => ({ path, count }))
+      .sort((left, right) => right.count - left.count)
+      .slice(0, 8)
+  };
+}

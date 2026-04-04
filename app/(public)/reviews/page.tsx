@@ -1,10 +1,13 @@
 import Link from "next/link";
 
+import { AdScript } from "@/components/ads/ad-script";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { AffiliateLink } from "@/components/content/affiliate-link";
 import { ReviewCard } from "@/components/cards/review-card";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
+import { getAdRuntimeConfig } from "@/lib/ads";
 import {
   HOT_SAUCE_SPOTLIGHT_KEYS,
   getAffiliateLinkEntries,
@@ -23,6 +26,7 @@ export const metadata = buildMetadata({
 
 export default async function ReviewsIndexPage() {
   const reviews = await getReviews();
+  const ads = await getAdRuntimeConfig();
   const hotSauceLinks = getAffiliateLinkEntries(HOT_SAUCE_SPOTLIGHT_KEYS).slice(0, 3);
   const resolvedHotSauceLinks = hotSauceLinks
     .map((link) => ({
@@ -36,6 +40,9 @@ export default async function ReviewsIndexPage() {
 
   return (
     <section className="container-shell py-16">
+      {ads.enabled && ads.clientId && ads.slotIds.reviewArchive ? (
+        <AdScript clientId={ads.clientId} />
+      ) : null}
       <ItemListSchema
         name="FlamingFoodies review archive"
         items={reviews.map((review) => ({
@@ -87,6 +94,17 @@ export default async function ReviewsIndexPage() {
           ))}
         </div>
       </div>
+      {ads.enabled && ads.clientId && ads.slotIds.reviewArchive && reviews.length ? (
+        <div className="mt-10 max-w-4xl">
+          <AdSlot
+            clientId={ads.clientId}
+            slotId={ads.slotIds.reviewArchive}
+            slotName="review_archive_feature"
+            placement="review_archive"
+            className="bg-white/[0.04]"
+          />
+        </div>
+      ) : null}
       <div className="mt-10 grid gap-6 lg:grid-cols-2">
         {reviews.map((review) => (
           <ReviewCard key={review.id} review={review} />

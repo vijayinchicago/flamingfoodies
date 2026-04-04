@@ -25,6 +25,11 @@ const envSchema = z.object({
   NEXT_PUBLIC_PLAUSIBLE_DOMAIN: z.string().optional(),
   NEXT_PUBLIC_ADSENSE_ID: z.string().optional(),
   NEXT_PUBLIC_SHOW_ADS: z.string().optional(),
+  NEXT_PUBLIC_ADSENSE_BLOG_INLINE_SLOT: z.string().optional(),
+  NEXT_PUBLIC_ADSENSE_BLOG_ARCHIVE_SLOT: z.string().optional(),
+  NEXT_PUBLIC_ADSENSE_REVIEW_INLINE_SLOT: z.string().optional(),
+  NEXT_PUBLIC_ADSENSE_REVIEW_ARCHIVE_SLOT: z.string().optional(),
+  ADS_TXT_EXTRA_LINES: z.string().optional(),
   KV_REST_API_URL: z.string().optional(),
   KV_REST_API_TOKEN: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
@@ -61,6 +66,7 @@ export const flags = {
   hasAnthropic: Boolean(env.ANTHROPIC_API_KEY),
   hasUpstash: Boolean(env.KV_REST_API_URL && env.KV_REST_API_TOKEN),
   hasBuffer: Boolean(env.BUFFER_ACCESS_TOKEN),
+  hasAdsense: Boolean(env.NEXT_PUBLIC_ADSENSE_ID && env.NEXT_PUBLIC_SHOW_ADS === "true"),
   allowSampleFallbacks:
     env.ALLOW_SAMPLE_FALLBACKS === "true" || process.env.NODE_ENV !== "production",
   mockAdminEnabled:

@@ -40,6 +40,7 @@ const navSections = [
       { href: "/admin/analytics/pirate", label: "Pirate metrics" },
       { href: "/admin/analytics/shares", label: "Share analytics" },
       { href: "/admin/analytics/search", label: "Search analytics" },
+      { href: "/admin/analytics/ads", label: "Ads analytics" },
       { href: "/admin/analytics/traffic", label: "Traffic" },
       { href: "/admin/analytics/affiliate", label: "Affiliate" },
       { href: "/admin/analytics/content", label: "Content analytics" }

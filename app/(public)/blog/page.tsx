@@ -1,6 +1,9 @@
+import { AdScript } from "@/components/ads/ad-script";
+import { AdSlot } from "@/components/ads/ad-slot";
 import { ContentCard } from "@/components/cards/content-card";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
+import { getAdRuntimeConfig } from "@/lib/ads";
 import { buildMetadata } from "@/lib/seo";
 import { getBlogPosts } from "@/lib/services/content";
 import { absoluteUrl } from "@/lib/utils";
@@ -14,9 +17,13 @@ export const metadata = buildMetadata({
 
 export default async function BlogIndexPage() {
   const posts = await getBlogPosts();
+  const ads = await getAdRuntimeConfig();
 
   return (
     <section className="container-shell py-16">
+      {ads.enabled && ads.clientId && ads.slotIds.blogArchive ? (
+        <AdScript clientId={ads.clientId} />
+      ) : null}
       <ItemListSchema
         name="FlamingFoodies blog archive"
         items={posts.map((post) => ({
@@ -30,6 +37,17 @@ export default async function BlogIndexPage() {
         title="Culture, gear, and sauce intelligence."
         copy="This layer carries the editorial voice, long-tail SEO, and authority-building content that feeds the rest of the platform."
       />
+      {ads.enabled && ads.clientId && ads.slotIds.blogArchive && posts.length ? (
+        <div className="mt-10 max-w-4xl">
+          <AdSlot
+            clientId={ads.clientId}
+            slotId={ads.slotIds.blogArchive}
+            slotName="blog_archive_feature"
+            placement="blog_archive"
+            className="bg-white/[0.04]"
+          />
+        </div>
+      ) : null}
       <div className="mt-10 grid gap-6 lg:grid-cols-2">
         {posts.length ? (
           posts.map((post) => (
