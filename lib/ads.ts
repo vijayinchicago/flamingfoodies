@@ -62,11 +62,12 @@ export async function getAdRuntimeConfig() {
   const enabledByEnv = flags.hasAdsense;
   const hasManualSlots = Object.values(slotIds).some(Boolean);
 
-  if (!enabledByEnv || !env.NEXT_PUBLIC_ADSENSE_ID || !hasManualSlots) {
+  if (!enabledByEnv || !env.NEXT_PUBLIC_ADSENSE_ID) {
     return {
       enabled: false,
       clientId: env.NEXT_PUBLIC_ADSENSE_ID,
-      slotIds
+      slotIds,
+      manualSlotsEnabled: false
     };
   }
 
@@ -90,6 +91,7 @@ export async function getAdRuntimeConfig() {
   return {
     enabled: showAds,
     clientId: env.NEXT_PUBLIC_ADSENSE_ID,
-    slotIds
+    slotIds,
+    manualSlotsEnabled: showAds && hasManualSlots
   };
 }

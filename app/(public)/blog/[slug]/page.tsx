@@ -54,7 +54,7 @@ export default async function BlogPostPage({
 
   return (
     <article className="container-shell py-16">
-      {ads.enabled && ads.clientId && ads.slotIds.blogInline ? (
+      {ads.enabled && ads.clientId ? (
         <AdScript clientId={ads.clientId} />
       ) : null}
       <ArticleSchema post={post} />
@@ -109,7 +109,7 @@ export default async function BlogPostPage({
           contentSlug={post.slug}
         />
       </div>
-      {ads.enabled && ads.clientId && ads.slotIds.blogInline ? (
+      {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.blogInline ? (
         <div className="mt-8 max-w-4xl">
           <AdSlot
             clientId={ads.clientId}

@@ -21,7 +21,7 @@ export default async function BlogIndexPage() {
 
   return (
     <section className="container-shell py-16">
-      {ads.enabled && ads.clientId && ads.slotIds.blogArchive ? (
+      {ads.enabled && ads.clientId ? (
         <AdScript clientId={ads.clientId} />
       ) : null}
       <ItemListSchema
@@ -37,7 +37,7 @@ export default async function BlogIndexPage() {
         title="Culture, gear, and sauce intelligence."
         copy="This layer carries the editorial voice, long-tail SEO, and authority-building content that feeds the rest of the platform."
       />
-      {ads.enabled && ads.clientId && ads.slotIds.blogArchive && posts.length ? (
+      {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.blogArchive && posts.length ? (
         <div className="mt-10 max-w-4xl">
           <AdSlot
             clientId={ads.clientId}

@@ -82,7 +82,7 @@ export default async function ReviewPage({
 
   return (
     <article className="container-shell py-16">
-      {ads.enabled && ads.clientId && ads.slotIds.reviewInline ? (
+      {ads.enabled && ads.clientId ? (
         <AdScript clientId={ads.clientId} />
       ) : null}
       <ReviewSchema review={review} />
@@ -240,7 +240,7 @@ export default async function ReviewPage({
           </div>
         </aside>
       </div>
-      {ads.enabled && ads.clientId && ads.slotIds.reviewInline ? (
+      {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.reviewInline ? (
         <div className="mt-10 max-w-4xl">
           <AdSlot
             clientId={ads.clientId}

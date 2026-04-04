@@ -40,7 +40,7 @@ export default async function ReviewsIndexPage() {
 
   return (
     <section className="container-shell py-16">
-      {ads.enabled && ads.clientId && ads.slotIds.reviewArchive ? (
+      {ads.enabled && ads.clientId ? (
         <AdScript clientId={ads.clientId} />
       ) : null}
       <ItemListSchema
@@ -94,7 +94,7 @@ export default async function ReviewsIndexPage() {
           ))}
         </div>
       </div>
-      {ads.enabled && ads.clientId && ads.slotIds.reviewArchive && reviews.length ? (
+      {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.reviewArchive && reviews.length ? (
         <div className="mt-10 max-w-4xl">
           <AdSlot
             clientId={ads.clientId}
