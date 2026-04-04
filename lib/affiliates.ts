@@ -40,15 +40,26 @@ export interface ResolvedAffiliateLink extends AffiliateLinkEntry {
 
 const AMAZON_TAG = env.NEXT_PUBLIC_AMAZON_TAG || "flamingfoodies-20";
 const SKIMLINKS_ENABLED = Boolean(env.NEXT_PUBLIC_SKIMLINKS_ID);
+const AMAZON_ONLY_MODE = true;
 
 export const AFFILIATE_DISCLOSURE_SUMMARY =
   "Some outbound links are affiliate links. If you buy through them, FlamingFoodies may earn a commission at no extra cost to you.";
 
 export const AFFILIATE_DISCLOSURE_DETAIL =
-  "FlamingFoodies may earn commissions from qualifying purchases made through commerce links, including Amazon and selected retail partners. We only want those links next to content where they help the reader cook, compare, or buy more confidently.";
+  "FlamingFoodies may earn commissions from qualifying purchases made through Amazon commerce links. We only want those links next to content where they help the reader cook, compare, or buy more confidently.";
 
 export function buildAmazonSearchUrl(query: string) {
   return `https://www.amazon.com/s?k=${encodeURIComponent(query)}&tag=${AMAZON_TAG}`;
+}
+
+export function buildAffiliateDestinationUrl(
+  entry: AffiliateLinkEntry | AffiliateLinkDefinition
+) {
+  if (AMAZON_ONLY_MODE && entry.partner !== "amazon") {
+    return buildAmazonSearchUrl(entry.product);
+  }
+
+  return entry.url;
 }
 
 function buildAffiliateRedirectHref(
@@ -455,6 +466,10 @@ export function getAffiliateMonetizationStrategy(
     hasSkimlinksJavascript?: boolean;
   }
 ): AffiliateMonetizationStrategy {
+  if (AMAZON_ONLY_MODE) {
+    return "amazon_tag_redirect";
+  }
+
   const hasSkimlinksJavascript =
     options?.hasSkimlinksJavascript ?? SKIMLINKS_ENABLED;
 
@@ -505,7 +520,7 @@ export function resolveAffiliateLink(
     ...entry,
     href:
       monetizationStrategy === "skimlinks_javascript"
-        ? entry.url
+        ? buildAffiliateDestinationUrl(entry)
         : buildAffiliateRedirectHref(partnerKey, options?.sourcePage, options?.position),
     isExternal: monetizationStrategy === "skimlinks_javascript",
     monetizationStrategy,

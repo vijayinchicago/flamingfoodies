@@ -49,26 +49,35 @@ export default async function ReviewsIndexPage() {
       />
       <SectionHeading
         eyebrow="Hot Sauces"
-        title="Heat-tested buying advice that can monetize without losing trust."
-        copy="Standardized scoring, flavor notes, and use-case guidance make the review layer useful enough to earn affiliate clicks and push the shop harder."
+        title="The bottle guide for everyday pours, giftable picks, and serious heat."
+        copy="Compare hot sauces by flavor, heat, and real-world use so it feels obvious which bottle belongs on eggs, wings, tacos, pizza, or the next gift box."
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="panel p-8">
-          <p className="eyebrow">Shelf upgrade</p>
+          <p className="eyebrow">Hot sauce map</p>
           <h2 className="mt-3 font-display text-4xl text-cream">
-            More bottles, more useful reviews, stronger commerce intent.
+            Find the right bottle faster, not just the loudest one.
           </h2>
           <p className="mt-4 text-sm leading-7 text-cream/75">
-            This page should feel like the trust layer behind the shop. Once readers are
-            comparing sauces, it should be easy to keep moving toward offers that match their taste.
+            The strongest hot-sauce UX is part tasting guide and part buying guide. Readers should
+            be able to tell at a glance which sauces are everyday staples, which ones hit harder,
+            and which ones make the best gifts.
           </p>
-          <Link
-            href="/shop"
-            className="mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
-          >
-            Browse the storefront
-          </Link>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/shop"
+              className="inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
+            >
+              Shop the full sauce shelf
+            </Link>
+            <Link
+              href="/subscriptions"
+              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            >
+              Explore gift sets
+            </Link>
+          </div>
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           {resolvedHotSauceLinks.map(({ link, resolved }) => (
@@ -84,7 +93,7 @@ export default async function ReviewsIndexPage() {
                 position="index-callout"
                 className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
               >
-                Open offer
+                View on Amazon
               </AffiliateLink>
             </article>
           ))}

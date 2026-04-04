@@ -121,7 +121,7 @@ export default async function ShopPage() {
                   position="merch-sidebar"
                   className="mt-5 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 text-sm font-semibold text-white"
                 >
-                  Open offer
+                  View on Amazon
                 </AffiliateLink>
               </article>
             ))}
@@ -149,7 +149,7 @@ export default async function ShopPage() {
                   position="hot-sauce-column"
                   className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                 >
-                  Shop this pick
+                  View on Amazon
                 </AffiliateLink>
               </article>
             ))}
@@ -174,7 +174,7 @@ export default async function ShopPage() {
                   position="gear-column"
                   className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                 >
-                  Shop this pick
+                  View on Amazon
                 </AffiliateLink>
               </article>
             ))}
@@ -199,7 +199,7 @@ export default async function ShopPage() {
                   position="pantry-column"
                   className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                 >
-                  Shop this pick
+                  View on Amazon
                 </AffiliateLink>
               </article>
             ))}
@@ -223,7 +223,7 @@ export default async function ShopPage() {
                 position="subscription-grid"
                 className="mt-5 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-4 py-2 text-sm font-semibold text-white"
               >
-                Open offer
+                View on Amazon
               </AffiliateLink>
             </article>
           ))}

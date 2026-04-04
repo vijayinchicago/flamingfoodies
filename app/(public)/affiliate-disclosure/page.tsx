@@ -3,7 +3,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata = buildMetadata({
   title: "Affiliate Disclosure | FlamingFoodies",
   description:
-    "How FlamingFoodies uses affiliate links, commerce partners, and product recommendations across recipes, reviews, and shop pages.",
+    "How FlamingFoodies uses Amazon affiliate links and product recommendations across recipes, reviews, and shop pages.",
   path: "/affiliate-disclosure"
 });
 
@@ -18,8 +18,8 @@ export default function AffiliateDisclosurePage() {
         <div className="mt-8 space-y-5 text-sm leading-8 text-cream/78 sm:text-base">
           <p>
             FlamingFoodies may earn a commission when you buy through some outbound links on this
-            site. That includes Amazon links and selected retail partners featured in recipes,
-            reviews, gift guides, and shop collections.
+            site. Right now, those commerce links route through Amazon placements featured in
+            recipes, reviews, gift guides, and shop collections.
           </p>
           <p>
             Those commissions do not change the price you pay. The goal is to keep commerce links

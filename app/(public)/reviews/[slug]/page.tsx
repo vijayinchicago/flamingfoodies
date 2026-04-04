@@ -158,7 +158,7 @@ export default async function ReviewPage({
           <div className="panel p-6">
             <h2 className="font-display text-3xl text-cream">Buy this if</h2>
             <p className="mt-4 text-sm leading-7 text-cream/75">
-              You want a review framework with enough depth to justify an affiliate click.
+              You want a bottle recommendation that maps cleanly to how you actually cook and eat.
             </p>
             {resolvedPrimaryOffer ? (
               <AffiliateLink
@@ -172,7 +172,7 @@ export default async function ReviewPage({
                 contentSlug={review.slug}
                 className="mt-6 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 font-semibold text-white"
               >
-                View partner offer
+                View on Amazon
               </AffiliateLink>
             ) : (
               <AffiliateLink
@@ -181,12 +181,12 @@ export default async function ReviewPage({
                 productName={review.productName}
                 className="mt-6 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 font-semibold text-white"
               >
-                View partner offer
+                View on Amazon
               </AffiliateLink>
             )}
           </div>
           <div className="panel p-6">
-            <h2 className="font-display text-3xl text-cream">More shelf builders</h2>
+            <h2 className="font-display text-3xl text-cream">More Amazon shelf builders</h2>
             <div className="mt-4 space-y-4">
               {resolvedRelatedOffers.map(({ offer, resolved }) => (
                 <article
@@ -207,7 +207,7 @@ export default async function ReviewPage({
                     contentSlug={review.slug}
                     className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                   >
-                    Open offer
+                    View on Amazon
                   </AffiliateLink>
                 </article>
               ))}

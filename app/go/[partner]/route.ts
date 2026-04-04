@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { AFFILIATE_LINKS } from "@/lib/affiliates";
+import { AFFILIATE_LINKS, buildAffiliateDestinationUrl } from "@/lib/affiliates";
 import { logAffiliateClick } from "@/lib/services/affiliates";
 
 export async function GET(
@@ -20,7 +20,7 @@ export async function GET(
     position: url.searchParams.get("position")
   });
 
-  return NextResponse.redirect(link.url, {
+  return NextResponse.redirect(buildAffiliateDestinationUrl(link), {
     status: 307,
     headers: {
       "Referrer-Policy": "no-referrer"

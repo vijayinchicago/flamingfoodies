@@ -787,7 +787,7 @@ export default async function RecipePage({
                         contentSlug={recipe.slug}
                         className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                       >
-                        Shop this pick
+                        View on Amazon
                       </AffiliateLink>
                     </article>
                   ))}

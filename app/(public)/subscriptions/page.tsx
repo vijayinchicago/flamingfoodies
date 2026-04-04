@@ -55,7 +55,7 @@ export default function SubscriptionsPage() {
               position="subscription-grid"
               className="mt-8 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-6 py-3 font-semibold text-white"
             >
-              Open offer
+              View on Amazon
             </AffiliateLink>
           </article>
         ))}

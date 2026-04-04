@@ -83,7 +83,7 @@ export default function QuizResultPage({
               position="quiz-result"
               className="rounded-full border border-white/15 px-6 py-3 font-semibold text-cream"
             >
-              See product picks
+              See Amazon picks
             </AffiliateLink>
           ) : null}
         </div>

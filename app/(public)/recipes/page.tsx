@@ -81,7 +81,7 @@ export default async function RecipesIndexPage() {
                 position="index-callout"
                 className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
               >
-                Open offer
+                View on Amazon
               </AffiliateLink>
             </article>
           ))}
