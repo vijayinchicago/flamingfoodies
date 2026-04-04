@@ -5,6 +5,7 @@ import {
   runSocialSchedulerAction,
   triggerGenerationAction
 } from "@/lib/actions/admin-automation";
+import { AdminSubmitButton } from "@/components/admin/admin-submit-button";
 import { AdminPage } from "@/components/admin/admin-page";
 
 const triggers = [
@@ -86,9 +87,11 @@ export default function AdminTriggerPage({
                 defaultValue={trigger.qty}
                 className="w-24 rounded-full border border-charcoal/10 px-4 py-2 text-sm outline-none focus:border-ember"
               />
-              <button className="rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 text-sm font-semibold text-white">
-                Generate now
-              </button>
+              <AdminSubmitButton
+                idleLabel="Generate now"
+                pendingLabel="Generating..."
+                className="rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 text-sm font-semibold text-white"
+              />
             </div>
           </form>
         ))}
@@ -100,9 +103,11 @@ export default function AdminTriggerPage({
           <p className="mt-3 text-sm text-charcoal/65">
             Promote AI drafts whose delayed publish window has elapsed.
           </p>
-          <button className="mt-6 rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white">
-            Publish due items
-          </button>
+          <AdminSubmitButton
+            idleLabel="Publish due items"
+            pendingLabel="Publishing..."
+            className="mt-6 rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
+          />
         </form>
         <form action={runSocialSchedulerAction} className="panel-light p-6">
           <p className="eyebrow">Queue</p>
@@ -110,9 +115,11 @@ export default function AdminTriggerPage({
           <p className="mt-3 text-sm text-charcoal/65">
             Move pending posts into the upcoming social queue.
           </p>
-          <button className="mt-6 rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white">
-            Queue social
-          </button>
+          <AdminSubmitButton
+            idleLabel="Queue social"
+            pendingLabel="Queueing..."
+            className="mt-6 rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
+          />
         </form>
         <form action={runNewsletterDigestAction} className="panel-light p-6">
           <p className="eyebrow">Digest</p>
@@ -120,9 +127,11 @@ export default function AdminTriggerPage({
           <p className="mt-3 text-sm text-charcoal/65">
             Draft the weekly roundup from current published content.
           </p>
-          <button className="mt-6 rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white">
-            Draft digest
-          </button>
+          <AdminSubmitButton
+            idleLabel="Draft digest"
+            pendingLabel="Drafting..."
+            className="mt-6 rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
+          />
         </form>
         <form action={runDueNewsletterSendsAction} className="panel-light p-6">
           <p className="eyebrow">Send</p>
@@ -130,9 +139,11 @@ export default function AdminTriggerPage({
           <p className="mt-3 text-sm text-charcoal/65">
             Process scheduled campaigns whose send window has arrived.
           </p>
-          <button className="mt-6 rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white">
-            Send due campaigns
-          </button>
+          <AdminSubmitButton
+            idleLabel="Send due campaigns"
+            pendingLabel="Sending..."
+            className="mt-6 rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
+          />
         </form>
       </div>
     </AdminPage>
