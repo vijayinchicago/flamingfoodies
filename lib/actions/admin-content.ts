@@ -7,10 +7,19 @@ import { z } from "zod";
 import { flags } from "@/lib/env";
 import { merchThemeOptions } from "@/lib/merch";
 import {
+  getRecipeFaqs,
+  getRecipeHeroSummary,
+  getRecipeIngredientSections,
+  getRecipeMethodSteps,
+  getRecipeSupportList
+} from "@/lib/recipes";
+import {
   parseCsvList,
   parseLineList,
-  parseRecipeIngredients,
-  parseRecipeInstructions
+  parseRecipeFaqs,
+  parseRecipeIngredientSections,
+  parseRecipeMethodSteps,
+  parseStringListJson
 } from "@/lib/parsers";
 import {
   sampleMerchProducts,
@@ -19,7 +28,16 @@ import {
 } from "@/lib/sample-data";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import type { MerchProduct, Recipe, Review } from "@/lib/types";
+import type {
+  MerchProduct,
+  Recipe,
+  RecipeFaq,
+  RecipeIngredient,
+  RecipeIngredientSection,
+  RecipeInstruction,
+  RecipeMethodStep,
+  Review
+} from "@/lib/types";
 import { calculateReadTime, slugify } from "@/lib/utils";
 
 type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
@@ -66,17 +84,25 @@ const recipeSchema = z.object({
   title: z.string().min(6).max(120),
   description: z.string().min(20).max(220),
   intro: z.string().min(20).max(600).optional(),
+  heroSummary: z.string().min(20).max(260).optional(),
   heatLevel: z.enum(heatLevels),
   cuisineType: z.enum(cuisineTypes),
   prepTimeMinutes: z.coerce.number().int().min(0),
   cookTimeMinutes: z.coerce.number().int().min(0),
+  activeTimeMinutes: z.coerce.number().int().min(0).optional(),
   servings: z.coerce.number().int().min(1),
   difficulty: z.enum(difficulties),
-  ingredients: z.string().min(5),
-  instructions: z.string().min(5),
-  tips: z.string().optional(),
-  variations: z.string().optional(),
-  equipment: z.string().optional(),
+  ingredientSectionsJson: z.string().min(2),
+  methodStepsJson: z.string().min(2),
+  tipsJson: z.string().optional(),
+  variationsJson: z.string().optional(),
+  substitutionsJson: z.string().optional(),
+  servingSuggestionsJson: z.string().optional(),
+  equipmentJson: z.string().optional(),
+  faqsJson: z.string().optional(),
+  makeAheadNotes: z.string().max(600).optional(),
+  storageNotes: z.string().max(600).optional(),
+  reheatNotes: z.string().max(600).optional(),
   tags: z.string().optional(),
   imageUrl: z.string().url().optional(),
   imageAlt: z.string().max(180).optional(),
@@ -168,6 +194,11 @@ function getOptionalText(formData: FormData, key: string) {
 function getOptionalNumberText(formData: FormData, key: string) {
   const value = String(formData.get(key) || "").trim();
   return value || undefined;
+}
+
+function getJsonPayload(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return typeof value === "string" ? value : "[]";
 }
 
 function getOptionalFile(formData: FormData, key: string) {
@@ -309,6 +340,84 @@ async function resolveImageFields({
   };
 }
 
+function flattenIngredientSections(sections: RecipeIngredientSection[]) {
+  return sections.flatMap((section) => section.items);
+}
+
+function buildLegacyInstructionsFromMethodSteps(methodSteps: RecipeMethodStep[]): RecipeInstruction[] {
+  return methodSteps.map((step, index) => ({
+    step: index + 1,
+    text: step.body ? `${step.title}. ${step.body}` : step.title,
+    tip: step.cue || step.tip || undefined
+  }));
+}
+
+function parseStructuredRecipeContent(formData: FormData) {
+  const ingredientSections = parseRecipeIngredientSections(
+    getJsonPayload(formData, "ingredientSectionsJson")
+  );
+  const methodSteps = parseRecipeMethodSteps(getJsonPayload(formData, "methodStepsJson"));
+  const tips = parseStringListJson(getJsonPayload(formData, "tipsJson"));
+  const variations = parseStringListJson(getJsonPayload(formData, "variationsJson"));
+  const substitutions = parseStringListJson(getJsonPayload(formData, "substitutionsJson"));
+  const servingSuggestions = parseStringListJson(
+    getJsonPayload(formData, "servingSuggestionsJson")
+  );
+  const equipment = parseStringListJson(getJsonPayload(formData, "equipmentJson"));
+  const faqs = parseRecipeFaqs(getJsonPayload(formData, "faqsJson"));
+
+  if (!ingredientSections.length) {
+    throw new Error("Add at least one ingredient section with one ingredient.");
+  }
+
+  if (!methodSteps.length) {
+    throw new Error("Add at least one method step.");
+  }
+
+  return {
+    ingredientSections,
+    ingredients: flattenIngredientSections(ingredientSections),
+    methodSteps,
+    instructions: buildLegacyInstructionsFromMethodSteps(methodSteps),
+    tips,
+    variations,
+    substitutions,
+    servingSuggestions,
+    equipment,
+    faqs
+  };
+}
+
+async function resolveMethodStepImages({
+  formData,
+  supabase,
+  methodSteps
+}: {
+  formData: FormData;
+  supabase: AdminClient;
+  methodSteps: RecipeMethodStep[];
+}) {
+  const resolvedSteps: RecipeMethodStep[] = [];
+
+  for (const [index, step] of methodSteps.entries()) {
+    const uploadedFile = getOptionalFile(formData, `methodStepImageFile-${index}`);
+    let imageUrl = step.imageUrl;
+
+    if (uploadedFile) {
+      imageUrl = await uploadAdminImage(supabase, uploadedFile, "recipes/steps");
+    }
+
+    resolvedSteps.push({
+      ...step,
+      step: index + 1,
+      imageUrl: imageUrl || undefined,
+      imageAlt: step.imageAlt || undefined
+    });
+  }
+
+  return resolvedSteps;
+}
+
 function revalidateBlogPaths(slug: string, previousSlug?: string | null) {
   revalidatePath("/admin/content/blog");
   revalidatePath("/blog");
@@ -356,17 +465,29 @@ function mapSampleRecipeForInsert(recipe: Recipe) {
     title: recipe.title,
     description: recipe.description,
     intro: recipe.intro ?? null,
+    hero_summary: getRecipeHeroSummary(recipe),
     author_name: recipe.authorName,
     heat_level: recipe.heatLevel,
     cuisine_type: recipe.cuisineType,
     prep_time_minutes: recipe.prepTimeMinutes,
     cook_time_minutes: recipe.cookTimeMinutes,
+    active_time_minutes: recipe.activeTimeMinutes ?? recipe.prepTimeMinutes,
     servings: recipe.servings,
     difficulty: recipe.difficulty,
     ingredients: recipe.ingredients,
+    ingredient_sections: getRecipeIngredientSections(recipe),
     instructions: recipe.instructions,
+    method_steps: getRecipeMethodSteps(recipe),
     tips: recipe.tips,
     variations: recipe.variations,
+    make_ahead_notes: recipe.makeAheadNotes ?? null,
+    storage_notes: recipe.storageNotes ?? null,
+    reheat_notes: recipe.reheatNotes ?? null,
+    serving_suggestions: getRecipeSupportList(recipe.servingSuggestions),
+    substitutions: getRecipeSupportList(recipe.substitutions).length
+      ? getRecipeSupportList(recipe.substitutions)
+      : recipe.variations,
+    faqs: getRecipeFaqs(recipe),
     equipment: recipe.equipment,
     tags: recipe.tags,
     image_url: recipe.imageUrl ?? null,
@@ -689,17 +810,25 @@ export async function createRecipeAction(formData: FormData) {
     title: String(formData.get("title") || "").trim(),
     description: String(formData.get("description") || "").trim(),
     intro: getOptionalText(formData, "intro"),
+    heroSummary: getOptionalText(formData, "heroSummary"),
     heatLevel: String(formData.get("heatLevel") || ""),
     cuisineType: String(formData.get("cuisineType") || ""),
     prepTimeMinutes: formData.get("prepTimeMinutes") || 0,
     cookTimeMinutes: formData.get("cookTimeMinutes") || 0,
+    activeTimeMinutes: getOptionalNumberText(formData, "activeTimeMinutes"),
     servings: formData.get("servings") || 1,
     difficulty: String(formData.get("difficulty") || "beginner"),
-    ingredients: String(formData.get("ingredients") || "").trim(),
-    instructions: String(formData.get("instructions") || "").trim(),
-    tips: getOptionalText(formData, "tips"),
-    variations: getOptionalText(formData, "variations"),
-    equipment: getOptionalText(formData, "equipment"),
+    ingredientSectionsJson: getJsonPayload(formData, "ingredientSectionsJson"),
+    methodStepsJson: getJsonPayload(formData, "methodStepsJson"),
+    tipsJson: getJsonPayload(formData, "tipsJson"),
+    variationsJson: getJsonPayload(formData, "variationsJson"),
+    substitutionsJson: getJsonPayload(formData, "substitutionsJson"),
+    servingSuggestionsJson: getJsonPayload(formData, "servingSuggestionsJson"),
+    equipmentJson: getJsonPayload(formData, "equipmentJson"),
+    faqsJson: getJsonPayload(formData, "faqsJson"),
+    makeAheadNotes: getOptionalText(formData, "makeAheadNotes"),
+    storageNotes: getOptionalText(formData, "storageNotes"),
+    reheatNotes: getOptionalText(formData, "reheatNotes"),
     tags: getOptionalText(formData, "tags"),
     imageUrl: getOptionalText(formData, "imageUrl"),
     imageAlt: getOptionalText(formData, "imageAlt"),
@@ -713,6 +842,13 @@ export async function createRecipeAction(formData: FormData) {
         parsed.error.issues[0]?.message || "Invalid recipe"
       )}`
     );
+  }
+
+  let structuredContent: ReturnType<typeof parseStructuredRecipeContent>;
+  try {
+    structuredContent = parseStructuredRecipeContent(formData);
+  } catch (error) {
+    redirect(`/admin/content/recipes?error=${encodeURIComponent((error as Error).message)}`);
   }
 
   if (!flags.hasSupabaseAdmin) {
@@ -729,6 +865,11 @@ export async function createRecipeAction(formData: FormData) {
     supabase,
     folder: "recipes"
   });
+  const methodSteps = await resolveMethodStepImages({
+    formData,
+    supabase,
+    methodSteps: structuredContent.methodSteps
+  });
   const slug = await makeUniqueSlug(supabase, "recipes", parsed.data.title);
 
   const { data, error } = await supabase
@@ -738,19 +879,29 @@ export async function createRecipeAction(formData: FormData) {
       title: parsed.data.title,
       description: parsed.data.description,
       intro: parsed.data.intro ?? null,
+      hero_summary: parsed.data.heroSummary ?? null,
       author_name: admin.displayName,
       author_id: admin.id,
       heat_level: parsed.data.heatLevel,
       cuisine_type: parsed.data.cuisineType,
       prep_time_minutes: parsed.data.prepTimeMinutes,
       cook_time_minutes: parsed.data.cookTimeMinutes,
+      active_time_minutes: parsed.data.activeTimeMinutes ?? null,
       servings: parsed.data.servings,
       difficulty: parsed.data.difficulty,
-      ingredients: parseRecipeIngredients(parsed.data.ingredients),
-      instructions: parseRecipeInstructions(parsed.data.instructions),
-      tips: parseLineList(parsed.data.tips || ""),
-      variations: parseLineList(parsed.data.variations || ""),
-      equipment: parseLineList(parsed.data.equipment || ""),
+      ingredients: structuredContent.ingredients,
+      ingredient_sections: structuredContent.ingredientSections,
+      instructions: structuredContent.instructions,
+      method_steps: methodSteps,
+      tips: structuredContent.tips,
+      variations: structuredContent.variations,
+      make_ahead_notes: parsed.data.makeAheadNotes ?? null,
+      storage_notes: parsed.data.storageNotes ?? null,
+      reheat_notes: parsed.data.reheatNotes ?? null,
+      substitutions: structuredContent.substitutions,
+      serving_suggestions: structuredContent.servingSuggestions,
+      faqs: structuredContent.faqs,
+      equipment: structuredContent.equipment,
       tags: parseCsvList(parsed.data.tags || ""),
       image_url: image.imageUrl,
       image_alt: image.imageAlt ?? null,
@@ -789,17 +940,25 @@ export async function updateRecipeAction(formData: FormData) {
     title: String(formData.get("title") || "").trim(),
     description: String(formData.get("description") || "").trim(),
     intro: getOptionalText(formData, "intro"),
+    heroSummary: getOptionalText(formData, "heroSummary"),
     heatLevel: String(formData.get("heatLevel") || ""),
     cuisineType: String(formData.get("cuisineType") || ""),
     prepTimeMinutes: formData.get("prepTimeMinutes") || 0,
     cookTimeMinutes: formData.get("cookTimeMinutes") || 0,
+    activeTimeMinutes: getOptionalNumberText(formData, "activeTimeMinutes"),
     servings: formData.get("servings") || 1,
     difficulty: String(formData.get("difficulty") || "beginner"),
-    ingredients: String(formData.get("ingredients") || "").trim(),
-    instructions: String(formData.get("instructions") || "").trim(),
-    tips: getOptionalText(formData, "tips"),
-    variations: getOptionalText(formData, "variations"),
-    equipment: getOptionalText(formData, "equipment"),
+    ingredientSectionsJson: getJsonPayload(formData, "ingredientSectionsJson"),
+    methodStepsJson: getJsonPayload(formData, "methodStepsJson"),
+    tipsJson: getJsonPayload(formData, "tipsJson"),
+    variationsJson: getJsonPayload(formData, "variationsJson"),
+    substitutionsJson: getJsonPayload(formData, "substitutionsJson"),
+    servingSuggestionsJson: getJsonPayload(formData, "servingSuggestionsJson"),
+    equipmentJson: getJsonPayload(formData, "equipmentJson"),
+    faqsJson: getJsonPayload(formData, "faqsJson"),
+    makeAheadNotes: getOptionalText(formData, "makeAheadNotes"),
+    storageNotes: getOptionalText(formData, "storageNotes"),
+    reheatNotes: getOptionalText(formData, "reheatNotes"),
     tags: getOptionalText(formData, "tags"),
     imageUrl: getOptionalText(formData, "imageUrl"),
     imageAlt: getOptionalText(formData, "imageAlt"),
@@ -819,6 +978,13 @@ export async function updateRecipeAction(formData: FormData) {
         parsed.error.issues[0]?.message || "Invalid recipe"
       )}`
     );
+  }
+
+  let structuredContent: ReturnType<typeof parseStructuredRecipeContent>;
+  try {
+    structuredContent = parseStructuredRecipeContent(formData);
+  } catch (error) {
+    redirect(`${redirectTo}?error=${encodeURIComponent((error as Error).message)}`);
   }
 
   if (!flags.hasSupabaseAdmin) {
@@ -846,6 +1012,11 @@ export async function updateRecipeAction(formData: FormData) {
     folder: "recipes",
     existingImageUrl: existing.image_url
   });
+  const methodSteps = await resolveMethodStepImages({
+    formData,
+    supabase,
+    methodSteps: structuredContent.methodSteps
+  });
   const slug =
     existing.title === parsed.data.title
       ? existing.slug
@@ -858,17 +1029,27 @@ export async function updateRecipeAction(formData: FormData) {
       title: parsed.data.title,
       description: parsed.data.description,
       intro: parsed.data.intro ?? null,
+      hero_summary: parsed.data.heroSummary ?? null,
       heat_level: parsed.data.heatLevel,
       cuisine_type: parsed.data.cuisineType,
       prep_time_minutes: parsed.data.prepTimeMinutes,
       cook_time_minutes: parsed.data.cookTimeMinutes,
+      active_time_minutes: parsed.data.activeTimeMinutes ?? null,
       servings: parsed.data.servings,
       difficulty: parsed.data.difficulty,
-      ingredients: parseRecipeIngredients(parsed.data.ingredients),
-      instructions: parseRecipeInstructions(parsed.data.instructions),
-      tips: parseLineList(parsed.data.tips || ""),
-      variations: parseLineList(parsed.data.variations || ""),
-      equipment: parseLineList(parsed.data.equipment || ""),
+      ingredients: structuredContent.ingredients,
+      ingredient_sections: structuredContent.ingredientSections,
+      instructions: structuredContent.instructions,
+      method_steps: methodSteps,
+      tips: structuredContent.tips,
+      variations: structuredContent.variations,
+      make_ahead_notes: parsed.data.makeAheadNotes ?? null,
+      storage_notes: parsed.data.storageNotes ?? null,
+      reheat_notes: parsed.data.reheatNotes ?? null,
+      substitutions: structuredContent.substitutions,
+      serving_suggestions: structuredContent.servingSuggestions,
+      faqs: structuredContent.faqs,
+      equipment: structuredContent.equipment,
       tags: parseCsvList(parsed.data.tags || ""),
       image_url: image.imageUrl,
       image_alt: image.imageAlt ?? null,

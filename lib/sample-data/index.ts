@@ -70,6 +70,8 @@ export const sampleRecipes: Recipe[] = [
       "A glossy weeknight noodle bowl with fermented chilli depth, crisp vegetables, and real heat.",
     intro:
       "This bowl leans on gochujang for a deep, savory heat instead of blunt spice. The result is fast, bold, and balanced enough to keep craving another forkful.",
+    heroSummary:
+      "A fast, high-reward noodle bowl with fermented chile depth, springy noodles, and enough crunch on top to keep every bite moving.",
     imageUrl:
       "https://images.unsplash.com/photo-1617093727343-374698b1b08d?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Bowl of spicy Korean noodles with sesame and scallions",
@@ -86,18 +88,110 @@ export const sampleRecipes: Recipe[] = [
     prepTimeMinutes: 20,
     cookTimeMinutes: 15,
     totalTimeMinutes: 35,
+    activeTimeMinutes: 25,
     servings: 4,
     difficulty: "beginner",
     ingredients: [
       { amount: "12", unit: "oz", item: "ramyun-style noodles" },
       { amount: "3", unit: "tbsp", item: "gochujang" },
       { amount: "2", unit: "tbsp", item: "soy sauce" },
-      { amount: "1", unit: "tbsp", item: "sesame oil" }
+      { amount: "1", unit: "tbsp", item: "rice vinegar" },
+      { amount: "2", unit: "tsp", item: "honey" },
+      { amount: "1", unit: "tbsp", item: "toasted sesame oil" },
+      { amount: "3", unit: "", item: "garlic cloves", notes: "grated" },
+      { amount: "1", unit: "tsp", item: "fresh ginger", notes: "grated" },
+      { amount: "2", unit: "cups", item: "baby spinach" },
+      { amount: "1", unit: "", item: "Persian cucumber", notes: "thinly sliced" },
+      { amount: "4", unit: "", item: "scallions", notes: "thinly sliced" },
+      { amount: "2", unit: "tsp", item: "toasted sesame seeds" }
+    ],
+    ingredientSections: [
+      {
+        title: "For the gochujang sauce",
+        items: [
+          { amount: "3", unit: "tbsp", item: "gochujang" },
+          { amount: "2", unit: "tbsp", item: "soy sauce" },
+          { amount: "1", unit: "tbsp", item: "rice vinegar" },
+          { amount: "2", unit: "tsp", item: "honey" },
+          { amount: "1", unit: "tbsp", item: "toasted sesame oil" },
+          { amount: "3", unit: "", item: "garlic cloves", notes: "grated" },
+          { amount: "1", unit: "tsp", item: "fresh ginger", notes: "grated" }
+        ]
+      },
+      {
+        title: "For the noodles and finish",
+        items: [
+          { amount: "12", unit: "oz", item: "ramyun-style noodles" },
+          { amount: "2", unit: "cups", item: "baby spinach" },
+          { amount: "1", unit: "", item: "Persian cucumber", notes: "thinly sliced" },
+          { amount: "4", unit: "", item: "scallions", notes: "thinly sliced" },
+          { amount: "2", unit: "tsp", item: "toasted sesame seeds" }
+        ]
+      }
     ],
     instructions: [
-      { step: 1, text: "Whisk the sauce until smooth and glossy." },
-      { step: 2, text: "Boil noodles until springy and reserve some cooking water." },
-      { step: 3, text: "Toss noodles with sauce and vegetables until lacquered." }
+      {
+        step: 1,
+        text: "Whisk the gochujang, soy, vinegar, honey, sesame oil, garlic, and ginger until the sauce turns smooth and glossy.",
+        tip: "You want a sauce that tastes rounded and savory before it ever hits the noodles."
+      },
+      {
+        step: 2,
+        text: "Boil the noodles until springy and reserve a generous splash of noodle water before draining.",
+        tip: "Pull the noodles just shy of fully soft because they keep cooking in the sauce."
+      },
+      {
+        step: 3,
+        text: "Toss the hot noodles with the sauce and spinach until the noodles are lacquered and the greens barely wilt.",
+        tip: "Add noodle water a splash at a time until the sauce clings instead of clumping."
+      },
+      {
+        step: 4,
+        text: "Finish with cucumber, scallions, and sesame seeds so the bowl stays bright, crunchy, and balanced.",
+        tip: "The cool toppings are what keep the fermented heat from feeling heavy."
+      }
+    ],
+    methodSteps: [
+      {
+        step: 1,
+        title: "Build a glossy sauce first",
+        body:
+          "Whisk the gochujang, soy, vinegar, honey, sesame oil, garlic, and ginger until the mixture looks smooth and spoonable.",
+        cue: "The sauce should taste balanced, with savory depth and a little sweetness, not just raw heat.",
+        tip: "If the gochujang is stiff, add a teaspoon of warm water to loosen it.",
+        durationMinutes: 5,
+        ingredientRefs: ["gochujang", "soy sauce", "rice vinegar", "honey", "toasted sesame oil", "garlic cloves", "fresh ginger"]
+      },
+      {
+        step: 2,
+        title: "Cook the noodles with some bounce left",
+        body:
+          "Boil the noodles until just springy and reserve some cooking water before draining so you can loosen the sauce later.",
+        cue: "The noodles should bend easily but still feel resilient in the center.",
+        tip: "Overcooked noodles go dull and gummy fast in this style of sauce.",
+        durationMinutes: 6,
+        ingredientRefs: ["ramyun-style noodles"]
+      },
+      {
+        step: 3,
+        title: "Lacquer the noodles, then wilt the greens",
+        body:
+          "Return the hot noodles to the pot, add the sauce, and toss until everything turns glossy. Fold in the spinach at the end so it softens without disappearing.",
+        cue: "You want shiny noodles with a loose sheen, not a dry paste sitting on top.",
+        tip: "Use noodle water in small splashes until the sauce coats every strand cleanly.",
+        durationMinutes: 6,
+        ingredientRefs: ["ramyun-style noodles", "baby spinach"]
+      },
+      {
+        step: 4,
+        title: "Finish with contrast",
+        body:
+          "Pile the noodles into bowls and top with cucumber, scallions, and sesame seeds so the bowl gets crunch, freshness, and a cooler edge against the heat.",
+        cue: "The final bowl should look glossy and feel restless, not flat and one-note.",
+        tip: "Serve immediately while the noodles still have spring and the toppings stay crisp.",
+        durationMinutes: 3,
+        ingredientRefs: ["Persian cucumber", "scallions", "toasted sesame seeds"]
+      }
     ],
     tips: [
       "Add a spoon of peanut butter for extra body.",
@@ -106,6 +200,39 @@ export const sampleRecipes: Recipe[] = [
     variations: [
       "Add crispy tofu for more protein.",
       "Swap in udon for a chewier bowl."
+    ],
+    makeAheadNotes:
+      "The sauce can be mixed a day ahead and kept in the fridge. Slice the cucumber and scallions right before serving so the bowl still feels fresh.",
+    storageNotes:
+      "Store leftover noodles in an airtight container for up to 2 days. Keep the crunchy toppings separate so they do not turn watery.",
+    reheatNotes:
+      "Reheat gently in a skillet or microwave with a splash of water to loosen the sauce, then add fresh scallions and cucumber before serving.",
+    servingSuggestions: [
+      "Add a jammy egg or crispy tofu if you want the bowl to land more like a full dinner.",
+      "Serve with kimchi or quick-pickled cucumbers if you want even more sharpness against the heat.",
+      "Scatter extra sesame seeds and a last drizzle of sesame oil at the table for a richer finish."
+    ],
+    substitutions: [
+      "Use udon if you want a chewier, heavier bowl, but keep extra noodle water ready because thicker noodles absorb more sauce.",
+      "Use maple syrup or brown sugar in place of honey if that is what you already have open.",
+      "Swap spinach for bok choy or napa cabbage if you want more texture."
+    ],
+    faqs: [
+      {
+        question: "Can I make these noodles less spicy?",
+        answer:
+          "Yes. Start with 2 tablespoons of gochujang instead of 3, then taste the sauce before tossing the noodles."
+      },
+      {
+        question: "What noodles work best if I cannot find ramyun-style noodles?",
+        answer:
+          "Fresh ramen, yakisoba noodles, or even udon all work. Just adjust the noodle-water addition so the sauce stays glossy instead of tight."
+      },
+      {
+        question: "Does this hold up for leftovers?",
+        answer:
+          "It holds up well for lunch the next day, but the noodles will drink up sauce. Reheat with a splash of water and add fresh toppings before eating."
+      }
     ],
     equipment: ["large pot", "mixing bowl", "tongs"],
     seoTitle: "Spicy Korean Gochujang Noodles Recipe",
@@ -207,6 +334,8 @@ export const sampleRecipes: Recipe[] = [
       "Crisp fried chicken, cayenne oil, pickles, and slaw stacked into a sandwich that actually earns the mess.",
     intro:
       "The goal here is crunchy, juicy, and aggressively seasoned without collapsing into pure heat bravado. The slaw buys you balance, not mercy.",
+    heroSummary:
+      "A real crunchy-hot sandwich with juicy thigh meat, cayenne oil, cold slaw, and just enough pickle snap to make the heat addictive.",
     imageUrl:
       "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Hot chicken sandwich with pickles and slaw",
@@ -223,21 +352,167 @@ export const sampleRecipes: Recipe[] = [
     prepTimeMinutes: 30,
     cookTimeMinutes: 20,
     totalTimeMinutes: 50,
+    activeTimeMinutes: 40,
     servings: 4,
     difficulty: "intermediate",
     ingredients: [
       { amount: "4", unit: "", item: "boneless chicken thighs" },
       { amount: "1", unit: "cup", item: "buttermilk" },
+      { amount: "1/4", unit: "cup", item: "pickle brine" },
+      { amount: "1", unit: "tbsp", item: "hot sauce" },
+      { amount: "1 1/2", unit: "cups", item: "all-purpose flour" },
+      { amount: "1/2", unit: "cup", item: "cornstarch" },
       { amount: "2", unit: "tbsp", item: "cayenne" },
-      { amount: "4", unit: "", item: "potato buns" }
+      { amount: "1", unit: "tsp", item: "smoked paprika" },
+      { amount: "1", unit: "tsp", item: "garlic powder" },
+      { amount: "2", unit: "tbsp", item: "brown sugar" },
+      { amount: "1/3", unit: "cup", item: "frying oil", notes: "for the Nashville hot brush-on" },
+      { amount: "4", unit: "", item: "potato buns" },
+      { amount: "1 1/2", unit: "cups", item: "slaw mix" },
+      { amount: "3", unit: "tbsp", item: "mayonnaise" },
+      { amount: "2", unit: "tbsp", item: "dill pickle chips" }
+    ],
+    ingredientSections: [
+      {
+        title: "For the chicken marinade and dredge",
+        items: [
+          { amount: "4", unit: "", item: "boneless chicken thighs" },
+          { amount: "1", unit: "cup", item: "buttermilk" },
+          { amount: "1/4", unit: "cup", item: "pickle brine" },
+          { amount: "1", unit: "tbsp", item: "hot sauce" },
+          { amount: "1 1/2", unit: "cups", item: "all-purpose flour" },
+          { amount: "1/2", unit: "cup", item: "cornstarch" },
+          { amount: "1", unit: "tsp", item: "smoked paprika" },
+          { amount: "1", unit: "tsp", item: "garlic powder" }
+        ]
+      },
+      {
+        title: "For the Nashville hot oil",
+        items: [
+          { amount: "2", unit: "tbsp", item: "cayenne" },
+          { amount: "2", unit: "tbsp", item: "brown sugar" },
+          { amount: "1/3", unit: "cup", item: "frying oil", notes: "for the brush-on" }
+        ]
+      },
+      {
+        title: "For sandwich assembly",
+        items: [
+          { amount: "4", unit: "", item: "potato buns" },
+          { amount: "1 1/2", unit: "cups", item: "slaw mix" },
+          { amount: "3", unit: "tbsp", item: "mayonnaise" },
+          { amount: "2", unit: "tbsp", item: "dill pickle chips" }
+        ]
+      }
     ],
     instructions: [
-      { step: 1, text: "Marinate the chicken in buttermilk and spices for at least 30 minutes." },
-      { step: 2, text: "Dredge and fry until deeply golden and cooked through." },
-      { step: 3, text: "Brush with hot cayenne oil, then stack on buns with pickles and slaw." }
+      {
+        step: 1,
+        text: "Marinate the chicken in buttermilk, pickle brine, and hot sauce for at least 30 minutes.",
+        tip: "The pickle brine seasons the chicken deeper and keeps the meat tasting sharp, not heavy."
+      },
+      {
+        step: 2,
+        text: "Dredge in the flour-cornstarch coating and fry until deeply golden and cooked through.",
+        tip: "Let the dredged chicken rest briefly before frying so the crust grabs harder."
+      },
+      {
+        step: 3,
+        text: "Stir the cayenne, brown sugar, and hot frying oil into a loose paste, then brush it over the chicken while still hot.",
+        tip: "The chicken needs to be hot enough to drink in the oil, not just wear it on the surface."
+      },
+      {
+        step: 4,
+        text: "Toast the buns and stack with mayo slaw, pickles, and the hot chicken right away.",
+        tip: "Cold slaw and pickles are the balance, not a garnish afterthought."
+      }
+    ],
+    methodSteps: [
+      {
+        step: 1,
+        title: "Marinate the thighs for seasoned juiciness",
+        body:
+          "Soak the chicken in buttermilk, pickle brine, and hot sauce long enough for the seasoning to get beneath the crust.",
+        cue: "The marinade should cling to the chicken in a loose, well-seasoned coat.",
+        tip: "Thirty minutes works, but an hour gives you an even juicier sandwich.",
+        durationMinutes: 30,
+        ingredientRefs: ["boneless chicken thighs", "buttermilk", "pickle brine", "hot sauce"]
+      },
+      {
+        step: 2,
+        title: "Build a craggy crust",
+        body:
+          "Coat the chicken in the seasoned flour and cornstarch mixture, pressing firmly so the exterior picks up ridges and flakes before it ever hits the oil.",
+        cue: "The dredged chicken should look shaggy and dry on the outside, not slick with marinade.",
+        tip: "Letting the coated chicken sit for 5 minutes helps the breading stay on during frying.",
+        durationMinutes: 10,
+        ingredientRefs: ["all-purpose flour", "cornstarch", "smoked paprika", "garlic powder"]
+      },
+      {
+        step: 3,
+        title: "Fry until the crust goes deep bronze",
+        body:
+          "Fry the chicken until the exterior is hard-crisp and richly golden while the interior stays juicy and fully cooked.",
+        cue: "You want a crust that sounds crisp when tapped and chicken that reads done without looking dry.",
+        tip: "Rest the fried chicken on a rack, never directly on paper towels, so the crust stays audible.",
+        durationMinutes: 12,
+        ingredientRefs: ["boneless chicken thighs"]
+      },
+      {
+        step: 4,
+        title: "Brush on the Nashville heat",
+        body:
+          "Whisk cayenne, brown sugar, and hot frying oil into a fiery brush-on mixture, then coat the hot chicken while the crust still wants to absorb it.",
+        cue: "The oil should look loose enough to brush, and the chicken should take on a glossy red finish rather than patchy streaks.",
+        tip: "Start with a lighter brush for the first sandwich, then push hotter if you want more punishment.",
+        durationMinutes: 3,
+        ingredientRefs: ["cayenne", "brown sugar", "frying oil"]
+      },
+      {
+        step: 5,
+        title: "Stack with cold, sharp contrast",
+        body:
+          "Toast the buns, toss together the mayo slaw, and stack with pickles so the sandwich hits crunchy, juicy, hot, and sharp all at once.",
+        cue: "The finished sandwich should feel messy in a good way, but still structured enough to bite cleanly.",
+        tip: "Serve immediately. This style loses its magic once the crust sits too long under slaw.",
+        durationMinutes: 5,
+        ingredientRefs: ["potato buns", "slaw mix", "mayonnaise", "dill pickle chips"]
+      }
     ],
     tips: ["Rest the fried chicken on a rack so the crust stays crisp."],
     variations: ["Swap in tenders for a faster weeknight version."],
+    makeAheadNotes:
+      "Marinate the chicken and mix the slaw base ahead, but fry and brush with the hot oil right before serving so the crust stays loud.",
+    storageNotes:
+      "Store leftover fried chicken separately from buns and slaw for up to 2 days. Keep the hot oil mixture and assembly pieces chilled apart.",
+    reheatNotes:
+      "Reheat the chicken on a rack in a hot oven or air fryer until the crust wakes back up, then brush with a little extra hot oil before serving.",
+    servingSuggestions: [
+      "Serve with crinkle fries, dill pickles, and lots of cold napkins.",
+      "A simple vinegar slaw or extra pickle chips help if you want even more cut against the cayenne oil.",
+      "Sweet tea or a citrusy lager both make sense next to this level of heat."
+    ],
+    substitutions: [
+      "Use tenders if you want a faster fry, but shorten the cooking time and watch them closely.",
+      "Use boneless breasts only if you pound them evenly first; thighs stay juicier and make a better Nashville sandwich.",
+      "If you want a gentler sandwich, cut the cayenne with more brown sugar and brush a lighter coat."
+    ],
+    faqs: [
+      {
+        question: "Can I make this without deep frying?",
+        answer:
+          "You can shallow fry in a heavy skillet, but the sandwich really wants a full crisp crust. Air frying works in a pinch, though the texture is not quite the same."
+      },
+      {
+        question: "How spicy is the Nashville oil?",
+        answer:
+          "It is aggressively hot as written. Start by brushing a little on one piece of chicken, then scale up if you want the full inferno effect."
+      },
+      {
+        question: "What keeps the sandwich from feeling too heavy?",
+        answer:
+          "The slaw and pickles do that job. Without them, all you taste is crust and fat, which gets tiring fast."
+      }
+    ],
     equipment: ["Dutch oven", "wire rack", "thermometer"],
     seoTitle: "Nashville Hot Chicken Sandwich Recipe",
     seoDescription: "Build a crunchy, spicy Nashville hot chicken sandwich at home.",
@@ -254,6 +529,8 @@ export const sampleRecipes: Recipe[] = [
       "Cast-iron burgers with hard sear, smoked chile mayo, and enough habanero bite to wake up the whole cookout.",
     intro:
       "Smash burgers are already about texture and speed, so the sauce has to do the flavor lift. Smoky mayo plus melty cheese gets it there fast.",
+    heroSummary:
+      "A hard-seared burger build with smoky habanero mayo, lacy edges, and the kind of fast griddle energy that still tastes intentional.",
     imageUrl:
       "https://images.unsplash.com/photo-1550547660-d9450f859349?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Smash burger with melted cheese and spicy sauce",
@@ -270,21 +547,145 @@ export const sampleRecipes: Recipe[] = [
     prepTimeMinutes: 15,
     cookTimeMinutes: 12,
     totalTimeMinutes: 27,
+    activeTimeMinutes: 20,
     servings: 4,
     difficulty: "beginner",
     ingredients: [
       { amount: "1.5", unit: "lb", item: "ground beef" },
       { amount: "1", unit: "", item: "habanero", notes: "finely minced" },
+      { amount: "1/3", unit: "cup", item: "mayonnaise" },
+      { amount: "1", unit: "tsp", item: "smoked paprika" },
+      { amount: "1", unit: "tsp", item: "lime juice" },
       { amount: "4", unit: "slices", item: "American cheese" },
-      { amount: "4", unit: "", item: "burger buns" }
+      { amount: "4", unit: "", item: "burger buns" },
+      { amount: "1/2", unit: "", item: "white onion", notes: "thinly sliced" },
+      { amount: "8", unit: "", item: "pickle chips" }
+    ],
+    ingredientSections: [
+      {
+        title: "For the smoky habanero mayo",
+        items: [
+          { amount: "1/3", unit: "cup", item: "mayonnaise" },
+          { amount: "1", unit: "", item: "habanero", notes: "finely minced" },
+          { amount: "1", unit: "tsp", item: "smoked paprika" },
+          { amount: "1", unit: "tsp", item: "lime juice" }
+        ]
+      },
+      {
+        title: "For the burgers",
+        items: [
+          { amount: "1.5", unit: "lb", item: "ground beef" },
+          { amount: "4", unit: "slices", item: "American cheese" },
+          { amount: "4", unit: "", item: "burger buns" }
+        ]
+      },
+      {
+        title: "For the finish",
+        items: [
+          { amount: "1/2", unit: "", item: "white onion", notes: "thinly sliced" },
+          { amount: "8", unit: "", item: "pickle chips" }
+        ]
+      }
     ],
     instructions: [
-      { step: 1, text: "Stir the habanero into mayo with smoked paprika and lime." },
-      { step: 2, text: "Smash seasoned beef balls onto a ripping hot griddle or skillet." },
-      { step: 3, text: "Melt cheese, toast buns, and build with mayo, onions, and pickles." }
+      {
+        step: 1,
+        text: "Stir the habanero into mayo with smoked paprika and lime until the sauce tastes smoky, bright, and just sharp enough.",
+        tip: "The mayo should taste punchy on its own because the beef will soften the heat once assembled."
+      },
+      {
+        step: 2,
+        text: "Form loose beef balls and smash them onto a ripping hot griddle or skillet until the edges turn deeply lacy.",
+        tip: "Do not compact the meat beforehand or you lose the texture that makes smash burgers worth doing."
+      },
+      {
+        step: 3,
+        text: "Flip, melt on the cheese, and toast the buns while the burgers finish.",
+        tip: "The cheese should look fully relaxed and glossy by the time the buns are ready."
+      },
+      {
+        step: 4,
+        text: "Build with smoky mayo, onions, and pickles while everything is still hot and crisp.",
+        tip: "Smash burgers want to be eaten right away, not held on a tray."
+      }
+    ],
+    methodSteps: [
+      {
+        step: 1,
+        title: "Make the smoky sauce first",
+        body:
+          "Mix the habanero into mayo with smoked paprika and lime until the sauce tastes sharp, smoky, and balanced enough to cut through beef.",
+        cue: "The sauce should hit spicy but still creamy, with the lime keeping the habanero from tasting flat.",
+        tip: "Start with half the habanero if you are unsure of the pepper's strength, then adjust upward.",
+        durationMinutes: 5,
+        ingredientRefs: ["mayonnaise", "habanero", "smoked paprika", "lime juice"]
+      },
+      {
+        step: 2,
+        title: "Smash fast on ripping-hot metal",
+        body:
+          "Drop loose balls of beef onto the hot surface and smash hard right away so the patties get maximum contact and the edges crisp up fast.",
+        cue: "You want a loud sizzle and frilled edges that turn dark brown without the center drying out.",
+        tip: "Use parchment between the spatula and the beef if you want cleaner, flatter patties.",
+        durationMinutes: 6,
+        ingredientRefs: ["ground beef"]
+      },
+      {
+        step: 3,
+        title: "Melt the cheese and toast the buns",
+        body:
+          "Flip once the crust is set, add the cheese, and toast the buns while the second side finishes so everything lands together.",
+        cue: "The cheese should slump over the burger and the buns should pick up light golden edges.",
+        tip: "Do not overcook the second side. Smash burgers are about crust, not a long cook.",
+        durationMinutes: 4,
+        ingredientRefs: ["American cheese", "burger buns"]
+      },
+      {
+        step: 4,
+        title: "Build with contrast before the crust softens",
+        body:
+          "Spread on the smoky habanero mayo and stack with onion and pickles while the patties are still hot enough to stay juicy and crisp.",
+        cue: "The burger should eat messy, but the crust should still feel crisp under the sauce.",
+        tip: "Have every topping ready before you start smashing because this whole cook moves fast.",
+        durationMinutes: 3,
+        ingredientRefs: ["smoky habanero mayo", "white onion", "pickle chips"]
+      }
     ],
     tips: ["Keep the patties loose until they hit the pan for better crust."],
     variations: ["Use pepper jack instead of American for extra bite."],
+    makeAheadNotes:
+      "Mix the mayo and slice the onions ahead, but cook the burgers right before serving. Smash burgers are all about immediate texture.",
+    storageNotes:
+      "Cooked patties keep in the fridge for 2 days, though the crust softens. Store the sauce and burger toppings separately.",
+    reheatNotes:
+      "Reheat the patties in a hot skillet for the best recovery, then rebuild the burgers fresh with more mayo and cold toppings.",
+    servingSuggestions: [
+      "Serve with salted fries, kettle chips, or grilled corn if you want a full cookout plate.",
+      "A cold lager or limey sparkling water helps cut the richness and habanero heat.",
+      "Extra pickles on the side are worth it because the burger gets richer as you eat."
+    ],
+    substitutions: [
+      "Use pepper jack instead of American if you want a sharper melt and a little more bite.",
+      "Swap in jalapeno if habanero feels too aggressive, but keep the smoked paprika so the sauce still has depth.",
+      "Use Martin's-style rolls or any soft potato bun that can compress without tearing."
+    ],
+    faqs: [
+      {
+        question: "Can I cook these on a regular skillet instead of a griddle?",
+        answer:
+          "Yes. A heavy cast-iron skillet works great as long as you cook in batches and let the pan stay ripping hot between patties."
+      },
+      {
+        question: "Why use loose beef balls instead of formed patties?",
+        answer:
+          "Loose beef lets you create the thin, lacy edges that define a true smash burger. Pre-shaped patties usually steam more than they crisp."
+      },
+      {
+        question: "How spicy is the habanero mayo?",
+        answer:
+          "It is clearly spicy but still burger-friendly as written. If your habanero is especially hot, start small and taste as you go."
+      }
+    ],
     equipment: ["cast-iron skillet", "metal spatula"],
     ratingAvg: 4.7,
     ratingCount: 101,
@@ -299,6 +700,8 @@ export const sampleRecipes: Recipe[] = [
       "A wok-fired noodle bowl with holy basil, soy-dark caramelization, and the kind of chili bite that keeps the dish restless.",
     intro:
       "This is a high-heat, high-speed noodle dinner. Bird's eye chiles sharpen the edges while basil and oyster sauce keep it fragrant and round.",
+    heroSummary:
+      "A true high-heat noodle dinner with smoky wok flavor, sharp chile bite, and enough basil at the end to keep the whole bowl alive.",
     imageUrl:
       "https://images.unsplash.com/photo-1559314809-0d155014e29e?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Thai drunken noodles in a bowl",
@@ -315,21 +718,146 @@ export const sampleRecipes: Recipe[] = [
     prepTimeMinutes: 20,
     cookTimeMinutes: 10,
     totalTimeMinutes: 30,
+    activeTimeMinutes: 25,
     servings: 4,
     difficulty: "intermediate",
     ingredients: [
       { amount: "14", unit: "oz", item: "wide rice noodles" },
       { amount: "3", unit: "", item: "bird's eye chiles", notes: "sliced" },
       { amount: "3", unit: "tbsp", item: "oyster sauce" },
-      { amount: "1", unit: "cup", item: "Thai basil leaves" }
+      { amount: "2", unit: "tbsp", item: "soy sauce" },
+      { amount: "1", unit: "tbsp", item: "fish sauce" },
+      { amount: "1", unit: "tsp", item: "dark soy sauce" },
+      { amount: "2", unit: "tsp", item: "brown sugar" },
+      { amount: "4", unit: "", item: "garlic cloves", notes: "sliced" },
+      { amount: "2", unit: "", item: "shallots", notes: "thinly sliced" },
+      { amount: "1", unit: "", item: "red bell pepper", notes: "thinly sliced" },
+      { amount: "1", unit: "cup", item: "Thai basil leaves" },
+      { amount: "1", unit: "", item: "lime", notes: "cut into wedges" }
+    ],
+    ingredientSections: [
+      {
+        title: "For the sauce",
+        items: [
+          { amount: "3", unit: "tbsp", item: "oyster sauce" },
+          { amount: "2", unit: "tbsp", item: "soy sauce" },
+          { amount: "1", unit: "tbsp", item: "fish sauce" },
+          { amount: "1", unit: "tsp", item: "dark soy sauce" },
+          { amount: "2", unit: "tsp", item: "brown sugar" }
+        ]
+      },
+      {
+        title: "For the wok",
+        items: [
+          { amount: "14", unit: "oz", item: "wide rice noodles" },
+          { amount: "3", unit: "", item: "bird's eye chiles", notes: "sliced" },
+          { amount: "4", unit: "", item: "garlic cloves", notes: "sliced" },
+          { amount: "2", unit: "", item: "shallots", notes: "thinly sliced" },
+          { amount: "1", unit: "", item: "red bell pepper", notes: "thinly sliced" },
+          { amount: "1", unit: "cup", item: "Thai basil leaves" },
+          { amount: "1", unit: "", item: "lime", notes: "cut into wedges" }
+        ]
+      }
     ],
     instructions: [
-      { step: 1, text: "Whisk the sauce and prep all the stir-fry components before the pan gets hot." },
-      { step: 2, text: "Sear aromatics and chiles, then toss in noodles and sauce over high heat." },
-      { step: 3, text: "Finish with basil and serve immediately while glossy and smoky." }
+      {
+        step: 1,
+        text: "Whisk the sauce and prep every stir-fry component before the pan gets hot.",
+        tip: "Once the wok is on, there is no time left for chopping."
+      },
+      {
+        step: 2,
+        text: "Soften the noodles if needed, then sear the garlic, shallots, and bird's eye chiles over high heat.",
+        tip: "The wok should stay hot enough to smell smoky, not soupy."
+      },
+      {
+        step: 3,
+        text: "Add the noodles, peppers, and sauce, tossing hard until the noodles darken and pick up charred edges.",
+        tip: "Use the spatula like you mean it. This dish wants fast movement, not gentle stirring."
+      },
+      {
+        step: 4,
+        text: "Kill the heat, fold in the basil, and serve with lime while the noodles are still glossy.",
+        tip: "Thai basil should wilt just enough to perfume the whole bowl without turning gray."
+      }
+    ],
+    methodSteps: [
+      {
+        step: 1,
+        title: "Set the whole station before you light the wok",
+        body:
+          "Whisk the sauce and line up the noodles, aromatics, peppers, basil, and lime before heat starts because this is a real fast-cook dish.",
+        cue: "Everything should be within arm's reach before the wok gets hot.",
+        tip: "This is the recipe where mise en place actually matters.",
+        durationMinutes: 10,
+        ingredientRefs: ["oyster sauce", "soy sauce", "fish sauce", "dark soy sauce", "brown sugar", "wide rice noodles", "Thai basil leaves"]
+      },
+      {
+        step: 2,
+        title: "Hit the wok with aromatics and chile first",
+        body:
+          "Sear the garlic, shallots, and bird's eye chiles over high heat until they smell fragrant and aggressive without turning bitter.",
+        cue: "You want a sharp, smoky aroma and edges that look lightly blistered rather than pale.",
+        tip: "If the pan starts looking wet instead of hot, stop crowding it and cook in a larger surface area.",
+        durationMinutes: 3,
+        ingredientRefs: ["bird's eye chiles", "garlic cloves", "shallots"]
+      },
+      {
+        step: 3,
+        title: "Sauce the noodles until they darken and shine",
+        body:
+          "Add the noodles and peppers, then pour in the sauce and toss hard so the noodles pick up color, smokiness, and a little sticky gloss.",
+        cue: "The noodles should turn darker and pick up spots of char without breaking apart.",
+        tip: "If the noodles clump, loosen them with a small splash of water instead of more sauce.",
+        durationMinutes: 5,
+        ingredientRefs: ["wide rice noodles", "red bell pepper", "oyster sauce", "soy sauce"]
+      },
+      {
+        step: 4,
+        title: "Finish with basil and lime while the pan is still hot",
+        body:
+          "Fold in the Thai basil at the end so it perfumes the noodles, then hit the bowl with lime for the bright edge that keeps the heat lively.",
+        cue: "The basil should look just wilted and the noodles should still feel glossy, not dry.",
+        tip: "Serve immediately. Drunken noodles lose a lot of their magic when they sit.",
+        durationMinutes: 2,
+        ingredientRefs: ["Thai basil leaves", "lime"]
+      }
     ],
     tips: ["Do not overcrowd the pan or the noodles will steam instead of char."],
     variations: ["Add ground chicken or tofu for a fuller bowl."],
+    makeAheadNotes:
+      "Whisk the sauce and prep every vegetable ahead, but do not cook the noodles or basil until just before dinner if you want the best texture.",
+    storageNotes:
+      "Store leftovers for up to 2 days in the fridge. The noodles soften as they sit, so this one is better fresh than long-held.",
+    reheatNotes:
+      "Reheat in a hot skillet with a splash of water to loosen the sauce, then add fresh basil and lime at the end to wake the bowl back up.",
+    servingSuggestions: [
+      "Serve with lime wedges and extra sliced chiles at the table so people can tune the last layer of heat.",
+      "A crisp cucumber salad or simple stir-fried greens work well if you want a fuller dinner spread.",
+      "This bowl really wants to be eaten straight from the wok while the edges still taste smoky."
+    ],
+    substitutions: [
+      "Add ground chicken, shrimp, or tofu if you want a more protein-heavy dinner.",
+      "Use serranos if bird's eye chiles are hard to find, but expect a slightly less pointed heat.",
+      "Fresh wide rice noodles work best, but dried ones are fine if you soak or boil them carefully."
+    ],
+    faqs: [
+      {
+        question: "Why are they called drunken noodles if there is no alcohol?",
+        answer:
+          "It is more about the loose, spicy late-night spirit of the dish than booze in the pan. The recipe is built around high heat, basil, and chiles."
+      },
+      {
+        question: "How do I keep the noodles from breaking apart?",
+        answer:
+          "Do not overcook them before they hit the wok, and toss with confident movements instead of stirring slowly once the sauce goes in."
+      },
+      {
+        question: "Can I make this less spicy?",
+        answer:
+          "Yes. Cut the bird's eye chiles down first, then finish with lime and basil so the bowl still tastes bright and complete."
+      }
+    ],
     equipment: ["wok", "mixing bowl", "tongs"],
     ratingAvg: 4.8,
     ratingCount: 88,
@@ -344,6 +872,8 @@ export const sampleRecipes: Recipe[] = [
       "Crisp-edged tacos dipped in chile-rich broth, loaded with melty cheese, and finished with a sharper salsa for extra lift.",
     intro:
       "This version leans into the things that make birria worth the time: a broth that tastes deep instead of flat, beef that shreds without drying out, and a finishing salsa with enough lift to keep every taco from collapsing into pure richness. The arbol gives the last bite a sharper edge, which is exactly what keeps the whole plate moving.",
+    heroSummary:
+      "A long-braised, high-payoff taco project with deep chile broth, crisp-edged tortillas, and just enough sharp salsa to keep the plate from turning heavy.",
     imageUrl:
       "https://images.unsplash.com/photo-1613514785940-daed07799d9b?auto=format&fit=crop&w=1200&q=80",
     imageAlt: "Birria tacos with dipping broth",
@@ -360,6 +890,7 @@ export const sampleRecipes: Recipe[] = [
     prepTimeMinutes: 35,
     cookTimeMinutes: 180,
     totalTimeMinutes: 215,
+    activeTimeMinutes: 70,
     servings: 6,
     difficulty: "advanced",
     ingredients: [
@@ -382,6 +913,38 @@ export const sampleRecipes: Recipe[] = [
       { amount: "1", unit: "cup", item: "white onion", notes: "finely chopped for serving" },
       { amount: "1/2", unit: "cup", item: "cilantro", notes: "chopped" },
       { amount: "4", unit: "", item: "limes", notes: "cut into wedges" }
+    ],
+    ingredientSections: [
+      {
+        title: "For the birria braise",
+        items: [
+          { amount: "3", unit: "lb", item: "beef chuck roast", notes: "cut into large chunks" },
+          { amount: "1", unit: "lb", item: "beef short ribs", notes: "optional but great for richer broth" },
+          { amount: "2", unit: "tsp", item: "kosher salt" },
+          { amount: "1", unit: "tsp", item: "black pepper" },
+          { amount: "5", unit: "", item: "guajillo chiles", notes: "stemmed and seeded" },
+          { amount: "3", unit: "", item: "ancho chiles", notes: "stemmed and seeded" },
+          { amount: "3", unit: "", item: "dried arbol chiles", notes: "for the braise base" },
+          { amount: "1", unit: "", item: "white onion", notes: "quartered" },
+          { amount: "6", unit: "", item: "garlic cloves" },
+          { amount: "1", unit: "14-oz can", item: "fire-roasted tomatoes" },
+          { amount: "2", unit: "tsp", item: "Mexican oregano" },
+          { amount: "1", unit: "tsp", item: "ground cumin" },
+          { amount: "4", unit: "cups", item: "beef stock" },
+          { amount: "2", unit: "tbsp", item: "apple cider vinegar" }
+        ]
+      },
+      {
+        title: "For the arbol salsa and taco assembly",
+        items: [
+          { amount: "3", unit: "", item: "dried arbol chiles", notes: "for the salsa" },
+          { amount: "16", unit: "", item: "corn tortillas" },
+          { amount: "3", unit: "cups", item: "Oaxaca cheese", notes: "shredded" },
+          { amount: "1", unit: "cup", item: "white onion", notes: "finely chopped for serving" },
+          { amount: "1/2", unit: "cup", item: "cilantro", notes: "chopped" },
+          { amount: "4", unit: "", item: "limes", notes: "cut into wedges" }
+        ]
+      }
     ],
     instructions: [
       {
@@ -421,6 +984,68 @@ export const sampleRecipes: Recipe[] = [
         tip: "The garnishes are not optional here, because they are what keep the tacos feeling bright."
       }
     ],
+    methodSteps: [
+      {
+        step: 1,
+        title: "Toast and wake up the chiles",
+        body:
+          "Season the beef with salt and pepper. Toast the guajillo, ancho, and half of the arbol chiles until aromatic, then soak them in hot water until fully pliable.",
+        cue: "The chiles should smell nutty and warm, not burnt or acrid.",
+        tip: "Pull them as soon as the skin softens and the aroma opens up.",
+        durationMinutes: 15,
+        ingredientRefs: ["beef chuck roast", "beef short ribs", "guajillo chiles", "ancho chiles", "dried arbol chiles", "kosher salt", "black pepper"]
+      },
+      {
+        step: 2,
+        title: "Blend a smooth braising base",
+        body:
+          "Blend the soaked chiles with onion, garlic, tomatoes, oregano, cumin, vinegar, and a splash of stock until the base is completely smooth and brick-red.",
+        cue: "The puree should pour like thick cream with no gritty chile skin left behind.",
+        tip: "If your blender runs hot, add a little extra stock to keep the blend silky.",
+        durationMinutes: 10,
+        ingredientRefs: ["white onion", "garlic cloves", "fire-roasted tomatoes", "Mexican oregano", "ground cumin", "apple cider vinegar", "beef stock"]
+      },
+      {
+        step: 3,
+        title: "Sear, braise, and build the consome",
+        body:
+          "Sear the beef in a Dutch oven, pour in the chile base and remaining stock, then braise until the meat shreds easily and the broth tastes deep, savory, and fully rounded.",
+        cue: "A fork should slide through the beef with almost no resistance, and the broth should taste layered instead of sharp.",
+        tip: "Top up with a splash of water if the pot reduces too aggressively before the meat is tender.",
+        durationMinutes: 180,
+        ingredientRefs: ["beef chuck roast", "beef short ribs", "beef stock"]
+      },
+      {
+        step: 4,
+        title: "Shred the beef and sharpen the finish",
+        body:
+          "Lift out the beef, shred it into juicy strands, then skim some chile-red fat to the surface. Blitz the remaining arbol chiles with lime and a spoonful of broth for a sharper salsa.",
+        cue: "The salsa should hit bright and pointed, not muddy, so it can cut through the richness of the tacos.",
+        tip: "Keep the shredded beef lightly moistened with broth so it stays lush on the griddle.",
+        durationMinutes: 15,
+        ingredientRefs: ["dried arbol chiles", "limes"]
+      },
+      {
+        step: 5,
+        title: "Griddle crisp-edged quesatacos",
+        body:
+          "Dip each tortilla into the fat-slicked broth, lay it on the hot griddle, then fill with birria and Oaxaca cheese. Fold and cook until the outside is crisp and the cheese fully melts into the meat.",
+        cue: "The tortillas should sizzle on contact and develop bronze-red patches before you flip.",
+        tip: "Work in small batches so the tortillas fry instead of steaming.",
+        durationMinutes: 20,
+        ingredientRefs: ["corn tortillas", "Oaxaca cheese"]
+      },
+      {
+        step: 6,
+        title: "Serve with contrast, not just heat",
+        body:
+          "Serve the tacos immediately with hot consome, arbol salsa, chopped onion, cilantro, and generous lime so every bite gets richness, freshness, and acid in balance.",
+        cue: "The plate should feel bright enough that you want the next taco, not just admire the first one.",
+        tip: "Warm bowls for the consome if you want the full taqueria effect.",
+        durationMinutes: 10,
+        ingredientRefs: ["white onion", "cilantro", "limes"]
+      }
+    ],
     tips: [
       "Make the birria a day ahead and skim the fat after chilling for an even cleaner broth.",
       "Keep the consome hot on the stove while you griddle tacos so every plate hits the table ready to dip.",
@@ -430,6 +1055,39 @@ export const sampleRecipes: Recipe[] = [
       "Use lamb shoulder for a richer version that leans even more celebratory.",
       "Swap in Monterey Jack if Oaxaca is hard to find, but keep the melt high and stretchy.",
       "Turn leftovers into birria ramen or breakfast hash the next day."
+    ],
+    makeAheadNotes:
+      "Braise the birria a day ahead, chill overnight, then skim the fat before reheating. The broth tastes even deeper the next day and taco assembly goes much faster.",
+    storageNotes:
+      "Store the shredded beef and consome together in the fridge for up to 4 days. Keep the tortillas, garnishes, and salsa separate so the tacos still cook up crisp.",
+    reheatNotes:
+      "Warm the birria gently in the broth over medium-low heat. Re-crisp tacos fresh on a hot griddle instead of microwaving fully assembled leftovers.",
+    servingSuggestions: [
+      "Serve with small bowls of hot consome for dipping and plenty of lime at the table.",
+      "Add a simple cabbage-lime slaw or charred scallions if you want the meal to feel sharper and lighter.",
+      "Cold Mexican lager, agua fresca, or sparkling mineral water all work well against the richness."
+    ],
+    substitutions: [
+      "Use Monterey Jack if Oaxaca is hard to find, but choose a cheese that melts cleanly.",
+      "Skip the short ribs and use all chuck if you want a simpler shop without losing the core birria effect.",
+      "Use a mix of guajillo and pasilla if ancho chiles are unavailable, then taste for sweetness before serving."
+    ],
+    faqs: [
+      {
+        question: "Can I make the birria ahead before taco night?",
+        answer:
+          "Yes. In fact, it is better that way. Braise the meat and store it in the broth overnight, then reheat and griddle the tacos fresh when you want to serve."
+      },
+      {
+        question: "Do I need to strain the consome?",
+        answer:
+          "Only if your blender leaves visible chile skin behind. A strong blender usually gets the broth smooth enough to skip that step."
+      },
+      {
+        question: "Can I freeze leftovers?",
+        answer:
+          "Freeze the shredded meat and broth together for up to 2 months. Thaw in the fridge and crisp new tacos on the griddle when you are ready to eat."
+      }
     ],
     equipment: ["Dutch oven", "high-speed blender", "cast-iron griddle", "fine-mesh strainer"],
     ratingAvg: 4.9,

@@ -1,6 +1,9 @@
 import type { Recipe } from "@/lib/types";
+import { getRecipeIngredientSections, getRecipeMethodSteps } from "@/lib/recipes";
 
 export function RecipeSchema({ recipe }: { recipe: Recipe }) {
+  const ingredientSections = getRecipeIngredientSections(recipe);
+  const methodSteps = getRecipeMethodSteps(recipe);
   const schema = {
     "@context": "https://schema.org",
     "@type": "Recipe",
@@ -13,12 +16,15 @@ export function RecipeSchema({ recipe }: { recipe: Recipe }) {
     cookTime: `PT${recipe.cookTimeMinutes}M`,
     recipeYield: `${recipe.servings} servings`,
     recipeCategory: recipe.cuisineType,
-    recipeIngredient: recipe.ingredients.map(
+    recipeIngredient: ingredientSections.flatMap((section) =>
+      section.items.map(
       (ingredient) => `${ingredient.amount} ${ingredient.unit} ${ingredient.item}`
+      )
     ),
-    recipeInstructions: recipe.instructions.map((instruction) => ({
+    recipeInstructions: methodSteps.map((instruction) => ({
       "@type": "HowToStep",
-      text: instruction.text
+      name: instruction.title,
+      text: instruction.body
     })),
     aggregateRating:
       recipe.ratingCount > 0

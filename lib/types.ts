@@ -67,27 +67,59 @@ export interface RecipeIngredient {
   notes?: string;
 }
 
+export interface RecipeIngredientSection {
+  title: string;
+  items: RecipeIngredient[];
+}
+
 export interface RecipeInstruction {
   step: number;
   text: string;
   tip?: string;
 }
 
+export interface RecipeMethodStep {
+  step: number;
+  title: string;
+  body: string;
+  tip?: string;
+  cue?: string;
+  durationMinutes?: number;
+  ingredientRefs?: string[];
+  imageUrl?: string;
+  imageAlt?: string;
+}
+
+export interface RecipeFaq {
+  question: string;
+  answer: string;
+}
+
 export interface Recipe extends BaseContent {
   type: "recipe";
   authorName: string;
   intro?: string;
+  heroSummary?: string;
   heatLevel: HeatLevel;
   cuisineType: CuisineType;
   prepTimeMinutes: number;
   cookTimeMinutes: number;
   totalTimeMinutes: number;
+  activeTimeMinutes?: number;
   servings: number;
   difficulty: "beginner" | "intermediate" | "advanced";
   ingredients: RecipeIngredient[];
+  ingredientSections?: RecipeIngredientSection[];
   instructions: RecipeInstruction[];
+  methodSteps?: RecipeMethodStep[];
   tips: string[];
   variations: string[];
+  makeAheadNotes?: string;
+  storageNotes?: string;
+  reheatNotes?: string;
+  servingSuggestions?: string[];
+  substitutions?: string[];
+  faqs?: RecipeFaq[];
   equipment: string[];
   seoTitle?: string;
   seoDescription?: string;

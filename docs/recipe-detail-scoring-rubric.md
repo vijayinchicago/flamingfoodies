@@ -1,12 +1,6 @@
----
-title: Recipe Detail Scoring Rubric
-description: The canonical rubric FlamingFoodies uses to score recipe detail pages against the strongest patterns from the current recipe-site benchmark cohort.
-publishedAt: 2026-04-04
----
+# Recipe Detail Scoring Rubric
 
-## Purpose
-
-This guide is the source of truth for evaluating every FlamingFoodies recipe detail page.
+This document is the internal source of truth for evaluating every FlamingFoodies recipe detail page.
 
 Use it in three moments:
 
@@ -16,7 +10,7 @@ Use it in three moments:
 
 ## Benchmark cohort
 
-These sites informed the rubric because they repeatedly solve different parts of the recipe-detail problem well:
+These sites informed the rubric because they each solve different parts of the recipe-detail problem well:
 
 - **Maunika Gowardhan**: chef-led headnotes, cultural framing, and concise but confident method writing
 - **Food Network**: planning metadata, equipment context, and strong utility-first cooking setup
@@ -25,7 +19,7 @@ These sites informed the rubric because they repeatedly solve different parts of
 - **Epicurious**: editorial trust, ratings-driven confidence, and polished recipe presentation
 - **Bon Appetit**: premium visuals, strong headnotes, and tool-oriented recipe framing
 
-We also used FlamingFoodies itself as a baseline so the rubric reflects our actual product, not just the cohort.
+We also use FlamingFoodies itself as the baseline so the rubric stays product-real, not just aspirational.
 
 ## Scoring scale
 
@@ -49,11 +43,11 @@ Calculate the final score like this:
 - **55-69**: serviceable but underpowered
 - **Below 55**: rewrite-level weak
 
-## The Rubric
+## The rubric
 
 ### 1. Orientation and editorial promise - 10 points
 
-The top of the page should answer three questions fast: what is this dish, why should I make it, and what kind of cooking session is this going to be?
+The top of the page should answer three questions quickly: what is this dish, why should I make it, and what kind of cooking session is this going to be?
 
 To score **5/5**, the page should include:
 
@@ -167,43 +161,12 @@ To score **5/5**, the page should include:
 - gear and affiliate picks that are relevant to the recipe
 - adjacent merch or commerce modules that stay secondary to cooking
 
-## Current FlamingFoodies baseline
+## How to score a recipe page
 
-**Current score: 63/100**
+1. Score the live page in every category from 0 to 5.
+2. Convert each category to weighted points.
+3. Note the three weakest categories.
+4. Fix those categories first unless the page has a critical UX failure.
+5. Re-score the page after implementation before marking the work complete.
 
-This is a meaningful improvement over the earlier thin recipe-detail version, but it is still below the flagship threshold.
-
-Current working score:
-
-- Orientation and editorial promise: **4/5 -> 8/10**
-- Planning metadata and setup confidence: **3/5 -> 6/10**
-- Ingredient usability: **3/5 -> 9/15**
-- Method clarity and sequencing: **4/5 -> 16/20**
-- Sensory cues and troubleshooting: **3/5 -> 9/15**
-- Visual support and alternate formats: **1/5 -> 2/10**
-- Adaptation, storage, and serving guidance: **2/5 -> 2/5**
-- Trust and social proof: **4/5 -> 4/5**
-- Mobile cookability: **3/5 -> 3/5**
-- Adjacent utility without distraction: **4/5 -> 4/5**
-
-## What would move FlamingFoodies into the 85+ band
-
-The highest-value next improvements are:
-
-- add grouped ingredients and serving-scale support
-- add dedicated storage, reheating, and serving sections
-- add step images for complex recipes
-- add print mode or cook mode
-- add stronger troubleshooting and FAQ patterns
-- add active-time or project-planning cues for longer recipes
-
-## Benchmark references
-
-- [Maunika Gowardhan](https://maunikagowardhan.co.uk/)
-- [Food Network recipe example](https://www.foodnetwork.com/recipes/mulligan-2285253)
-- [Chili Pepper Madness](https://www.chilipeppermadness.com/)
-- [Pinch of Yum recipe example](https://pinchofyum.com/saucy-gochujang-noodles-with-chicken)
-- [Epicurious recipe example](https://www.epicurious.com/recipes/food/views/ba-syn-asparagus-pasta-lemon-parmesan)
-- [Bon Appetit recipe example](https://www.bonappetit.com/recipe/easy-baked-rigatoni-with-italian-sausage)
-- [Bon Appetit on recipe-page design](https://www.bonappetit.com/people/shameless-plugs/article/new-recipe-page)
-- [Similarweb US cooking and recipes ranking](https://www.similarweb.com/top-websites/united-states/food-and-drink/cooking-and-recipes/)
+This rubric is the acceptance checklist for design, engineering, editorial QA, and future AI-assisted recipe work.
