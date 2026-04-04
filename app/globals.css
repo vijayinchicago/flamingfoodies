@@ -92,6 +92,16 @@ a {
     line-height: 1.45;
   }
 
+  body,
+  main,
+  article,
+  .min-h-screen,
+  .bg-flame-gradient,
+  .container-shell {
+    background: #ffffff !important;
+    background-image: none !important;
+  }
+
   .print-hidden,
   header,
   footer {
@@ -152,6 +162,8 @@ a {
   }
 
   .recipe-print-meta div {
+    background: #ffffff !important;
+    background-image: none !important;
     border: 1px solid #d6d0ca;
     border-radius: 0.65rem;
     padding: 0.35rem 0.5rem;
@@ -184,6 +196,8 @@ a {
 
   .recipe-print-card,
   .recipe-print-note-card {
+    background: #ffffff !important;
+    background-image: none !important;
     border: 1px solid #d6d0ca;
     border-radius: 0.85rem;
     padding: 0.6rem 0.7rem;
@@ -273,5 +287,9 @@ a {
 
   .recipe-print-header .eyebrow {
     color: #b45309 !important;
+  }
+
+  * {
+    box-shadow: none !important;
   }
 }
