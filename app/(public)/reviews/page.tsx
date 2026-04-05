@@ -163,28 +163,21 @@ export default async function ReviewsIndexPage({
             Gifts under $50
           </Link>
         </div>
-        <div className="mt-6 grid gap-4 lg:grid-cols-3">
+        <div className="mt-6 grid gap-6 lg:grid-cols-3">
           {topPicks.map((review) => (
-            <article key={review.id} className="panel p-6">
-              <p className="text-xs uppercase tracking-[0.24em] text-ember">
-                {getHotSauceIntentLabel(review)}
-              </p>
-              <h3 className="mt-3 font-display text-3xl text-cream">{review.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-cream/72">{review.description}</p>
-              <div className="mt-4 flex flex-wrap gap-3 text-sm text-cream/60">
-                <span>{review.rating.toFixed(1)}/5</span>
-                <span>{review.brand}</span>
-                {typeof review.priceUsd === "number" ? (
-                  <span>${review.priceUsd.toFixed(2)}</span>
-                ) : null}
+            <div key={review.id} className="space-y-3">
+              <ReviewCard review={review} />
+              <div className="px-2">
+                <p className="text-xs uppercase tracking-[0.24em] text-ember">
+                  {getHotSauceIntentLabel(review)}
+                </p>
+                <p className="mt-2 text-sm leading-7 text-cream/65">
+                  {typeof review.priceUsd === "number"
+                    ? `Shelf read: ${review.brand} at $${review.priceUsd.toFixed(2)} is one of the strongest fast-buy options on this page.`
+                    : `Shelf read: ${review.brand} is one of the strongest fast-buy options on this page.`}
+                </p>
               </div>
-              <Link
-                href={`/reviews/${review.slug}`}
-                className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
-              >
-                Read review
-              </Link>
-            </article>
+            </div>
           ))}
         </div>
       </div>
