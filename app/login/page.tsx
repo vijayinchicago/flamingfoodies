@@ -3,7 +3,7 @@ import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
   title: "Log In | FlamingFoodies",
-  description: "Sign in to save recipes, join competitions, comment, and manage your FlamingFoodies profile.",
+  description: "Sign in to save recipes, comment, and manage your FlamingFoodies profile.",
   path: "/login",
   noIndex: true
 });

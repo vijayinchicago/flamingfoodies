@@ -19,7 +19,7 @@ export function Footer() {
             <Link href="/recipes">Recipes</Link>
             <Link href="/hot-sauces">Hot Sauces</Link>
             <Link href="/community">Community Feed</Link>
-            <Link href="/competitions">Competitions</Link>
+            <Link href="/guides">Guides</Link>
           </div>
         </div>
         <div>

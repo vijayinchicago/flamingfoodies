@@ -1,16 +1,15 @@
 import type { MetadataRoute } from "next";
 
-import { getBlogPosts, getCompetitions, getRecipes, getReviews } from "@/lib/services/content";
+import { getBlogPosts, getRecipes, getReviews } from "@/lib/services/content";
 import { getGuides } from "@/lib/content/guides";
 import { absoluteUrl } from "@/lib/utils";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [blogPosts, recipes, reviews, guides, competitions] = await Promise.all([
+  const [blogPosts, recipes, reviews, guides] = await Promise.all([
     getBlogPosts(),
     getRecipes(),
     getReviews(),
-    getGuides(),
-    getCompetitions()
+    getGuides()
   ]);
 
   return [
@@ -29,7 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/hot-sauces/gifts-under-50",
     "/hot-sauces/under-15",
     "/community",
-    "/competitions",
+    "/guides",
     "/quiz",
     "/shop",
     "/subscriptions"
@@ -54,10 +53,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       guides.map((guide) => ({
         url: absoluteUrl(`/guides/${guide.slug}`),
         lastModified: new Date(guide.publishedAt)
-      })),
-      competitions.map((competition) => ({
-        url: absoluteUrl(`/competitions/${competition.slug}`),
-        lastModified: new Date(competition.startDate)
       }))
     );
 }

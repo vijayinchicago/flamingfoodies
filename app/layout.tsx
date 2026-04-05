@@ -12,7 +12,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "FlamingFoodies | Turn Up the Heat",
   description:
-    "Recipes, reviews, competitions, and spicy food culture for people who like their meals with a serious kick.",
+    "Recipes, hot sauce reviews, and spicy food culture for people who like their meals with a serious kick.",
   path: "/"
 });
 

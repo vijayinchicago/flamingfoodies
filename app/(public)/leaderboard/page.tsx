@@ -17,7 +17,7 @@ export default async function LeaderboardPage() {
       <SectionHeading
         eyebrow="Leaderboard"
         title="Heat score makes community effort legible."
-        copy="Contribution points, likes, and competition wins roll into a visible status system that pushes return behavior."
+        copy="Contribution points, likes, comments, follows, and saves roll into a visible status system that pushes return behavior."
       />
       <div className="mt-10 overflow-hidden rounded-[2rem] border border-white/10">
         <table className="min-w-full divide-y divide-white/10">

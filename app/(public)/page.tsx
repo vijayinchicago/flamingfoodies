@@ -12,17 +12,13 @@ import {
   getAffiliateLinkEntries,
   resolveAffiliateLink
 } from "@/lib/affiliates";
-import {
-  getFeaturedCollection,
-  getCompetitions
-} from "@/lib/services/content";
+import { getFeaturedCollection } from "@/lib/services/content";
 import { getGuides } from "@/lib/content/guides";
 import { getShopAffiliateCollections } from "@/lib/shop";
 
 export default async function HomePage() {
-  const [{ recipes, blogPosts, reviews }, competitions, guides] = await Promise.all([
+  const [{ recipes, blogPosts, reviews }, guides] = await Promise.all([
     getFeaturedCollection(),
-    getCompetitions(),
     getGuides()
   ]);
   const homeAffiliateLinks = getAffiliateLinkEntries(HOME_FEATURED_AFFILIATE_KEYS);
@@ -50,7 +46,7 @@ export default async function HomePage() {
                 The spicy food platform for people who want flavor before flexing.
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-cream/78">
-                Explore high-heat recipes, product reviews, member challenges, and a
+                Explore high-heat recipes, product reviews, community posts, and a
                 content engine designed to grow into the internet’s loudest home for real
                 chili-head culture.
               </p>
@@ -106,17 +102,17 @@ export default async function HomePage() {
               </Link>
             </div>
             <div className="panel p-7">
-              <p className="eyebrow">Live competition</p>
-              <h2 className="mt-3 font-display text-4xl text-cream">{competitions[0]?.title}</h2>
+              <p className="eyebrow">Hot sauce hub</p>
+              <h2 className="mt-3 font-display text-4xl text-cream">Find the right bottle faster.</h2>
               <p className="mt-4 text-sm leading-7 text-cream/70">
-                {competitions[0]?.entries.length} entries already in. Vote, enter, or scout
-                inspiration before the next round.
+                Browse best-for pages, under-$15 picks, giftable sets, and hot sauce reviews
+                built to drive useful clicks instead of empty hype.
               </p>
               <Link
-                href={`/competitions/${competitions[0]?.slug}`}
+                href="/hot-sauces"
                 className="mt-6 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
               >
-                See the showdown
+                Explore hot sauces
               </Link>
             </div>
           </div>

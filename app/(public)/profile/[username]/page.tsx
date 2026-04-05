@@ -21,7 +21,7 @@ export async function generateMetadata({
   return buildMetadata({
     title: profile ? `${profile.displayName} | FlamingFoodies` : "Member Profile | FlamingFoodies",
     description:
-      profile?.bio || `See spicy posts, competition activity, and community stats for @${params.username}.`,
+      profile?.bio || `See spicy posts and community stats for @${params.username}.`,
     path: `/profile/${params.username}`
   });
 }

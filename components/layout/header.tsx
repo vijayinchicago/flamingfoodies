@@ -7,7 +7,7 @@ const nav = [
   { href: "/blog", label: "Blog" },
   { href: "/hot-sauces", label: "Hot Sauces" },
   { href: "/community", label: "Community" },
-  { href: "/competitions", label: "Competitions" },
+  { href: "/shop", label: "Shop" },
   { href: "/quiz", label: "Heat Quiz" },
   { href: "/search", label: "Search" }
 ];
