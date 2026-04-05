@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 
+import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import { getRecipeFaqs, getRecipeHeroSummary, getRecipeIngredientSections, getRecipeMethodSteps } from "@/lib/recipes";
-import type { Recipe, RecipeQaReport } from "@/lib/types";
+import type { CuisineType, HeatLevel, Recipe, RecipeQaReport } from "@/lib/types";
 
 type RecipeEditorAction = (formData: FormData) => void | Promise<void>;
 
@@ -185,6 +187,35 @@ export function RecipeEditorForm({
         }))
       : [createEmptyFaq()]
   );
+  const [heroTitle, setHeroTitle] = useState(recipe?.title ?? "");
+  const [heroHeatLevel, setHeroHeatLevel] = useState<HeatLevel>(recipe?.heatLevel ?? "medium");
+  const [heroCuisineType, setHeroCuisineType] = useState<CuisineType>(
+    recipe?.cuisineType ?? "other"
+  );
+  const [heroImageUrl, setHeroImageUrl] = useState(recipe?.imageUrl ?? "");
+  const [heroImageAlt, setHeroImageAlt] = useState(recipe?.imageAlt ?? "");
+  const [heroFilePreviewUrl, setHeroFilePreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (heroFilePreviewUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(heroFilePreviewUrl);
+      }
+    };
+  }, [heroFilePreviewUrl]);
+
+  const resolvedHero = getRecipeHeroFields({
+    title: heroTitle || recipe?.title || "Recipe preview",
+    cuisineType: heroCuisineType,
+    heatLevel: heroHeatLevel,
+    imageUrl: heroFilePreviewUrl || heroImageUrl || undefined,
+    imageAlt: heroImageAlt || undefined
+  });
+  const heroPreviewMode = heroFilePreviewUrl
+    ? "upload"
+    : resolvedHero.usesGeneratedHeroCard
+      ? "generated"
+      : "provided";
 
   const serializedIngredientSections = JSON.stringify(
     ingredientSections
@@ -259,6 +290,7 @@ export function RecipeEditorForm({
         <input
           name="title"
           defaultValue={recipe?.title}
+          onChange={(event) => setHeroTitle(event.target.value)}
           placeholder="Title"
           className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember md:col-span-2"
         />
@@ -287,6 +319,7 @@ export function RecipeEditorForm({
           <select
             name="heatLevel"
             defaultValue={recipe?.heatLevel || "medium"}
+            onChange={(event) => setHeroHeatLevel(event.target.value as HeatLevel)}
             className="rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
           >
             <option value="medium">medium</option>
@@ -298,6 +331,7 @@ export function RecipeEditorForm({
           <select
             name="cuisineType"
             defaultValue={recipe?.cuisineType || "other"}
+            onChange={(event) => setHeroCuisineType(event.target.value as CuisineType)}
             className="rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
           >
             <option value="other">other</option>
@@ -830,44 +864,97 @@ export function RecipeEditorForm({
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-3">
-        <input
-          name="tags"
-          defaultValue={recipe?.tags.join(", ")}
-          placeholder="spicy, tacos, weekend"
-          className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
-        />
-        <select
-          name="status"
-          defaultValue={recipe?.status || "draft"}
-          className="rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
-        >
-          <option value="draft">draft</option>
-          <option value="pending_review">pending review</option>
-          <option value="published">published</option>
-        </select>
-        <label className="flex items-center gap-3 rounded-2xl border border-charcoal/10 px-4 py-3 text-sm text-charcoal/70">
-          <input type="checkbox" name="featured" defaultChecked={recipe?.featured} />
-          Featured recipe
-        </label>
-        <input
-          name="imageUrl"
-          defaultValue={recipe?.imageUrl}
-          placeholder="Hero image URL"
-          className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
-        />
-        <input
-          name="imageAlt"
-          defaultValue={recipe?.imageAlt}
-          placeholder="Hero image alt text"
-          className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
-        />
-        <input
-          name="imageFile"
-          type="file"
-          accept="image/*"
-          className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 text-sm outline-none file:mr-4 file:rounded-full file:border-0 file:bg-charcoal file:px-4 file:py-2 file:text-white"
-        />
+      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="grid gap-4 md:grid-cols-3">
+          <input
+            name="tags"
+            defaultValue={recipe?.tags.join(", ")}
+            placeholder="spicy, tacos, weekend"
+            className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
+          />
+          <select
+            name="status"
+            defaultValue={recipe?.status || "draft"}
+            className="rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
+          >
+            <option value="draft">draft</option>
+            <option value="pending_review">pending review</option>
+            <option value="published">published</option>
+          </select>
+          <label className="flex items-center gap-3 rounded-2xl border border-charcoal/10 px-4 py-3 text-sm text-charcoal/70">
+            <input type="checkbox" name="featured" defaultChecked={recipe?.featured} />
+            Featured recipe
+          </label>
+          <input
+            name="imageUrl"
+            defaultValue={recipe?.imageUrl}
+            onChange={(event) => setHeroImageUrl(event.target.value)}
+            placeholder="Hero image URL"
+            className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember md:col-span-2"
+          />
+          <input
+            name="imageAlt"
+            defaultValue={recipe?.imageAlt}
+            onChange={(event) => setHeroImageAlt(event.target.value)}
+            placeholder="Hero image alt text"
+            className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
+          />
+          <input
+            name="imageFile"
+            type="file"
+            accept="image/*"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              setHeroFilePreviewUrl((current) => {
+                if (current?.startsWith("blob:")) {
+                  URL.revokeObjectURL(current);
+                }
+
+                return file ? URL.createObjectURL(file) : null;
+              });
+            }}
+            className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 text-sm outline-none file:mr-4 file:rounded-full file:border-0 file:bg-charcoal file:px-4 file:py-2 file:text-white md:col-span-3"
+          />
+        </div>
+        <aside className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.03] p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="eyebrow">Hero preview</p>
+              <h3 className="mt-2 font-display text-3xl text-charcoal">Review the actual asset</h3>
+            </div>
+            <span className="rounded-full bg-charcoal px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">
+              {heroPreviewMode === "upload"
+                ? "New upload"
+                : heroPreviewMode === "generated"
+                  ? "Generated fallback"
+                  : "Live image"}
+            </span>
+          </div>
+          <div className="mt-4 overflow-hidden rounded-[1.5rem] border border-charcoal/10 bg-white">
+            <div className="relative aspect-[4/3] bg-charcoal/5">
+              <Image
+                src={resolvedHero.imageUrl}
+                alt={resolvedHero.imageAlt}
+                fill
+                unoptimized
+                className="object-cover"
+              />
+            </div>
+            <div className="border-t border-charcoal/10 p-4">
+              <p className="text-sm font-semibold text-charcoal">{heroTitle || "Recipe preview"}</p>
+              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-charcoal/55">
+                {heroCuisineType.replace(/_/g, " ")} · {heroHeatLevel} heat
+              </p>
+              <p className="mt-3 text-sm leading-7 text-charcoal/68">
+                This is the exact hero image QA should review before checking the image signoff
+                box below.
+              </p>
+              <p className="mt-3 text-xs leading-6 text-charcoal/55">
+                Alt text: {resolvedHero.imageAlt}
+              </p>
+            </div>
+          </div>
+        </aside>
       </section>
 
       <section className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.03] p-5">
@@ -893,7 +980,7 @@ export function RecipeEditorForm({
               name="heroImageReviewed"
               defaultChecked={recipe?.heroImageReviewed}
             />
-            Hero image manually reviewed against the actual dish
+            I reviewed the hero preview above and it matches what should publish
           </label>
           <label className="flex items-center gap-3 rounded-2xl border border-charcoal/10 bg-white px-4 py-3 text-sm text-charcoal/80">
             <input

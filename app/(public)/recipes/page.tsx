@@ -10,6 +10,7 @@ import {
   getAffiliateLinkEntries,
   resolveAffiliateLink
 } from "@/lib/affiliates";
+import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import { buildMetadata } from "@/lib/seo";
 import { getRecipes } from "@/lib/services/content";
 import { absoluteUrl } from "@/lib/utils";
@@ -41,7 +42,7 @@ export default async function RecipesIndexPage() {
         items={recipes.map((recipe) => ({
           name: recipe.title,
           url: absoluteUrl(`/recipes/${recipe.slug}`),
-          image: recipe.imageUrl
+          image: getRecipeHeroFields(recipe).imageUrl
         }))}
       />
       <SectionHeading

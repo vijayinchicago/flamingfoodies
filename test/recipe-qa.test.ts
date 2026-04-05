@@ -139,6 +139,17 @@ describe("recipe QA", () => {
     expect(report.blockers).toHaveLength(0);
   });
 
+  it("warns when a recipe still relies on the generated fallback hero card", () => {
+    const report = buildRecipeQaReport({
+      ...baseRecipe,
+      imageUrl:
+        "https://flamingfoodies.com/api/og?title=Szechuan+Chili+Crisp+Dumpling+Bowls&eyebrow=Szechuan+Recipe&subtitle=Hot+heat",
+      imageAlt: "FlamingFoodies recipe card for Szechuan Chili Crisp Dumpling Bowls"
+    });
+
+    expect(report.warnings.map((issue) => issue.code)).toContain("generated-hero-card");
+  });
+
   it("auto-approves the curated flagship recipe set for sync imports", () => {
     expect(
       getRecipeManualReviewState({

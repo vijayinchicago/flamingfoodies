@@ -6,6 +6,7 @@ import type {
   RecipeQaIssue,
   RecipeQaReport
 } from "@/lib/types";
+import { isGeneratedHeroCardImageUrl } from "@/lib/recipe-hero";
 
 const tokenStopwords = new Set([
   "and",
@@ -233,6 +234,16 @@ export function buildRecipeQaReport(recipe: RecipeQaCandidate): RecipeQaReport {
         "warning",
         "missing-hero-summary",
         "Add a stronger hero summary so the page opens with a clear editorial payoff."
+      )
+    );
+  }
+
+  if (isGeneratedHeroCardImageUrl(recipe.imageUrl)) {
+    warnings.push(
+      createIssue(
+        "warning",
+        "generated-hero-card",
+        "This recipe is still using the branded fallback hero card. Upload or confirm a stronger dish image when available."
       )
     );
   }

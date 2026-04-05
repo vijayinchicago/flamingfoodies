@@ -1,9 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { createRecipeAction, updateRecipeStateAction } from "@/lib/actions/admin-content";
 import { AdminPage } from "@/components/admin/admin-page";
 import { ContentTable } from "@/components/admin/content-table";
 import { RecipeEditorForm } from "@/components/admin/recipe-editor-form";
+import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import { buildRecipeQaReport, getRecipeQaPublishError } from "@/lib/recipe-qa";
 import { getAdminRecipes } from "@/lib/services/content";
 
@@ -19,9 +21,11 @@ export default async function AdminRecipesPage({
   const aiQueueEntries = aiReviewQueue.map((recipe) => {
     const qaReport = buildRecipeQaReport(recipe);
     const publishError = getRecipeQaPublishError(qaReport);
+    const hero = getRecipeHeroFields(recipe);
 
     return {
       recipe,
+      hero,
       qaReport,
       publishError,
       publishReady: !publishError
@@ -84,80 +88,99 @@ export default async function AdminRecipesPage({
             </div>
           </div>
           <div className="mt-6 grid gap-4">
-            {aiQueueEntries.slice(0, 6).map(({ recipe, qaReport, publishError, publishReady }) => (
+            {aiQueueEntries.slice(0, 6).map(({ recipe, hero, qaReport, publishError, publishReady }) => (
               <article
                 key={`queue-${recipe.id}`}
                 className="rounded-[1.5rem] border border-charcoal/10 bg-white p-5"
               >
-                <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
+                  <div className="overflow-hidden rounded-[1.25rem] border border-charcoal/10 bg-charcoal/[0.03]">
+                    <div className="relative aspect-[4/3]">
+                      <Image
+                        src={hero.imageUrl}
+                        alt={hero.imageAlt}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="border-t border-charcoal/10 px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-charcoal/60">
+                        {hero.usesGeneratedHeroCard ? "Generated fallback" : "Current hero"}
+                      </p>
+                    </div>
+                  </div>
                   <div>
-                    <p className="eyebrow">
-                      {recipe.source.replace(/_/g, " ")} · {recipe.cuisineType} · {recipe.heatLevel}
-                    </p>
-                    <h3 className="mt-2 font-display text-3xl text-charcoal">{recipe.title}</h3>
-                    <p className="mt-3 text-sm leading-7 text-charcoal/65">{recipe.description}</p>
-                  </div>
-                  <div className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">
-                    {recipe.status}
-                  </div>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-4 text-sm text-charcoal/55">
-                  <span>Slug: {recipe.slug}</span>
-                  <span>Hero reviewed: {recipe.heroImageReviewed ? "Yes" : "No"}</span>
-                  <span>Cuisine QA: {recipe.cuisineQaReviewed ? "Yes" : "No"}</span>
-                  <span>QA score: {qaReport.score}/100</span>
-                </div>
-                {publishError ? (
-                  <div className="mt-4 rounded-[1.25rem] border border-amber-200 bg-amber-50 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">
-                      What is blocking publish
-                    </p>
-                    <p className="mt-2 text-sm leading-7 text-amber-950">{publishError}</p>
-                    {qaReport.blockers.length > 1 ? (
-                      <ul className="mt-3 space-y-2 text-sm leading-7 text-amber-900">
-                        {qaReport.blockers.slice(1).map((issue) => (
-                          <li key={issue.code}>• {issue.message}</li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </div>
-                ) : (
-                  <div className="mt-4 rounded-[1.25rem] border border-emerald-200 bg-emerald-50 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
-                      Ready to publish
-                    </p>
-                    <p className="mt-2 text-sm leading-7 text-emerald-900">
-                      QA blockers are clear. You can publish this recipe now or open it for a
-                      final editorial pass.
-                    </p>
-                  </div>
-                )}
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <Link
-                    href={`/admin/content/recipes/${recipe.id}`}
-                    className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal"
-                  >
-                    Open review
-                  </Link>
-                  {publishReady ? (
-                    <form action={updateRecipeStateAction} className="flex flex-wrap gap-3">
-                      <input type="hidden" name="id" value={recipe.id} />
-                      <button
-                        name="intent"
-                        value="publish"
-                        className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <p className="eyebrow">
+                          {recipe.source.replace(/_/g, " ")} · {recipe.cuisineType} · {recipe.heatLevel}
+                        </p>
+                        <h3 className="mt-2 font-display text-3xl text-charcoal">{recipe.title}</h3>
+                        <p className="mt-3 text-sm leading-7 text-charcoal/65">{recipe.description}</p>
+                      </div>
+                      <div className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">
+                        {recipe.status}
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-4 text-sm text-charcoal/55">
+                      <span>Slug: {recipe.slug}</span>
+                      <span>Hero reviewed: {recipe.heroImageReviewed ? "Yes" : "No"}</span>
+                      <span>Cuisine QA: {recipe.cuisineQaReviewed ? "Yes" : "No"}</span>
+                      <span>QA score: {qaReport.score}/100</span>
+                    </div>
+                    {publishError ? (
+                      <div className="mt-4 rounded-[1.25rem] border border-amber-200 bg-amber-50 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">
+                          What is blocking publish
+                        </p>
+                        <p className="mt-2 text-sm leading-7 text-amber-950">{publishError}</p>
+                        {qaReport.blockers.length > 1 ? (
+                          <ul className="mt-3 space-y-2 text-sm leading-7 text-amber-900">
+                            {qaReport.blockers.slice(1).map((issue) => (
+                              <li key={issue.code}>• {issue.message}</li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <div className="mt-4 rounded-[1.25rem] border border-emerald-200 bg-emerald-50 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                          Ready to publish
+                        </p>
+                        <p className="mt-2 text-sm leading-7 text-emerald-900">
+                          QA blockers are clear. You can publish this recipe now or open it for a
+                          final editorial pass.
+                        </p>
+                      </div>
+                    )}
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      <Link
+                        href={`/admin/content/recipes/${recipe.id}`}
+                        className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal"
                       >
-                        Publish now
-                      </button>
-                    </form>
-                  ) : (
-                    <Link
-                      href={`/admin/content/recipes/${recipe.id}`}
-                      className="rounded-full bg-amber-600 px-4 py-2 text-sm font-semibold text-white"
-                    >
-                      Complete QA to publish
-                    </Link>
-                  )}
+                        Open review
+                      </Link>
+                      {publishReady ? (
+                        <form action={updateRecipeStateAction} className="flex flex-wrap gap-3">
+                          <input type="hidden" name="id" value={recipe.id} />
+                          <button
+                            name="intent"
+                            value="publish"
+                            className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+                          >
+                            Publish now
+                          </button>
+                        </form>
+                      ) : (
+                        <Link
+                          href={`/admin/content/recipes/${recipe.id}`}
+                          className="rounded-full bg-amber-600 px-4 py-2 text-sm font-semibold text-white"
+                        >
+                          Complete QA to publish
+                        </Link>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </article>
             ))}
