@@ -14,6 +14,8 @@ describe("generation prompts", () => {
   it("creates a blog prompt with category details", () => {
     const prompt = BLOG_POST_PROMPT({ category: "culture" });
     expect(prompt).toContain("Topic category: culture");
+    expect(prompt).toContain("at least 3 H2 subheadings");
+    expect(prompt).toContain("at least 1 short bullet or numbered list");
   });
 
   it("returns requested cuisine count", () => {

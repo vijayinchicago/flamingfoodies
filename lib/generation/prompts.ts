@@ -84,11 +84,19 @@ Topic category: ${params.category}
 Topic: ${params.topic || "choose a relevant, high-interest topic in spicy food culture"}
 Target keywords: ${params.keywords?.join(", ") || "naturally relevant keywords"}
 
+Requirements:
+- Write a practical, publishable article, not a vague overview.
+- Use markdown with at least 3 H2 subheadings.
+- Aim for roughly 900-1400 words.
+- Include at least 1 short bullet or numbered list that improves scanability.
+- Keep the article specific to spicy food, hot sauce, peppers, heat, or spicy cooking culture.
+- Avoid filler, AI disclaimers, made-up sourcing, or unsupported product/fact claims.
+
 Return ONLY valid JSON. Do not include any keys beyond the JSON schema below.
 {
   "title": "...",
   "description": "...",
-  "content": "full post content in markdown (800-1200 words, H2 subheadings)",
+  "content": "full post content in markdown (900-1400 words, at least 3 H2 subheadings, includes at least 1 bullet or numbered list)",
   "category": "${params.category}",
   "tags": ["..."],
   "heat_level": "mild|medium|hot|inferno|reaper",

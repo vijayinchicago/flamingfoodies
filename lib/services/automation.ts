@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 
+import { buildBlogQaReport } from "@/lib/blog-qa";
 import { env, flags } from "@/lib/env";
 import {
   BLOG_POST_PROMPT,
@@ -48,6 +49,7 @@ type AgentQaReview = {
   warnings?: string[];
   cuisine_assessment?: string;
   image_assessment?: string;
+  content_assessment?: string;
   method_assessment?: string;
   suggested_fixes?: string[];
 };
@@ -288,6 +290,7 @@ const generatedReviewSchema = z
   .passthrough();
 
 const AUTOMATED_RECIPE_PUBLISH_SCORE = 84;
+const AUTOMATED_BLOG_PUBLISH_SCORE = 86;
 const AUTOMATED_REVIEW_PUBLISH_SCORE = 86;
 const ANTHROPIC_TEXT_MODEL = env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
 const ANTHROPIC_GENERATION_MAX_TOKENS = 3200;
@@ -770,11 +773,16 @@ function buildPrompt(type: GenerationType, cuisine: CuisineType, index: number) 
   });
 }
 
-function buildEditorialQaPrompt(type: "recipe" | "review", payload: Record<string, any>) {
+function buildEditorialQaPrompt(
+  type: "recipe" | "review" | "blog_post",
+  payload: Record<string, any>
+) {
   const scope =
     type === "recipe"
       ? "a spicy recipe draft for publication readiness"
-      : "a spicy product review draft for publication readiness";
+      : type === "review"
+        ? "a spicy product review draft for publication readiness"
+        : "a spicy food blog post draft for publication readiness";
 
   return `You are the FlamingFoodies Cuisine QA agent.
 
@@ -782,12 +790,13 @@ Your job is to review ${scope}.
 Be strict, concrete, and editorially useful.
 
 Evaluate:
-1. Dish or product identity
-2. Cuisine fit or origin credibility
-3. Method or tasting-note credibility
+1. Topic or content identity
+2. Cuisine fit or origin credibility where relevant
+3. Structure, method, or tasting-note credibility
 4. Heat credibility
 5. Image accuracy based on the provided alt text and named content
 6. Missing support or context that would make this feel weak in production
+7. Unsupported claims, filler, or generic AI-style writing
 
 Return valid JSON with:
 - verdict: pass | revise | fail
@@ -795,7 +804,7 @@ Return valid JSON with:
 - warnings: array of concise warning strings
 - cuisine_assessment: short paragraph
 - image_assessment: short paragraph
-- method_assessment: short paragraph
+- content_assessment: short paragraph
 - suggested_fixes: array of specific edits
 
 Draft payload:
@@ -804,7 +813,7 @@ ${JSON.stringify(payload, null, 2)}`;
 
 async function runEditorialQaReview(
   anthropic: Anthropic | null,
-  type: "recipe" | "review",
+  type: "recipe" | "review" | "blog_post",
   payload: Record<string, any>
 ) {
   if (!anthropic) {
@@ -885,7 +894,9 @@ function buildAgentQaNotes(baseNote: string, agentReview: AgentQaReview | null) 
       ? `Cuisine assessment: ${agentReview.cuisine_assessment}`
       : null,
     agentReview.image_assessment ? `Image assessment: ${agentReview.image_assessment}` : null,
-    agentReview.method_assessment ? `Method assessment: ${agentReview.method_assessment}` : null,
+    agentReview.content_assessment || agentReview.method_assessment
+      ? `Content assessment: ${agentReview.content_assessment ?? agentReview.method_assessment}`
+      : null,
     agentReview.suggested_fixes?.length
       ? `Suggested fixes: ${agentReview.suggested_fixes.join("; ")}`
       : null
@@ -1222,6 +1233,54 @@ function buildGeneratedRecipeQaState(
   };
 }
 
+function buildGeneratedBlogQaState(
+  payload: ReturnType<typeof buildBlogDraft>,
+  agentReview: AgentQaReview | null
+) {
+  const usesSafeHeroCard = usesAutomationHeroCard(payload.image_url);
+  const automatedEditorialQa = isAgentQaPass(agentReview);
+  const baseQaNote = usesSafeHeroCard
+    ? "AI-generated story uses a branded hero card and passed automated editorial QA checks where noted."
+    : "AI-generated story is awaiting editorial image and content QA.";
+  const blogQaCandidate = {
+    id: 0,
+    type: "blog" as const,
+    slug: "draft",
+    title: payload.title,
+    description: payload.description,
+    imageUrl: payload.image_url ?? undefined,
+    imageAlt: payload.image_alt,
+    featured: payload.featured,
+    source: "ai_generated" as const,
+    status: "pending_review" as const,
+    publishedAt: undefined,
+    tags: payload.tags,
+    viewCount: 0,
+    likeCount: 0,
+    authorName: payload.author_name,
+    category: payload.category,
+    content: payload.content,
+    seoTitle: payload.seo_title,
+    seoDescription: payload.seo_description,
+    cuisineType: payload.cuisine_type,
+    heatLevel: payload.heat_level,
+    scovilleRating: payload.scoville_rating,
+    readTimeMinutes: payload.read_time_minutes
+  };
+
+  const qaReport = mergeAgentQaReview(buildBlogQaReport(blogQaCandidate), agentReview);
+
+  return {
+    qaNotes: buildAgentQaNotes(baseQaNote, agentReview),
+    qaReport,
+    automated_publish_eligible:
+      usesSafeHeroCard &&
+      automatedEditorialQa &&
+      qaReport.blockers.length === 0 &&
+      qaReport.score >= AUTOMATED_BLOG_PUBLISH_SCORE
+  };
+}
+
 function buildGeneratedReviewQaState(
   payload: ReturnType<typeof buildReviewDraft>,
   agentReview: AgentQaReview | null
@@ -1405,25 +1464,44 @@ async function insertGeneratedContent(
       imageUrl
     );
     const slug = await makeUniqueSlug(supabase, "blog_posts", payload.title);
+    const agentReview = await runEditorialQaReview(anthropic, "blog_post", {
+      slug,
+      ...payload
+    });
+    const qaState = buildGeneratedBlogQaState(payload, agentReview);
+    const shouldScheduleAutoPublish = Boolean(
+      autoPublish && qaState.automated_publish_eligible && publishAt
+    );
     const { data, error } = await supabase
       .from("blog_posts")
       .insert({
         ...payload,
         slug,
-        status: "pending_review",
-        published_at: null
+        status: shouldScheduleAutoPublish ? "draft" : "pending_review",
+        published_at: shouldScheduleAutoPublish ? publishAt : null
       })
       .select("id, slug, title, image_url")
       .single();
 
     if (error) throw new Error(error.message);
 
+    if (shouldScheduleAutoPublish) {
+      await createSocialPostsForContent({
+        contentType: "blog_post",
+        contentId: data.id,
+        title: data.title,
+        slug: data.slug,
+        imageUrl: data.image_url ?? undefined,
+        scheduledAt: publishAt
+      });
+    }
+
     return {
       resultId: data.id,
       resultType: "blog_post",
       slug: data.slug,
       title: data.title,
-      publishAt: null
+      publishAt: shouldScheduleAutoPublish ? publishAt : null
     };
   }
 
