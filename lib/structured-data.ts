@@ -1,4 +1,6 @@
-import type { BlogPost, RecipeFaq } from "@/lib/types";
+import { getRecipeHeroFields } from "@/lib/recipe-hero";
+import { getRecipeIngredientSections, getRecipeMethodSteps } from "@/lib/recipes";
+import type { BlogPost, Recipe, RecipeFaq } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
 
 export type ItemListEntry = {
@@ -36,6 +38,82 @@ export function buildArticleStructuredData(post: BlogPost) {
     articleSection: post.category,
     keywords: post.tags.length ? post.tags.join(", ") : undefined,
     wordCount: countWords(post.content)
+  };
+}
+
+function formatCuisineLabel(value?: string) {
+  if (!value || value === "other") {
+    return undefined;
+  }
+
+  return value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function buildRecipeStepFallbackImage(recipe: Recipe, stepNumber: number, stepTitle: string) {
+  const params = new URLSearchParams({
+    title: `Step ${stepNumber}`,
+    eyebrow: recipe.title,
+    subtitle: stepTitle
+  });
+
+  return absoluteUrl(`/api/og?${params.toString()}`);
+}
+
+export function buildRecipeStructuredData(recipe: Recipe) {
+  const ingredientSections = getRecipeIngredientSections(recipe);
+  const methodSteps = getRecipeMethodSteps(recipe);
+  const hero = getRecipeHeroFields(recipe);
+  const recipeUrl = absoluteUrl(`/recipes/${recipe.slug}`);
+  const recipeCuisine = formatCuisineLabel(recipe.cuisineType);
+  const keywords = Array.from(
+    new Set(
+      [recipe.heatLevel, recipe.cuisineType, ...recipe.tags]
+        .map((value) => value?.replace(/_/g, " ").trim())
+        .filter(Boolean)
+    )
+  ).join(", ");
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "Recipe",
+    mainEntityOfPage: recipeUrl,
+    url: recipeUrl,
+    name: recipe.title,
+    description: recipe.description,
+    image: [hero.imageUrl],
+    author: { "@type": "Person", name: recipe.authorName },
+    datePublished: recipe.publishedAt,
+    prepTime: `PT${recipe.prepTimeMinutes}M`,
+    cookTime: `PT${recipe.cookTimeMinutes}M`,
+    totalTime: `PT${recipe.totalTimeMinutes}M`,
+    recipeYield: `${recipe.servings} servings`,
+    recipeCategory: "spicy recipe",
+    recipeCuisine,
+    keywords: keywords || undefined,
+    recipeIngredient: ingredientSections.flatMap((section) =>
+      section.items.map(
+        (ingredient) => `${ingredient.amount} ${ingredient.unit} ${ingredient.item}`.replace(/\s+/g, " ").trim()
+      )
+    ),
+    recipeInstructions: methodSteps.map((instruction) => ({
+      "@type": "HowToStep",
+      name: instruction.title,
+      text: instruction.body,
+      url: absoluteUrl(`/recipes/${recipe.slug}#recipe-step-${instruction.step}`),
+      image:
+        instruction.imageUrl ||
+        buildRecipeStepFallbackImage(recipe, instruction.step, instruction.title)
+    })),
+    aggregateRating:
+      recipe.ratingCount > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: recipe.ratingAvg,
+            reviewCount: recipe.ratingCount
+          }
+        : undefined
   };
 }
 

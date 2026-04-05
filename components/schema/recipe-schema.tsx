@@ -1,42 +1,8 @@
 import type { Recipe } from "@/lib/types";
-import { getRecipeHeroFields } from "@/lib/recipe-hero";
-import { getRecipeIngredientSections, getRecipeMethodSteps } from "@/lib/recipes";
+import { buildRecipeStructuredData } from "@/lib/structured-data";
 
 export function RecipeSchema({ recipe }: { recipe: Recipe }) {
-  const ingredientSections = getRecipeIngredientSections(recipe);
-  const methodSteps = getRecipeMethodSteps(recipe);
-  const hero = getRecipeHeroFields(recipe);
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "Recipe",
-    name: recipe.title,
-    description: recipe.description,
-    image: hero.imageUrl,
-    author: { "@type": "Person", name: recipe.authorName },
-    datePublished: recipe.publishedAt,
-    prepTime: `PT${recipe.prepTimeMinutes}M`,
-    cookTime: `PT${recipe.cookTimeMinutes}M`,
-    recipeYield: `${recipe.servings} servings`,
-    recipeCategory: recipe.cuisineType,
-    recipeIngredient: ingredientSections.flatMap((section) =>
-      section.items.map(
-      (ingredient) => `${ingredient.amount} ${ingredient.unit} ${ingredient.item}`
-      )
-    ),
-    recipeInstructions: methodSteps.map((instruction) => ({
-      "@type": "HowToStep",
-      name: instruction.title,
-      text: instruction.body
-    })),
-    aggregateRating:
-      recipe.ratingCount > 0
-        ? {
-            "@type": "AggregateRating",
-            ratingValue: recipe.ratingAvg,
-            reviewCount: recipe.ratingCount
-          }
-        : undefined
-  };
+  const schema = buildRecipeStructuredData(recipe);
 
   return (
     <script
