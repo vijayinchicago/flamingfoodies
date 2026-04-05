@@ -42,6 +42,13 @@ function formatReviewSubtitle(category?: string, heatLevel?: HeatLevel) {
   return parts.join(" • ");
 }
 
+function slugifyToken(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export function buildReviewHeroImageUrl({
   title,
   productName,
@@ -57,21 +64,23 @@ export function buildReviewHeroImageUrl({
 }) {
   const params = new URLSearchParams({
     title: productName || title.replace(/\s+review$/i, ""),
-    eyebrow: formatReviewEyebrow(category, brand),
+    brand: brand || formatReviewEyebrow(category, brand),
+    category: category || "review",
+    heat: heatLevel || "medium",
     subtitle: formatReviewSubtitle(category, heatLevel)
   });
 
-  return absoluteUrl(`/api/og?${params.toString()}`);
+  return absoluteUrl(`/api/review-hero?${params.toString()}`);
 }
 
 export function buildReviewHeroImageAlt(title: string, productName?: string) {
-  return `FlamingFoodies review card for ${productName || title}`;
+  return `FlamingFoodies illustrated bottle hero for ${productName || title}`;
 }
 
 export function isGeneratedReviewHeroCardImageUrl(imageUrl?: string | null) {
   if (!imageUrl) return false;
 
-  return imageUrl.includes("/api/og?");
+  return imageUrl.includes("/api/review-hero?") || imageUrl.includes("/api/og?");
 }
 
 export function isLikelyGenericStockReviewImageUrl(imageUrl?: string | null) {
@@ -125,4 +134,9 @@ export function getReviewHeroFields(
     imageAlt,
     usesGeneratedHeroCard: shouldUseGeneratedHero
   };
+}
+
+export function buildReviewHeroAssetName(productName?: string, brand?: string) {
+  const label = productName || brand || "flamingfoodies-review";
+  return slugifyToken(label);
 }

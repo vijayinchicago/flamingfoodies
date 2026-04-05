@@ -19,7 +19,7 @@ describe("review hero fallbacks", () => {
       imageAlt: "Orange bottle near tacos"
     });
 
-    expect(hero.imageUrl).toContain("/api/og?");
+    expect(hero.imageUrl).toContain("/api/review-hero?");
     expect(hero.imageUrl).toContain("Yellowbird+Habanero+Hot+Sauce");
     expect(hero.usesGeneratedHeroCard).toBe(true);
     expect(hero.imageAlt).toBe(
@@ -53,7 +53,9 @@ describe("review hero fallbacks", () => {
       true
     );
     expect(
-      isGeneratedReviewHeroCardImageUrl("https://flamingfoodies.com/api/og?title=Yellowbird")
+      isGeneratedReviewHeroCardImageUrl(
+        "https://flamingfoodies.com/api/review-hero?title=Yellowbird"
+      )
     ).toBe(true);
     expect(isLikelyGenericStockReviewImageUrl("https://cdn.example.com/product.jpg")).toBe(
       false
