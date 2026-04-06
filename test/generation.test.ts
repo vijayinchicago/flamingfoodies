@@ -2,13 +2,17 @@ import { describe, expect, it } from "vitest";
 
 import { BLOG_POST_PROMPT, RECIPE_PROMPT, getTodayCuisines } from "@/lib/generation/prompts";
 import { getQuizResult } from "@/lib/quiz";
-import { normalizeGeneratedRecipePayload } from "@/lib/services/automation";
+import {
+  buildRecipePhotoSearchQueries,
+  normalizeGeneratedRecipePayload
+} from "@/lib/services/automation";
 
 describe("generation prompts", () => {
   it("creates a recipe prompt with heat and cuisine details", () => {
     const prompt = RECIPE_PROMPT({ cuisine_type: "thai", heat_level: "hot" });
     expect(prompt).toContain("Cuisine: thai");
     expect(prompt).toContain("Heat level: hot");
+    expect(prompt).toContain("\"hero_image_query\"");
   });
 
   it("creates a blog prompt with category details", () => {
@@ -106,5 +110,17 @@ describe("generation prompts", () => {
     expect(payload.faqs?.length).toBeGreaterThan(0);
     expect(payload.equipment.length).toBeGreaterThan(0);
     expect(payload.tags).toContain("spicy");
+  });
+
+  it("builds photo-first search queries for generated recipes", () => {
+    const queries = buildRecipePhotoSearchQueries({
+      title: "Calabrian Chili Vodka Rigatoni",
+      cuisineType: "italian",
+      heroImageQuery: "calabrian chili vodka rigatoni plated"
+    });
+
+    expect(queries[0]).toBe("calabrian chili vodka rigatoni plated");
+    expect(queries).toContain("Calabrian Chili Vodka Rigatoni");
+    expect(queries).toContain("italian Calabrian Chili Vodka Rigatoni");
   });
 });

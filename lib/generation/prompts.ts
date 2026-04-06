@@ -70,6 +70,7 @@ Return ONLY valid JSON matching this structure:
   "tags": ["spicy"],
   "seo_title": "...",
   "seo_description": "...",
+  "hero_image_query": "concise search query for a plated finished-dish photo",
   "image_alt": "..."
 }`;
 

@@ -150,6 +150,7 @@ const generatedRecipeSchema = z
     tags: z.array(z.string().min(2)).min(1),
     seo_title: z.string().min(10),
     seo_description: z.string().min(40),
+    hero_image_query: z.string().min(6).optional(),
     image_alt: z.string().min(12)
   })
   .passthrough();
@@ -205,6 +206,7 @@ const generatedRecipeLooseSchema = z
     tags: z.array(z.string().min(2)).optional(),
     seo_title: z.string().min(10),
     seo_description: z.string().min(40),
+    hero_image_query: z.string().min(6).optional(),
     image_alt: z.string().min(12)
   })
   .passthrough();
@@ -734,6 +736,52 @@ function buildAutomationHeroImageUrl(type: GenerationType, title: string, cuisin
   return `${env.NEXT_PUBLIC_SITE_URL}/api/og?${params.toString()}`;
 }
 
+function stripRecipeTitleQualifiers(value: string) {
+  return value.replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function normalizePhotoSearchQuery(value?: string | null) {
+  const trimmed = value?.replace(/\s+/g, " ").trim();
+
+  return trimmed && trimmed.length >= 6 ? trimmed : undefined;
+}
+
+function formatCuisineQuery(cuisineType?: CuisineType) {
+  if (!cuisineType || cuisineType === "other") {
+    return undefined;
+  }
+
+  return cuisineType.replace(/_/g, " ");
+}
+
+export function buildRecipePhotoSearchQueries(input: {
+  title: string;
+  cuisineType?: CuisineType;
+  fallbackCuisineType?: CuisineType;
+  heroImageQuery?: string | null;
+}) {
+  const cleanTitle = stripRecipeTitleQualifiers(input.title);
+  const cuisineLabel =
+    formatCuisineQuery(input.cuisineType) || formatCuisineQuery(input.fallbackCuisineType);
+
+  return dedupeList(
+    [
+      normalizePhotoSearchQuery(input.heroImageQuery),
+      cleanTitle,
+      `${cleanTitle} plated`,
+      `${cleanTitle} plated dish`,
+      cuisineLabel ? `${cuisineLabel} ${cleanTitle}` : undefined,
+      cuisineLabel ? `${cuisineLabel} ${cleanTitle} plated` : undefined
+    ].filter(Boolean) as string[]
+  ).slice(0, 6);
+}
+
+type ResolvedRecipeHeroAsset = {
+  imageUrl: string;
+  heroSource: "photo" | "generated";
+  searchQuery: string | null;
+};
+
 function usesAutomationHeroCard(imageUrl?: string | null) {
   if (!imageUrl) return false;
 
@@ -793,6 +841,7 @@ Evaluate:
 3. Structure, method, or tasting-note credibility
 4. Heat credibility
 5. Image accuracy based on the provided alt text and named content
+   - If hero_image_source and hero_image_query_used are provided, use them to judge whether the selected image is plausible for the dish.
 6. Missing support or context that would make this feel weak in production
 7. Unsupported claims, filler, or generic AI-style writing
 
@@ -947,6 +996,42 @@ async function fetchImageForQuery(query: string) {
   }
 
   return undefined;
+}
+
+async function resolveRecipeHeroAsset(input: {
+  generated: z.infer<typeof generatedRecipeSchema>;
+  cuisine: CuisineType;
+}): Promise<ResolvedRecipeHeroAsset> {
+  const queries = buildRecipePhotoSearchQueries({
+    title: input.generated.title,
+    cuisineType: input.generated.cuisine_type,
+    fallbackCuisineType: input.cuisine,
+    heroImageQuery: input.generated.hero_image_query
+  });
+
+  for (const query of queries) {
+    const imageUrl = await fetchImageForQuery(query);
+
+    if (imageUrl) {
+      return {
+        imageUrl,
+        heroSource: "photo",
+        searchQuery: query
+      };
+    }
+  }
+
+  return {
+    imageUrl: buildRecipeHeroImageUrl({
+      title: input.generated.title,
+      cuisineType: input.generated.cuisine_type || input.cuisine,
+      heatLevel: input.generated.heat_level,
+      description: input.generated.description,
+      heroSummary: input.generated.hero_summary
+    }),
+    heroSource: "generated",
+    searchQuery: null
+  };
 }
 
 async function makeUniqueSlug(
@@ -1140,13 +1225,26 @@ function buildReviewDraft(
 
 function buildGeneratedRecipeQaState(
   payload: ReturnType<typeof buildRecipeDraft>,
-  agentReview: AgentQaReview | null
+  agentReview: AgentQaReview | null,
+  heroAsset?: Pick<ResolvedRecipeHeroAsset, "heroSource" | "searchQuery">
 ) {
-  const usesSafeHeroCard = usesAutomationHeroCard(payload.image_url);
+  const heroSource =
+    heroAsset?.heroSource ??
+    (isGeneratedRecipeHeroImageUrl(payload.image_url) ? "generated" : payload.image_url ? "photo" : "generated");
   const automatedCuisineQa = isAgentQaPass(agentReview);
-  const baseQaNote = usesSafeHeroCard
-    ? "AI-generated draft uses a recipe-specific generated hero illustration and passed automated editorial QA checks where noted."
-    : "AI-generated draft awaiting editorial image review and cuisine QA.";
+  const automatedHeroReview = Boolean(payload.image_url) && (heroSource === "generated" || automatedCuisineQa);
+  const heroSourceNote =
+    heroSource === "photo"
+      ? "AI-generated draft uses a sourced plated dish photo."
+      : "AI-generated draft uses a recipe-specific generated hero illustration after no suitable dish photo was found.";
+  const heroQueryNote =
+    heroSource === "photo" && heroAsset?.searchQuery
+      ? ` Photo search query: "${heroAsset.searchQuery}".`
+      : "";
+  const baseQaNote =
+    automatedHeroReview || automatedCuisineQa
+      ? `${heroSourceNote}${heroQueryNote} Automated editorial QA passed where noted.`
+      : `${heroSourceNote}${heroQueryNote} Draft is awaiting editorial image review and cuisine QA.`;
   const recipeQaCandidate: Recipe = {
     id: 0,
     type: "recipe",
@@ -1201,7 +1299,7 @@ function buildGeneratedRecipeQaState(
     tags: payload.tags,
     imageUrl: payload.image_url ?? undefined,
     imageAlt: payload.image_alt,
-    heroImageReviewed: usesSafeHeroCard,
+    heroImageReviewed: automatedHeroReview,
     cuisineQaReviewed: automatedCuisineQa,
     qaNotes: buildAgentQaNotes(baseQaNote, agentReview),
     featured: payload.featured,
@@ -1226,13 +1324,13 @@ function buildGeneratedRecipeQaState(
     make_ahead_notes: payload.make_ahead_notes ?? null,
     storage_notes: payload.storage_notes ?? null,
     reheat_notes: payload.reheat_notes ?? null,
-    hero_image_reviewed: usesSafeHeroCard,
+    hero_image_reviewed: automatedHeroReview,
     cuisine_qa_reviewed: automatedCuisineQa,
     qa_notes: buildAgentQaNotes(baseQaNote, agentReview),
     qa_report: qaReport,
-    qa_checked_at: usesSafeHeroCard || automatedCuisineQa ? new Date().toISOString() : null,
+    qa_checked_at: automatedHeroReview || automatedCuisineQa ? new Date().toISOString() : null,
     automated_publish_eligible:
-      usesSafeHeroCard &&
+      automatedHeroReview &&
       automatedCuisineQa &&
       qaReport.blockers.length === 0 &&
       qaReport.score >= AUTOMATED_RECIPE_PUBLISH_SCORE
@@ -1411,25 +1509,24 @@ async function insertGeneratedContent(
 
   if (type === "recipe") {
     const validatedGenerated = validateGeneratedPayload(type, generated);
-    const imageUrl = buildRecipeHeroImageUrl({
-      title: validatedGenerated.title,
-      cuisineType: validatedGenerated.cuisine_type || cuisine,
-      heatLevel: validatedGenerated.heat_level,
-      description: validatedGenerated.description,
-      heroSummary: validatedGenerated.hero_summary
+    const heroAsset = await resolveRecipeHeroAsset({
+      generated: validatedGenerated,
+      cuisine
     });
     const payload = buildRecipeDraft(
       cuisine,
       index,
       validatedGenerated,
-      imageUrl
+      heroAsset.imageUrl
     );
     const slug = await makeUniqueSlug(supabase, "recipes", payload.title);
     const agentReview = await runEditorialQaReview(anthropic, "recipe", {
       slug,
-      ...payload
+      ...payload,
+      hero_image_source: heroAsset.heroSource,
+      hero_image_query_used: heroAsset.searchQuery
     });
-    const qaState = buildGeneratedRecipeQaState(payload, agentReview);
+    const qaState = buildGeneratedRecipeQaState(payload, agentReview, heroAsset);
     const { automated_publish_eligible: automatedPublishEligible, ...persistedQaState } = qaState;
     const shouldScheduleAutoPublish = Boolean(autoPublish && automatedPublishEligible && publishAt);
     const { data, error } = await supabase
