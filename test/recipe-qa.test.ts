@@ -139,7 +139,7 @@ describe("recipe QA", () => {
     expect(report.blockers).toHaveLength(0);
   });
 
-  it("warns when a recipe still relies on the generated fallback hero card", () => {
+  it("blocks legacy recipe hero cards and warns on generic alt text", () => {
     const report = buildRecipeQaReport({
       ...baseRecipe,
       imageUrl:
@@ -147,7 +147,8 @@ describe("recipe QA", () => {
       imageAlt: "FlamingFoodies recipe card for Szechuan Chili Crisp Dumpling Bowls"
     });
 
-    expect(report.warnings.map((issue) => issue.code)).toContain("generated-hero-card");
+    expect(report.blockers.map((issue) => issue.code)).toContain("legacy-generated-hero");
+    expect(report.warnings.map((issue) => issue.code)).toContain("generic-hero-alt");
   });
 
   it("auto-approves the curated flagship recipe set for sync imports", () => {

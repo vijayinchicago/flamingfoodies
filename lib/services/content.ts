@@ -134,6 +134,8 @@ function mapRecipeRow(row: any): Recipe {
     title: row.title,
     cuisineType: row.cuisine_type,
     heatLevel: row.heat_level,
+    description: row.description,
+    heroSummary: row.hero_summary ?? undefined,
     imageUrl: row.image_url ?? undefined,
     imageAlt: row.image_alt ?? undefined
   });
@@ -171,7 +173,7 @@ function mapRecipeRow(row: any): Recipe {
     tags: row.tags ?? [],
     imageUrl: hero.imageUrl,
     imageAlt: hero.imageAlt,
-    heroImageReviewed: Boolean(row.hero_image_reviewed) || hero.usesGeneratedHeroCard,
+    heroImageReviewed: Boolean(row.hero_image_reviewed),
     cuisineQaReviewed: row.cuisine_qa_reviewed ?? undefined,
     qaNotes: row.qa_notes ?? undefined,
     qaReport: row.qa_report ?? undefined,

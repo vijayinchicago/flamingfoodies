@@ -429,6 +429,8 @@ function buildRecipeQaPayload({
     title: parsed.title,
     cuisineType: parsed.cuisineType,
     heatLevel: parsed.heatLevel,
+    description: parsed.description,
+    heroSummary: parsed.heroSummary,
     imageUrl: image.imageUrl ?? undefined,
     imageAlt: image.imageAlt ?? undefined
   });
@@ -465,7 +467,7 @@ function buildRecipeQaPayload({
     tags: parseCsvList(parsed.tags || ""),
     imageUrl: hero.imageUrl,
     imageAlt: hero.imageAlt,
-    heroImageReviewed: Boolean(parsed.heroImageReviewed) || hero.usesGeneratedHeroCard,
+    heroImageReviewed: Boolean(parsed.heroImageReviewed),
     cuisineQaReviewed: parsed.cuisineQaReviewed ?? false,
     featured: parsed.featured ?? false,
     source: "editorial",
@@ -554,6 +556,8 @@ function mapRecipeRowToQaCandidate(row: any): Recipe {
     title: row.title,
     cuisineType: row.cuisine_type,
     heatLevel: row.heat_level,
+    description: row.description,
+    heroSummary: row.hero_summary ?? undefined,
     imageUrl: row.image_url ?? undefined,
     imageAlt: row.image_alt ?? undefined
   });
@@ -591,7 +595,7 @@ function mapRecipeRowToQaCandidate(row: any): Recipe {
     tags: row.tags ?? [],
     imageUrl: hero.imageUrl,
     imageAlt: hero.imageAlt,
-    heroImageReviewed: Boolean(row.hero_image_reviewed) || hero.usesGeneratedHeroCard,
+    heroImageReviewed: Boolean(row.hero_image_reviewed),
     cuisineQaReviewed: row.cuisine_qa_reviewed ?? false,
     qaNotes: row.qa_notes ?? undefined,
     qaReport: row.qa_report ?? undefined,
@@ -1546,6 +1550,8 @@ export async function updateRecipeStateAction(formData: FormData) {
       title: recipeRow.title,
       cuisineType: recipeRow.cuisine_type,
       heatLevel: recipeRow.heat_level,
+      description: recipeRow.description,
+      heroSummary: recipeRow.hero_summary ?? undefined,
       imageUrl: recipeRow.image_url ?? undefined,
       imageAlt: recipeRow.image_alt ?? undefined
     });
@@ -1554,8 +1560,7 @@ export async function updateRecipeStateAction(formData: FormData) {
         ...recipeRow,
         image_url: publishHeroFields.imageUrl,
         image_alt: publishHeroFields.imageAlt,
-        hero_image_reviewed:
-          Boolean(recipeRow.hero_image_reviewed) || publishHeroFields.usesGeneratedHeroCard
+        hero_image_reviewed: Boolean(recipeRow.hero_image_reviewed)
       })
     );
     const qaError = getRecipeQaPublishError(qaReportForPublish);
@@ -1573,9 +1578,7 @@ export async function updateRecipeStateAction(formData: FormData) {
         ? {
             image_url: publishHeroFields?.imageUrl ?? recipeRowForPublish?.image_url ?? null,
             image_alt: publishHeroFields?.imageAlt ?? recipeRowForPublish?.image_alt ?? null,
-            hero_image_reviewed:
-              Boolean(recipeRowForPublish?.hero_image_reviewed) ||
-              Boolean(publishHeroFields?.usesGeneratedHeroCard),
+            hero_image_reviewed: Boolean(recipeRowForPublish?.hero_image_reviewed),
             qa_checked_at: new Date().toISOString(),
             qa_report: qaReportForPublish
           }

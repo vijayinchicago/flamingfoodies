@@ -6,7 +6,11 @@ import type {
   RecipeQaIssue,
   RecipeQaReport
 } from "@/lib/types";
-import { isGeneratedHeroCardImageUrl } from "@/lib/recipe-hero";
+import {
+  isGeneratedRecipeHeroImageUrl,
+  isLegacyGeneratedRecipeHeroImageUrl,
+  isRecipeHeroFallbackAlt
+} from "@/lib/recipe-hero";
 
 const tokenStopwords = new Set([
   "and",
@@ -238,12 +242,32 @@ export function buildRecipeQaReport(recipe: RecipeQaCandidate): RecipeQaReport {
     );
   }
 
-  if (isGeneratedHeroCardImageUrl(recipe.imageUrl)) {
+  if (isLegacyGeneratedRecipeHeroImageUrl(recipe.imageUrl)) {
+    blockers.push(
+      createIssue(
+        "blocker",
+        "legacy-generated-hero",
+        "Replace the legacy text-only hero fallback with the new recipe hero image before publishing."
+      )
+    );
+  }
+
+  if (isRecipeHeroFallbackAlt(recipe.imageAlt)) {
+    warnings.push(
+      createIssue(
+        "warning",
+        "generic-hero-alt",
+        "Replace the generic fallback alt text with a dish-specific hero description."
+      )
+    );
+  }
+
+  if (isGeneratedRecipeHeroImageUrl(recipe.imageUrl)) {
     warnings.push(
       createIssue(
         "warning",
         "generated-hero-card",
-        "This recipe is still using the branded fallback hero card. Upload or confirm a stronger dish image when available."
+        "This recipe is using the generated recipe hero illustration. Upload or confirm a stronger dish image when available."
       )
     );
   }

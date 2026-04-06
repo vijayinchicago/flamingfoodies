@@ -10,6 +10,11 @@ import {
   RECIPE_PROMPT,
   REVIEW_PROMPT
 } from "@/lib/generation/prompts";
+import {
+  buildRecipeHeroImageAlt,
+  buildRecipeHeroImageUrl,
+  isGeneratedRecipeHeroImageUrl
+} from "@/lib/recipe-hero";
 import { buildRecipeQaReport } from "@/lib/recipe-qa";
 import {
   getRecipeFaqs,
@@ -719,18 +724,11 @@ function validateGeneratedPayload<T extends GenerationType>(
 function buildAutomationHeroImageUrl(type: GenerationType, title: string, cuisine: CuisineType) {
   const params = new URLSearchParams({
     title,
-    eyebrow:
-      type === "recipe"
-        ? "AI Recipe"
-        : type === "review"
-          ? "AI Review"
-          : "AI Story",
+    eyebrow: type === "review" ? "AI Review" : "AI Story",
     subtitle:
-      type === "recipe"
-        ? `${cuisine.replace(/_/g, " ")} heat`
-        : type === "review"
-          ? `${cuisine.replace(/_/g, " ")} tasting notes`
-          : `${cuisine.replace(/_/g, " ")} editorial`
+      type === "review"
+        ? `${cuisine.replace(/_/g, " ")} tasting notes`
+        : `${cuisine.replace(/_/g, " ")} editorial`
   });
 
   return `${env.NEXT_PUBLIC_SITE_URL}/api/og?${params.toString()}`;
@@ -739,7 +737,7 @@ function buildAutomationHeroImageUrl(type: GenerationType, title: string, cuisin
 function usesAutomationHeroCard(imageUrl?: string | null) {
   if (!imageUrl) return false;
 
-  return imageUrl.includes("/api/og?");
+  return imageUrl.includes("/api/og?") || isGeneratedRecipeHeroImageUrl(imageUrl);
 }
 
 function isAgentQaPass(agentReview: AgentQaReview | null) {
@@ -990,12 +988,13 @@ function buildRecipeDraft(
   const intro =
     generated?.intro ||
     `This draft leans into ${cuisine.replace(/_/g, " ")} heat traditions while keeping the recipe practical for home cooks.`;
+  const heroSummary = generated?.hero_summary || intro;
 
   return {
     title,
     description,
     intro,
-    hero_summary: generated?.hero_summary || intro,
+    hero_summary: heroSummary,
     author_name: "FlamingFoodies AI Test Kitchen",
     heat_level: generated?.heat_level || getHeatLevel(index),
     cuisine_type: generated?.cuisine_type || cuisine,
@@ -1040,7 +1039,14 @@ function buildRecipeDraft(
     equipment: generated?.equipment ?? ["large skillet", "mixing bowl"],
     tags: generated?.tags ?? [cuisine, "ai-generated", "spicy"],
     image_url: imageUrl ?? null,
-    image_alt: generated?.image_alt || `FlamingFoodies recipe card for ${title}`,
+    image_alt:
+      generated?.image_alt ||
+      buildRecipeHeroImageAlt({
+        title,
+        description,
+        heroSummary,
+        cuisineType: generated?.cuisine_type || cuisine
+      }),
     featured: false,
     source: "ai_generated",
     seo_title: generated?.seo_title || `${title} Recipe | FlamingFoodies`,
@@ -1139,7 +1145,7 @@ function buildGeneratedRecipeQaState(
   const usesSafeHeroCard = usesAutomationHeroCard(payload.image_url);
   const automatedCuisineQa = isAgentQaPass(agentReview);
   const baseQaNote = usesSafeHeroCard
-    ? "AI-generated draft uses a branded hero card and passed automated editorial QA checks where noted."
+    ? "AI-generated draft uses a recipe-specific generated hero illustration and passed automated editorial QA checks where noted."
     : "AI-generated draft awaiting editorial image review and cuisine QA.";
   const recipeQaCandidate: Recipe = {
     id: 0,
@@ -1405,7 +1411,13 @@ async function insertGeneratedContent(
 
   if (type === "recipe") {
     const validatedGenerated = validateGeneratedPayload(type, generated);
-    const imageUrl = buildAutomationHeroImageUrl(type, validatedGenerated.title, cuisine);
+    const imageUrl = buildRecipeHeroImageUrl({
+      title: validatedGenerated.title,
+      cuisineType: validatedGenerated.cuisine_type || cuisine,
+      heatLevel: validatedGenerated.heat_level,
+      description: validatedGenerated.description,
+      heroSummary: validatedGenerated.hero_summary
+    });
     const payload = buildRecipeDraft(
       cuisine,
       index,
