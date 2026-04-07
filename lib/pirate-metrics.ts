@@ -19,6 +19,17 @@ export type AffiliateClickRow = {
   clickedAt: string;
 };
 
+export type PirateOperationalSignals = {
+  emailSignups?: TelemetryEventRow[];
+  recipeSaves?: TelemetryEventRow[];
+  recipeRatings?: TelemetryEventRow[];
+  comments?: TelemetryEventRow[];
+  communitySubmissions?: TelemetryEventRow[];
+  follows?: TelemetryEventRow[];
+  competitionEntries?: TelemetryEventRow[];
+  competitionVotes?: TelemetryEventRow[];
+};
+
 export const PARTNER_EPC: Record<string, number> = {
   amazon: 1.2,
   heatonist: 2.8,
@@ -136,9 +147,54 @@ function getSessionKey(
 export function buildPirateMetrics(
   events: TelemetryEventRow[],
   affiliateClicks: AffiliateClickRow[],
-  windowDays = 30
+  windowDays = 30,
+  operationalSignals: PirateOperationalSignals = {}
 ) {
-  const orderedEvents = [...events].sort((left, right) =>
+  const operationalGroups: Array<{
+    eventName: string;
+    rows: TelemetryEventRow[];
+  }> = [
+    {
+      eventName: ANALYTICS_EVENTS.emailSignup,
+      rows: operationalSignals.emailSignups ?? []
+    },
+    {
+      eventName: ANALYTICS_EVENTS.recipeSave,
+      rows: operationalSignals.recipeSaves ?? []
+    },
+    {
+      eventName: ANALYTICS_EVENTS.recipeRating,
+      rows: operationalSignals.recipeRatings ?? []
+    },
+    {
+      eventName: ANALYTICS_EVENTS.commentPosted,
+      rows: operationalSignals.comments ?? []
+    },
+    {
+      eventName: ANALYTICS_EVENTS.communitySubmit,
+      rows: operationalSignals.communitySubmissions ?? []
+    },
+    {
+      eventName: ANALYTICS_EVENTS.userFollow,
+      rows: operationalSignals.follows ?? []
+    },
+    {
+      eventName: ANALYTICS_EVENTS.competitionEnter,
+      rows: operationalSignals.competitionEntries ?? []
+    },
+    {
+      eventName: ANALYTICS_EVENTS.voteCast,
+      rows: operationalSignals.competitionVotes ?? []
+    }
+  ];
+
+  const overriddenEventNames = new Set(
+    operationalGroups.filter((group) => group.rows.length > 0).map((group) => group.eventName)
+  );
+  const supplementalEvents = operationalGroups.flatMap((group) => group.rows);
+  const telemetryEvents = events.filter((event) => !overriddenEventNames.has(event.eventName));
+
+  const orderedEvents = [...telemetryEvents, ...supplementalEvents].sort((left, right) =>
     left.occurredAt.localeCompare(right.occurredAt)
   );
   const pageViews = orderedEvents.filter((event) => event.eventName === ANALYTICS_EVENTS.pageView);
@@ -224,40 +280,61 @@ export function buildPirateMetrics(
     .sort((left, right) => right.clicks - left.clicks)
     .slice(0, 5);
 
+  const activationEventCount = activationEvents.length;
+  const retentionEvidenceCount = Array.from(activeDaysByVisitor.values()).filter(
+    (days) => days.size >= 2
+  ).length;
+  const referralEvidenceCount = shareEvents.length + socialSessions + referrerCounts.size;
+  const revenueEvidenceCount = affiliateClicks.length;
+  const acquisitionStatus = pageViews.length ? "live" : "warming";
+  const activationStatus = activationEventCount ? "live" : "warming";
+  const retentionStatus = retentionEvidenceCount ? "live" : uniqueVisitors.size ? "warming" : "warming";
+  const referralStatus = referralEvidenceCount ? "live" : "warming";
+  const revenueStatus = revenueEvidenceCount ? "live" : "warming";
+
   return {
     windowDays,
     totals: {
       eventCount: orderedEvents.length,
+      telemetryEventCount: events.length,
+      supplementalEventCount: supplementalEvents.length,
       firstTrackedAt: orderedEvents[0]?.occurredAt ?? null
     },
     coverage: [
       {
         stage: "Acquisition",
-        status: "live",
-        detail: "Page views, sessions, landing pages, UTM tags, and referrers are being tracked."
+        status: acquisitionStatus,
+        detail: pageViews.length
+          ? `${pageViews.length} page views across ${sessionFirstTouches.size} sessions with landing pages and referrers tracked.`
+          : "No page-view telemetry has been recorded in this window yet."
       },
       {
         stage: "Activation",
-        status: "live",
-        detail: "Signups, onboarding, internal search, saves, ratings, comments, community posts, quiz completions, and competition actions are tracked."
+        status: activationStatus,
+        detail: activationEventCount
+          ? `${activationEventCount} activation signals captured from telemetry plus live product tables for signups, saves, ratings, comments, and community actions.`
+          : "Activation instrumentation is wired, but no qualifying activation signals have been recorded yet."
       },
       {
         stage: "Retention",
-        status: pageViews.length ? "live" : "warming",
-        detail: "Repeat activity is measured from returning visitors and repeat active days."
+        status: retentionStatus,
+        detail: returningVisitors
+          ? `${returningVisitors} returning visitors have shown repeat activity on multiple days.`
+          : "Retention is measured from repeat active days, but no returning visitors have been observed yet."
       },
       {
         stage: "Referral",
-        status: shareEvents.length ? "live" : "partial",
-        detail:
-          shareEvents.length
-            ? "Share events are flowing into the funnel."
-            : "Social referrer traffic is tracked now; public share-button events are still light or not live yet."
+        status: referralStatus,
+        detail: referralEvidenceCount
+          ? `${shareEvents.length} share events and ${socialSessions} social sessions have been attributed in this window.`
+          : "Referral tracking is live, but no share-driven or social referral activity has been recorded yet."
       },
       {
         stage: "Revenue",
-        status: "live",
-        detail: "Affiliate clicks are measured, with estimated EPC-based revenue shown as a proxy."
+        status: revenueStatus,
+        detail: revenueEvidenceCount
+          ? `${affiliateClicks.length} affiliate clicks are recorded, with EPC-based revenue shown as a proxy.`
+          : "Affiliate click tracking is wired, but no clicks have landed in this window yet."
       }
     ],
     acquisition: {
