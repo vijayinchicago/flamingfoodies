@@ -27,22 +27,41 @@ export default async function AdminTrafficPage() {
 
       {hasTrafficData ? (
         <>
-          {analytics.bySection.length ? (
-            <div className="panel-light p-6">
-              <p className="eyebrow">Traffic by section</p>
-              <div className="mt-4 grid gap-3">
-                {analytics.bySection.map((section) => (
-                  <article
-                    key={section.section}
-                    className="flex items-center justify-between rounded-[1.25rem] border border-charcoal/10 p-4"
-                  >
-                    <span className="text-sm text-charcoal">{section.section}</span>
-                    <span className="text-sm text-charcoal/60">{section.views} views</span>
-                  </article>
-                ))}
+          <div className="grid gap-6 xl:grid-cols-2">
+            {analytics.bySection.length ? (
+              <div className="panel-light p-6">
+                <p className="eyebrow">Traffic by section</p>
+                <div className="mt-4 grid gap-3">
+                  {analytics.bySection.map((section) => (
+                    <article
+                      key={section.section}
+                      className="flex items-center justify-between rounded-[1.25rem] border border-charcoal/10 p-4"
+                    >
+                      <span className="text-sm text-charcoal">{section.section}</span>
+                      <span className="text-sm text-charcoal/60">{section.views} views</span>
+                    </article>
+                  ))}
+                </div>
               </div>
-            </div>
-          ) : null}
+            ) : null}
+
+            {analytics.topSources.length ? (
+              <div className="panel-light p-6">
+                <p className="eyebrow">Top acquisition sources</p>
+                <div className="mt-4 grid gap-3">
+                  {analytics.topSources.map((source) => (
+                    <article
+                      key={source.source}
+                      className="flex items-center justify-between rounded-[1.25rem] border border-charcoal/10 p-4"
+                    >
+                      <span className="text-sm text-charcoal">{source.source}</span>
+                      <span className="text-sm text-charcoal/60">{source.sessions} sessions</span>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </div>
 
           {analytics.topPages.length ? (
             <div className="panel-light p-6">

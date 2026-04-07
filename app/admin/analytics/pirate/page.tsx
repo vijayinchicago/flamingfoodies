@@ -165,13 +165,12 @@ export default async function AdminPirateMetricsPage() {
       <div className="panel-light p-6">
         <p className="eyebrow">Notes</p>
         <p className="mt-4 text-sm leading-7 text-charcoal/65">
-          Internal telemetry is now the source of truth for AARRR. The share-event side of
-          referral is still lighter than it should be because public share controls are not fully
-          rolled out yet. Use this dashboard to decide what to build next, not just what to
-          report on.
+          Internal telemetry plus product source tables are now the source of truth for AARRR.
+          Use this dashboard to decide what to build next, not just what to report on.
         </p>
         <p className="mt-3 text-sm leading-7 text-charcoal/55">
-          Current window: last {metrics.windowDays} days. Total tracked events: {metrics.totals.eventCount}.
+          Current window: last {metrics.windowDays} days. Total tracked events: {metrics.totals.eventCount}
+          , including {metrics.totals.telemetryEventCount} telemetry rows and {metrics.totals.supplementalEventCount} product-table activation rows.
         </p>
       </div>
     </AdminPage>

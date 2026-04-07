@@ -32,7 +32,7 @@ export default async function AdminDashboardPage({
           <p className="eyebrow">Top recipe</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">{dashboard.topRecipe}</h2>
           <p className="mt-4 text-sm leading-7 text-charcoal/65">
-            Use this slot to decide what gets pushed harder in the newsletter and on social.
+            This now reflects the strongest observed recipe traffic instead of a stale stored counter.
           </p>
         </div>
         <div className="panel-light p-6">
@@ -40,7 +40,7 @@ export default async function AdminDashboardPage({
           <ul className="mt-4 space-y-3 text-sm text-charcoal/70">
             <li>Pending moderation: {dashboard.pendingModerationCount}</li>
             <li>Queued social posts: {dashboard.queuedSocialPosts}</li>
-            <li>Subscriber growth: {dashboard.subscriberGrowth}</li>
+            <li>Subscriber and source signal: {dashboard.subscriberGrowth}</li>
           </ul>
         </div>
       </div>

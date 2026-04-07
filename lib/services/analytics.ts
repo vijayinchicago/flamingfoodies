@@ -1,4 +1,5 @@
 import { flags } from "@/lib/env";
+import { classifyAcquisitionSource } from "@/lib/pirate-metrics";
 import { buildShareAnalytics } from "@/lib/share-analytics";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
@@ -407,6 +408,7 @@ export async function getTrafficAnalytics(windowDays = 30) {
     totalSessions: 0,
     uniquePages: 0,
     bySection: [] as Array<{ section: string; views: number }>,
+    topSources: [] as Array<{ source: string; sessions: number }>,
     topPages: [] as Array<{ label: string; path: string; section: string; views: number }>
   };
 
@@ -422,7 +424,7 @@ export async function getTrafficAnalytics(windowDays = 30) {
   const [pageViewsResult, contentIndex] = await Promise.all([
     supabase
       .from("telemetry_events")
-      .select("path, session_id, anonymous_id, user_id, occurred_at")
+      .select("path, session_id, anonymous_id, user_id, occurred_at, utm_source, referrer")
       .eq("event_name", "page_view")
       .gte("occurred_at", isoDaysAgo(windowDays)),
     getPublishedContentIndex(supabase)
@@ -442,6 +444,13 @@ export async function getTrafficAnalytics(windowDays = 30) {
   const pathCounts = new Map<string, number>();
   const sectionCounts = new Map<string, number>();
   const sessions = new Set<string>();
+  const sessionFirstTouches = new Map<
+    string,
+    {
+      utm_source?: string | null;
+      referrer?: string | null;
+    }
+  >();
   const contentByPath = new Map(contentIndex.map((entry) => [entry.path, entry]));
 
   rows.forEach((row, index) => {
@@ -451,7 +460,21 @@ export async function getTrafficAnalytics(windowDays = 30) {
     const section = getTrafficSection(path);
     sectionCounts.set(section, (sectionCounts.get(section) ?? 0) + 1);
 
-    sessions.add(getSessionKey(row, index));
+    const sessionKey = getSessionKey(row, index);
+    sessions.add(sessionKey);
+
+    if (!sessionFirstTouches.has(sessionKey)) {
+      sessionFirstTouches.set(sessionKey, row);
+    }
+  });
+
+  const sourceCounts = new Map<string, number>();
+  sessionFirstTouches.forEach((row) => {
+    const source = classifyAcquisitionSource({
+      utmSource: row.utm_source ?? null,
+      referrer: row.referrer ?? null
+    });
+    sourceCounts.set(source, (sourceCounts.get(source) ?? 0) + 1);
   });
 
   return {
@@ -462,6 +485,10 @@ export async function getTrafficAnalytics(windowDays = 30) {
     bySection: Array.from(sectionCounts.entries())
       .map(([section, views]) => ({ section, views }))
       .sort((left, right) => right.views - left.views)
+      .slice(0, 8),
+    topSources: Array.from(sourceCounts.entries())
+      .map(([source, sessions]) => ({ source, sessions }))
+      .sort((left, right) => right.sessions - left.sessions)
       .slice(0, 8),
     topPages: Array.from(pathCounts.entries())
       .map(([path, views]) => ({

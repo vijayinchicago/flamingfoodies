@@ -1,16 +1,15 @@
 import { flags } from "@/lib/env";
 import {
   sampleAuditLog,
-  sampleDashboardMetrics,
   sampleGenerationJobs,
   sampleGenerationSchedule,
   sampleNewsletterCampaigns,
   sampleProfiles,
-  sampleRecipes,
   sampleSettings,
   sampleSocialPosts,
   sampleSubscribers
 } from "@/lib/sample-data";
+import { classifyAcquisitionSource } from "@/lib/pirate-metrics";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type {
   AdminAuditEntry,
@@ -179,6 +178,8 @@ function toCompactMetric(label: string, value: number, delta = "live"): Dashboar
 }
 
 export async function getAdminDashboard() {
+  const windowDays = 30;
+  const cutoff = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000).toISOString();
   const emptyDashboard = {
     metrics: [
       toCompactMetric("Published posts", 0),
@@ -193,28 +194,12 @@ export async function getAdminDashboard() {
   };
 
   if (!flags.hasSupabaseAdmin) {
-    return flags.allowSampleFallbacks
-      ? {
-      metrics: sampleDashboardMetrics,
-      topRecipe: "Spicy Korean Gochujang Noodles",
-      pendingModerationCount: 7,
-      queuedSocialPosts: sampleSocialPosts.filter((post) => post.status === "scheduled").length,
-      subscriberGrowth: "+11%"
-        }
-      : emptyDashboard;
+    return emptyDashboard;
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return flags.allowSampleFallbacks
-      ? {
-          metrics: sampleDashboardMetrics,
-          topRecipe: "Spicy Korean Gochujang Noodles",
-          pendingModerationCount: 7,
-          queuedSocialPosts: sampleSocialPosts.filter((post) => post.status === "scheduled").length,
-          subscriberGrowth: "+11%"
-        }
-      : emptyDashboard;
+    return emptyDashboard;
   }
 
   const [
@@ -225,8 +210,10 @@ export async function getAdminDashboard() {
     { count: pendingEntryCount },
     { count: scheduledSocialCount },
     { count: subscriberCount },
+    { count: recentSubscriberCount },
     { count: affiliateClicks },
-    { data: topRecipeRow }
+    { data: recipeRows },
+    { data: recipePageViews }
   ] = await Promise.all([
     supabase.from("blog_posts").select("*", { count: "exact", head: true }).eq("status", "published"),
     supabase.from("recipes").select("*", { count: "exact", head: true }).eq("status", "published"),
@@ -244,31 +231,93 @@ export async function getAdminDashboard() {
       .from("newsletter_subscribers")
       .select("*", { count: "exact", head: true })
       .eq("status", "active"),
+    supabase
+      .from("newsletter_subscribers")
+      .select("*", { count: "exact", head: true })
+      .gte("subscribed_at", cutoff),
     supabase.from("affiliate_clicks").select("*", { count: "exact", head: true }),
     supabase
       .from("recipes")
-      .select("title")
-      .eq("status", "published")
-      .order("view_count", { ascending: false })
-      .limit(1)
-      .maybeSingle()
+      .select("title, slug")
+      .eq("status", "published"),
+    supabase
+      .from("telemetry_events")
+      .select("path, utm_source, referrer, session_id, anonymous_id, user_id, occurred_at")
+      .eq("event_name", "page_view")
+      .gte("occurred_at", cutoff)
   ]);
 
   const totalPublished = (blogCount ?? 0) + (recipeCount ?? 0) + (reviewCount ?? 0);
   const moderationCount = (pendingCommunityCount ?? 0) + (pendingEntryCount ?? 0);
+  const topRecipeByPath = new Map<string, number>();
+
+  for (const row of recipePageViews ?? []) {
+    if (!row.path?.startsWith("/recipes/")) continue;
+    topRecipeByPath.set(row.path, (topRecipeByPath.get(row.path) ?? 0) + 1);
+  }
+
+  const recipeTitleByPath = new Map<string, string>(
+    (recipeRows ?? []).map((row) => [`/recipes/${row.slug}`, row.title])
+  );
+  const topRecipePath = Array.from(topRecipeByPath.entries()).sort((left, right) => right[1] - left[1])[0]?.[0];
+  const topRecipe =
+    (topRecipePath ? recipeTitleByPath.get(topRecipePath) : undefined) ?? "No observed recipe traffic yet";
+
+  const sessionFirstTouches = new Map<
+    string,
+    {
+      utm_source?: string | null;
+      referrer?: string | null;
+      session_id?: string | null;
+      anonymous_id?: string | null;
+      user_id?: string | null;
+      occurred_at?: string | null;
+    }
+  >();
+
+  (recipePageViews ?? []).forEach((row, index) => {
+    const sessionKey =
+      row.session_id
+        ? `session:${row.session_id}`
+        : row.user_id
+          ? `user:${row.user_id}`
+          : row.anonymous_id
+            ? `anon:${row.anonymous_id}`
+            : `row:${index}:${row.occurred_at ?? "unknown"}`;
+
+    if (!sessionFirstTouches.has(sessionKey)) {
+      sessionFirstTouches.set(sessionKey, row);
+    }
+  });
+
+  const sourceCounts = new Map<string, number>();
+  sessionFirstTouches.forEach((row) => {
+    const source = classifyAcquisitionSource({
+      utmSource: row.utm_source ?? null,
+      referrer: row.referrer ?? null
+    });
+    sourceCounts.set(source, (sourceCounts.get(source) ?? 0) + 1);
+  });
+
+  const topSource = Array.from(sourceCounts.entries()).sort((left, right) => right[1] - left[1])[0];
   const metrics = [
-    toCompactMetric("Published posts", totalPublished),
-    toCompactMetric("Affiliate clicks", affiliateClicks ?? 0),
-    toCompactMetric("Pending moderation", moderationCount),
-    toCompactMetric("Newsletter subs", subscriberCount ?? 0)
+    toCompactMetric("Published posts", totalPublished, "live"),
+    toCompactMetric("Affiliate clicks", affiliateClicks ?? 0, "30d"),
+    toCompactMetric("Pending moderation", moderationCount, "open"),
+    toCompactMetric("Newsletter subs", subscriberCount ?? 0, "active")
   ];
 
   return {
     metrics,
-    topRecipe: topRecipeRow?.title ?? (flags.allowSampleFallbacks ? sampleRecipes[0]?.title : undefined) ?? "No published recipe yet",
+    topRecipe,
     pendingModerationCount: moderationCount,
     queuedSocialPosts: scheduledSocialCount ?? 0,
-    subscriberGrowth: `${subscriberCount ?? 0} active`
+    subscriberGrowth:
+      recentSubscriberCount && recentSubscriberCount > 0
+        ? `${recentSubscriberCount} new in ${windowDays}d`
+        : topSource
+          ? `Top source: ${topSource[0]}`
+          : `${subscriberCount ?? 0} active`
   };
 }
 
