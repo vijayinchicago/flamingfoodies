@@ -1,11 +1,5 @@
-import { AFFILIATE_LINKS } from "@/lib/affiliates";
 import { flags } from "@/lib/env";
 import { buildShareAnalytics } from "@/lib/share-analytics";
-import {
-  sampleBlogPosts,
-  sampleRecipes,
-  sampleReviews
-} from "@/lib/sample-data";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 const PARTNER_EPC: Record<string, number> = {
@@ -16,24 +10,14 @@ const PARTNER_EPC: Record<string, number> = {
   mike_hot_sauce: 1.9
 };
 
-function getFallbackAffiliateAnalytics() {
-  const fallback = [
-    { partner: "amazon", clicks: 241 },
-    { partner: "heatonist", clicks: 121 },
-    { partner: "fuego_box", clicks: 88 }
-  ];
-  const total = fallback.reduce((sum, entry) => sum + entry.clicks, 0);
-
-  return fallback.map((entry) => ({
-    partner: entry.partner,
-    clicks: entry.clicks,
-    clickShare: formatPercent((entry.clicks / total) * 100),
-    estimatedRevenue: formatCurrency(entry.clicks * (PARTNER_EPC[entry.partner] ?? 1.5)),
-    topProduct:
-      Object.entries(AFFILIATE_LINKS).find(([, link]) => link.partner === entry.partner)?.[1]
-        .product ?? "Mixed catalog"
-  }));
-}
+type ContentIndexEntry = {
+  id: number;
+  type: "blog_post" | "recipe" | "review";
+  source: string;
+  title: string;
+  slug: string;
+  path: string;
+};
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("en-US", {
@@ -52,37 +36,164 @@ function average(values: number[]) {
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-function getFallbackArray<T>(items: T[]) {
-  return flags.allowSampleFallbacks ? items : [];
-}
-
 function isoDaysAgo(days: number) {
   return new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 }
 
-export async function getAffiliateAnalytics() {
+function formatPathLabel(path: string) {
+  if (path === "/") return "Home";
+
+  const segments = path.split("/").filter(Boolean);
+  if (!segments.length) return "Home";
+
+  return segments[segments.length - 1]
+    .split("-")
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(" ");
+}
+
+function getTrafficSection(path: string) {
+  if (path === "/") return "home";
+  if (path.startsWith("/recipes")) return "recipes";
+  if (path.startsWith("/reviews")) return "reviews";
+  if (path.startsWith("/hot-sauces")) return "hot-sauces";
+  if (path.startsWith("/blog")) return "blog";
+  if (path.startsWith("/guides")) return "guides";
+  if (path.startsWith("/shop")) return "shop";
+  if (path.startsWith("/search")) return "search";
+  if (path.startsWith("/quiz")) return "quiz";
+  if (path.startsWith("/subscriptions")) return "subscriptions";
+  if (path.startsWith("/community")) return "community";
+  return "other";
+}
+
+function getSessionKey(
+  row: {
+    session_id?: string | null;
+    user_id?: string | null;
+    anonymous_id?: string | null;
+    occurred_at?: string | null;
+  },
+  index: number
+) {
+  if (row.session_id) return `session:${row.session_id}`;
+  if (row.user_id) return `user:${row.user_id}`;
+  if (row.anonymous_id) return `anon:${row.anonymous_id}`;
+  return `row:${index}:${row.occurred_at ?? "unknown"}`;
+}
+
+function buildContentIndex(
+  blogPosts: any[] | null | undefined,
+  recipes: any[] | null | undefined,
+  reviews: any[] | null | undefined
+) {
+  return [
+    ...(blogPosts ?? []).map(
+      (post): ContentIndexEntry => ({
+        id: post.id,
+        type: "blog_post",
+        source: post.source,
+        title: post.title,
+        slug: post.slug,
+        path: `/blog/${post.slug}`
+      })
+    ),
+    ...(recipes ?? []).map(
+      (recipe): ContentIndexEntry => ({
+        id: recipe.id,
+        type: "recipe",
+        source: recipe.source,
+        title: recipe.title,
+        slug: recipe.slug,
+        path: `/recipes/${recipe.slug}`
+      })
+    ),
+    ...(reviews ?? []).map(
+      (review): ContentIndexEntry => ({
+        id: review.id,
+        type: "review",
+        source: review.source,
+        title: review.title,
+        slug: review.slug,
+        path: `/reviews/${review.slug}`
+      })
+    )
+  ];
+}
+
+async function getPublishedContentIndex(supabase: NonNullable<ReturnType<typeof createSupabaseAdminClient>>) {
+  const [blogPosts, recipes, reviews] = await Promise.all([
+    supabase
+      .from("blog_posts")
+      .select("id, source, title, slug")
+      .eq("status", "published"),
+    supabase
+      .from("recipes")
+      .select("id, source, title, slug")
+      .eq("status", "published"),
+    supabase
+      .from("reviews")
+      .select("id, source, title, slug")
+      .eq("status", "published")
+  ]);
+
+  return buildContentIndex(blogPosts.data, recipes.data, reviews.data);
+}
+
+export async function getAffiliateAnalytics(windowDays = 30) {
   if (!flags.hasSupabaseAdmin) {
-    return flags.allowSampleFallbacks ? getFallbackAffiliateAnalytics() : [];
+    return {
+      windowDays,
+      totals: {
+        clicks: 0,
+        partners: 0,
+        estimatedRevenue: formatCurrency(0)
+      },
+      partners: [],
+      topSourcePages: [],
+      topPositions: []
+    };
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return flags.allowSampleFallbacks ? getFallbackAffiliateAnalytics() : [];
+    return {
+      windowDays,
+      totals: {
+        clicks: 0,
+        partners: 0,
+        estimatedRevenue: formatCurrency(0)
+      },
+      partners: [],
+      topSourcePages: [],
+      topPositions: []
+    };
   }
 
   const { data } = await supabase
     .from("affiliate_clicks")
-    .select("partner, product");
+    .select("partner, product, source_page, position, clicked_at")
+    .gte("clicked_at", isoDaysAgo(windowDays));
 
   if (!data?.length) {
-    return [];
+    return {
+      windowDays,
+      totals: {
+        clicks: 0,
+        partners: 0,
+        estimatedRevenue: formatCurrency(0)
+      },
+      partners: [],
+      topSourcePages: [],
+      topPositions: []
+    };
   }
 
   const totalClicks = data.length;
-  const byPartner = new Map<
-    string,
-    { clicks: number; products: Map<string, number> }
-  >();
+  const byPartner = new Map<string, { clicks: number; products: Map<string, number> }>();
+  const sourcePageCounts = new Map<string, number>();
+  const positionCounts = new Map<string, number>();
+  let estimatedRevenueValue = 0;
 
   for (const row of data) {
     const group = byPartner.get(row.partner) ?? {
@@ -91,240 +202,287 @@ export async function getAffiliateAnalytics() {
     };
 
     group.clicks += 1;
+    estimatedRevenueValue += PARTNER_EPC[row.partner] ?? 1.5;
+
     if (row.product) {
       group.products.set(row.product, (group.products.get(row.product) ?? 0) + 1);
     }
+
+    if (row.source_page) {
+      sourcePageCounts.set(row.source_page, (sourcePageCounts.get(row.source_page) ?? 0) + 1);
+    }
+
+    if (row.position) {
+      positionCounts.set(row.position, (positionCounts.get(row.position) ?? 0) + 1);
+    }
+
     byPartner.set(row.partner, group);
   }
 
-  return Array.from(byPartner.entries())
-    .map(([partner, group]) => ({
-      partner,
-      clicks: group.clicks,
-      clickShare: formatPercent((group.clicks / totalClicks) * 100),
-      estimatedRevenue: formatCurrency(group.clicks * (PARTNER_EPC[partner] ?? 1.5)),
-      topProduct:
-        Array.from(group.products.entries()).sort((left, right) => right[1] - left[1])[0]?.[0] ??
-        "Mixed catalog"
-    }))
-    .sort((left, right) => right.clicks - left.clicks);
-}
-
-export async function getContentAnalytics() {
-  const fallbackContent = [
-    ...sampleBlogPosts.map((post) => ({
-      source: post.source,
-      views: post.viewCount,
-      likes: post.likeCount,
-      saves: 0,
-      label: post.title,
-      path: `/blog/${post.slug}`
-    })),
-    ...sampleRecipes.map((recipe) => ({
-      source: recipe.source,
-      views: recipe.viewCount,
-      likes: recipe.likeCount,
-      saves: recipe.saveCount,
-      label: recipe.title,
-      path: `/recipes/${recipe.slug}`
-    })),
-    ...sampleReviews.map((review) => ({
-      source: review.source,
-      views: review.viewCount,
-      likes: review.likeCount,
-      saves: 0,
-      label: review.title,
-      path: `/reviews/${review.slug}`
-    }))
-  ];
-
-  const contentRows = getFallbackArray(fallbackContent);
-
-  if (flags.hasSupabaseAdmin) {
-    const supabase = createSupabaseAdminClient();
-    if (supabase) {
-      const [blogPosts, recipes, reviews] = await Promise.all([
-        supabase.from("blog_posts").select("source, view_count, like_count, title, slug"),
-        supabase
-          .from("recipes")
-          .select("source, view_count, like_count, save_count, title, slug"),
-        supabase.from("reviews").select("source, view_count, like_count, title, slug")
-      ]);
-
-      const liveRows = [
-        ...(blogPosts.data ?? []).map((post) => ({
-          source: post.source,
-          views: post.view_count ?? 0,
-          likes: post.like_count ?? 0,
-          saves: 0,
-          label: post.title,
-          path: `/blog/${post.slug}`
-        })),
-        ...(recipes.data ?? []).map((recipe) => ({
-          source: recipe.source,
-          views: recipe.view_count ?? 0,
-          likes: recipe.like_count ?? 0,
-          saves: recipe.save_count ?? 0,
-          label: recipe.title,
-          path: `/recipes/${recipe.slug}`
-        })),
-        ...(reviews.data ?? []).map((review) => ({
-          source: review.source,
-          views: review.view_count ?? 0,
-          likes: review.like_count ?? 0,
-          saves: 0,
-          label: review.title,
-          path: `/reviews/${review.slug}`
-        }))
-      ];
-
-      if (liveRows.length) {
-        contentRows.splice(0, contentRows.length, ...liveRows);
-      }
-    }
-  }
-
-  const groups = ["editorial", "ai_generated", "community"].map((source) => {
-    const rows = contentRows.filter((row) => row.source === source);
-    return {
-      source,
-      count: rows.length,
-      avgViews: Math.round(average(rows.map((row) => row.views))),
-      avgLikes: Math.round(average(rows.map((row) => row.likes))),
-      avgSaves: Math.round(average(rows.map((row) => row.saves)))
-    };
-  });
-
-  const topContent = [...contentRows]
-    .sort((left, right) => right.views - left.views)
-    .slice(0, 5);
-
   return {
-    groups,
-    topContent
+    windowDays,
+    totals: {
+      clicks: totalClicks,
+      partners: byPartner.size,
+      estimatedRevenue: formatCurrency(estimatedRevenueValue)
+    },
+    partners: Array.from(byPartner.entries())
+      .map(([partner, group]) => ({
+        partner,
+        clicks: group.clicks,
+        clickShare: formatPercent((group.clicks / totalClicks) * 100),
+        estimatedRevenue: formatCurrency(group.clicks * (PARTNER_EPC[partner] ?? 1.5)),
+        topProduct:
+          Array.from(group.products.entries()).sort((left, right) => right[1] - left[1])[0]?.[0] ??
+          "Mixed catalog"
+      }))
+      .sort((left, right) => right.clicks - left.clicks),
+    topSourcePages: Array.from(sourcePageCounts.entries())
+      .map(([path, clicks]) => ({ path, clicks }))
+      .sort((left, right) => right.clicks - left.clicks)
+      .slice(0, 8),
+    topPositions: Array.from(positionCounts.entries())
+      .map(([position, clicks]) => ({ position, clicks }))
+      .sort((left, right) => right.clicks - left.clicks)
+      .slice(0, 8)
   };
 }
 
-export async function getTrafficAnalytics() {
-  const fallbackPages = [
-    ...sampleRecipes.map((recipe) => ({
-      label: recipe.title,
-      path: `/recipes/${recipe.slug}`,
-      section: "recipes",
-      views: recipe.viewCount
-    })),
-    ...sampleBlogPosts.map((post) => ({
-      label: post.title,
-      path: `/blog/${post.slug}`,
-      section: "blog",
-      views: post.viewCount
-    })),
-    ...sampleReviews.map((review) => ({
-      label: review.title,
-      path: `/reviews/${review.slug}`,
-      section: "reviews",
-      views: review.viewCount
-    }))
-  ];
-
-  const pages = getFallbackArray(fallbackPages);
-
-  if (flags.hasSupabaseAdmin) {
-    const supabase = createSupabaseAdminClient();
-    if (supabase) {
-      const [blogPosts, recipes, reviews] = await Promise.all([
-        supabase.from("blog_posts").select("title, slug, view_count"),
-        supabase.from("recipes").select("title, slug, view_count"),
-        supabase.from("reviews").select("title, slug, view_count")
-      ]);
-
-      const livePages = [
-        ...(recipes.data ?? []).map((recipe) => ({
-          label: recipe.title,
-          path: `/recipes/${recipe.slug}`,
-          section: "recipes",
-          views: recipe.view_count ?? 0
-        })),
-        ...(blogPosts.data ?? []).map((post) => ({
-          label: post.title,
-          path: `/blog/${post.slug}`,
-          section: "blog",
-          views: post.view_count ?? 0
-        })),
-        ...(reviews.data ?? []).map((review) => ({
-          label: review.title,
-          path: `/reviews/${review.slug}`,
-          section: "reviews",
-          views: review.view_count ?? 0
-        }))
-      ];
-
-      if (livePages.length) {
-        pages.splice(0, pages.length, ...livePages);
-      }
-    }
-  }
-
-  const totalViews = pages.reduce((sum, page) => sum + page.views, 0);
-  const bySection = Array.from(
-    pages.reduce((map, page) => {
-      map.set(page.section, (map.get(page.section) ?? 0) + page.views);
-      return map;
-    }, new Map<string, number>())
-  )
-    .map(([section, views]) => ({ section, views }))
-    .sort((left, right) => right.views - left.views);
-
-  return {
-    totalViews,
-    bySection,
-    topPages: [...pages].sort((left, right) => right.views - left.views).slice(0, 8)
+export async function getContentAnalytics(windowDays = 30) {
+  const emptyState = {
+    windowDays,
+    totals: {
+      trackedItems: 0,
+      views: 0,
+      saves: 0,
+      ratings: 0,
+      comments: 0
+    },
+    groups: [] as Array<{
+      source: string;
+      count: number;
+      avgViews: number;
+      avgSaves: number;
+      avgRatings: number;
+      avgComments: number;
+    }>,
+    topContent: [] as Array<{
+      label: string;
+      path: string;
+      source: string;
+      views: number;
+      saves: number;
+      ratings: number;
+      comments: number;
+      interactions: number;
+    }>
   };
-}
-
-export async function getShareAnalytics(windowDays = 30) {
-  const fallbackRows = getFallbackArray([
-    {
-      eventName: "recipe_share",
-      path: "/recipes/birria-quesatacos-with-arbol-salsa",
-      contentType: "recipe",
-      contentSlug: "birria-quesatacos-with-arbol-salsa",
-      sessionId: "fallback-session-1",
-      occurredAt: isoDaysAgo(2),
-      metadata: {
-        platform: "pinterest",
-        shareAction: "saved_image"
-      }
-    },
-    {
-      eventName: "recipe_share",
-      path: "/blog/best-hot-sauces-for-taco-night",
-      contentType: "blog_post",
-      contentSlug: "best-hot-sauces-for-taco-night",
-      sessionId: "fallback-session-2",
-      occurredAt: isoDaysAgo(1),
-      metadata: {
-        platform: "whatsapp",
-        shareAction: "opened"
-      }
-    },
-    {
-      eventName: "page_view",
-      path: "/recipes/birria-quesatacos-with-arbol-salsa",
-      sessionId: "fallback-session-3",
-      occurredAt: isoDaysAgo(1),
-      utmSource: "pinterest",
-      utmCampaign: "organic_share"
-    }
-  ]);
 
   if (!flags.hasSupabaseAdmin) {
-    return buildShareAnalytics(fallbackRows, windowDays);
+    return emptyState;
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return buildShareAnalytics(fallbackRows, windowDays);
+    return emptyState;
+  }
+
+  const contentIndex = await getPublishedContentIndex(supabase);
+  if (!contentIndex.length) {
+    return emptyState;
+  }
+
+  const cutoff = isoDaysAgo(windowDays);
+  const [pageViewsResult, recipeSavesResult, recipeRatingsResult, commentsResult] = await Promise.all([
+    supabase
+      .from("telemetry_events")
+      .select("path")
+      .eq("event_name", "page_view")
+      .gte("occurred_at", cutoff),
+    supabase
+      .from("recipe_saves")
+      .select("recipe_id")
+      .gte("saved_at", cutoff),
+    supabase
+      .from("recipe_ratings")
+      .select("recipe_id")
+      .gte("created_at", cutoff),
+    supabase
+      .from("comments")
+      .select("content_type, content_id")
+      .gte("created_at", cutoff)
+  ]);
+
+  const contentByPath = new Map(contentIndex.map((entry) => [entry.path, entry]));
+  const pageViewCounts = new Map<string, number>();
+  const recipeSaveCounts = new Map<number, number>();
+  const recipeRatingCounts = new Map<number, number>();
+  const commentCounts = new Map<string, number>();
+
+  for (const row of pageViewsResult.data ?? []) {
+    const path = row.path ?? "";
+    if (!contentByPath.has(path)) continue;
+    pageViewCounts.set(path, (pageViewCounts.get(path) ?? 0) + 1);
+  }
+
+  for (const row of recipeSavesResult.data ?? []) {
+    recipeSaveCounts.set(row.recipe_id, (recipeSaveCounts.get(row.recipe_id) ?? 0) + 1);
+  }
+
+  for (const row of recipeRatingsResult.data ?? []) {
+    recipeRatingCounts.set(row.recipe_id, (recipeRatingCounts.get(row.recipe_id) ?? 0) + 1);
+  }
+
+  for (const row of commentsResult.data ?? []) {
+    const key = `${row.content_type}:${row.content_id}`;
+    commentCounts.set(key, (commentCounts.get(key) ?? 0) + 1);
+  }
+
+  const observedContent = contentIndex
+    .map((entry) => {
+      const views = pageViewCounts.get(entry.path) ?? 0;
+      const saves = entry.type === "recipe" ? recipeSaveCounts.get(entry.id) ?? 0 : 0;
+      const ratings = entry.type === "recipe" ? recipeRatingCounts.get(entry.id) ?? 0 : 0;
+      const comments = commentCounts.get(`${entry.type}:${entry.id}`) ?? 0;
+      const interactions = saves + ratings + comments;
+
+      return {
+        label: entry.title,
+        path: entry.path,
+        source: entry.source,
+        views,
+        saves,
+        ratings,
+        comments,
+        interactions
+      };
+    })
+    .filter((entry) => entry.views > 0 || entry.interactions > 0);
+
+  if (!observedContent.length) {
+    return emptyState;
+  }
+
+  const groups = Array.from(
+    observedContent.reduce((map, entry) => {
+      const bucket = map.get(entry.source) ?? [];
+      bucket.push(entry);
+      map.set(entry.source, bucket);
+      return map;
+    }, new Map<string, typeof observedContent>())
+  )
+    .map(([source, items]) => ({
+      source,
+      count: items.length,
+      avgViews: Math.round(average(items.map((item) => item.views))),
+      avgSaves: Math.round(average(items.map((item) => item.saves))),
+      avgRatings: Math.round(average(items.map((item) => item.ratings))),
+      avgComments: Math.round(average(items.map((item) => item.comments)))
+    }))
+    .sort((left, right) => right.avgViews - left.avgViews);
+
+  return {
+    windowDays,
+    totals: {
+      trackedItems: observedContent.length,
+      views: observedContent.reduce((sum, entry) => sum + entry.views, 0),
+      saves: observedContent.reduce((sum, entry) => sum + entry.saves, 0),
+      ratings: observedContent.reduce((sum, entry) => sum + entry.ratings, 0),
+      comments: observedContent.reduce((sum, entry) => sum + entry.comments, 0)
+    },
+    groups,
+    topContent: [...observedContent]
+      .sort(
+        (left, right) =>
+          right.views - left.views || right.interactions - left.interactions
+      )
+      .slice(0, 8)
+  };
+}
+
+export async function getTrafficAnalytics(windowDays = 30) {
+  const emptyState = {
+    windowDays,
+    totalViews: 0,
+    totalSessions: 0,
+    uniquePages: 0,
+    bySection: [] as Array<{ section: string; views: number }>,
+    topPages: [] as Array<{ label: string; path: string; section: string; views: number }>
+  };
+
+  if (!flags.hasSupabaseAdmin) {
+    return emptyState;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return emptyState;
+  }
+
+  const [pageViewsResult, contentIndex] = await Promise.all([
+    supabase
+      .from("telemetry_events")
+      .select("path, session_id, anonymous_id, user_id, occurred_at")
+      .eq("event_name", "page_view")
+      .gte("occurred_at", isoDaysAgo(windowDays)),
+    getPublishedContentIndex(supabase)
+  ]);
+
+  const rows = (pageViewsResult.data ?? []).filter(
+    (row) =>
+      row.path &&
+      !row.path.startsWith("/admin") &&
+      !row.path.startsWith("/api")
+  );
+
+  if (!rows.length) {
+    return emptyState;
+  }
+
+  const pathCounts = new Map<string, number>();
+  const sectionCounts = new Map<string, number>();
+  const sessions = new Set<string>();
+  const contentByPath = new Map(contentIndex.map((entry) => [entry.path, entry]));
+
+  rows.forEach((row, index) => {
+    const path = row.path ?? "/";
+    pathCounts.set(path, (pathCounts.get(path) ?? 0) + 1);
+
+    const section = getTrafficSection(path);
+    sectionCounts.set(section, (sectionCounts.get(section) ?? 0) + 1);
+
+    sessions.add(getSessionKey(row, index));
+  });
+
+  return {
+    windowDays,
+    totalViews: rows.length,
+    totalSessions: sessions.size,
+    uniquePages: pathCounts.size,
+    bySection: Array.from(sectionCounts.entries())
+      .map(([section, views]) => ({ section, views }))
+      .sort((left, right) => right.views - left.views)
+      .slice(0, 8),
+    topPages: Array.from(pathCounts.entries())
+      .map(([path, views]) => ({
+        label: contentByPath.get(path)?.title ?? formatPathLabel(path),
+        path,
+        section: getTrafficSection(path),
+        views
+      }))
+      .sort((left, right) => right.views - left.views)
+      .slice(0, 10)
+  };
+}
+
+export async function getShareAnalytics(windowDays = 30) {
+  if (!flags.hasSupabaseAdmin) {
+    return buildShareAnalytics([], windowDays);
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return buildShareAnalytics([], windowDays);
   }
 
   const cutoff = isoDaysAgo(windowDays);
@@ -359,36 +517,13 @@ export async function getShareAnalytics(windowDays = 30) {
 }
 
 export async function getSearchAnalytics(windowDays = 30) {
-  const fallbackRows = getFallbackArray([
-    {
-      occurred_at: isoDaysAgo(2),
-      path: "/search",
-      metadata: {
-        query: "birria tacos",
-        source: "header",
-        hasResults: true,
-        resultCount: 3
-      }
-    },
-    {
-      occurred_at: isoDaysAgo(1),
-      path: "/search",
-      metadata: {
-        query: "reaper honey",
-        source: "search-page",
-        hasResults: false,
-        resultCount: 0
-      }
-    }
-  ]);
-
   if (!flags.hasSupabaseAdmin) {
-    return buildSearchAnalyticsFromRows(fallbackRows);
+    return buildSearchAnalyticsFromRows([]);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return buildSearchAnalyticsFromRows(fallbackRows);
+    return buildSearchAnalyticsFromRows([]);
   }
 
   const { data } = await supabase
@@ -452,40 +587,13 @@ function buildSearchAnalyticsFromRows(
 }
 
 export async function getAdAnalytics(windowDays = 30) {
-  const fallbackRows = getFallbackArray([
-    {
-      occurred_at: isoDaysAgo(1),
-      path: "/reviews/melindas-ghost-pepper-wing-sauce",
-      metadata: {
-        slotName: "review_detail_inline",
-        placement: "review_detail"
-      }
-    },
-    {
-      occurred_at: isoDaysAgo(2),
-      path: "/blog/best-hot-sauces-for-taco-night",
-      metadata: {
-        slotName: "blog_post_inline",
-        placement: "blog_post"
-      }
-    },
-    {
-      occurred_at: isoDaysAgo(3),
-      path: "/reviews",
-      metadata: {
-        slotName: "review_archive_feature",
-        placement: "review_archive"
-      }
-    }
-  ]);
-
   if (!flags.hasSupabaseAdmin) {
-    return buildAdAnalyticsFromRows(fallbackRows);
+    return buildAdAnalyticsFromRows([]);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    return buildAdAnalyticsFromRows(fallbackRows);
+    return buildAdAnalyticsFromRows([]);
   }
 
   const { data } = await supabase
@@ -521,6 +629,8 @@ function buildAdAnalyticsFromRows(
 
   return {
     totalImpressions: rows.length,
+    uniqueSlots: slotCounts.size,
+    uniquePages: pathCounts.size,
     topSlots: Array.from(slotCounts.entries())
       .map(([slotName, count]) => ({ slotName, count }))
       .sort((left, right) => right.count - left.count)

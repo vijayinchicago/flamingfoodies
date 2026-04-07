@@ -3,6 +3,7 @@ import { getSearchAnalytics } from "@/lib/services/analytics";
 
 export default async function AdminSearchAnalyticsPage() {
   const analytics = await getSearchAnalytics(30);
+  const hasSearchData = analytics.totalSearches > 0;
 
   return (
     <AdminPage
@@ -24,70 +25,68 @@ export default async function AdminSearchAnalyticsPage() {
         </article>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <div className="panel-light p-6">
-          <p className="eyebrow">Top queries</p>
-          <div className="mt-4 grid gap-3">
+      {hasSearchData ? (
+        <>
+          <div className="grid gap-6 xl:grid-cols-2">
             {analytics.topQueries.length ? (
-              analytics.topQueries.map((item) => (
-                <article
-                  key={item.query}
-                  className="flex items-center justify-between rounded-[1.25rem] border border-charcoal/10 p-4"
-                >
-                  <span className="text-sm font-semibold text-charcoal">{item.query}</span>
-                  <span className="text-sm text-charcoal/60">{item.count}</span>
-                </article>
-              ))
-            ) : (
-              <p className="text-sm text-charcoal/60">
-                No search data yet.
-              </p>
-            )}
-          </div>
-        </div>
+              <div className="panel-light p-6">
+                <p className="eyebrow">Top queries</p>
+                <div className="mt-4 grid gap-3">
+                  {analytics.topQueries.map((item) => (
+                    <article
+                      key={item.query}
+                      className="flex items-center justify-between rounded-[1.25rem] border border-charcoal/10 p-4"
+                    >
+                      <span className="text-sm font-semibold text-charcoal">{item.query}</span>
+                      <span className="text-sm text-charcoal/60">{item.count}</span>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ) : null}
 
-        <div className="panel-light p-6">
-          <p className="eyebrow">Search sources</p>
-          <div className="mt-4 grid gap-3">
             {analytics.topSources.length ? (
-              analytics.topSources.map((item) => (
-                <article
-                  key={item.source}
-                  className="flex items-center justify-between rounded-[1.25rem] border border-charcoal/10 p-4"
-                >
-                  <span className="text-sm font-semibold text-charcoal">{item.source}</span>
-                  <span className="text-sm text-charcoal/60">{item.count}</span>
-                </article>
-              ))
-            ) : (
-              <p className="text-sm text-charcoal/60">
-                No search source mix yet.
-              </p>
-            )}
+              <div className="panel-light p-6">
+                <p className="eyebrow">Search sources</p>
+                <div className="mt-4 grid gap-3">
+                  {analytics.topSources.map((item) => (
+                    <article
+                      key={item.source}
+                      className="flex items-center justify-between rounded-[1.25rem] border border-charcoal/10 p-4"
+                    >
+                      <span className="text-sm font-semibold text-charcoal">{item.source}</span>
+                      <span className="text-sm text-charcoal/60">{item.count}</span>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
-        </div>
-      </div>
 
-      <div className="panel-light p-6">
-        <p className="eyebrow">Queries with no results</p>
-        <div className="mt-4 grid gap-3">
           {analytics.noResultQueries.length ? (
-            analytics.noResultQueries.map((item) => (
-              <article
-                key={item.query}
-                className="flex items-center justify-between rounded-[1.25rem] border border-charcoal/10 p-4"
-              >
-                <span className="text-sm font-semibold text-charcoal">{item.query}</span>
-                <span className="text-sm text-charcoal/60">{item.count}</span>
-              </article>
-            ))
-          ) : (
-            <p className="text-sm text-charcoal/60">
-              Nice. No repeated no-result queries in the current window.
-            </p>
-          )}
-        </div>
-      </div>
+            <div className="panel-light p-6">
+              <p className="eyebrow">Queries with no results</p>
+              <div className="mt-4 grid gap-3">
+                {analytics.noResultQueries.map((item) => (
+                  <article
+                    key={item.query}
+                    className="flex items-center justify-between rounded-[1.25rem] border border-charcoal/10 p-4"
+                  >
+                    <span className="text-sm font-semibold text-charcoal">{item.query}</span>
+                    <span className="text-sm text-charcoal/60">{item.count}</span>
+                  </article>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </>
+      ) : (
+        <article className="panel-light p-6">
+          <p className="text-sm text-charcoal/60">
+            No real search events have been captured in the last 30 days yet.
+          </p>
+        </article>
+      )}
     </AdminPage>
   );
 }
