@@ -99,7 +99,7 @@ const blogSchema = z.object({
 
 const recipeSchema = z.object({
   title: z.string().min(6).max(120),
-  description: z.string().min(20).max(220),
+  description: z.string().min(20).max(420),
   intro: z.string().min(20).max(600).optional(),
   heroSummary: z.string().min(20).max(260).optional(),
   heatLevel: z.enum(heatLevels),

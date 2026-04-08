@@ -301,6 +301,10 @@ export function RecipeEditorForm({
           rows={3}
           className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember md:col-span-2"
         />
+        <p className="text-sm text-charcoal/55 md:col-span-2">
+          This is the public recipe deck. It can run longer than the SEO excerpt; search metadata
+          is trimmed automatically on save.
+        </p>
         <textarea
           name="intro"
           defaultValue={recipe?.intro}
