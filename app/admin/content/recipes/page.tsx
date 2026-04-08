@@ -5,6 +5,7 @@ import { createRecipeAction, updateRecipeStateAction } from "@/lib/actions/admin
 import { AdminPage } from "@/components/admin/admin-page";
 import { ContentTable } from "@/components/admin/content-table";
 import { RecipeEditorForm } from "@/components/admin/recipe-editor-form";
+import { formatContentSourceLabel } from "@/lib/content-labels";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import { buildRecipeQaReport, getRecipeQaPublishError } from "@/lib/recipe-qa";
 import { getAdminRecipes } from "@/lib/services/content";
@@ -65,11 +66,11 @@ export default async function AdminRecipesPage({
             <div>
               <p className="eyebrow">Review queue</p>
               <h2 className="mt-2 font-display text-4xl text-charcoal">
-                AI-generated recipes awaiting review
+                Recipes awaiting review
               </h2>
               <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/65">
-                Successful AI runs land here first. They stay off the public `/recipes` page until
-                you publish them or their scheduled publish time arrives.
+                New drafts land here first. They stay off the public recipe archive until you
+                publish them or their scheduled publish time arrives.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -77,7 +78,7 @@ export default async function AdminRecipesPage({
                 href={`/admin/content/recipes/${aiQueueEntries[0].recipe.id}`}
                 className="rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
               >
-                Review latest AI recipe
+                Review latest draft
               </Link>
               <Link
                 href={`/admin/content/recipes/${aiQueueEntries[0].recipe.id}`}
@@ -105,7 +106,7 @@ export default async function AdminRecipesPage({
                     </div>
                     <div className="border-t border-charcoal/10 px-4 py-3">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-charcoal/60">
-                        {hero.usesGeneratedHeroCard ? "Generated fallback" : "Current hero"}
+                        {hero.usesGeneratedHeroCard ? "Illustrated cover" : "Current hero"}
                       </p>
                     </div>
                   </div>
@@ -113,7 +114,7 @@ export default async function AdminRecipesPage({
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <p className="eyebrow">
-                          {recipe.source.replace(/_/g, " ")} · {recipe.cuisineType} · {recipe.heatLevel}
+                          {formatContentSourceLabel(recipe.source)} · {recipe.cuisineType} · {recipe.heatLevel}
                         </p>
                         <h3 className="mt-2 font-display text-3xl text-charcoal">{recipe.title}</h3>
                         <p className="mt-3 text-sm leading-7 text-charcoal/65">{recipe.description}</p>
@@ -192,7 +193,7 @@ export default async function AdminRecipesPage({
         filters={["status", "source", "heat_level", "cuisine_type"]}
         rows={recipes.map((recipe) => ({
           title: recipe.title,
-          source: recipe.source,
+          source: formatContentSourceLabel(recipe.source),
           cuisine: recipe.cuisineType,
           heat: recipe.heatLevel,
           saves: recipe.saveCount,
@@ -225,7 +226,7 @@ export default async function AdminRecipesPage({
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="eyebrow">
-                  {recipe.source.replace(/_/g, " ")} · {recipe.cuisineType} · {recipe.heatLevel}
+                  {formatContentSourceLabel(recipe.source)} · {recipe.cuisineType} · {recipe.heatLevel}
                 </p>
                 <h2 className="mt-2 font-display text-4xl text-charcoal">{recipe.title}</h2>
                 <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/65">

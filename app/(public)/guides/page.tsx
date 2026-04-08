@@ -19,7 +19,7 @@ export default async function GuidesPage() {
       <SectionHeading
         eyebrow="Guides"
         title="Evergreen reference pieces for the spicy food rabbit hole."
-        copy="Guides stay handcrafted and static so they can go deeper than the high-volume AI pipeline."
+        copy="Reference guides go deeper on Scoville heat, fermentation, pantry technique, and spicy cooking fundamentals."
       />
       <div className="mt-10 grid gap-6 lg:grid-cols-2">
         {guides.map((guide) => (

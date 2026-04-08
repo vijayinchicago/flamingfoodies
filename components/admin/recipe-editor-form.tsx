@@ -930,7 +930,7 @@ export function RecipeEditorForm({
               {heroPreviewMode === "upload"
                 ? "New upload"
                 : heroPreviewMode === "generated"
-                  ? "Generated fallback"
+                  ? "Illustrated cover"
                   : "Live image"}
             </span>
           </div>

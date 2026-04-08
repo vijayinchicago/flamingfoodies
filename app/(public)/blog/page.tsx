@@ -31,7 +31,7 @@ export default async function BlogIndexPage() {
       <SectionHeading
         eyebrow="Blog"
         title="Culture, gear, and sauce intelligence."
-        copy="This layer carries the editorial voice, long-tail SEO, and authority-building content that feeds the rest of the platform."
+        copy="Longer reads on spicy food culture, gear, ingredients, and the ideas that make the rest of the site more useful."
       />
       {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.blogArchive && posts.length ? (
         <div className="mt-10 max-w-4xl">
@@ -52,7 +52,7 @@ export default async function BlogIndexPage() {
               href={`/blog/${post.slug}`}
               image={post.imageUrl}
               imageAlt={post.imageAlt}
-              eyebrow={`${post.category} · ${post.source}`}
+              eyebrow={post.category}
               title={post.title}
               description={post.description}
               meta={post.publishedAt}
@@ -60,13 +60,12 @@ export default async function BlogIndexPage() {
           ))
         ) : (
           <div className="panel p-8 lg:col-span-2">
-            <p className="eyebrow">Editorial queue</p>
+            <p className="eyebrow">Blog</p>
             <h3 className="mt-3 font-display text-4xl text-cream">
-              No published blog posts are live yet.
+              Fresh blog posts are on the way.
             </h3>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-cream/72">
-              The archive is wired and schema-ready, but it still needs published posts in Supabase.
-              Use the catalog bootstrap or the admin editor to push the first articles live.
+              Check back soon for more spicy food culture, gear, and hot sauce guides.
             </p>
           </div>
         )}

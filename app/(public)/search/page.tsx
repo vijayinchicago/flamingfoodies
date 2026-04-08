@@ -78,7 +78,6 @@ export default async function SearchPage({
               <h2 className="font-display text-4xl text-cream">
                 {results.length ? `${results.length} matches for “${query}”` : `No matches for “${query}”`}
               </h2>
-              <p className="text-sm text-cream/60">Source: {source}</p>
             </div>
           </div>
 

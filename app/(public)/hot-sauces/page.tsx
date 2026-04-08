@@ -129,7 +129,7 @@ export default async function HotSaucesHubPage() {
                 href={`/blog/${post.slug}`}
                 image={post.imageUrl}
                 imageAlt={post.imageAlt}
-                eyebrow={`${post.category} · ${post.source}`}
+                eyebrow={post.category}
                 title={post.title}
                 description={post.description}
                 meta={post.publishedAt}

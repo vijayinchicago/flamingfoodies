@@ -10,7 +10,7 @@ export default function AdminNewCampaignPage({
   return (
     <AdminPage
       title="Compose campaign"
-      description="Draft a manual newsletter blast or review an AI-generated weekly digest."
+      description="Draft a manual newsletter blast or review the next weekly digest before it goes out."
     >
       <form action={createNewsletterCampaignAction} className="panel-light space-y-4 p-6">
         <input

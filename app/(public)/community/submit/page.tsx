@@ -20,7 +20,7 @@ export default async function CommunitySubmitPage({
   return (
     <SimpleFormShell
       title="Submit to the community feed"
-      copy="This form now writes a real pending-review submission when Supabase auth is configured. Standard posts stay lightweight, while recipe submissions also capture structured ingredients and method for moderation."
+      copy="Share a spicy post, photo, or recipe with the community. Recipe submissions can include ingredients and method so moderators have the full context."
     >
       <form action={submitCommunityPostAction} encType="multipart/form-data" className="space-y-5">
         <input

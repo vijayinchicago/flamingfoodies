@@ -11,6 +11,11 @@ import {
   sampleRecipeSaves,
   sampleReviews
 } from "@/lib/sample-data";
+import {
+  sanitizeAutomationAuthorName,
+  sanitizeAutomationQaNotes,
+  sanitizeAutomationTags
+} from "@/lib/content-labels";
 import { flags } from "@/lib/env";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -109,9 +114,9 @@ function mapBlogRow(row: any): BlogPost {
     title: row.title,
     description: row.description,
     content: row.content,
-    authorName: row.author_name,
+    authorName: sanitizeAutomationAuthorName(row.author_name) || "FlamingFoodies",
     category: row.category,
-    tags: row.tags ?? [],
+    tags: sanitizeAutomationTags(row.tags ?? []),
     imageUrl: row.image_url ?? undefined,
     imageAlt: row.image_alt ?? undefined,
     featured: row.featured ?? false,
@@ -148,7 +153,7 @@ function mapRecipeRow(row: any): Recipe {
     description: row.description,
     intro: row.intro ?? undefined,
     heroSummary: row.hero_summary ?? undefined,
-    authorName: row.author_name,
+    authorName: sanitizeAutomationAuthorName(row.author_name) || "FlamingFoodies Test Kitchen",
     heatLevel: row.heat_level,
     cuisineType: row.cuisine_type,
     prepTimeMinutes: row.prep_time_minutes ?? 0,
@@ -170,12 +175,12 @@ function mapRecipeRow(row: any): Recipe {
     substitutions: row.substitutions ?? [],
     faqs: row.faqs ?? [],
     equipment: row.equipment ?? [],
-    tags: row.tags ?? [],
+    tags: sanitizeAutomationTags(row.tags ?? []),
     imageUrl: hero.imageUrl,
     imageAlt: hero.imageAlt,
     heroImageReviewed: Boolean(row.hero_image_reviewed),
     cuisineQaReviewed: row.cuisine_qa_reviewed ?? undefined,
-    qaNotes: row.qa_notes ?? undefined,
+    qaNotes: sanitizeAutomationQaNotes(row.qa_notes),
     qaReport: row.qa_report ?? undefined,
     featured: row.featured ?? false,
     source: row.source,
@@ -208,7 +213,7 @@ function mapReviewRow(row: any): Review {
     source: row.source,
     status: row.status,
     publishedAt: row.published_at ?? undefined,
-    tags: row.tags ?? [],
+    tags: sanitizeAutomationTags(row.tags ?? []),
     viewCount: row.view_count ?? 0,
     likeCount: row.like_count ?? 0,
     content: row.content,
@@ -222,7 +227,7 @@ function mapReviewRow(row: any): Review {
     cons: row.cons ?? [],
     imageReviewed: row.image_reviewed ?? undefined,
     factQaReviewed: row.fact_qa_reviewed ?? undefined,
-    qaNotes: row.qa_notes ?? undefined,
+    qaNotes: sanitizeAutomationQaNotes(row.qa_notes),
     qaReport: row.qa_report ?? undefined,
     recommended: row.recommended ?? false,
     featured: row.featured ?? false

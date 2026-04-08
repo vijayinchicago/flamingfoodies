@@ -244,8 +244,8 @@ export default async function HomePage() {
       <section className="container-shell py-16">
         <SectionHeading
           eyebrow="Email capture"
-          title="Flame Club keeps the retention engine warm."
-          copy="Homepage signup feeds ConvertKit segments, weekly digest drafts, and future community activation without waiting for paid features."
+          title="Flame Club keeps the best spicy finds in one place."
+          copy="Get standout recipes, bottle picks, and new guides without having to hunt through the site every week."
         />
         <div className="mt-8">
           <EmailCapture />

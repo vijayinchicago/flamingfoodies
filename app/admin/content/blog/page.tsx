@@ -4,6 +4,7 @@ import { createBlogPostAction, updateBlogPostStateAction } from "@/lib/actions/a
 import { AdminPage } from "@/components/admin/admin-page";
 import { ContentTable } from "@/components/admin/content-table";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { formatContentSourceLabel } from "@/lib/content-labels";
 import { getAdminBlogPosts } from "@/lib/services/content";
 
 export default async function AdminBlogPage({
@@ -16,7 +17,7 @@ export default async function AdminBlogPage({
   return (
     <AdminPage
       title="Blog content"
-      description="Manage editorial and AI-generated blog inventory, including bulk filters and editor access."
+      description="Manage the blog inventory, including drafts, published stories, filters, and editor access."
     >
       <ContentTable
         title="Blog posts"
@@ -24,7 +25,7 @@ export default async function AdminBlogPage({
         rows={posts.map((post) => ({
           title: post.title,
           category: post.category,
-          source: post.source,
+          source: formatContentSourceLabel(post.source),
           status: post.status,
           featured: post.featured,
           views: post.viewCount
@@ -33,8 +34,7 @@ export default async function AdminBlogPage({
       <div className="panel-light p-6">
         <h2 className="font-display text-4xl text-charcoal">Create a blog post</h2>
         <p className="mt-3 text-sm leading-7 text-charcoal/65">
-          This is the first real admin content mutation path. It writes to Supabase with
-          editorial defaults and audit logging.
+          Draft and publish long-form posts, update the hero image, and keep the archive moving.
         </p>
         <form action={createBlogPostAction} encType="multipart/form-data" className="mt-6 space-y-4">
           <input
@@ -127,7 +127,7 @@ export default async function AdminBlogPage({
               <span>Slug: {post.slug}</span>
               <span>Views: {post.viewCount}</span>
               <span>Featured: {post.featured ? "Yes" : "No"}</span>
-              <span>Source: {post.source}</span>
+              <span>Source: {formatContentSourceLabel(post.source)}</span>
             </div>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link

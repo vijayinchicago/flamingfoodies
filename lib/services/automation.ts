@@ -1080,7 +1080,7 @@ function buildRecipeDraft(
     description,
     intro,
     hero_summary: heroSummary,
-    author_name: "FlamingFoodies AI Test Kitchen",
+    author_name: "FlamingFoodies Test Kitchen",
     heat_level: generated?.heat_level || getHeatLevel(index),
     cuisine_type: generated?.cuisine_type || cuisine,
     prep_time_minutes: Number(generated?.prep_time_minutes ?? 20),
@@ -1122,7 +1122,7 @@ function buildRecipeDraft(
     substitutions: generated?.substitutions ?? generated?.variations ?? [],
     faqs: generated?.faqs ?? [],
     equipment: generated?.equipment ?? ["large skillet", "mixing bowl"],
-    tags: generated?.tags ?? [cuisine, "ai-generated", "spicy"],
+    tags: generated?.tags ?? [cuisine, "spicy"],
     image_url: imageUrl ?? null,
     image_alt:
       generated?.image_alt ||
@@ -1154,15 +1154,15 @@ function buildBlogDraft(
     `A culture-first look at how ${cuisine.replace(/_/g, " ")} dishes build spicy depth without flattening flavor.`;
   const content =
     generated?.content ||
-    `## The draw\n\n${title} is not about brute force. It is about pacing, contrast, and dishes that stay craveable.\n\n## Why it works\n\nThe best spicy food balances heat with acid, texture, and aroma.\n\n## What to cook next\n\nUse this post as a draft starting point for a stronger editorial take.\n`;
+    `## The draw\n\n${title} is not about brute force. It is about pacing, contrast, and dishes that stay craveable.\n\n## Why it works\n\nThe best spicy food balances heat with acid, texture, and aroma.\n\n## What to cook next\n\nUse this post as a starting point for cooking and reading deeper into the subject.\n`;
 
   return {
     title,
     description,
     content,
-    author_name: "FlamingFoodies AI Desk",
+    author_name: "FlamingFoodies",
     category: generated?.category || ["culture", "science", "guides", "gear"][index % 4],
-    tags: generated?.tags ?? [cuisine, "spicy-food", "ai-generated"],
+    tags: generated?.tags ?? [cuisine, "spicy-food"],
     image_url: imageUrl ?? null,
     image_alt: generated?.image_alt || `FlamingFoodies story card for ${title}`,
     heat_level: generated?.heat_level || getHeatLevel(index),
@@ -1192,7 +1192,7 @@ function buildReviewDraft(
     `A tasting-focused review of ${productName}, including heat curve, flavor notes, and who it actually suits.`;
   const content =
     generated?.content ||
-    `## First taste\n\n${productName} opens with personality and finishes with enough heat to matter.\n\n## Where it lands\n\nThis draft is ready for a human editor to sharpen with real-world testing notes.\n`;
+    `## First taste\n\n${productName} opens with personality and finishes with enough heat to matter.\n\n## Where it lands\n\nThis bottle stands out most when you match it to the right foods and heat tolerance.\n`;
 
   return {
     title,
@@ -1214,7 +1214,7 @@ function buildReviewDraft(
     category: generated?.category || "hot-sauce",
     pros: generated?.pros ?? ["Balanced heat", "Useful on multiple foods"],
     cons: generated?.cons ?? ["Needs hands-on tasting before publish"],
-    tags: generated?.tags ?? [cuisine, "review", "ai-generated"],
+    tags: generated?.tags ?? [cuisine, "review"],
     recommended: Boolean(generated?.recommended ?? true),
     featured: false,
     source: "ai_generated",
@@ -1235,8 +1235,8 @@ function buildGeneratedRecipeQaState(
   const automatedHeroReview = Boolean(payload.image_url) && (heroSource === "generated" || automatedCuisineQa);
   const heroSourceNote =
     heroSource === "photo"
-      ? "AI-generated draft uses a sourced plated dish photo."
-      : "AI-generated draft uses a recipe-specific generated hero illustration after no suitable dish photo was found.";
+      ? "Draft uses a sourced plated dish photo."
+      : "Draft uses a recipe-specific illustrated cover after no suitable dish photo was found.";
   const heroQueryNote =
     heroSource === "photo" && heroAsset?.searchQuery
       ? ` Photo search query: "${heroAsset.searchQuery}".`
@@ -1344,8 +1344,8 @@ function buildGeneratedBlogQaState(
   const usesSafeHeroCard = usesAutomationHeroCard(payload.image_url);
   const automatedEditorialQa = isAgentQaPass(agentReview);
   const baseQaNote = usesSafeHeroCard
-    ? "AI-generated story uses a branded hero card and passed automated editorial QA checks where noted."
-    : "AI-generated story is awaiting editorial image and content QA.";
+    ? "Story draft uses a branded cover image and passed automated editorial QA checks where noted."
+    : "Story draft is awaiting editorial image and content QA.";
   const blogQaCandidate = {
     id: 0,
     type: "blog" as const,
@@ -1392,8 +1392,8 @@ function buildGeneratedReviewQaState(
   const usesSafeReviewCard = usesAutomationHeroCard(payload.image_url);
   const automatedFactQa = isAgentQaPass(agentReview);
   const baseQaNote = usesSafeReviewCard
-    ? "AI-generated review uses a branded review card and passed automated editorial QA checks where noted."
-    : "AI-generated draft awaiting editorial product-image and fact QA.";
+    ? "Review draft uses a branded cover image and passed automated editorial QA checks where noted."
+    : "Draft is awaiting editorial product-image and fact QA.";
   const reviewQaCandidate: Review = {
     id: 0,
     type: "review",
