@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { buildPirateMetrics, classifyAcquisitionSource, isSocialSource } from "@/lib/pirate-metrics";
+import {
+  buildPirateFlywheelPriorities,
+  buildPirateMetrics,
+  classifyAcquisitionSource,
+  isSocialSource
+} from "@/lib/pirate-metrics";
 import { ANALYTICS_EVENTS } from "@/lib/telemetry-events";
 
 describe("pirate metrics helpers", () => {
@@ -101,5 +106,35 @@ describe("pirate metrics helpers", () => {
     expect(metrics.totals.supplementalEventCount).toBe(1);
     expect(metrics.totals.eventCount).toBe(2);
     expect(metrics.activation.keyEvents.find((event) => event.name === ANALYTICS_EVENTS.recipeSave)?.count).toBe(1);
+  });
+
+  it("turns sparse live metrics into flywheel priorities", () => {
+    const metrics = buildPirateMetrics(
+      [
+        {
+          eventName: ANALYTICS_EVENTS.pageView,
+          anonymousId: "anon-1",
+          sessionId: "session-1",
+          path: "/hot-sauces/best",
+          occurredAt: "2026-04-08T10:00:00.000Z"
+        },
+        {
+          eventName: ANALYTICS_EVENTS.pageView,
+          anonymousId: "anon-2",
+          sessionId: "session-2",
+          path: "/recipes/naga-chicken-curry",
+          occurredAt: "2026-04-08T11:00:00.000Z"
+        }
+      ],
+      [],
+      30
+    );
+
+    const priorities = buildPirateFlywheelPriorities(metrics);
+
+    expect(priorities.find((item) => item.stage === "Acquisition")?.status).toBe("focus");
+    expect(priorities.find((item) => item.stage === "Revenue")?.headline).toContain(
+      "Move product recommendations closer to real intent"
+    );
   });
 });

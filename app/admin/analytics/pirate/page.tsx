@@ -1,8 +1,10 @@
 import { AdminPage } from "@/components/admin/admin-page";
+import { buildPirateFlywheelPriorities } from "@/lib/pirate-metrics";
 import { getPirateMetrics } from "@/lib/services/telemetry";
 
 export default async function AdminPirateMetricsPage() {
   const metrics = await getPirateMetrics(30);
+  const priorities = buildPirateFlywheelPriorities(metrics);
 
   return (
     <AdminPage
@@ -45,6 +47,38 @@ export default async function AdminPirateMetricsPage() {
             {metrics.revenue.affiliateClicks} affiliate clicks
           </p>
         </article>
+      </div>
+
+      <div className="panel-light p-6">
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="eyebrow">Flywheel priorities</p>
+            <h2 className="mt-2 font-display text-3xl text-charcoal">
+              What to do next from live AARRR data
+            </h2>
+          </div>
+          <p className="max-w-2xl text-sm leading-7 text-charcoal/60">
+            Use the internal editorial style guide and growth flywheel as the playbook, then let
+            these priorities tell us where to press first.
+          </p>
+        </div>
+        <div className="mt-6 grid gap-4 xl:grid-cols-5">
+          {priorities.map((item) => (
+            <article key={item.stage} className="rounded-[1.5rem] border border-charcoal/10 p-5">
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-display text-2xl text-charcoal">{item.stage}</p>
+                <span className="rounded-full bg-charcoal/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-charcoal/60">
+                  {item.status}
+                </span>
+              </div>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.24em] text-ember">
+                {item.metric}
+              </p>
+              <p className="mt-3 text-sm font-semibold leading-6 text-charcoal">{item.headline}</p>
+              <p className="mt-3 text-sm leading-7 text-charcoal/65">{item.playbook}</p>
+            </article>
+          ))}
+        </div>
       </div>
 
       <div className="panel-light p-6">

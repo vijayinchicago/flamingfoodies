@@ -30,6 +30,14 @@ export type PirateOperationalSignals = {
   competitionVotes?: TelemetryEventRow[];
 };
 
+export type PirateFlywheelPriority = {
+  stage: "Acquisition" | "Activation" | "Retention" | "Referral" | "Revenue";
+  status: "focus" | "monitor" | "stable";
+  metric: string;
+  headline: string;
+  playbook: string;
+};
+
 export const PARTNER_EPC: Record<string, number> = {
   amazon: 1.2,
   heatonist: 2.8,
@@ -81,6 +89,11 @@ function formatCurrency(value: number) {
 
 function formatPercent(value: number) {
   return `${Math.round(value * 100)}%`;
+}
+
+function parsePercentLabel(value: string) {
+  const normalized = Number.parseInt(value.replace("%", "").trim(), 10);
+  return Number.isFinite(normalized) ? normalized : 0;
 }
 
 function safeHost(value?: string | null) {
@@ -380,4 +393,112 @@ export function buildPirateMetrics(
       topPartners
     }
   };
+}
+
+export function buildPirateFlywheelPriorities(metrics: ReturnType<typeof buildPirateMetrics>) {
+  const activationRate = parsePercentLabel(metrics.activation.activationRate);
+  const retentionRate = parsePercentLabel(metrics.retention.retentionRate);
+  const priorities: PirateFlywheelPriority[] = [];
+
+  priorities.push(
+    metrics.acquisition.pageViews < 250
+      ? {
+          stage: "Acquisition",
+          status: "focus",
+          metric: `${metrics.acquisition.pageViews} page views / ${metrics.acquisition.sessions} sessions`,
+          headline: "Publish more search-first entry points.",
+          playbook:
+            "Double down on high-intent landing pages, comparison guides, and internal links that feed the hot-sauce and recipe clusters."
+        }
+      : {
+          stage: "Acquisition",
+          status: metrics.acquisition.topSources.length > 1 ? "stable" : "monitor",
+          metric: `${metrics.acquisition.pageViews} page views / ${metrics.acquisition.sessions} sessions`,
+          headline: "Keep compounding the pages already pulling people in.",
+          playbook:
+            "Refresh winning landing pages first, then add adjacent search pages and supporting blog posts to widen the cluster."
+        }
+  );
+
+  priorities.push(
+    activationRate < 8
+      ? {
+          stage: "Activation",
+          status: "focus",
+          metric: metrics.activation.activationRate,
+          headline: "Make the first useful action easier to spot.",
+          playbook:
+            "Tighten save, signup, and next-click modules on top landing pages so new visitors have an obvious first move."
+        }
+      : {
+          stage: "Activation",
+          status: activationRate < 15 ? "monitor" : "stable",
+          metric: metrics.activation.activationRate,
+          headline: "Keep turning visitors into readers who act.",
+          playbook:
+            "Watch which activation events win by surface, then reinforce the best-performing CTA patterns instead of adding more options."
+        }
+  );
+
+  priorities.push(
+    retentionRate < 10
+      ? {
+          stage: "Retention",
+          status: "focus",
+          metric: metrics.retention.retentionRate,
+          headline: "Give people a reason to come back this week.",
+          playbook:
+            "Use related-content modules, newsletter hooks, and recurring hot-sauce/recipe series so a first visit naturally leads to another one."
+        }
+      : {
+          stage: "Retention",
+          status: retentionRate < 18 ? "monitor" : "stable",
+          metric: metrics.retention.retentionRate,
+          headline: "Build repeat habits around the strongest content lanes.",
+          playbook:
+            "Keep linking clusters together and package repeat-worthy themes like taco night, wings, pantry staples, and starter sauce shelves."
+        }
+  );
+
+  priorities.push(
+    metrics.referral.shareEvents === 0 || metrics.referral.socialSessions === 0
+      ? {
+          stage: "Referral",
+          status: "focus",
+          metric: `${metrics.referral.shareEvents} shares / ${metrics.referral.socialSessions} social sessions`,
+          headline: "Package pages so people want to pass them along.",
+          playbook:
+            "Improve social hooks, image moments, and send-to-a-friend framing on recipes, reviews, and guides before adding more channels."
+        }
+      : {
+          stage: "Referral",
+          status: metrics.referral.shareEvents < 10 ? "monitor" : "stable",
+          metric: `${metrics.referral.shareEvents} shares / ${metrics.referral.socialSessions} social sessions`,
+          headline: "Lean into the formats that already earn shares.",
+          playbook:
+            "Study the top shared pages, then reuse their packaging, topic framing, and visual treatments across the next content batch."
+        }
+  );
+
+  priorities.push(
+    metrics.revenue.affiliateClicks === 0
+      ? {
+          stage: "Revenue",
+          status: "focus",
+          metric: `${metrics.revenue.affiliateClicks} affiliate clicks`,
+          headline: "Move product recommendations closer to real intent.",
+          playbook:
+            "Strengthen affiliate modules on the pages people already trust most: hot-sauce guides, comparison pages, and recipe pairings."
+        }
+      : {
+          stage: "Revenue",
+          status: metrics.revenue.affiliateClicks < 20 ? "monitor" : "stable",
+          metric: `${metrics.revenue.affiliateClicks} affiliate clicks`,
+          headline: "Refine the buying paths that are already working.",
+          playbook:
+            "Watch which page types and modules drive clicks, then make those buying lanes easier to repeat across the site."
+        }
+  );
+
+  return priorities;
 }

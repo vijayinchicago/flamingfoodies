@@ -201,7 +201,12 @@ export const SOCIAL_CAPTION_PROMPT = (
 ) => `
 Generate a ${platform} caption for this FlamingFoodies ${content.type}: "${content.title}".
 
-Brand voice: Bold, fun, food-obsessed. Never corporate. Use "🔥" max once if heat is relevant.
+Brand voice:
+- warm, generous, and family-table oriented
+- useful enough to send to a friend
+- food-obsessed without sounding corporate
+- specific, lightly opinionated, and never macho
+- use "🔥" at most once if heat genuinely matters
 
 Return JSON: { "caption": "...", "hashtags": ["..."] }`;
 

@@ -5,21 +5,64 @@ import { absoluteUrl } from "@/lib/utils";
 const DEFAULT_PLATFORMS = ["instagram", "pinterest", "facebook"] as const;
 type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
 
-function buildHashtags(title: string, contentType: string) {
+function getReviewProductLabel(title: string) {
+  return title.replace(/\s+review$/i, "").trim();
+}
+
+export function buildSocialHashtags(title: string, contentType: string) {
+  const typeTags =
+    contentType === "recipe"
+      ? ["#spicyrecipes", "#dinnerideas"]
+      : contentType === "blog_post"
+        ? ["#hotsauceguide", "#spicyfood"]
+        : ["#hotsaucereview", "#hotsauce"];
+  const titleTags = title
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((token) => token.length >= 4)
+    .slice(0, 2)
+    .map((token) => `#${token}`);
+
   return Array.from(
     new Set(
       [
         "#flamingfoodies",
         `#${contentType.replace(/_/g, "")}`,
-        ...title
-          .toLowerCase()
-          .split(/[^a-z0-9]+/)
-          .filter(Boolean)
-          .slice(0, 3)
-          .map((token) => `#${token}`)
+        ...typeTags,
+        ...titleTags
       ].slice(0, 6)
     )
   );
+}
+
+export function buildSocialCaption(input: {
+  title: string;
+  contentType: string;
+  platform: (typeof DEFAULT_PLATFORMS)[number];
+}) {
+  const base =
+    input.contentType === "recipe"
+      ? `${input.title} is the kind of spicy dinner that keeps a mixed table happy and still gives the heat lovers something to chase.`
+      : input.contentType === "blog_post"
+        ? `${input.title} is the kind of useful read you send to the friend who is trying to cook smarter, shop better, or build a better sauce shelf.`
+        : `${getReviewProductLabel(input.title)} is worth a look if you want to know where the heat lands, what the bottle actually tastes like, and what it is good on.`;
+
+  const closerByPlatform: Record<(typeof DEFAULT_PLATFORMS)[number], string> = {
+    instagram:
+      input.contentType === "recipe"
+        ? "Save it for the next dinner night when you want real heat without kitchen chaos."
+        : "Send it to the person who always asks what to buy, cook, or pour first.",
+    pinterest:
+      input.contentType === "recipe"
+        ? "Save it for your next dinner plan."
+        : "Save it for your next pantry run or gift list.",
+    facebook:
+      input.contentType === "recipe"
+        ? "Read it, then pass it along to the person you cook with."
+        : "Read it, then share it with the person who keeps the hot sauce shelf stocked."
+  };
+
+  return `${base} ${closerByPlatform[input.platform]}`.replace(/\s+/g, " ").trim();
 }
 
 function buildContentLink(contentType: string, slug: string) {
@@ -162,8 +205,12 @@ export async function createSocialPostsForContent({
     platform,
     content_type: contentType,
     content_id: contentId,
-    caption: `${title} is up on FlamingFoodies. Bring your appetite and your heat tolerance.`,
-    hashtags: buildHashtags(title, contentType),
+    caption: buildSocialCaption({
+      title,
+      contentType,
+      platform
+    }),
+    hashtags: buildSocialHashtags(title, contentType),
     image_url: imageUrl ?? null,
     link_url: buildContentLink(contentType, slug),
     status: scheduledAt ? "scheduled" : "pending",

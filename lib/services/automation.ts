@@ -316,12 +316,50 @@ const generatedReviewSchema = z
   })
   .passthrough();
 
+const recipeRewriteInstructionSchema = z.object({
+  text: z.string().min(16),
+  tip: z.string().min(4).optional()
+});
+
+const recipeRewriteMethodStepSchema = z.object({
+  title: z.string().min(6),
+  body: z.string().min(24),
+  tip: z.string().optional(),
+  cue: z.string().optional()
+});
+
+const recipeVoiceRewriteSchema = z.object({
+  description: z.string().min(40),
+  intro: z.string().min(24),
+  hero_summary: z.string().min(20),
+  instructions: z.array(recipeRewriteInstructionSchema).min(1),
+  method_steps: z.array(recipeRewriteMethodStepSchema).min(1),
+  tips: z.array(z.string().min(8)).min(1),
+  variations: z.array(z.string().min(8)).min(1),
+  make_ahead_notes: z.string().min(16).nullable().optional(),
+  storage_notes: z.string().min(16).nullable().optional(),
+  reheat_notes: z.string().min(16).nullable().optional(),
+  serving_suggestions: z.array(z.string().min(8)).min(1).optional(),
+  substitutions: z.array(z.string().min(8)).min(1).optional(),
+  faqs: z.array(recipeFaqSchema).min(1).optional(),
+  seo_description: z.string().min(40),
+  image_alt: z.string().min(12)
+});
+
+const blogVoiceRewriteSchema = z.object({
+  description: z.string().min(40),
+  content: z.string().min(500),
+  seo_description: z.string().min(40),
+  image_alt: z.string().min(12)
+});
+
 const AUTOMATED_RECIPE_PUBLISH_SCORE = 84;
 const AUTOMATED_BLOG_PUBLISH_SCORE = 86;
 const AUTOMATED_REVIEW_PUBLISH_SCORE = 86;
 const ANTHROPIC_TEXT_MODEL = env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
 const ANTHROPIC_GENERATION_MAX_TOKENS = 3200;
 const ANTHROPIC_QA_MAX_TOKENS = 1400;
+const ANTHROPIC_REWRITE_MAX_TOKENS = 4800;
 const ANTHROPIC_JSON_CONTINUATION_LIMIT = 2;
 type ValidatedGeneratedPayloadMap = {
   recipe: z.infer<typeof generatedRecipeSchema>;
@@ -741,6 +779,198 @@ function validateGeneratedPayload<T extends GenerationType>(
   }
 
   return parsed.data as ValidatedGeneratedPayloadMap[T];
+}
+
+function buildHumanizeDraftPrompt(
+  type: "recipe" | "blog_post",
+  payload: z.infer<typeof generatedRecipeSchema> | z.infer<typeof generatedBlogSchema>
+) {
+  const baseRules = `You are the FlamingFoodies editorial polish pass.
+
+Rewrite this draft so it sounds:
+- warm, generous, and family-table oriented
+- specific, grounded, and useful enough to send to a friend
+- lightly opinionated without sounding macho, corporate, or templated
+
+Do not:
+- change the factual substance
+- add new ingredients, quantities, timings, claims, anecdotes, testing notes, or sourcing
+- add AI references or meta commentary
+- flatten the piece into generic content-farm language
+`;
+
+  if (type === "recipe") {
+    return `${baseRules}
+Keep these unchanged:
+- title
+- heat_level
+- cuisine_type
+- prep_time_minutes
+- cook_time_minutes
+- active_time_minutes
+- servings
+- difficulty
+- ingredients and ingredient_sections
+- equipment
+- tags
+- hero_image_query
+- the number and order of instructions and method steps
+
+Rewrite only the prose fields and keep each instruction and method step attached to the same stage of the cook.
+
+Return ONLY valid JSON with this exact structure:
+{
+  "description": "...",
+  "intro": "...",
+  "hero_summary": "...",
+  "instructions": [{"text": "...", "tip": "optional"}],
+  "method_steps": [{"title": "...", "body": "...", "tip": "optional", "cue": "optional"}],
+  "tips": ["..."],
+  "variations": ["..."],
+  "make_ahead_notes": "... or null",
+  "storage_notes": "... or null",
+  "reheat_notes": "... or null",
+  "serving_suggestions": ["..."],
+  "substitutions": ["..."],
+  "faqs": [{"question": "...", "answer": "..."}],
+  "seo_description": "...",
+  "image_alt": "..."
+}
+
+Draft payload:
+${JSON.stringify(payload, null, 2)}`;
+  }
+
+  return `${baseRules}
+Keep these unchanged:
+- title
+- category
+- tags
+- heat_level
+- cuisine_type
+- seo_title
+
+Rewrite the description and article body so the piece feels more like a trusted food editor with a strong point of view and less like a template.
+
+Return ONLY valid JSON with this exact structure:
+{
+  "description": "...",
+  "content": "...",
+  "seo_description": "...",
+  "image_alt": "..."
+}
+
+Draft payload:
+${JSON.stringify(payload, null, 2)}`;
+}
+
+function mergeRecipeVoiceRewrite(
+  payload: z.infer<typeof generatedRecipeSchema>,
+  rewrite: z.infer<typeof recipeVoiceRewriteSchema>
+) {
+  const originalMethodSteps = payload.method_steps ?? [];
+  const instructions =
+    rewrite.instructions.length === payload.instructions.length
+      ? payload.instructions.map((instruction, index) => ({
+          ...instruction,
+          text: rewrite.instructions[index]?.text ?? instruction.text,
+          tip: rewrite.instructions[index]?.tip ?? instruction.tip
+        }))
+      : payload.instructions;
+
+  const methodSteps =
+    rewrite.method_steps.length === originalMethodSteps.length
+      ? originalMethodSteps.map((step, index) => ({
+          ...step,
+          title: rewrite.method_steps[index]?.title ?? step.title,
+          body: rewrite.method_steps[index]?.body ?? step.body,
+          tip: rewrite.method_steps[index]?.tip ?? step.tip,
+          cue: rewrite.method_steps[index]?.cue ?? step.cue
+        }))
+      : originalMethodSteps;
+
+  return validateGeneratedPayload("recipe", {
+    ...payload,
+    description: rewrite.description,
+    intro: rewrite.intro,
+    hero_summary: rewrite.hero_summary,
+    instructions,
+    method_steps: methodSteps,
+    tips: rewrite.tips,
+    variations: rewrite.variations,
+    make_ahead_notes:
+      rewrite.make_ahead_notes === null ? undefined : rewrite.make_ahead_notes ?? payload.make_ahead_notes,
+    storage_notes:
+      rewrite.storage_notes === null ? undefined : rewrite.storage_notes ?? payload.storage_notes,
+    reheat_notes:
+      rewrite.reheat_notes === null ? undefined : rewrite.reheat_notes ?? payload.reheat_notes,
+    serving_suggestions: rewrite.serving_suggestions ?? payload.serving_suggestions,
+    substitutions: rewrite.substitutions ?? payload.substitutions,
+    faqs: rewrite.faqs ?? payload.faqs,
+    seo_description: rewrite.seo_description,
+    image_alt: rewrite.image_alt
+  });
+}
+
+function mergeBlogVoiceRewrite(
+  payload: z.infer<typeof generatedBlogSchema>,
+  rewrite: z.infer<typeof blogVoiceRewriteSchema>
+) {
+  return validateGeneratedPayload("blog_post", {
+    ...payload,
+    description: rewrite.description,
+    content: rewrite.content,
+    seo_description: rewrite.seo_description,
+    image_alt: rewrite.image_alt
+  });
+}
+
+async function humanizeGeneratedDraft<T extends "recipe" | "blog_post">(
+  anthropic: Anthropic | null,
+  type: T,
+  payload: ValidatedGeneratedPayloadMap[T]
+): Promise<ValidatedGeneratedPayloadMap[T]> {
+  if (!anthropic) {
+    return payload;
+  }
+
+  try {
+    const response = await requestJsonFromAnthropic(
+      anthropic,
+      buildHumanizeDraftPrompt(type, payload),
+      {
+        maxTokens: ANTHROPIC_REWRITE_MAX_TOKENS
+      }
+    );
+
+    if (!response.payload) {
+      return payload;
+    }
+
+    if (type === "recipe") {
+      const parsed = recipeVoiceRewriteSchema.safeParse(response.payload);
+      if (!parsed.success) {
+        return payload;
+      }
+
+      return mergeRecipeVoiceRewrite(
+        payload as z.infer<typeof generatedRecipeSchema>,
+        parsed.data
+      ) as ValidatedGeneratedPayloadMap[T];
+    }
+
+    const parsed = blogVoiceRewriteSchema.safeParse(response.payload);
+    if (!parsed.success) {
+      return payload;
+    }
+
+    return mergeBlogVoiceRewrite(
+      payload as z.infer<typeof generatedBlogSchema>,
+      parsed.data
+    ) as ValidatedGeneratedPayloadMap[T];
+  } catch {
+    return payload;
+  }
 }
 
 function buildAutomationHeroImageUrl(type: GenerationType, title: string, cuisine: CuisineType) {
@@ -1646,7 +1876,11 @@ async function insertGeneratedContent(
     : null;
 
   if (type === "recipe") {
-    const validatedGenerated = validateGeneratedPayload(type, generated);
+    const validatedGenerated = await humanizeGeneratedDraft(
+      anthropic,
+      type,
+      validateGeneratedPayload(type, generated)
+    );
     const heroAsset = await resolveRecipeHeroAsset({
       generated: validatedGenerated,
       cuisine
@@ -1702,7 +1936,11 @@ async function insertGeneratedContent(
   }
 
   if (type === "blog_post") {
-    const validatedGenerated = validateGeneratedPayload(type, generated);
+    const validatedGenerated = await humanizeGeneratedDraft(
+      anthropic,
+      type,
+      validateGeneratedPayload(type, generated)
+    );
     const imageUrl = buildAutomationHeroImageUrl(type, validatedGenerated.title, cuisine);
     const payload = buildBlogDraft(
       cuisine,
