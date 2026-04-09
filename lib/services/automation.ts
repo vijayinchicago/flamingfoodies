@@ -86,6 +86,43 @@ const recipeIngredientSchema = z.object({
   notes: z.string().optional()
 });
 
+const heatLevelEnumValues = ["mild", "medium", "hot", "inferno", "reaper"] as const;
+const cuisineEnumValues = [
+  "american",
+  "mexican",
+  "thai",
+  "korean",
+  "indian",
+  "ethiopian",
+  "peruvian",
+  "jamaican",
+  "cajun",
+  "szechuan",
+  "vietnamese",
+  "west_african",
+  "middle_eastern",
+  "caribbean",
+  "moroccan",
+  "japanese",
+  "italian",
+  "chinese",
+  "other"
+] as const;
+const heatLevelSet = new Set<string>(heatLevelEnumValues);
+const cuisineSet = new Set<string>(cuisineEnumValues);
+const cuisineAliasMap: Record<string, CuisineType> = {
+  sichuan: "szechuan",
+  sichuanese: "szechuan",
+  chinese_sichuan: "szechuan",
+  chinese_szechuan: "szechuan",
+  middleeast: "middle_eastern",
+  middle_east: "middle_eastern",
+  middleeastern: "middle_eastern",
+  westafrican: "west_african",
+  west_africa: "west_african",
+  westafrica: "west_african"
+};
+
 const recipeInstructionSchema = z.object({
   step: z.coerce.number().int().positive(),
   text: z.string().min(16),
@@ -125,30 +162,8 @@ const generatedRecipeSchema = z
     description: z.string().min(40),
     intro: z.string().min(40),
     hero_summary: z.string().min(30).optional(),
-    heat_level: z.enum(["mild", "medium", "hot", "inferno", "reaper"]).optional(),
-    cuisine_type: z
-      .enum([
-        "american",
-        "mexican",
-        "thai",
-        "korean",
-        "indian",
-        "ethiopian",
-        "peruvian",
-        "jamaican",
-        "cajun",
-        "szechuan",
-        "vietnamese",
-        "west_african",
-        "middle_eastern",
-        "caribbean",
-        "moroccan",
-        "japanese",
-        "italian",
-        "chinese",
-        "other"
-      ])
-      .optional(),
+    heat_level: z.enum(heatLevelEnumValues).optional(),
+    cuisine_type: z.enum(cuisineEnumValues).optional(),
     prep_time_minutes: z.coerce.number().int().positive(),
     cook_time_minutes: z.coerce.number().int().positive(),
     active_time_minutes: z.coerce.number().int().positive().optional(),
@@ -181,30 +196,8 @@ const generatedRecipeLooseSchema = z
     description: z.string().min(40),
     intro: z.string().min(24),
     hero_summary: z.string().min(20).optional(),
-    heat_level: z.enum(["mild", "medium", "hot", "inferno", "reaper"]).optional(),
-    cuisine_type: z
-      .enum([
-        "american",
-        "mexican",
-        "thai",
-        "korean",
-        "indian",
-        "ethiopian",
-        "peruvian",
-        "jamaican",
-        "cajun",
-        "szechuan",
-        "vietnamese",
-        "west_african",
-        "middle_eastern",
-        "caribbean",
-        "moroccan",
-        "japanese",
-        "italian",
-        "chinese",
-        "other"
-      ])
-      .optional(),
+    heat_level: z.enum(heatLevelEnumValues).optional(),
+    cuisine_type: z.enum(cuisineEnumValues).optional(),
     prep_time_minutes: z.coerce.number().int().positive(),
     cook_time_minutes: z.coerce.number().int().positive(),
     active_time_minutes: z.coerce.number().int().positive().optional(),
@@ -238,30 +231,8 @@ const generatedBlogSchema = z
     content: z.string().min(500),
     category: z.string().min(2),
     tags: z.array(z.string().min(2)).min(2),
-    heat_level: z.enum(["mild", "medium", "hot", "inferno", "reaper"]).optional(),
-    cuisine_type: z
-      .enum([
-        "american",
-        "mexican",
-        "thai",
-        "korean",
-        "indian",
-        "ethiopian",
-        "peruvian",
-        "jamaican",
-        "cajun",
-        "szechuan",
-        "vietnamese",
-        "west_african",
-        "middle_eastern",
-        "caribbean",
-        "moroccan",
-        "japanese",
-        "italian",
-        "chinese",
-        "other"
-      ])
-      .optional(),
+    heat_level: z.enum(heatLevelEnumValues).optional(),
+    cuisine_type: z.enum(cuisineEnumValues).optional(),
     seo_title: z.string().min(10),
     seo_description: z.string().min(40),
     image_alt: z.string().min(12)
@@ -279,33 +250,11 @@ const generatedReviewSchema = z
     price_usd: z.coerce.number().positive(),
     affiliate_url: z.string().url(),
     category: z.string().min(2),
-    heat_level: z.enum(["mild", "medium", "hot", "inferno", "reaper"]).optional(),
+    heat_level: z.enum(heatLevelEnumValues).optional(),
     scoville_min: z.coerce.number().nonnegative().optional(),
     scoville_max: z.coerce.number().nonnegative().optional(),
     flavor_notes: z.array(z.string().min(2)).min(2),
-    cuisine_origin: z
-      .enum([
-        "american",
-        "mexican",
-        "thai",
-        "korean",
-        "indian",
-        "ethiopian",
-        "peruvian",
-        "jamaican",
-        "cajun",
-        "szechuan",
-        "vietnamese",
-        "west_african",
-        "middle_eastern",
-        "caribbean",
-        "moroccan",
-        "japanese",
-        "italian",
-        "chinese",
-        "other"
-      ])
-      .optional(),
+    cuisine_origin: z.enum(cuisineEnumValues).optional(),
     pros: z.array(z.string().min(6)).min(2),
     cons: z.array(z.string().min(6)).min(1),
     tags: z.array(z.string().min(2)).min(2),
@@ -485,6 +434,60 @@ function dedupeList(values: string[]) {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
 }
 
+function normalizeEnumToken(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^\w\s-]+/g, "")
+    .replace(/[\s-]+/g, "_")
+    .replace(/_+/g, "_");
+}
+
+function normalizeHeatLevelValue(value: unknown): HeatLevel | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = normalizeEnumToken(value);
+  return heatLevelSet.has(normalized) ? (normalized as HeatLevel) : undefined;
+}
+
+function normalizeCuisineValue(value: unknown): CuisineType | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = normalizeEnumToken(value);
+
+  if (cuisineSet.has(normalized)) {
+    return normalized as CuisineType;
+  }
+
+  return cuisineAliasMap[normalized];
+}
+
+export function normalizeGeneratedCommonPayload(payload: Record<string, any>) {
+  const normalized = { ...payload };
+  const normalizedHeatLevel = normalizeHeatLevelValue(payload.heat_level);
+  const normalizedCuisineType = normalizeCuisineValue(payload.cuisine_type);
+  const normalizedCuisineOrigin = normalizeCuisineValue(payload.cuisine_origin);
+
+  if (normalizedHeatLevel) {
+    normalized.heat_level = normalizedHeatLevel;
+  }
+
+  if (normalizedCuisineType) {
+    normalized.cuisine_type = normalizedCuisineType;
+  }
+
+  if (normalizedCuisineOrigin) {
+    normalized.cuisine_origin = normalizedCuisineOrigin;
+  }
+
+  return normalized;
+}
+
 function buildFallbackRecipeInstructions() {
   return [
     {
@@ -570,7 +573,7 @@ function buildFallbackRecipeFaqs(input: {
 }
 
 export function normalizeGeneratedRecipePayload(payload: Record<string, any>) {
-  const loose = generatedRecipeLooseSchema.parse(payload);
+  const loose = generatedRecipeLooseSchema.parse(normalizeGeneratedCommonPayload(payload));
 
   const instructions =
     loose.instructions?.length
@@ -777,9 +780,10 @@ function validateGeneratedPayload<T extends GenerationType>(
     }
   }
 
+  const normalizedPayload = normalizeGeneratedCommonPayload(payload);
   const schema =
     type === "blog_post" ? generatedBlogSchema : generatedReviewSchema;
-  const parsed = schema.safeParse(payload);
+  const parsed = schema.safeParse(normalizedPayload);
 
   if (!parsed.success) {
     throw new Error(

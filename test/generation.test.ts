@@ -9,6 +9,7 @@ import {
 import { getQuizResult } from "@/lib/quiz";
 import {
   buildRecipePhotoSearchQueries,
+  normalizeGeneratedCommonPayload,
   normalizeGeneratedRecipePayload
 } from "@/lib/services/automation";
 
@@ -158,5 +159,25 @@ describe("generation prompts", () => {
     expect(queries[0]).toBe("calabrian chili vodka rigatoni plated");
     expect(queries).toContain("Calabrian Chili Vodka Rigatoni");
     expect(queries).toContain("italian Calabrian Chili Vodka Rigatoni");
+  });
+
+  it("normalizes human-formatted enum labels before validation", () => {
+    const payload = normalizeGeneratedCommonPayload({
+      cuisine_type: "Ethiopian",
+      cuisine_origin: "Middle Eastern",
+      heat_level: "Hot"
+    });
+
+    expect(payload.cuisine_type).toBe("ethiopian");
+    expect(payload.cuisine_origin).toBe("middle_eastern");
+    expect(payload.heat_level).toBe("hot");
+  });
+
+  it("maps common cuisine aliases like Sichuan to the supported enum", () => {
+    const payload = normalizeGeneratedCommonPayload({
+      cuisine_type: "Sichuan"
+    });
+
+    expect(payload.cuisine_type).toBe("szechuan");
   });
 });
