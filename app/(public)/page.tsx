@@ -71,21 +71,30 @@ export default async function HomePage() {
                 </Link>
               </div>
               <div className="mt-10 grid gap-4 text-sm text-cream/72 sm:grid-cols-3">
-                <div className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Recipes</p>
-                  <p className="mt-2 font-display text-3xl text-cream">12+</p>
-                  <p className="mt-2 leading-6">Flavor-first spicy dinners, sides, and cookout staples.</p>
-                </div>
-                <div className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Hot sauces</p>
-                  <p className="mt-2 font-display text-3xl text-cream">10</p>
-                  <p className="mt-2 leading-6">Reviews that help you choose the right bottle, not just the hottest one.</p>
-                </div>
-                <div className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Shop lanes</p>
-                  <p className="mt-2 font-display text-3xl text-cream">{shopCollections.length}+</p>
-                  <p className="mt-2 leading-6">Giftable bottles, kitchen gear, pantry heat, and subscription picks.</p>
-                </div>
+                <Link
+                  href="/recipes"
+                  className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 transition hover:bg-white/[0.08]"
+                >
+                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Start with dinner</p>
+                  <p className="mt-2 font-display text-3xl text-cream">Recipes</p>
+                  <p className="mt-2 leading-6">Search by cuisine, heat, cook time, or difficulty instead of scrolling one giant archive.</p>
+                </Link>
+                <Link
+                  href="/hot-sauces"
+                  className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 transition hover:bg-white/[0.08]"
+                >
+                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Find a bottle</p>
+                  <p className="mt-2 font-display text-3xl text-cream">Hot sauces</p>
+                  <p className="mt-2 leading-6">Browse everyday pours, gift picks, and best-for pages that match what you actually eat.</p>
+                </Link>
+                <Link
+                  href="/shop"
+                  className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 transition hover:bg-white/[0.08]"
+                >
+                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Shop the shelf</p>
+                  <p className="mt-2 font-display text-3xl text-cream">Sauces and gear</p>
+                  <p className="mt-2 leading-6">Jump into starter shelves, gift ideas, pantry heat, and tools that earn their keep.</p>
+                </Link>
               </div>
             </div>
           </div>
