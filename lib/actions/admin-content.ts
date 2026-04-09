@@ -86,7 +86,7 @@ const QA_NOTES_MAX_LENGTH = 4000;
 
 const blogSchema = z.object({
   title: z.string().min(6).max(120),
-  description: z.string().min(20).max(220),
+  description: z.string().min(20).max(420),
   category: z.string().min(3).max(40),
   content: z.string().min(40),
   tags: z.string().optional(),
@@ -133,7 +133,7 @@ const recipeSchema = z.object({
 
 const reviewSchema = z.object({
   title: z.string().min(6).max(120),
-  description: z.string().min(20).max(220),
+  description: z.string().min(20).max(420),
   productName: z.string().min(2).max(120),
   brand: z.string().min(2).max(80),
   rating: z.coerce.number().min(1).max(5),
@@ -164,7 +164,7 @@ const merchSchema = z.object({
   name: z.string().min(3).max(120),
   category: z.string().min(2).max(60),
   badge: z.string().min(2).max(40),
-  description: z.string().min(20).max(220),
+  description: z.string().min(20).max(420),
   priceLabel: z.string().min(1).max(40),
   availability: z.enum(merchAvailability),
   themeKey: z.enum(merchThemeOptions),
@@ -217,6 +217,24 @@ function getOptionalText(formData: FormData, key: string) {
 function getOptionalNumberText(formData: FormData, key: string) {
   const value = String(formData.get(key) || "").trim();
   return value || undefined;
+}
+
+function formatValidationIssue(
+  issue: z.ZodIssue | undefined,
+  fallback: string
+) {
+  if (!issue) {
+    return fallback;
+  }
+
+  const pathLabel = issue.path.length
+    ? String(issue.path[0])
+        .replace(/Json$/, "")
+        .replace(/([A-Z])/g, " $1")
+        .replace(/^./, (character) => character.toUpperCase())
+    : null;
+
+  return pathLabel ? `${pathLabel}: ${issue.message}` : issue.message;
 }
 
 function getJsonPayload(formData: FormData, key: string) {
@@ -952,7 +970,7 @@ export async function createBlogPostAction(formData: FormData) {
   if (!parsed.success) {
     redirect(
       `/admin/content/blog?error=${encodeURIComponent(
-        parsed.error.issues[0]?.message || "Invalid blog post"
+        formatValidationIssue(parsed.error.issues[0], "Invalid blog post")
       )}`
     );
   }
@@ -1039,7 +1057,7 @@ export async function updateBlogPostAction(formData: FormData) {
   if (!parsed.success) {
     redirect(
       `${redirectTo}?error=${encodeURIComponent(
-        parsed.error.issues[0]?.message || "Invalid blog post"
+        formatValidationIssue(parsed.error.issues[0], "Invalid blog post")
       )}`
     );
   }
@@ -1215,7 +1233,7 @@ export async function createRecipeAction(formData: FormData) {
   if (!parsed.success) {
     redirect(
       `/admin/content/recipes?error=${encodeURIComponent(
-        parsed.error.issues[0]?.message || "Invalid recipe"
+        formatValidationIssue(parsed.error.issues[0], "Invalid recipe")
       )}`
     );
   }
@@ -1373,7 +1391,7 @@ export async function updateRecipeAction(formData: FormData) {
   if (!parsed.success) {
     redirect(
       `${redirectTo}?error=${encodeURIComponent(
-        parsed.error.issues[0]?.message || "Invalid recipe"
+        formatValidationIssue(parsed.error.issues[0], "Invalid recipe")
       )}`
     );
   }
@@ -1649,7 +1667,7 @@ export async function createReviewAction(formData: FormData) {
   if (!parsed.success) {
     redirect(
       `/admin/content/reviews?error=${encodeURIComponent(
-        parsed.error.issues[0]?.message || "Invalid review"
+        formatValidationIssue(parsed.error.issues[0], "Invalid review")
       )}`
     );
   }
@@ -1778,7 +1796,7 @@ export async function updateReviewAction(formData: FormData) {
   if (!parsed.success) {
     redirect(
       `${redirectTo}?error=${encodeURIComponent(
-        parsed.error.issues[0]?.message || "Invalid review"
+        formatValidationIssue(parsed.error.issues[0], "Invalid review")
       )}`
     );
   }
@@ -2017,7 +2035,7 @@ export async function createMerchProductAction(formData: FormData) {
   if (!parsed.success) {
     redirect(
       `/admin/content/merch?error=${encodeURIComponent(
-        parsed.error.issues[0]?.message || "Invalid merch product"
+        formatValidationIssue(parsed.error.issues[0], "Invalid merch product")
       )}`
     );
   }
@@ -2106,7 +2124,7 @@ export async function updateMerchProductAction(formData: FormData) {
   if (!parsed.success) {
     redirect(
       `${redirectTo}?error=${encodeURIComponent(
-        parsed.error.issues[0]?.message || "Invalid merch product"
+        formatValidationIssue(parsed.error.issues[0], "Invalid merch product")
       )}`
     );
   }
