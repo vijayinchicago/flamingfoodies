@@ -257,6 +257,34 @@ describe("content generation cron route", () => {
       source: "cron"
     });
   });
+
+  it("passes the hot sauce recipe profile through cron requests", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
+    const runGenerationPipeline = vi.fn().mockResolvedValue({
+      mode: "live",
+      createdJobs: [{ id: 15, type: "recipe", slug: "weekly-hot-sauce-recipe" }]
+    });
+    const { route } = await importGenerateRoute({
+      runGenerationPipeline
+    });
+
+    const response = await route.GET(
+      new Request(
+        "https://flamingfoodies.com/api/admin/generate?type=recipe&qty=1&profile=hot_sauce_recipe",
+        {
+          headers: {
+            authorization: "Bearer topsecret"
+          }
+        }
+      )
+    );
+
+    expect(response.status).toBe(200);
+    expect(runGenerationPipeline).toHaveBeenCalledWith("recipe", 1, {
+      source: "cron",
+      profile: "hot_sauce_recipe"
+    });
+  });
 });
 
 describe("social scheduler cron route", () => {

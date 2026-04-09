@@ -15,6 +15,25 @@ describe("generation prompts", () => {
     expect(prompt).toContain("\"hero_image_query\"");
   });
 
+  it("creates a hot sauce recipe prompt with featured sauce context", () => {
+    const prompt = RECIPE_PROMPT({
+      cuisine_type: "mexican",
+      heat_level: "medium",
+      hot_sauce_focus: {
+        product_name: "Habanero Hot Sauce",
+        brand: "Yellowbird",
+        description: "A bright carrot-forward sauce with citrus and useful heat.",
+        heat_level: "hot",
+        flavor_notes: ["carrot", "citrus", "peppery"],
+        cuisine_origin: "mexican"
+      }
+    });
+
+    expect(prompt).toContain("This is a featured hot sauce recipe.");
+    expect(prompt).toContain("Yellowbird Habanero Hot Sauce");
+    expect(prompt).toContain("must appear in the ingredients and in at least one method step");
+  });
+
   it("creates a blog prompt with category details", () => {
     const prompt = BLOG_POST_PROMPT({ category: "culture" });
     expect(prompt).toContain("Topic category: culture");

@@ -10,9 +10,36 @@ import { AdminPage } from "@/components/admin/admin-page";
 import { getGenerationJobs } from "@/lib/services/admin";
 
 const triggers = [
-  { type: "recipe", qty: 3, copy: "Generate recipe drafts that land in editorial review." },
-  { type: "blog_post", qty: 2, copy: "Spin up blog ideas and full draft bodies for review." },
-  { type: "review", qty: 1, copy: "Create a product review draft with ratings and notes." }
+  {
+    id: "recipe",
+    label: "Recipe draft",
+    type: "recipe",
+    qty: 3,
+    copy: "Generate recipe drafts that land in editorial review."
+  },
+  {
+    id: "hot_sauce_recipe",
+    label: "Hot sauce recipe",
+    type: "recipe",
+    profile: "hot_sauce_recipe",
+    qty: 1,
+    copy:
+      "Generate one weekly recipe built around a published hot sauce. It will auto-schedule publish when recipe QA clears."
+  },
+  {
+    id: "blog_post",
+    label: "Blog post",
+    type: "blog_post",
+    qty: 2,
+    copy: "Spin up blog ideas and full draft bodies for review."
+  },
+  {
+    id: "review",
+    label: "Review draft",
+    type: "review",
+    qty: 1,
+    copy: "Create a product review draft with ratings and notes."
+  }
 ] as const;
 
 export default async function AdminTriggerPage({

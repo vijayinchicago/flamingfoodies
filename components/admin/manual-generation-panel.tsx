@@ -5,9 +5,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GenerationJob } from "@/lib/types";
 
 type GenerationType = "recipe" | "blog_post" | "review";
+type GenerationProfile = "default" | "hot_sauce_recipe";
 
 type Trigger = {
+  id: string;
+  label: string;
   type: GenerationType;
+  profile?: GenerationProfile;
   qty: number;
   copy: string;
 };
@@ -15,9 +19,11 @@ type Trigger = {
 type GeneratedJobSummary = {
   id: number;
   type: GenerationType;
+  profile?: GenerationProfile;
   slug?: string;
   title?: string;
   scheduledCuisine?: string | null;
+  featuredSauce?: string | null;
   publishAt?: string;
   error?: string;
 };
@@ -46,6 +52,11 @@ function formatJobType(type: GenerationType) {
   }
 
   return type.replace(/_/g, " ");
+}
+
+function formatTriggerRunLabel(trigger: Trigger, qty: number) {
+  const base = trigger.label.toLowerCase();
+  return `${qty} ${base}${qty === 1 ? "" : "s"}`;
 }
 
 function formatTimestamp(value?: string) {
@@ -85,12 +96,10 @@ export function ManualGenerationPanel({
   initialJobs: GenerationJob[];
 }) {
   const [jobs, setJobs] = useState<GenerationJob[]>(initialJobs);
-  const [quantities, setQuantities] = useState<Record<GenerationType, number>>(() => ({
-    recipe: triggers.find((trigger) => trigger.type === "recipe")?.qty ?? 1,
-    blog_post: triggers.find((trigger) => trigger.type === "blog_post")?.qty ?? 1,
-    review: triggers.find((trigger) => trigger.type === "review")?.qty ?? 1
-  }));
-  const [submittingType, setSubmittingType] = useState<GenerationType | null>(null);
+  const [quantities, setQuantities] = useState<Record<string, number>>(() =>
+    Object.fromEntries(triggers.map((trigger) => [trigger.id, trigger.qty]))
+  );
+  const [submittingTriggerId, setSubmittingTriggerId] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastRun, setLastRun] = useState<GeneratedJobSummary[]>([]);
@@ -121,7 +130,7 @@ export function ManualGenerationPanel({
   }, []);
 
   useEffect(() => {
-    const shouldPoll = isPolling || submittingType !== null || activeJobCount > 0;
+    const shouldPoll = isPolling || submittingTriggerId !== null || activeJobCount > 0;
 
     if (!shouldPoll) {
       return;
@@ -137,7 +146,10 @@ export function ManualGenerationPanel({
           return;
         }
 
-        if (submittingType === null && !nextJobs.some((job) => ACTIVE_JOB_STATUSES.has(job.status))) {
+        if (
+          submittingTriggerId === null &&
+          !nextJobs.some((job) => ACTIVE_JOB_STATUSES.has(job.status))
+        ) {
           setIsPolling(false);
         }
       } catch (error) {
@@ -158,17 +170,17 @@ export function ManualGenerationPanel({
       disposed = true;
       window.clearInterval(intervalId);
     };
-  }, [activeJobCount, fetchJobs, isPolling, submittingType]);
+  }, [activeJobCount, fetchJobs, isPolling, submittingTriggerId]);
 
-  async function handleGenerate(type: GenerationType) {
-    const qty = quantities[type] ?? 1;
+  async function handleGenerate(trigger: Trigger) {
+    const qty = quantities[trigger.id] ?? trigger.qty;
 
-    setSubmittingType(type);
+    setSubmittingTriggerId(trigger.id);
     setIsPolling(true);
     setErrorMessage(null);
     setLastRun([]);
     setStatusMessage(
-      `Starting ${qty} ${formatJobType(type)} job${qty === 1 ? "" : "s"}. Watching the live queue below.`
+      `Starting ${formatTriggerRunLabel(trigger, qty)}. Watching the live queue below.`
     );
     jobsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -178,7 +190,11 @@ export function ManualGenerationPanel({
         headers: {
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ type, qty })
+        body: JSON.stringify({
+          type: trigger.type,
+          qty,
+          profile: trigger.profile
+        })
       });
 
       const payload = (await response.json()) as ManualGenerationResponse;
@@ -189,7 +205,7 @@ export function ManualGenerationPanel({
 
       setLastRun(payload.createdJobs || []);
       setStatusMessage(
-        `Created ${payload.createdJobs.length} ${formatJobType(type)} job${
+        `Created ${payload.createdJobs.length} ${trigger.label.toLowerCase()} job${
           payload.createdJobs.length === 1 ? "" : "s"
         }.`
       );
@@ -197,7 +213,7 @@ export function ManualGenerationPanel({
       setErrorMessage(error instanceof Error ? error.message : "Unable to start generation.");
       setStatusMessage(null);
     } finally {
-      setSubmittingType(null);
+      setSubmittingTriggerId(null);
 
       try {
         const nextJobs = await fetchJobs();
@@ -212,20 +228,20 @@ export function ManualGenerationPanel({
     <div className="grid gap-6">
       <div className="grid gap-4 md:grid-cols-2">
         {triggers.map((trigger) => {
-          const isSubmitting = submittingType === trigger.type;
-          const qty = quantities[trigger.type];
+          const isSubmitting = submittingTriggerId === trigger.id;
+          const qty = quantities[trigger.id] ?? trigger.qty;
 
           return (
             <form
-              key={trigger.type}
+              key={trigger.id}
               className="panel-light px-6 py-8 text-left"
               onSubmit={(event) => {
                 event.preventDefault();
-                void handleGenerate(trigger.type);
+                void handleGenerate(trigger);
               }}
             >
               <p className="eyebrow">Trigger</p>
-              <h2 className="mt-3 font-display text-4xl text-charcoal">{trigger.type}</h2>
+              <h2 className="mt-3 font-display text-4xl text-charcoal">{trigger.label}</h2>
               <p className="mt-3 text-sm text-charcoal/65">{trigger.copy}</p>
               <div className="mt-6 flex items-center gap-3">
                 <input
@@ -237,7 +253,7 @@ export function ManualGenerationPanel({
                   onChange={(event) =>
                     setQuantities((current) => ({
                       ...current,
-                      [trigger.type]: Math.min(
+                      [trigger.id]: Math.min(
                         Math.max(Number(event.target.value || trigger.qty), 1),
                         20
                       )
@@ -361,8 +377,10 @@ export function ManualGenerationPanel({
                     <p className="mt-2 text-sm text-charcoal/65">
                       {item.error
                         ? `Failed: ${item.error}`
-                        : item.scheduledCuisine
-                          ? `Cuisine: ${String(item.scheduledCuisine).replace(/_/g, " ")}`
+                        : item.featuredSauce
+                          ? `Featured sauce: ${item.featuredSauce}`
+                          : item.scheduledCuisine
+                            ? `Cuisine: ${String(item.scheduledCuisine).replace(/_/g, " ")}`
                           : "Created successfully."}
                     </p>
                     {item.publishAt ? (

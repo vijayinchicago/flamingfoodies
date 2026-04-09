@@ -1,5 +1,14 @@
 import type { CuisineType, HeatLevel } from "@/lib/types";
 
+type HotSaucePromptFocus = {
+  product_name: string;
+  brand: string;
+  description: string;
+  heat_level?: HeatLevel;
+  flavor_notes?: string[];
+  cuisine_origin?: CuisineType;
+};
+
 const HEAT_DESCRIPTIONS: Record<HeatLevel, string> = {
   mild: "a gentle warmth, suitable for all audiences",
   medium: "noticeable heat that excites without overwhelming",
@@ -11,6 +20,7 @@ const HEAT_DESCRIPTIONS: Record<HeatLevel, string> = {
 export const RECIPE_PROMPT = (params: {
   cuisine_type: CuisineType;
   heat_level: HeatLevel;
+  hot_sauce_focus?: HotSaucePromptFocus;
 }) => `
 You are a professional food writer for FlamingFoodies.com, a site celebrating spicy and hot food from around the world.
 
@@ -24,7 +34,20 @@ Generate a complete, authentic recipe. Requirements:
 - Group ingredients into logical sections when the dish has components like marinade, sauce, garnish, slaw, glaze, salsa, or assembly.
 - Write at least 4 method steps with action-led titles, concise bodies, at least 1 timed step, and at least 2 sensory cues across the method.
 - Include make-ahead, storage, reheating, serving suggestions, substitutions, and FAQs.
+- The hero_image_query must describe a plated finished dish photo, not a bottle shot or product shot.
+- The image_alt must describe the finished dish naturally.
 - Do not include any keys beyond the JSON schema below.
+${params.hot_sauce_focus
+  ? `- This is a featured hot sauce recipe. Build the dish around this actual sauce:
+  - Sauce: ${params.hot_sauce_focus.brand} ${params.hot_sauce_focus.product_name}
+  - Sauce description: ${params.hot_sauce_focus.description}
+  - Sauce heat: ${params.hot_sauce_focus.heat_level || "not specified"}
+  - Sauce flavor notes: ${params.hot_sauce_focus.flavor_notes?.join(", ") || "not specified"}
+  - Sauce cuisine or origin: ${params.hot_sauce_focus.cuisine_origin || "not specified"}
+- The named sauce must appear in the ingredients and in at least one method step.
+- The dish should make culinary sense for the sauce's flavor profile and heat level.
+- It is fine to reference the sauce in the title only if it still reads like a natural recipe title.`
+  : ""}
 
 Return ONLY valid JSON matching this structure:
 {

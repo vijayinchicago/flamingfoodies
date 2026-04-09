@@ -9,7 +9,16 @@ export const dynamic = "force-dynamic";
 
 const requestSchema = z.object({
   type: z.enum(["recipe", "blog_post", "review"]),
-  qty: z.coerce.number().int().min(1).max(20)
+  qty: z.coerce.number().int().min(1).max(20),
+  profile: z.enum(["default", "hot_sauce_recipe"]).optional()
+}).superRefine((value, context) => {
+  if (value.profile && value.profile !== "default" && value.type !== "recipe") {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Only recipe generation supports profiles.",
+      path: ["profile"]
+    });
+  }
 });
 
 function revalidateGeneratedType(type: "recipe" | "blog_post" | "review") {
@@ -52,7 +61,8 @@ export async function POST(request: Request) {
 
   try {
     const result = await runGenerationPipeline(parsed.data.type, parsed.data.qty, {
-      source: "manual"
+      source: "manual",
+      profile: parsed.data.profile
     });
 
     if ("skippedReason" in result && result.skippedReason) {
@@ -73,6 +83,7 @@ export async function POST(request: Request) {
       targetId: String(parsed.data.qty),
       metadata: {
         qty: parsed.data.qty,
+        profile: parsed.data.profile ?? "default",
         mode: result.mode,
         createdJobs: result.createdJobs.length,
         trigger: "manual_api"

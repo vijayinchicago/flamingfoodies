@@ -13,10 +13,13 @@ async function handleRequest(request: Request) {
   const { searchParams } = new URL(request.url);
   const type = searchParams.get("type") || "recipe";
   const qtyParam = searchParams.get("qty");
+  const profileParam = searchParams.get("profile");
   const qty = qtyParam ? Number(qtyParam) : undefined;
+  const profile = profileParam === "hot_sauce_recipe" ? "hot_sauce_recipe" : undefined;
 
   const result = await runGenerationPipeline(type, qty, {
-    source: "cron"
+    source: "cron",
+    profile
   });
   return jsonResponse({ ok: true, ...result });
 }
