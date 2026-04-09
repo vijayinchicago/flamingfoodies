@@ -24,11 +24,15 @@ const automationQaNoteRewrites: Array<[string, string]> = [
   [
     "AI-generated draft awaiting editorial product-image and fact QA.",
     "Draft is awaiting editorial product-image and fact QA."
+  ],
+  [
+    "AI editorial QA verdict:",
+    "Editorial QA verdict:"
   ]
 ];
 
 export function formatContentSourceLabel(source?: ContentSource | string) {
-  if (source === "ai_generated") return "Automation";
+  if (source === "ai_generated") return "FlamingFoodies";
   if (source === "community") return "Community";
   return "Editorial";
 }

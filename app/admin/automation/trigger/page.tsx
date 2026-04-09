@@ -30,8 +30,8 @@ const triggers = [
     id: "blog_post",
     label: "Blog post",
     type: "blog_post",
-    qty: 2,
-    copy: "Spin up blog ideas and full draft bodies for review."
+    qty: 1,
+    copy: "Generate one blog draft that can auto-schedule publish when editorial QA clears."
   },
   {
     id: "review",
@@ -103,7 +103,7 @@ export default async function AdminTriggerPage({
           <p className="eyebrow">Publish</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">Scheduled content</h2>
           <p className="mt-3 text-sm text-charcoal/65">
-            Promote AI drafts whose delayed publish window has elapsed.
+            Promote scheduled drafts whose delayed publish window has elapsed.
           </p>
           <AdminSubmitButton
             idleLabel="Publish due items"

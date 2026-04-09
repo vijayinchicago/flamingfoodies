@@ -713,7 +713,7 @@ function validateGeneratedPayload<T extends GenerationType>(
   payload: Record<string, any> | null
 ): ValidatedGeneratedPayloadMap[T] {
   if (!payload) {
-    throw new Error(`AI generation returned an empty ${type} payload.`);
+    throw new Error(`Draft generation returned an empty ${type} payload.`);
   }
 
   if (type === "recipe") {
@@ -722,7 +722,7 @@ function validateGeneratedPayload<T extends GenerationType>(
     } catch (error) {
       if (error instanceof z.ZodError) {
         throw new Error(
-          `AI generation returned an invalid ${type} payload: ${error.issues[0]?.message || "schema mismatch"}`
+          `Draft generation returned an invalid ${type} payload: ${error.issues[0]?.message || "schema mismatch"}`
         );
       }
 
@@ -736,7 +736,7 @@ function validateGeneratedPayload<T extends GenerationType>(
 
   if (!parsed.success) {
     throw new Error(
-      `AI generation returned an invalid ${type} payload: ${parsed.error.issues[0]?.message || "schema mismatch"}`
+      `Draft generation returned an invalid ${type} payload: ${parsed.error.issues[0]?.message || "schema mismatch"}`
     );
   }
 
@@ -746,7 +746,7 @@ function validateGeneratedPayload<T extends GenerationType>(
 function buildAutomationHeroImageUrl(type: GenerationType, title: string, cuisine: CuisineType) {
   const params = new URLSearchParams({
     title,
-    eyebrow: type === "review" ? "AI Review" : "AI Story",
+    eyebrow: type === "review" ? "Review" : "Story",
     subtitle:
       type === "review"
         ? `${cuisine.replace(/_/g, " ")} tasting notes`
@@ -1074,7 +1074,7 @@ function buildAgentQaNotes(baseNote: string, agentReview: AgentQaReview | null) 
 
   const sections = [
     baseNote,
-    `AI editorial QA verdict: ${agentReview.verdict ?? "revise"}.`,
+    `Editorial QA verdict: ${agentReview.verdict ?? "revise"}.`,
     agentReview.cuisine_assessment
       ? `Cuisine assessment: ${agentReview.cuisine_assessment}`
       : null,
@@ -1948,7 +1948,9 @@ export async function runGenerationPipeline(
       lastTokensUsed = generated.tokensUsed;
 
       if (!generated.payload && generated.stopReason === "max_tokens") {
-        throw new Error("AI generation hit the Anthropic max_tokens limit before completing JSON.");
+        throw new Error(
+          "Draft generation hit the Anthropic max_tokens limit before completing JSON."
+        );
       }
 
       const inserted = await insertGeneratedContent(

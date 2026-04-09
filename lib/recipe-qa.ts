@@ -267,7 +267,7 @@ export function buildRecipeQaReport(recipe: RecipeQaCandidate): RecipeQaReport {
       createIssue(
         "warning",
         "generated-hero-card",
-        "This recipe is using the generated recipe hero illustration. Upload or confirm a stronger dish image when available."
+        "This recipe is using the illustrated cover fallback. Upload or confirm a stronger dish image when available."
       )
     );
   }

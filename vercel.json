@@ -5,7 +5,7 @@
       "path": "/api/admin/generate?type=recipe&qty=1&profile=hot_sauce_recipe",
       "schedule": "0 9 * * 1"
     },
-    { "path": "/api/admin/generate?type=blog_post&qty=2", "schedule": "0 7 * * *" },
+    { "path": "/api/admin/generate?type=blog_post&qty=1", "schedule": "0 7 * * *" },
     { "path": "/api/admin/generate?type=review&qty=1", "schedule": "0 8 * * 1,4" },
     { "path": "/api/admin/publish-scheduled", "schedule": "0 18 * * *" },
     { "path": "/api/admin/social-scheduler", "schedule": "0 19 * * *" },
