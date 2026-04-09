@@ -1,6 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 
+import {
+  buildBlogHeroImageAlt,
+  buildBlogHeroImageUrl,
+  isGeneratedBlogHeroImageUrl
+} from "@/lib/blog-hero";
 import { buildBlogQaReport } from "@/lib/blog-qa";
 import { env, flags } from "@/lib/env";
 import {
@@ -1052,16 +1057,21 @@ async function humanizeGeneratedDraft<T extends "recipe" | "blog_post" | "review
 }
 
 function buildAutomationHeroImageUrl(type: GenerationType, title: string, cuisine: CuisineType) {
-  const params = new URLSearchParams({
-    title,
-    eyebrow: type === "review" ? "Review" : "Story",
-    subtitle:
-      type === "review"
-        ? `${cuisine.replace(/_/g, " ")} tasting notes`
-        : `${cuisine.replace(/_/g, " ")} editorial`
-  });
+  if (type === "review") {
+    const params = new URLSearchParams({
+      title,
+      eyebrow: "Review",
+      subtitle: `${cuisine.replace(/_/g, " ")} tasting notes`
+    });
 
-  return `${env.NEXT_PUBLIC_SITE_URL}/api/og?${params.toString()}`;
+    return `${env.NEXT_PUBLIC_SITE_URL}/api/og?${params.toString()}`;
+  }
+
+  return buildBlogHeroImageUrl({
+    title,
+    category: "story",
+    cuisineType: cuisine
+  });
 }
 
 function stripRecipeTitleQualifiers(value: string) {
@@ -1104,7 +1114,36 @@ export function buildRecipePhotoSearchQueries(input: {
   ).slice(0, 6);
 }
 
+export function buildBlogPhotoSearchQueries(input: {
+  title: string;
+  category?: string | null;
+  cuisineType?: CuisineType;
+  fallbackCuisineType?: CuisineType;
+}) {
+  const cleanTitle = stripRecipeTitleQualifiers(input.title);
+  const cuisineLabel =
+    formatCuisineQuery(input.cuisineType) || formatCuisineQuery(input.fallbackCuisineType);
+  const categoryLabel = input.category?.replace(/-/g, " ").trim();
+
+  return dedupeList(
+    [
+      cleanTitle,
+      `${cleanTitle} food`,
+      cuisineLabel ? `${cuisineLabel} ${cleanTitle}` : undefined,
+      cuisineLabel ? `${cuisineLabel} food` : undefined,
+      categoryLabel && cuisineLabel ? `${categoryLabel} ${cuisineLabel} food` : undefined,
+      categoryLabel ? `${categoryLabel} spicy food` : undefined
+    ].filter(Boolean) as string[]
+  ).slice(0, 6);
+}
+
 type ResolvedRecipeHeroAsset = {
+  imageUrl: string;
+  heroSource: "photo" | "generated";
+  searchQuery: string | null;
+};
+
+type ResolvedEditorialHeroAsset = {
   imageUrl: string;
   heroSource: "photo" | "generated";
   searchQuery: string | null;
@@ -1113,7 +1152,11 @@ type ResolvedRecipeHeroAsset = {
 function usesAutomationHeroCard(imageUrl?: string | null) {
   if (!imageUrl) return false;
 
-  return imageUrl.includes("/api/og?") || isGeneratedRecipeHeroImageUrl(imageUrl);
+  return (
+    imageUrl.includes("/api/og?") ||
+    isGeneratedRecipeHeroImageUrl(imageUrl) ||
+    isGeneratedBlogHeroImageUrl(imageUrl)
+  );
 }
 
 function isAgentQaPass(agentReview: AgentQaReview | null) {
@@ -1480,6 +1523,41 @@ async function resolveRecipeHeroAsset(input: {
   };
 }
 
+async function resolveBlogHeroAsset(input: {
+  generated: z.infer<typeof generatedBlogSchema>;
+  cuisine: CuisineType;
+}): Promise<ResolvedEditorialHeroAsset> {
+  const queries = buildBlogPhotoSearchQueries({
+    title: input.generated.title,
+    category: input.generated.category,
+    cuisineType: input.generated.cuisine_type,
+    fallbackCuisineType: input.cuisine
+  });
+
+  for (const query of queries) {
+    const imageUrl = await fetchImageForQuery(query);
+
+    if (imageUrl) {
+      return {
+        imageUrl,
+        heroSource: "photo",
+        searchQuery: query
+      };
+    }
+  }
+
+  return {
+    imageUrl: buildBlogHeroImageUrl({
+      title: input.generated.title,
+      category: input.generated.category,
+      cuisineType: input.generated.cuisine_type || input.cuisine,
+      heatLevel: input.generated.heat_level
+    }),
+    heroSource: "generated",
+    searchQuery: null
+  };
+}
+
 async function makeUniqueSlug(
   supabase: AdminClient,
   table: "blog_posts" | "recipes" | "reviews",
@@ -1610,7 +1688,13 @@ function buildBlogDraft(
     category: generated?.category || ["culture", "science", "guides", "gear"][index % 4],
     tags: generated?.tags ?? [cuisine, "spicy-food"],
     image_url: imageUrl ?? null,
-    image_alt: generated?.image_alt || `FlamingFoodies story card for ${title}`,
+    image_alt:
+      generated?.image_alt ||
+      buildBlogHeroImageAlt({
+        title,
+        category: generated?.category || ["culture", "science", "guides", "gear"][index % 4],
+        cuisineType: generated?.cuisine_type || cuisine
+      }),
     heat_level: generated?.heat_level || getHeatLevel(index),
     cuisine_type: generated?.cuisine_type || cuisine,
     scoville_rating: 7 + (index % 3),
@@ -1785,13 +1869,26 @@ function buildGeneratedRecipeQaState(
 
 function buildGeneratedBlogQaState(
   payload: ReturnType<typeof buildBlogDraft>,
-  agentReview: AgentQaReview | null
+  agentReview: AgentQaReview | null,
+  heroAsset?: Pick<ResolvedEditorialHeroAsset, "heroSource" | "searchQuery">
 ) {
-  const usesSafeHeroCard = usesAutomationHeroCard(payload.image_url);
+  const heroSource =
+    heroAsset?.heroSource ??
+    (usesAutomationHeroCard(payload.image_url) ? "generated" : payload.image_url ? "photo" : "generated");
   const automatedEditorialQa = isAgentQaPass(agentReview);
-  const baseQaNote = usesSafeHeroCard
-    ? "Story draft uses a branded cover image and passed automated editorial QA checks where noted."
-    : "Story draft is awaiting editorial image and content QA.";
+  const automatedImageQa = Boolean(payload.image_url) && (heroSource === "generated" || automatedEditorialQa);
+  const heroSourceNote =
+    heroSource === "photo"
+      ? "Story draft uses a sourced editorial cover image."
+      : "Story draft uses a branded cover image.";
+  const heroQueryNote =
+    heroSource === "photo" && heroAsset?.searchQuery
+      ? ` Photo search query: "${heroAsset.searchQuery}".`
+      : "";
+  const baseQaNote =
+    automatedImageQa || automatedEditorialQa
+      ? `${heroSourceNote}${heroQueryNote} Automated editorial QA passed where noted.`
+      : `${heroSourceNote}${heroQueryNote} Story draft is awaiting editorial image and content QA.`;
   const blogQaCandidate = {
     id: 0,
     type: "blog" as const,
@@ -1824,7 +1921,7 @@ function buildGeneratedBlogQaState(
     qaNotes: buildAgentQaNotes(baseQaNote, agentReview),
     qaReport,
     automated_publish_eligible:
-      usesSafeHeroCard &&
+      automatedImageQa &&
       automatedEditorialQa &&
       qaReport.blockers.length === 0 &&
       qaReport.score >= AUTOMATED_BLOG_PUBLISH_SCORE
@@ -2019,19 +2116,24 @@ async function insertGeneratedContent(
       type,
       validateGeneratedPayload(type, generated)
     );
-    const imageUrl = buildAutomationHeroImageUrl(type, validatedGenerated.title, cuisine);
+    const heroAsset = await resolveBlogHeroAsset({
+      generated: validatedGenerated,
+      cuisine
+    });
     const payload = buildBlogDraft(
       cuisine,
       index,
       validatedGenerated,
-      imageUrl
+      heroAsset.imageUrl
     );
     const slug = await makeUniqueSlug(supabase, "blog_posts", payload.title);
     const agentReview = await runEditorialQaReview(anthropic, "blog_post", {
       slug,
-      ...payload
+      ...payload,
+      hero_image_source: heroAsset.heroSource,
+      hero_image_query_used: heroAsset.searchQuery
     });
-    const qaState = buildGeneratedBlogQaState(payload, agentReview);
+    const qaState = buildGeneratedBlogQaState(payload, agentReview, heroAsset);
     const shouldScheduleAutoPublish = Boolean(
       autoPublish && qaState.automated_publish_eligible && publishAt
     );

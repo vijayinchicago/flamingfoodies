@@ -16,6 +16,7 @@ import {
   sanitizeAutomationQaNotes,
   sanitizeAutomationTags
 } from "@/lib/content-labels";
+import { getBlogHeroFields } from "@/lib/blog-hero";
 import { flags } from "@/lib/env";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -107,6 +108,15 @@ function mapProfileRow(row: any): Profile {
 }
 
 function mapBlogRow(row: any): BlogPost {
+  const hero = getBlogHeroFields({
+    title: row.title,
+    category: row.category,
+    cuisineType: row.cuisine_type ?? undefined,
+    heatLevel: row.heat_level ?? undefined,
+    imageUrl: row.image_url ?? undefined,
+    imageAlt: row.image_alt ?? undefined
+  });
+
   return {
     id: row.id,
     type: "blog",
@@ -117,8 +127,8 @@ function mapBlogRow(row: any): BlogPost {
     authorName: sanitizeAutomationAuthorName(row.author_name) || "FlamingFoodies",
     category: row.category,
     tags: sanitizeAutomationTags(row.tags ?? []),
-    imageUrl: row.image_url ?? undefined,
-    imageAlt: row.image_alt ?? undefined,
+    imageUrl: hero.imageUrl,
+    imageAlt: hero.imageAlt,
     featured: row.featured ?? false,
     source: row.source,
     status: row.status,

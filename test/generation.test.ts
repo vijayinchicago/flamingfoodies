@@ -8,6 +8,7 @@ import {
 } from "@/lib/generation/prompts";
 import { getQuizResult } from "@/lib/quiz";
 import {
+  buildBlogPhotoSearchQueries,
   buildRecipePhotoSearchQueries,
   normalizeGeneratedCommonPayload,
   normalizeGeneratedRecipePayload
@@ -159,6 +160,18 @@ describe("generation prompts", () => {
     expect(queries[0]).toBe("calabrian chili vodka rigatoni plated");
     expect(queries).toContain("Calabrian Chili Vodka Rigatoni");
     expect(queries).toContain("italian Calabrian Chili Vodka Rigatoni");
+  });
+
+  it("builds photo-first search queries for generated blog stories", () => {
+    const queries = buildBlogPhotoSearchQueries({
+      title: "Why Ethiopian Heat Is Having a Moment",
+      category: "culture",
+      cuisineType: "ethiopian"
+    });
+
+    expect(queries[0]).toBe("Why Ethiopian Heat Is Having a Moment");
+    expect(queries).toContain("ethiopian food");
+    expect(queries).toContain("culture ethiopian food");
   });
 
   it("normalizes human-formatted enum labels before validation", () => {
