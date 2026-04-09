@@ -205,3 +205,11 @@ export function buildBlogQaReport(post: BlogPost): RecipeQaReport {
     warnings
   };
 }
+
+export function getBlogQaPublishError(report: RecipeQaReport) {
+  if (!report.blockers.length) {
+    return null;
+  }
+
+  return report.blockers[0]?.message || "Blog QA blockers must be resolved before publishing.";
+}

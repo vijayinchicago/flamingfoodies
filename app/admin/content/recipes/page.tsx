@@ -16,10 +16,10 @@ export default async function AdminRecipesPage({
   searchParams?: { created?: string; updated?: string; error?: string };
 }) {
   const recipes = await getAdminRecipes();
-  const aiReviewQueue = recipes.filter(
-    (recipe) => recipe.source === "ai_generated" && recipe.status !== "published"
+  const reviewQueue = recipes.filter(
+    (recipe) => (recipe.status === "pending_review" || recipe.source === "ai_generated") && recipe.status !== "published"
   );
-  const aiQueueEntries = aiReviewQueue.map((recipe) => {
+  const queueEntries = reviewQueue.map((recipe) => {
     const qaReport = buildRecipeQaReport(recipe);
     const publishError = getRecipeQaPublishError(qaReport);
     const hero = getRecipeHeroFields(recipe);
@@ -33,8 +33,8 @@ export default async function AdminRecipesPage({
     };
   });
   const displayRecipes = [
-    ...aiReviewQueue,
-    ...recipes.filter((recipe) => !aiReviewQueue.some((queued) => queued.id === recipe.id))
+    ...reviewQueue,
+    ...recipes.filter((recipe) => !reviewQueue.some((queued) => queued.id === recipe.id))
   ];
 
   return (
@@ -60,13 +60,13 @@ export default async function AdminRecipesPage({
           <p className="mt-2 text-sm leading-7">Recipe state updated successfully.</p>
         </section>
       ) : null}
-      {aiQueueEntries.length ? (
-        <section id="ai-review-queue" className="panel-light p-6">
+      {queueEntries.length ? (
+        <section id="review-queue" className="panel-light p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="eyebrow">Review queue</p>
               <h2 className="mt-2 font-display text-4xl text-charcoal">
-                Recipes awaiting review
+                Recipe drafts awaiting review
               </h2>
               <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/65">
                 New drafts land here first. They stay off the public recipe archive until you
@@ -75,13 +75,13 @@ export default async function AdminRecipesPage({
             </div>
             <div className="flex flex-wrap gap-3">
               <Link
-                href={`/admin/content/recipes/${aiQueueEntries[0].recipe.id}`}
+                href={`/admin/content/recipes/${queueEntries[0].recipe.id}`}
                 className="rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
               >
                 Review latest draft
               </Link>
               <Link
-                href={`/admin/content/recipes/${aiQueueEntries[0].recipe.id}`}
+                href={`/admin/content/recipes/${queueEntries[0].recipe.id}`}
                 className="rounded-full border border-charcoal/10 px-5 py-3 text-sm font-semibold text-charcoal"
               >
                 Open editor
@@ -89,7 +89,7 @@ export default async function AdminRecipesPage({
             </div>
           </div>
           <div className="mt-6 grid gap-4">
-            {aiQueueEntries.slice(0, 6).map(({ recipe, hero, qaReport, publishError, publishReady }) => (
+            {queueEntries.slice(0, 6).map(({ recipe, hero, qaReport, publishError, publishReady }) => (
               <article
                 key={`queue-${recipe.id}`}
                 className="rounded-[1.5rem] border border-charcoal/10 bg-white p-5"

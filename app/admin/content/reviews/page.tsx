@@ -1,10 +1,13 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { createReviewAction, updateReviewStateAction } from "@/lib/actions/admin-content";
 import { AdminPage } from "@/components/admin/admin-page";
 import { ContentTable } from "@/components/admin/content-table";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
-import { buildReviewQaReport } from "@/lib/review-qa";
+import { formatContentSourceLabel } from "@/lib/content-labels";
+import { getReviewHeroFields } from "@/lib/review-hero";
+import { buildReviewQaReport, getReviewQaPublishError } from "@/lib/review-qa";
 import { getAdminReviews } from "@/lib/services/content";
 
 export default async function AdminReviewsPage({
@@ -13,18 +16,184 @@ export default async function AdminReviewsPage({
   searchParams?: { created?: string; updated?: string; error?: string };
 }) {
   const reviews = await getAdminReviews();
+  const reviewQueue = reviews.filter(
+    (review) => (review.status === "pending_review" || review.source === "ai_generated") && review.status !== "published"
+  );
+  const queueEntries = reviewQueue.map((review) => {
+    const qaReport = buildReviewQaReport(review);
+    const publishError = getReviewQaPublishError(qaReport);
+    const hero = getReviewHeroFields(review);
+
+    return {
+      review,
+      qaReport,
+      publishError,
+      hero,
+      publishReady: !publishError
+    };
+  });
+  const displayReviews = [
+    ...reviewQueue,
+    ...reviews.filter((review) => !reviewQueue.some((queued) => queued.id === review.id))
+  ];
 
   return (
     <AdminPage
       title="Review content"
       description="Product reviews, affiliate positioning, and recommendation status in one table."
     >
+      {searchParams?.error ? (
+        <section className="rounded-[1.5rem] border border-rose-200 bg-rose-50 p-5 text-rose-900">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-700">
+            Publish blocked
+          </p>
+          <p className="mt-2 text-sm leading-7">{searchParams.error}</p>
+        </section>
+      ) : null}
+      {searchParams?.updated ? (
+        <section className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+            Updated
+          </p>
+          <p className="mt-2 text-sm leading-7">Review updated successfully.</p>
+        </section>
+      ) : null}
+      {queueEntries.length ? (
+        <section className="panel-light p-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="eyebrow">Review queue</p>
+              <h2 className="mt-2 font-display text-4xl text-charcoal">
+                Hot sauce and product drafts awaiting review
+              </h2>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/65">
+                New review drafts land here first. Open one, confirm the product image and tasting
+                notes, then publish once the blocker list is clear.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href={`/admin/content/reviews/${queueEntries[0].review.id}`}
+                className="rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
+              >
+                Review latest draft
+              </Link>
+              <Link
+                href={`/admin/content/reviews/${queueEntries[0].review.id}`}
+                className="rounded-full border border-charcoal/10 px-5 py-3 text-sm font-semibold text-charcoal"
+              >
+                Open editor
+              </Link>
+            </div>
+          </div>
+          <div className="mt-6 grid gap-4">
+            {queueEntries.slice(0, 6).map(({ review, qaReport, publishError, hero, publishReady }) => (
+              <article
+                key={`queue-${review.id}`}
+                className="rounded-[1.5rem] border border-charcoal/10 bg-white p-5"
+              >
+                <div className="grid gap-5 lg:grid-cols-[220px_1fr]">
+                  <div className="overflow-hidden rounded-[1.25rem] border border-charcoal/10 bg-charcoal/[0.03]">
+                    <div className="relative aspect-[4/3]">
+                      <Image
+                        src={hero.imageUrl}
+                        alt={hero.imageAlt}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="border-t border-charcoal/10 px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-charcoal/60">
+                        {hero.usesGeneratedHeroCard ? "Illustrated cover" : "Current hero"}
+                      </p>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <p className="eyebrow">
+                          {formatContentSourceLabel(review.source)} · {review.brand} · {review.category}
+                        </p>
+                        <h3 className="mt-2 font-display text-3xl text-charcoal">{review.title}</h3>
+                        <p className="mt-3 text-sm leading-7 text-charcoal/65">{review.description}</p>
+                      </div>
+                      <div className="rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">
+                        {review.status}
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-4 text-sm text-charcoal/55">
+                      <span>Slug: {review.slug}</span>
+                      <span>Rating: {review.rating}</span>
+                      <span>Image reviewed: {review.imageReviewed ? "Yes" : "No"}</span>
+                      <span>Fact QA: {review.factQaReviewed ? "Yes" : "No"}</span>
+                      <span>QA score: {qaReport.score}/100</span>
+                    </div>
+                    {publishError ? (
+                      <div className="mt-4 rounded-[1.25rem] border border-amber-200 bg-amber-50 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">
+                          What is blocking publish
+                        </p>
+                        <p className="mt-2 text-sm leading-7 text-amber-950">{publishError}</p>
+                        {qaReport.blockers.length > 1 ? (
+                          <ul className="mt-3 space-y-2 text-sm leading-7 text-amber-900">
+                            {qaReport.blockers.slice(1).map((issue) => (
+                              <li key={issue.code}>• {issue.message}</li>
+                            ))}
+                          </ul>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <div className="mt-4 rounded-[1.25rem] border border-emerald-200 bg-emerald-50 p-4">
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                          Ready to publish
+                        </p>
+                        <p className="mt-2 text-sm leading-7 text-emerald-900">
+                          The product image and fact checks are clear. You can publish this review
+                          now or open it for a last editorial pass.
+                        </p>
+                      </div>
+                    )}
+                    <div className="mt-5 flex flex-wrap gap-3">
+                      <Link
+                        href={`/admin/content/reviews/${review.id}`}
+                        className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal"
+                      >
+                        Open review
+                      </Link>
+                      {publishReady ? (
+                        <form action={updateReviewStateAction} className="flex flex-wrap gap-3">
+                          <input type="hidden" name="id" value={review.id} />
+                          <button
+                            name="intent"
+                            value="publish"
+                            className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+                          >
+                            Publish now
+                          </button>
+                        </form>
+                      ) : (
+                        <Link
+                          href={`/admin/content/reviews/${review.id}`}
+                          className="rounded-full bg-amber-600 px-4 py-2 text-sm font-semibold text-white"
+                        >
+                          Complete QA to publish
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
       <ContentTable
         title="Reviews"
-        filters={["status", "category", "recommended"]}
+        filters={["status", "source", "category", "recommended"]}
         rows={reviews.map((review) => ({
           title: review.title,
           brand: review.brand,
+          source: formatContentSourceLabel(review.source),
           category: review.category,
           rating: review.rating,
           recommended: review.recommended,
@@ -148,69 +317,69 @@ export default async function AdminReviewsPage({
         </form>
       </div>
       <div className="grid gap-4">
-        {reviews.map((review) => {
+        {displayReviews.map((review) => {
           const qaReport = buildReviewQaReport(review);
 
           return (
             <article key={review.id} className="panel-light p-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="eyebrow">
-                  {review.brand} · {review.category}
-                </p>
-                <h2 className="mt-2 font-display text-4xl text-charcoal">{review.title}</h2>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/65">
-                  {review.description}
-                </p>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="eyebrow">
+                    {formatContentSourceLabel(review.source)} · {review.brand} · {review.category}
+                  </p>
+                  <h2 className="mt-2 font-display text-4xl text-charcoal">{review.title}</h2>
+                  <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/65">
+                    {review.description}
+                  </p>
+                </div>
+                <div className="rounded-full bg-charcoal/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-charcoal/70">
+                  {review.status}
+                </div>
               </div>
-              <div className="rounded-full bg-charcoal/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-charcoal/70">
-                {review.status}
+              <div className="mt-4 flex flex-wrap gap-4 text-sm text-charcoal/55">
+                <span>Rating: {review.rating}</span>
+                <span>Recommended: {review.recommended ? "Yes" : "No"}</span>
+                <span>Featured: {review.featured ? "Yes" : "No"}</span>
+                <span>Image reviewed: {review.imageReviewed ? "Yes" : "No"}</span>
+                <span>Fact QA: {review.factQaReviewed ? "Yes" : "No"}</span>
+                <span>QA: {qaReport.status}</span>
               </div>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-4 text-sm text-charcoal/55">
-              <span>Rating: {review.rating}</span>
-              <span>Recommended: {review.recommended ? "Yes" : "No"}</span>
-              <span>Featured: {review.featured ? "Yes" : "No"}</span>
-              <span>Image reviewed: {review.imageReviewed ? "Yes" : "No"}</span>
-              <span>Fact QA: {review.factQaReviewed ? "Yes" : "No"}</span>
-              <span>QA: {qaReport.status}</span>
-            </div>
-            {qaReport.blockers.length ? (
-              <div className="mt-4 rounded-[1.5rem] border border-rose-200 bg-rose-50/80 p-4 text-sm text-rose-700">
-                {qaReport.blockers[0]?.message}
-              </div>
-            ) : qaReport.warnings.length ? (
-              <div className="mt-4 rounded-[1.5rem] border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-700">
-                {qaReport.warnings[0]?.message}
-              </div>
-            ) : null}
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link
-                href={`/admin/content/reviews/${review.id}`}
-                className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal"
-              >
-                Edit review
-              </Link>
-              <form action={updateReviewStateAction} className="flex flex-wrap gap-3">
-                <input type="hidden" name="id" value={review.id} />
-                {review.status !== "published" ? (
-                  <button name="intent" value="publish" className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
-                    Publish
+              {qaReport.blockers.length ? (
+                <div className="mt-4 rounded-[1.5rem] border border-rose-200 bg-rose-50/80 p-4 text-sm text-rose-700">
+                  {qaReport.blockers[0]?.message}
+                </div>
+              ) : qaReport.warnings.length ? (
+                <div className="mt-4 rounded-[1.5rem] border border-amber-200 bg-amber-50/80 p-4 text-sm text-amber-700">
+                  {qaReport.warnings[0]?.message}
+                </div>
+              ) : null}
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link
+                  href={`/admin/content/reviews/${review.id}`}
+                  className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal"
+                >
+                  Edit review
+                </Link>
+                <form action={updateReviewStateAction} className="flex flex-wrap gap-3">
+                  <input type="hidden" name="id" value={review.id} />
+                  {review.status !== "published" ? (
+                    <button name="intent" value="publish" className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
+                      Publish
+                    </button>
+                  ) : null}
+                  {review.status !== "archived" ? (
+                    <button name="intent" value="archive" className="rounded-full bg-charcoal px-4 py-2 text-sm font-semibold text-white">
+                      Archive
+                    </button>
+                  ) : null}
+                  <button name="intent" value={review.featured ? "unfeature" : "feature"} className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal">
+                    {review.featured ? "Remove featured" : "Mark featured"}
                   </button>
-                ) : null}
-                {review.status !== "archived" ? (
-                  <button name="intent" value="archive" className="rounded-full bg-charcoal px-4 py-2 text-sm font-semibold text-white">
-                    Archive
+                  <button name="intent" value={review.recommended ? "unrecommend" : "recommend"} className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal">
+                    {review.recommended ? "Remove recommended" : "Recommend"}
                   </button>
-                ) : null}
-                <button name="intent" value={review.featured ? "unfeature" : "feature"} className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal">
-                  {review.featured ? "Remove featured" : "Mark featured"}
-                </button>
-                <button name="intent" value={review.recommended ? "unrecommend" : "recommend"} className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal">
-                  {review.recommended ? "Remove recommended" : "Recommend"}
-                </button>
-              </form>
-            </div>
+                </form>
+              </div>
             </article>
           );
         })}

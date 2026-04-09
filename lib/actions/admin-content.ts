@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { buildBlogQaReport, getBlogQaPublishError } from "@/lib/blog-qa";
 import { flags } from "@/lib/env";
 import { merchThemeOptions } from "@/lib/merch";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
@@ -92,7 +93,7 @@ const blogSchema = z.object({
   tags: z.string().optional(),
   imageUrl: z.string().url().optional(),
   imageAlt: z.string().max(180).optional(),
-  status: z.enum(["draft", "published"]),
+  status: z.enum(editorialStatuses),
   featured: z.boolean().optional(),
   redirectTo: z.string().optional()
 });
@@ -189,7 +190,8 @@ const merchSchema = z.object({
 
 const blogStateSchema = z.object({
   id: z.coerce.number(),
-  intent: z.enum(["publish", "archive", "feature", "unfeature"])
+  intent: z.enum(["publish", "archive", "feature", "unfeature"]),
+  redirectTo: z.string().optional()
 });
 
 const contentStateSchema = z.object({
@@ -201,7 +203,8 @@ const contentStateSchema = z.object({
     "unfeature",
     "recommend",
     "unrecommend"
-  ])
+  ]),
+  redirectTo: z.string().optional()
 });
 
 const importCatalogSchema = z.object({
@@ -566,6 +569,72 @@ function buildReviewQaPayload({
     factQaReviewed: qaCandidate.factQaReviewed ?? false,
     qaNotes: parsed.qaNotes ?? null,
     qaReport
+  };
+}
+
+function buildBlogQaPayload({
+  parsed,
+  image
+}: {
+  parsed: z.infer<typeof blogSchema>;
+  image: { imageUrl: string | null; imageAlt?: string };
+}) {
+  const qaCandidate: BlogPost = {
+    id: 0,
+    type: "blog",
+    slug: "draft",
+    title: parsed.title,
+    description: parsed.description,
+    authorName: "FlamingFoodies",
+    category: parsed.category,
+    content: parsed.content,
+    tags: parseCsvList(parsed.tags || ""),
+    imageUrl: image.imageUrl ?? undefined,
+    imageAlt: image.imageAlt ?? undefined,
+    featured: parsed.featured ?? false,
+    source: "editorial",
+    status: parsed.status,
+    publishedAt: undefined,
+    viewCount: 0,
+    likeCount: 0,
+    seoTitle: parsed.title.slice(0, 60),
+    seoDescription: parsed.description.slice(0, 160),
+    readTimeMinutes: calculateReadTime(parsed.content)
+  };
+  const qaReport = buildBlogQaReport(qaCandidate);
+
+  return {
+    imageUrl: qaCandidate.imageUrl ?? null,
+    imageAlt: qaCandidate.imageAlt ?? null,
+    qaReport
+  };
+}
+
+function mapBlogRowToQaCandidate(row: any): BlogPost {
+  return {
+    id: row.id,
+    type: "blog",
+    slug: row.slug,
+    title: row.title,
+    description: row.description,
+    authorName: row.author_name ?? "FlamingFoodies",
+    category: row.category,
+    content: row.content,
+    tags: row.tags ?? [],
+    imageUrl: row.image_url ?? undefined,
+    imageAlt: row.image_alt ?? undefined,
+    featured: row.featured ?? false,
+    source: row.source,
+    status: row.status,
+    publishedAt: row.published_at ?? undefined,
+    viewCount: row.view_count ?? 0,
+    likeCount: row.like_count ?? 0,
+    seoTitle: row.seo_title ?? undefined,
+    seoDescription: row.seo_description ?? undefined,
+    cuisineType: row.cuisine_type ?? undefined,
+    heatLevel: row.heat_level ?? undefined,
+    scovilleRating: row.scoville_rating ?? undefined,
+    readTimeMinutes: row.read_time_minutes ?? calculateReadTime(row.content ?? "")
   };
 }
 
@@ -989,6 +1058,17 @@ export async function createBlogPostAction(formData: FormData) {
     supabase,
     folder: "blog"
   });
+  const qa = buildBlogQaPayload({
+    parsed: parsed.data,
+    image
+  });
+
+  if (parsed.data.status === "published") {
+    const qaError = getBlogQaPublishError(qa.qaReport);
+    if (qaError) {
+      redirect(`/admin/content/blog?error=${encodeURIComponent(qaError)}`);
+    }
+  }
   const slug = await makeUniqueSlug(supabase, "blog_posts", parsed.data.title);
 
   const { data, error } = await supabase
@@ -1002,8 +1082,8 @@ export async function createBlogPostAction(formData: FormData) {
       author_id: admin.id,
       category: parsed.data.category,
       tags: parseCsvList(parsed.data.tags || ""),
-      image_url: image.imageUrl,
-      image_alt: image.imageAlt ?? null,
+      image_url: qa.imageUrl,
+      image_alt: qa.imageAlt,
       featured: parsed.data.featured ?? false,
       affiliate_disclosure: true,
       status: parsed.data.status,
@@ -1087,6 +1167,17 @@ export async function updateBlogPostAction(formData: FormData) {
     folder: "blog",
     existingImageUrl: existing.image_url
   });
+  const qa = buildBlogQaPayload({
+    parsed: parsed.data,
+    image
+  });
+
+  if (parsed.data.status === "published") {
+    const qaError = getBlogQaPublishError(qa.qaReport);
+    if (qaError) {
+      redirect(`${redirectTo}?error=${encodeURIComponent(qaError)}`);
+    }
+  }
   const slug =
     existing.title === parsed.data.title
       ? existing.slug
@@ -1101,8 +1192,8 @@ export async function updateBlogPostAction(formData: FormData) {
       content: parsed.data.content,
       category: parsed.data.category,
       tags: parseCsvList(parsed.data.tags || ""),
-      image_url: image.imageUrl,
-      image_alt: image.imageAlt ?? null,
+      image_url: qa.imageUrl,
+      image_alt: qa.imageAlt,
       featured: parsed.data.featured ?? false,
       status: parsed.data.status,
       seo_title: parsed.data.title.slice(0, 60),
@@ -1138,24 +1229,44 @@ export async function updateBlogPostStateAction(formData: FormData) {
 
   const parsed = blogStateSchema.safeParse({
     id: formData.get("id"),
-    intent: formData.get("intent")
+    intent: formData.get("intent"),
+    redirectTo: getOptionalText(formData, "redirectTo")
   });
 
   if (!parsed.success) {
     redirect("/admin/content/blog?error=Invalid%20content%20action");
   }
 
+  const redirectTo = getRedirectPath(parsed.data.redirectTo, "/admin/content/blog");
+
   if (!flags.hasSupabaseAdmin) {
-    redirect("/admin/content/blog?updated=mock");
+    redirect(`${redirectTo}?updated=mock`);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    redirect("/admin/content/blog?error=Supabase%20admin%20is%20not%20configured");
+    redirect(`${redirectTo}?error=Supabase%20admin%20is%20not%20configured`);
   }
 
   const updates: Record<string, unknown> = {};
   if (parsed.data.intent === "publish") {
+    const { data: blogRow, error: blogError } = await supabase
+      .from("blog_posts")
+      .select("*")
+      .eq("id", parsed.data.id)
+      .single();
+
+    if (blogError) {
+      redirect(`${redirectTo}?error=${encodeURIComponent(blogError.message)}`);
+    }
+
+    const qaReportForPublish = buildBlogQaReport(mapBlogRowToQaCandidate(blogRow));
+    const qaError = getBlogQaPublishError(qaReportForPublish);
+
+    if (qaError) {
+      redirect(`${redirectTo}?error=${encodeURIComponent(qaError)}`);
+    }
+
     updates.status = "published";
     updates.published_at = new Date().toISOString();
   }
@@ -1177,7 +1288,7 @@ export async function updateBlogPostStateAction(formData: FormData) {
     .single();
 
   if (error) {
-    redirect(`/admin/content/blog?error=${encodeURIComponent(error.message)}`);
+    redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
   }
 
   await writeAuditLog(supabase, {
@@ -1191,7 +1302,7 @@ export async function updateBlogPostStateAction(formData: FormData) {
   });
 
   revalidateBlogPaths(data.slug);
-  redirect("/admin/content/blog?updated=1");
+  redirect(`${redirectTo}?updated=1`);
 }
 
 export async function createRecipeAction(formData: FormData) {
@@ -1530,20 +1641,23 @@ export async function updateRecipeStateAction(formData: FormData) {
 
   const parsed = contentStateSchema.safeParse({
     id: formData.get("id"),
-    intent: formData.get("intent")
+    intent: formData.get("intent"),
+    redirectTo: getOptionalText(formData, "redirectTo")
   });
 
   if (!parsed.success) {
     redirect("/admin/content/recipes?error=Invalid%20content%20action");
   }
 
+  const redirectTo = getRedirectPath(parsed.data.redirectTo, "/admin/content/recipes");
+
   if (!flags.hasSupabaseAdmin) {
-    redirect("/admin/content/recipes?updated=mock");
+    redirect(`${redirectTo}?updated=mock`);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    redirect("/admin/content/recipes?error=Supabase%20admin%20is%20not%20configured");
+    redirect(`${redirectTo}?error=Supabase%20admin%20is%20not%20configured`);
   }
 
   let qaReportForPublish: ReturnType<typeof buildRecipeQaReport> | undefined;
@@ -1560,7 +1674,7 @@ export async function updateRecipeStateAction(formData: FormData) {
       .single();
 
     if (recipeError) {
-      redirect(`/admin/content/recipes?error=${encodeURIComponent(recipeError.message)}`);
+      redirect(`${redirectTo}?error=${encodeURIComponent(recipeError.message)}`);
     }
 
     recipeRowForPublish = recipeRow;
@@ -1584,7 +1698,7 @@ export async function updateRecipeStateAction(formData: FormData) {
     const qaError = getRecipeQaPublishError(qaReportForPublish);
 
     if (qaError) {
-      redirect(`/admin/content/recipes?error=${encodeURIComponent(qaError)}`);
+      redirect(`${redirectTo}?error=${encodeURIComponent(qaError)}`);
     }
   }
 
@@ -1607,7 +1721,7 @@ export async function updateRecipeStateAction(formData: FormData) {
     .single();
 
   if (error) {
-    redirect(`/admin/content/recipes?error=${encodeURIComponent(error.message)}`);
+    redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
   }
 
   if (parsed.data.intent === "publish" && recipeRowForPublish?.source === "ai_generated") {
@@ -1630,7 +1744,7 @@ export async function updateRecipeStateAction(formData: FormData) {
   });
 
   revalidateRecipePaths(data.slug);
-  redirect("/admin/content/recipes?updated=1");
+  redirect(`${redirectTo}?updated=1`);
 }
 
 export async function createReviewAction(formData: FormData) {
@@ -1914,20 +2028,23 @@ export async function updateReviewStateAction(formData: FormData) {
 
   const parsed = contentStateSchema.safeParse({
     id: formData.get("id"),
-    intent: formData.get("intent")
+    intent: formData.get("intent"),
+    redirectTo: getOptionalText(formData, "redirectTo")
   });
 
   if (!parsed.success) {
     redirect("/admin/content/reviews?error=Invalid%20content%20action");
   }
 
+  const redirectTo = getRedirectPath(parsed.data.redirectTo, "/admin/content/reviews");
+
   if (!flags.hasSupabaseAdmin) {
-    redirect("/admin/content/reviews?updated=mock");
+    redirect(`${redirectTo}?updated=mock`);
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
-    redirect("/admin/content/reviews?error=Supabase%20admin%20is%20not%20configured");
+    redirect(`${redirectTo}?error=Supabase%20admin%20is%20not%20configured`);
   }
 
   let qaReportForPublish: ReturnType<typeof buildReviewQaReport> | undefined;
@@ -1944,7 +2061,7 @@ export async function updateReviewStateAction(formData: FormData) {
       .single();
 
     if (reviewError) {
-      redirect(`/admin/content/reviews?error=${encodeURIComponent(reviewError.message)}`);
+      redirect(`${redirectTo}?error=${encodeURIComponent(reviewError.message)}`);
     }
 
     reviewRowForPublish = reviewRow;
@@ -1961,7 +2078,7 @@ export async function updateReviewStateAction(formData: FormData) {
     const qaError = getReviewQaPublishError(qaReportForPublish);
 
     if (qaError) {
-      redirect(`/admin/content/reviews?error=${encodeURIComponent(qaError)}`);
+      redirect(`${redirectTo}?error=${encodeURIComponent(qaError)}`);
     }
   }
 
@@ -1986,7 +2103,7 @@ export async function updateReviewStateAction(formData: FormData) {
     .single();
 
   if (error) {
-    redirect(`/admin/content/reviews?error=${encodeURIComponent(error.message)}`);
+    redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
   }
 
   if (parsed.data.intent === "publish" && reviewRowForPublish?.source === "ai_generated") {
@@ -2009,7 +2126,7 @@ export async function updateReviewStateAction(formData: FormData) {
   });
 
   revalidateReviewPaths(data.slug);
-  redirect("/admin/content/reviews?updated=1");
+  redirect(`${redirectTo}?updated=1`);
 }
 
 export async function createMerchProductAction(formData: FormData) {

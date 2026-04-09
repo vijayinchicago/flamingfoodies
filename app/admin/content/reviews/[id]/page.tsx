@@ -1,10 +1,12 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { updateReviewAction } from "@/lib/actions/admin-content";
+import { updateReviewAction, updateReviewStateAction } from "@/lib/actions/admin-content";
 import { AdminPage } from "@/components/admin/admin-page";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
-import { buildReviewQaReport } from "@/lib/review-qa";
+import { getReviewHeroFields } from "@/lib/review-hero";
+import { buildReviewQaReport, getReviewQaPublishError } from "@/lib/review-qa";
 import { getAdminReviewById } from "@/lib/services/content";
 
 export default async function AdminReviewEditPage({
@@ -21,18 +23,113 @@ export default async function AdminReviewEditPage({
   }
 
   const qaReport = buildReviewQaReport(review);
+  const publishError = getReviewQaPublishError(qaReport);
+  const hero = getReviewHeroFields(review);
 
   return (
     <AdminPage
       title="Edit Review"
       description="Tune the verdict, affiliate framing, and product imagery from one place."
     >
-      <Link
-        href="/admin/content/reviews"
-        className="inline-flex rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal"
-      >
-        Back to review content
-      </Link>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <Link
+          href="/admin/content/reviews"
+          className="inline-flex rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal"
+        >
+          Back to review content
+        </Link>
+        {review.status !== "published" ? (
+          publishError ? (
+            <div className="rounded-full bg-amber-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-amber-800">
+              Complete QA to publish
+            </div>
+          ) : (
+            <form action={updateReviewStateAction}>
+              <input type="hidden" name="id" value={review.id} />
+              <input type="hidden" name="redirectTo" value={`/admin/content/reviews/${review.id}`} />
+              <button
+                name="intent"
+                value="publish"
+                className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+              >
+                Publish now
+              </button>
+            </form>
+          )
+        ) : (
+          <div className="rounded-full bg-emerald-100 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-800">
+            Published
+          </div>
+        )}
+      </div>
+      <section className="mt-6 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+        <aside className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.03] p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="eyebrow">Hero preview</p>
+              <h2 className="mt-2 font-display text-3xl text-charcoal">Review the product image</h2>
+            </div>
+            <span className="rounded-full bg-charcoal px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white">
+              {hero.usesGeneratedHeroCard ? "Illustrated cover" : "Current hero"}
+            </span>
+          </div>
+          <div className="mt-4 overflow-hidden rounded-[1.5rem] border border-charcoal/10 bg-white">
+            <div className="relative aspect-[4/3] bg-charcoal/5">
+              <Image src={hero.imageUrl} alt={hero.imageAlt} fill className="object-cover" />
+            </div>
+            <div className="border-t border-charcoal/10 p-4">
+              <p className="text-sm leading-7 text-charcoal/68">
+                This is the exact hero asset readers will see. Confirm that it matches the product
+                before you sign off the image review checkbox below.
+              </p>
+              <p className="mt-3 text-xs leading-6 text-charcoal/55">Alt text: {hero.imageAlt}</p>
+            </div>
+          </div>
+        </aside>
+        <section className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.03] p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="eyebrow">QA gate</p>
+              <h2 className="mt-2 font-display text-3xl text-charcoal">
+                Review QA {qaReport.status} · {qaReport.score}/100
+              </h2>
+              <p className="mt-3 max-w-2xl text-sm leading-7 text-charcoal/65">
+                Publishing is blocked until the product image and tasting or fact review are both
+                signed off.
+              </p>
+            </div>
+            <div className="rounded-full bg-charcoal/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-charcoal/70">
+              {qaReport.blockers.length} blockers · {qaReport.warnings.length} warnings
+            </div>
+          </div>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <div className="rounded-[1.5rem] border border-rose-200 bg-rose-50/80 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-700">Blockers</p>
+              {qaReport.blockers.length ? (
+                <ul className="mt-3 space-y-2 text-sm leading-7 text-rose-700">
+                  {qaReport.blockers.map((issue) => (
+                    <li key={issue.code}>• {issue.message}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm text-emerald-700">No blocker-level issues right now.</p>
+              )}
+            </div>
+            <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50/80 p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">Warnings</p>
+              {qaReport.warnings.length ? (
+                <ul className="mt-3 space-y-2 text-sm leading-7 text-amber-700">
+                  {qaReport.warnings.map((issue) => (
+                    <li key={issue.code}>• {issue.message}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-3 text-sm text-emerald-700">No warning-level issues right now.</p>
+              )}
+            </div>
+          </div>
+        </section>
+      </section>
       <form action={updateReviewAction} encType="multipart/form-data" className="panel-light mt-6 space-y-4 p-6">
         <input type="hidden" name="id" value={review.id} />
         <input type="hidden" name="redirectTo" value={`/admin/content/reviews/${review.id}`} />
@@ -142,7 +239,7 @@ export default async function AdminReviewEditPage({
               {qaReport.blockers.length ? (
                 <ul className="mt-3 space-y-2 text-sm leading-7 text-rose-700">
                   {qaReport.blockers.map((issue) => (
-                    <li key={issue.code}>{issue.message}</li>
+                    <li key={issue.code}>• {issue.message}</li>
                   ))}
                 </ul>
               ) : (
@@ -154,7 +251,7 @@ export default async function AdminReviewEditPage({
               {qaReport.warnings.length ? (
                 <ul className="mt-3 space-y-2 text-sm leading-7 text-amber-700">
                   {qaReport.warnings.map((issue) => (
-                    <li key={issue.code}>{issue.message}</li>
+                    <li key={issue.code}>• {issue.message}</li>
                   ))}
                 </ul>
               ) : (

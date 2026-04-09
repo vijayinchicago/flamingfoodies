@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildBlogQaReport } from "@/lib/blog-qa";
+import { buildBlogQaReport, getBlogQaPublishError } from "@/lib/blog-qa";
 import type { BlogPost } from "@/lib/types";
 
 function makeBlogPost(overrides: Partial<BlogPost> = {}): BlogPost {
@@ -93,5 +93,16 @@ describe("buildBlogQaReport", () => {
     );
 
     expect(report.warnings.some((issue) => issue.code === "blog-formulaic-voice")).toBe(true);
+  });
+
+  it("returns the first blocker as the publish error when a story is not ready", () => {
+    const report = buildBlogQaReport(
+      makeBlogPost({
+        content: "Too short.\n\n## One section\n\nStill too thin.",
+        tags: ["hot-sauce"]
+      })
+    );
+
+    expect(getBlogQaPublishError(report)).toBe(report.blockers[0]?.message);
   });
 });
