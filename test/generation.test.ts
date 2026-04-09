@@ -14,6 +14,7 @@ describe("generation prompts", () => {
     expect(prompt).toContain("Heat level: hot");
     expect(prompt).toContain("\"hero_image_query\"");
     expect(prompt).toContain("Write with the voice of a sharp, experienced food editor");
+    expect(prompt).toContain("family-table oriented");
   });
 
   it("creates a hot sauce recipe prompt with featured sauce context", () => {
@@ -41,6 +42,7 @@ describe("generation prompts", () => {
     expect(prompt).toContain("at least 3 H2 subheadings");
     expect(prompt).toContain("at least 1 short bullet or numbered list");
     expect(prompt).toContain("Write like a strong magazine-style food writer");
+    expect(prompt).toContain("family-table oriented");
   });
 
   it("returns requested cuisine count", () => {

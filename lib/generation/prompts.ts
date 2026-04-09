@@ -9,6 +9,21 @@ type HotSaucePromptFocus = {
   cuisine_origin?: CuisineType;
 };
 
+const FLAMINGFOODIES_EDITORIAL_VOICE = `
+FlamingFoodies voice:
+- warm, generous, and family-table oriented
+- confident and useful, never snobbish or macho
+- lightly opinionated, but still welcoming to mixed heat tolerance
+- specific and concrete instead of generic or salesy
+- written like a trusted host who cooks for other people
+
+Avoid:
+- macho heat-challenge framing
+- generic filler like "packed with flavor" or "perfect for busy weeknights"
+- fake personal anecdotes or testing claims
+- content-farm transitions, empty hype, or keyword-stuffed paraphrasing
+`;
+
 const HEAT_DESCRIPTIONS: Record<HeatLevel, string> = {
   mild: "a gentle warmth, suitable for all audiences",
   medium: "noticeable heat that excites without overwhelming",
@@ -23,6 +38,8 @@ export const RECIPE_PROMPT = (params: {
   hot_sauce_focus?: HotSaucePromptFocus;
 }) => `
 You are a professional food writer for FlamingFoodies.com, a site celebrating spicy and hot food from around the world.
+
+${FLAMINGFOODIES_EDITORIAL_VOICE}
 
 Generate a complete, authentic recipe. Requirements:
 - Cuisine: ${params.cuisine_type}
@@ -108,6 +125,8 @@ export const BLOG_POST_PROMPT = (params: {
   keywords?: string[];
 }) => `
 You are a food writer for FlamingFoodies.com. Write an engaging, informative blog post.
+
+${FLAMINGFOODIES_EDITORIAL_VOICE}
 
 Topic category: ${params.category}
 Topic: ${params.topic || "choose a relevant, high-interest topic in spicy food culture"}
