@@ -31,6 +31,11 @@ Generate a complete, authentic recipe. Requirements:
 - Do not invent impossible ingredients, techniques, or plating details.
 - The recipe must feel like a real dish a strong home cook could execute.
 - Prefer specificity over fluff. Use actual ingredients, doneness cues, timings, and finishing details.
+- Write with the voice of a sharp, experienced food editor who actually cooks: warm, confident, lightly opinionated, and concrete.
+- Let the intro, hero summary, tips, and FAQs sound human and specific, not templated or salesy.
+- Vary sentence length and rhythm so the writing does not sound machine-flat.
+- Avoid generic filler phrases like "packed with flavor," "perfect for weeknights," "takes it to the next level," "bursting with," or "you'll love."
+- Do not fake personal anecdotes, testing claims, family stories, or restaurant memories.
 - Group ingredients into logical sections when the dish has components like marinade, sauce, garnish, slaw, glaze, salsa, or assembly.
 - Write at least 4 method steps with action-led titles, concise bodies, at least 1 timed step, and at least 2 sensory cues across the method.
 - Include make-ahead, storage, reheating, serving suggestions, substitutions, and FAQs.
@@ -114,6 +119,11 @@ Requirements:
 - Aim for roughly 900-1400 words.
 - Include at least 1 short bullet or numbered list that improves scanability.
 - Keep the article specific to spicy food, hot sauce, peppers, heat, or spicy cooking culture.
+- Write like a strong magazine-style food writer with a clear point of view, not like a content farm or encyclopedia.
+- Sound human: vary sentence length, use concrete examples, and let the piece make specific judgments where appropriate.
+- Avoid generic filler phrases like "packed with flavor," "perfect for," "takes it to the next level," "in all the right ways," "bursting with," or "you'll love."
+- Do not pad with thesis-restating transitions or empty setup paragraphs.
+- Do not invent first-hand experience, interviews, restaurant visits, or testing notes that did not happen.
 - Avoid filler, AI disclaimers, made-up sourcing, or unsupported product/fact claims.
 
 Return ONLY valid JSON. Do not include any keys beyond the JSON schema below.

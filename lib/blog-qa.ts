@@ -34,6 +34,22 @@ function containsAiDisclosure(content: string) {
   );
 }
 
+const formulaicPhrases = [
+  /\bpacked with flavor\b/i,
+  /\bperfect for(?: busy)? weeknights?\b/i,
+  /\btakes (?:it|things) to the next level\b/i,
+  /\bbursting with\b/i,
+  /\byou'?ll love\b/i,
+  /\bin all the right ways\b/i,
+  /\bthe result is(?: a| an)?\b/i,
+  /\bwhether you'?re\b/i,
+  /\bcomes together\b/i
+];
+
+function getFormulaicPhraseHits(content: string) {
+  return formulaicPhrases.filter((pattern) => pattern.test(content)).length;
+}
+
 function normalizeCuisineLabel(value?: string) {
   return value ? value.replace(/_/g, " ").toLowerCase() : "";
 }
@@ -49,6 +65,9 @@ export function buildBlogQaReport(post: BlogPost): RecipeQaReport {
   const cuisineLabel = normalizeCuisineLabel(post.cuisineType);
   const lowerContent = post.content.toLowerCase();
   const lowerTitle = post.title.toLowerCase();
+  const formulaicPhraseHits = getFormulaicPhraseHits(
+    `${post.title}\n${post.description}\n${post.content}`
+  );
 
   if (wordCount < 450) {
     blockers.push(
@@ -94,6 +113,16 @@ export function buildBlogQaReport(post: BlogPost): RecipeQaReport {
         "warning",
         "blog-list-support",
         "Blog draft would scan better with at least one short bullet or numbered list."
+      )
+    );
+  }
+
+  if (formulaicPhraseHits >= 2) {
+    warnings.push(
+      createIssue(
+        "warning",
+        "blog-formulaic-voice",
+        "Blog draft leans on generic content phrases and needs a more human editorial voice."
       )
     );
   }

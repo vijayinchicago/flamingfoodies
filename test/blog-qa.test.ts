@@ -71,4 +71,27 @@ describe("buildBlogQaReport", () => {
     expect(report.blockers.some((issue) => issue.code === "blog-structure")).toBe(true);
     expect(report.blockers.some((issue) => issue.code === "blog-ai-disclosure")).toBe(true);
   });
+
+  it("warns when blog voice relies on formulaic content phrases", () => {
+    const report = buildBlogQaReport(
+      makeBlogPost({
+        description:
+          "A guide packed with flavor and perfect for busy weeknights, built to take your shelf to the next level.",
+        content: [
+          "This guide is packed with flavor and perfect for busy weeknights.",
+          "## Start here",
+          "Whether you're just getting started or looking for something new, this shelf takes things to the next level in all the right ways.",
+          "## Keep it practical",
+          "The result is a setup that comes together quickly and gives you bottles you'll love.",
+          "- One everyday bottle",
+          "- One brighter bottle",
+          "- One bigger heat bottle",
+          "## Buy with purpose",
+          "Instead of random shopping, buy around the foods you actually cook."
+        ].join("\n\n")
+      })
+    );
+
+    expect(report.warnings.some((issue) => issue.code === "blog-formulaic-voice")).toBe(true);
+  });
 });

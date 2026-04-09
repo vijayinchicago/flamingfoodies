@@ -106,6 +106,21 @@ function unique<T>(items: T[]) {
   return [...new Set(items)];
 }
 
+const formulaicRecipePhrases = [
+  /\bpacked with flavor\b/i,
+  /\bperfect for(?: busy)? weeknights?\b/i,
+  /\btakes (?:it|things) to the next level\b/i,
+  /\bbursting with\b/i,
+  /\byou'?ll love\b/i,
+  /\bin all the right ways\b/i,
+  /\bthe result is(?: a| an)?\b/i,
+  /\bcomes together\b/i
+];
+
+function countFormulaicRecipePhrases(value: string) {
+  return formulaicRecipePhrases.filter((pattern) => pattern.test(value)).length;
+}
+
 function buildTextCorpus(recipe: RecipeQaCandidate) {
   const ingredientText = (recipe.ingredientSections ?? [])
     .flatMap((section) =>
@@ -187,6 +202,11 @@ export function buildRecipeQaReport(recipe: RecipeQaCandidate): RecipeQaReport {
   const faqs = recipe.faqs ?? [];
   const imageKeywordOverlap = getImageKeywordOverlap(recipe);
   const cuisineMatchCount = getCuisineMatchCount(recipe);
+  const formulaicPhraseHits = countFormulaicRecipePhrases(
+    [recipe.title, recipe.description, recipe.intro, recipe.heroSummary]
+      .filter(Boolean)
+      .join("\n")
+  );
 
   if (!recipe.imageUrl) {
     blockers.push(
@@ -238,6 +258,16 @@ export function buildRecipeQaReport(recipe: RecipeQaCandidate): RecipeQaReport {
         "warning",
         "missing-hero-summary",
         "Add a stronger hero summary so the page opens with a clear editorial payoff."
+      )
+    );
+  }
+
+  if (formulaicPhraseHits >= 2) {
+    warnings.push(
+      createIssue(
+        "warning",
+        "formulaic-recipe-voice",
+        "The recipe opener leans on generic food-writing phrases. Tighten it so it sounds more specific and human."
       )
     );
   }

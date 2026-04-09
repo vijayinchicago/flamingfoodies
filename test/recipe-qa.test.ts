@@ -151,6 +151,20 @@ describe("recipe QA", () => {
     expect(report.warnings.map((issue) => issue.code)).toContain("generic-hero-alt");
   });
 
+  it("warns when recipe copy sounds formulaic in the opener", () => {
+    const report = buildRecipeQaReport({
+      ...baseRecipe,
+      description:
+        "A bowl packed with flavor and perfect for busy weeknights, with heat that takes things to the next level.",
+      intro:
+        "This recipe is packed with flavor and comes together fast, making it perfect for busy weeknights.",
+      heroSummary:
+        "The result is a bowl you'll love, with heat in all the right ways."
+    });
+
+    expect(report.warnings.map((issue) => issue.code)).toContain("formulaic-recipe-voice");
+  });
+
   it("auto-approves the curated flagship recipe set for sync imports", () => {
     expect(
       getRecipeManualReviewState({
