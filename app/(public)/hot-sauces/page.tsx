@@ -44,7 +44,7 @@ export default async function HotSaucesHubPage() {
       <SectionHeading
         eyebrow="Hot sauce hub"
         title="Find the right bottle by use case, not just by hype."
-        copy="This is the search-friendly front door for our hot sauce coverage: everyday pours, giftable sets, taco-night bottles, and the sauces serious heat chasers actually care about."
+        copy="Start with everyday pours, giftable sets, taco-night bottles, and the sauces serious heat lovers keep reaching for."
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">

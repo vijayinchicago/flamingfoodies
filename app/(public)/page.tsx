@@ -46,9 +46,9 @@ export default async function HomePage() {
                 The spicy food platform for people who want flavor before flexing.
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-cream/78">
-                Explore high-heat recipes, product reviews, community posts, and a
-                content engine designed to grow into the internet’s loudest home for real
-                chili-head culture.
+                Explore high-heat recipes, product reviews, community posts, and practical guides
+                for people who care about heat, flavor, and what is actually worth cooking or
+                buying.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
                 <Link
@@ -79,7 +79,7 @@ export default async function HomePage() {
                 <div className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4">
                   <p className="text-xs uppercase tracking-[0.2em] text-ember">Hot sauces</p>
                   <p className="mt-2 font-display text-3xl text-cream">10</p>
-                  <p className="mt-2 leading-6">Reviews built to drive useful clicks instead of empty hype.</p>
+                  <p className="mt-2 leading-6">Reviews that help you choose the right bottle, not just the hottest one.</p>
                 </div>
                 <div className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4">
                   <p className="text-xs uppercase tracking-[0.2em] text-ember">Shop lanes</p>
@@ -105,8 +105,8 @@ export default async function HomePage() {
               <p className="eyebrow">Hot sauce hub</p>
               <h2 className="mt-3 font-display text-4xl text-cream">Find the right bottle faster.</h2>
               <p className="mt-4 text-sm leading-7 text-cream/70">
-                Browse best-for pages, under-$15 picks, giftable sets, and hot sauce reviews
-                built to drive useful clicks instead of empty hype.
+                Browse best-for pages, under-$15 picks, giftable sets, and hot sauce reviews that
+                make it easier to buy the right bottle the first time.
               </p>
               <Link
                 href="/hot-sauces"
@@ -135,8 +135,8 @@ export default async function HomePage() {
       <section className="container-shell py-10">
         <SectionHeading
           eyebrow="Shop the heat"
-          title="Keep the store useful before it gets big."
-          copy="At launch, the commercial layer should be practical: better bottles, useful gear, giftable sets, and pantry picks that actually support the cooking."
+          title="Shop the bottles, gear, and pantry picks that earn their keep."
+          copy="At launch, the store should stay practical: better bottles, useful gear, giftable sets, and pantry staples that actually support the cooking."
         />
         <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
         <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
@@ -145,7 +145,7 @@ export default async function HomePage() {
               <div>
                 <p className="eyebrow">Shop lanes</p>
                 <h2 className="mt-3 font-display text-4xl text-cream">
-                  Start with curated buying paths, not fake inventory.
+                  Start with the shelves and gift lanes people actually need.
                 </h2>
               </div>
               <Link

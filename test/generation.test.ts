@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { BLOG_POST_PROMPT, RECIPE_PROMPT, getTodayCuisines } from "@/lib/generation/prompts";
+import {
+  BLOG_POST_PROMPT,
+  RECIPE_PROMPT,
+  REVIEW_PROMPT,
+  getTodayCuisines
+} from "@/lib/generation/prompts";
 import { getQuizResult } from "@/lib/quiz";
 import {
   buildRecipePhotoSearchQueries,
@@ -43,6 +48,14 @@ describe("generation prompts", () => {
     expect(prompt).toContain("at least 1 short bullet or numbered list");
     expect(prompt).toContain("Write like a strong magazine-style food writer");
     expect(prompt).toContain("family-table oriented");
+  });
+
+  it("creates a review prompt with warmer editorial guidance", () => {
+    const prompt = REVIEW_PROMPT({ category: "hot-sauce", cuisine_origin: "jamaican", heat_level: "hot" });
+
+    expect(prompt).toContain("warm, generous, and family-table oriented");
+    expect(prompt).toContain("what the bottle tastes like");
+    expect(prompt).toContain("Avoid macho heat language");
   });
 
   it("returns requested cuisine count", () => {

@@ -47,19 +47,18 @@ export default async function RecipesIndexPage() {
       />
       <SectionHeading
         eyebrow="Recipes"
-        title="Searchable spicy cooking, built to scale."
-        copy="Recipes are the anchor inventory for organic growth, affiliate placements, and future community saves."
+        title="Flavor-first spicy cooking for weeknights, weekends, and big heat cravings."
+        copy="Find tacos, noodles, burgers, braises, and fiery comfort food worth cooking again."
       />
-      <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <div className="panel p-8">
           <p className="eyebrow">Cook better, not just hotter</p>
           <h2 className="mt-3 font-display text-4xl text-cream">
-            Recipes pull harder when the gear is close by.
+            A few good tools make spicy cooking easier to repeat.
           </h2>
           <p className="mt-4 text-sm leading-7 text-cream/75">
-            The best affiliate placements on this site sit next to actual cooking utility.
-            Here are the pieces readers are most likely to need once they land on the recipe layer.
+            If a recipe earns a spot in your rotation, these are the pieces that help it come out
+            the way it should without making the kitchen feel overbuilt.
           </p>
           <Link
             href="/shop"
@@ -88,6 +87,7 @@ export default async function RecipesIndexPage() {
           ))}
         </div>
       </div>
+      <AffiliateDisclosure className="mt-8 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-3">
         {recipes.map((recipe) => (
           <RecipeCard key={recipe.id} recipe={recipe} />

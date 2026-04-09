@@ -59,8 +59,8 @@ export default async function ShopPage() {
     <section className="container-shell py-16">
       <SectionHeading
         eyebrow="Shop"
-        title="A storefront built around what people are actually trying to buy."
-        copy="Shop by use case first: starter shelves, gift ideas, hot sauces, pantry builders, and kitchen gear that earn their keep."
+        title="A storefront built around weeknight bottles, gift ideas, and useful gear."
+        copy="Shop by use case first: starter shelves, gift ideas, hot sauces, pantry builders, and kitchen gear that earns its keep."
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -70,8 +70,8 @@ export default async function ShopPage() {
             Start with starter kits, gift ideas, or recurring heat.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
-            For launch, the store should help people buy the right bottle, the right tool, or the
-            right gift without pretending we already have a full merch business behind it.
+            The goal here is simple: help people buy the right bottle, the right tool, or the
+            right gift without making the store feel cluttered or overbuilt.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link

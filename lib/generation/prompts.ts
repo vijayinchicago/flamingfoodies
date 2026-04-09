@@ -166,9 +166,18 @@ export const REVIEW_PROMPT = (params: {
 }) => `
 You are a product reviewer for FlamingFoodies.com. Write a credible, specific review of a spicy food product.
 
+${FLAMINGFOODIES_EDITORIAL_VOICE}
+
 Category: ${params.category}
 Cuisine origin: ${params.cuisine_origin || "choose a relevant origin if appropriate"}
 Heat level: ${params.heat_level || "choose the most appropriate heat level"}
+
+Requirements:
+- Sound like a trusted friend with a sharp palate, not a product catalog or generic roundup.
+- Be concrete about what the bottle tastes like, where the heat lands, and what foods it actually suits.
+- Make practical judgments about value, usefulness, and who should skip it.
+- Avoid macho heat language, filler, fake testing claims, or empty product hype.
+- Let the opening and closing paragraphs sound human, generous, and specific.
 
 Return ONLY valid JSON. Do not include any keys beyond the JSON schema below.
 {

@@ -353,6 +353,15 @@ const blogVoiceRewriteSchema = z.object({
   image_alt: z.string().min(12)
 });
 
+const reviewVoiceRewriteSchema = z.object({
+  description: z.string().min(32),
+  content: z.string().min(280),
+  pros: z.array(z.string().min(6)).min(2),
+  cons: z.array(z.string().min(6)).min(1),
+  seo_description: z.string().min(40),
+  image_alt: z.string().min(12)
+});
+
 const AUTOMATED_RECIPE_PUBLISH_SCORE = 84;
 const AUTOMATED_BLOG_PUBLISH_SCORE = 86;
 const AUTOMATED_REVIEW_PUBLISH_SCORE = 86;
@@ -782,8 +791,11 @@ function validateGeneratedPayload<T extends GenerationType>(
 }
 
 function buildHumanizeDraftPrompt(
-  type: "recipe" | "blog_post",
-  payload: z.infer<typeof generatedRecipeSchema> | z.infer<typeof generatedBlogSchema>
+  type: "recipe" | "blog_post" | "review",
+  payload:
+    | z.infer<typeof generatedRecipeSchema>
+    | z.infer<typeof generatedBlogSchema>
+    | z.infer<typeof generatedReviewSchema>
 ) {
   const baseRules = `You are the FlamingFoodies editorial polish pass.
 
@@ -841,7 +853,8 @@ Draft payload:
 ${JSON.stringify(payload, null, 2)}`;
   }
 
-  return `${baseRules}
+  if (type === "blog_post") {
+    return `${baseRules}
 Keep these unchanged:
 - title
 - category
@@ -856,6 +869,40 @@ Return ONLY valid JSON with this exact structure:
 {
   "description": "...",
   "content": "...",
+  "seo_description": "...",
+  "image_alt": "..."
+}
+
+Draft payload:
+${JSON.stringify(payload, null, 2)}`;
+  }
+
+  return `${baseRules}
+Keep these unchanged:
+- title
+- product_name
+- brand
+- rating
+- price_usd
+- affiliate_url
+- category
+- heat_level
+- scoville_min
+- scoville_max
+- flavor_notes
+- cuisine_origin
+- recommended
+- tags
+- seo_title
+
+Rewrite the review so it feels like a generous, specific tasting note from a real editor. Keep the substance the same, but make the judgments clearer and the language less templated.
+
+Return ONLY valid JSON with this exact structure:
+{
+  "description": "...",
+  "content": "...",
+  "pros": ["..."],
+  "cons": ["..."],
   "seo_description": "...",
   "image_alt": "..."
 }
@@ -925,7 +972,22 @@ function mergeBlogVoiceRewrite(
   });
 }
 
-async function humanizeGeneratedDraft<T extends "recipe" | "blog_post">(
+function mergeReviewVoiceRewrite(
+  payload: z.infer<typeof generatedReviewSchema>,
+  rewrite: z.infer<typeof reviewVoiceRewriteSchema>
+) {
+  return validateGeneratedPayload("review", {
+    ...payload,
+    description: rewrite.description,
+    content: rewrite.content,
+    pros: rewrite.pros,
+    cons: rewrite.cons,
+    seo_description: rewrite.seo_description,
+    image_alt: rewrite.image_alt
+  });
+}
+
+async function humanizeGeneratedDraft<T extends "recipe" | "blog_post" | "review">(
   anthropic: Anthropic | null,
   type: T,
   payload: ValidatedGeneratedPayloadMap[T]
@@ -959,13 +1021,25 @@ async function humanizeGeneratedDraft<T extends "recipe" | "blog_post">(
       ) as ValidatedGeneratedPayloadMap[T];
     }
 
-    const parsed = blogVoiceRewriteSchema.safeParse(response.payload);
+    if (type === "blog_post") {
+      const parsed = blogVoiceRewriteSchema.safeParse(response.payload);
+      if (!parsed.success) {
+        return payload;
+      }
+
+      return mergeBlogVoiceRewrite(
+        payload as z.infer<typeof generatedBlogSchema>,
+        parsed.data
+      ) as ValidatedGeneratedPayloadMap[T];
+    }
+
+    const parsed = reviewVoiceRewriteSchema.safeParse(response.payload);
     if (!parsed.success) {
       return payload;
     }
 
-    return mergeBlogVoiceRewrite(
-      payload as z.infer<typeof generatedBlogSchema>,
+    return mergeReviewVoiceRewrite(
+      payload as z.infer<typeof generatedReviewSchema>,
       parsed.data
     ) as ValidatedGeneratedPayloadMap[T];
   } catch {
@@ -1990,7 +2064,11 @@ async function insertGeneratedContent(
     };
   }
 
-  const validatedGenerated = validateGeneratedPayload(type, generated);
+  const validatedGenerated = await humanizeGeneratedDraft(
+    anthropic,
+    type,
+    validateGeneratedPayload(type, generated)
+  );
   const imageUrl = buildAutomationHeroImageUrl(type, validatedGenerated.title, cuisine);
   const payload = buildReviewDraft(
     cuisine,
@@ -2422,36 +2500,43 @@ export async function createWeeklyDigest() {
       .eq("status", "active")
   ]);
 
-  const subject = "This Week’s Hottest Recipes and Sauce Finds";
-  const previewText = "Fresh recipes, smart reviews, and a few spicy rabbit holes worth opening.";
+  const subject = "What to cook, pour, and pass around this week";
+  const previewText =
+    "A few good dinners, a couple of smart reads, and the bottles worth talking about before the weekend gets away from you.";
   const htmlContent = `
     <h1>${subject}</h1>
     <p>${previewText}</p>
-    <h2>Recipes</h2>
+    <p>Here is the short version from FlamingFoodies: a couple of recipes to cook soon, a few stories worth opening, and the hot sauce reads that will save someone from buying the wrong bottle.</p>
+    <h2>Cook this next</h2>
     <ul>${(recipes.data ?? [])
       .map((item) => `<li>${item.title}</li>`)
       .join("")}</ul>
-    <h2>Stories</h2>
+    <h2>Read this over coffee</h2>
     <ul>${(blogPosts.data ?? [])
       .map((item) => `<li>${item.title}</li>`)
       .join("")}</ul>
-    <h2>Reviews</h2>
+    <h2>Worth pouring</h2>
     <ul>${(reviews.data ?? [])
       .map((item) => `<li>${item.title}</li>`)
       .join("")}</ul>
+    <p>Save the links you want for later, send one to the friend who keeps the hot sauce shelf stocked, and we will be back next week with a fresh round.</p>
   `;
   const textContent = [
     subject,
     previewText,
     "",
-    "Recipes:",
+    "Here is the short version from FlamingFoodies: a couple of recipes to cook soon, a few stories worth opening, and the hot sauce reads that will save someone from buying the wrong bottle.",
+    "",
+    "Cook this next:",
     ...(recipes.data ?? []).map((item) => `- ${item.title}`),
     "",
-    "Stories:",
+    "Read this over coffee:",
     ...(blogPosts.data ?? []).map((item) => `- ${item.title}`),
     "",
-    "Reviews:",
-    ...(reviews.data ?? []).map((item) => `- ${item.title}`)
+    "Worth pouring:",
+    ...(reviews.data ?? []).map((item) => `- ${item.title}`),
+    "",
+    "Save what looks good, send one link to the friend who keeps the hot sauce shelf stocked, and we will be back next week with a fresh round."
   ].join("\n");
 
   const { error } = await supabase.from("newsletter_campaigns").insert({

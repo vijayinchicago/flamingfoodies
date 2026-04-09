@@ -43,7 +43,7 @@ const SKIMLINKS_ENABLED = Boolean(env.NEXT_PUBLIC_SKIMLINKS_ID);
 const AMAZON_ONLY_MODE = true;
 
 export const AFFILIATE_DISCLOSURE_SUMMARY =
-  "Some outbound links are affiliate links. If you buy through them, FlamingFoodies may earn a commission at no extra cost to you.";
+  "Some links on FlamingFoodies point to Amazon. If you buy through them, FlamingFoodies may earn a commission at no extra cost to you.";
 
 export const AFFILIATE_DISCLOSURE_DETAIL =
   "FlamingFoodies may earn commissions from qualifying purchases made through Amazon commerce links. We only want those links next to content where they help the reader cook, compare, or buy more confidently.";

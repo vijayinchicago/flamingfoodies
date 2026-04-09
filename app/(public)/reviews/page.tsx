@@ -87,9 +87,8 @@ export default async function ReviewsIndexPage({
             Find the right bottle faster, not just the loudest one.
           </h2>
           <p className="mt-4 text-sm leading-7 text-cream/75">
-            The strongest hot-sauce UX is part tasting guide and part buying guide. Readers should
-            be able to tell at a glance which sauces are everyday staples, which ones hit harder,
-            and which ones make the best gifts.
+            This page should help you tell, at a glance, which sauces are everyday staples, which
+            ones hit harder, and which ones make the best gifts.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
