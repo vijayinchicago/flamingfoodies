@@ -74,7 +74,13 @@ export default async function AdminBlogEditPage({
           <div className="mt-4 overflow-hidden rounded-[1.5rem] border border-charcoal/10 bg-white">
             {post.imageUrl ? (
               <div className="relative aspect-[4/3] bg-charcoal/5">
-                <Image src={post.imageUrl} alt={post.imageAlt || post.title} fill className="object-cover" />
+                <Image
+                  src={post.imageUrl}
+                  alt={post.imageAlt || post.title}
+                  fill
+                  unoptimized
+                  className="object-cover"
+                />
               </div>
             ) : (
               <div className="flex aspect-[4/3] items-end bg-gradient-to-br from-ember/25 via-gold/20 to-cream px-4 py-4">

@@ -95,6 +95,7 @@ export default async function AdminBlogPage({
                           src={post.imageUrl}
                           alt={post.imageAlt || post.title}
                           fill
+                          unoptimized
                           className="object-cover"
                         />
                       </div>

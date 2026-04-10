@@ -1,6 +1,33 @@
 import type { BlogPost, CuisineType, HeatLevel } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
 
+function normalizeBlogImageUrl(imageUrl?: string | null) {
+  const trimmed = imageUrl?.trim();
+
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (/^(null|undefined)$/i.test(trimmed)) {
+    return undefined;
+  }
+
+  return trimmed;
+}
+
+function isLocalOnlyBlogImageUrl(imageUrl?: string | null) {
+  if (!imageUrl) {
+    return false;
+  }
+
+  try {
+    const hostname = new URL(imageUrl).hostname.toLowerCase();
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "0.0.0.0";
+  } catch {
+    return false;
+  }
+}
+
 export function buildBlogHeroImageUrl(input: {
   title: string;
   category?: string;
@@ -46,11 +73,15 @@ export function buildBlogHeroImageAlt(input: {
 export function getBlogHeroFields(
   blog: Pick<BlogPost, "title" | "category" | "cuisineType" | "heatLevel" | "imageUrl" | "imageAlt">
 ) {
-  const usesGeneratedHeroCard = !blog.imageUrl || isGeneratedBlogHeroImageUrl(blog.imageUrl);
+  const normalizedImageUrl = normalizeBlogImageUrl(blog.imageUrl);
+  const usesGeneratedHeroCard =
+    !normalizedImageUrl ||
+    isGeneratedBlogHeroImageUrl(normalizedImageUrl) ||
+    isLocalOnlyBlogImageUrl(normalizedImageUrl);
 
   return {
     imageUrl:
-      blog.imageUrl ||
+      (!usesGeneratedHeroCard ? normalizedImageUrl : undefined) ||
       buildBlogHeroImageUrl({
         title: blog.title,
         category: blog.category,

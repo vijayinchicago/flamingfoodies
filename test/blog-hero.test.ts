@@ -36,4 +36,33 @@ describe("blog hero helpers", () => {
   it("detects generated blog hero cards", () => {
     expect(isGeneratedBlogHeroImageUrl("https://flamingfoodies.com/api/og?title=Hello")).toBe(true);
   });
+
+  it("falls back when a stored image URL is the string undefined", () => {
+    const hero = getBlogHeroFields({
+      title: "Why Ethiopian Spice Blends Are Having Their Moment Right Now",
+      category: "culture",
+      cuisineType: "ethiopian",
+      heatLevel: "medium",
+      imageUrl: "undefined",
+      imageAlt: undefined
+    });
+
+    expect(hero.imageUrl).toContain("/api/og?");
+    expect(hero.usesGeneratedHeroCard).toBe(true);
+  });
+
+  it("falls back when a stored image URL points at localhost", () => {
+    const hero = getBlogHeroFields({
+      title: "Why Ethiopian Spice Blends Are Having Their Moment Right Now",
+      category: "culture",
+      cuisineType: "ethiopian",
+      heatLevel: "medium",
+      imageUrl: "http://localhost:3000/api/og?title=Draft",
+      imageAlt: undefined
+    });
+
+    expect(hero.imageUrl).toContain("/api/og?");
+    expect(hero.imageUrl).not.toContain("localhost:3000");
+    expect(hero.usesGeneratedHeroCard).toBe(true);
+  });
 });

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { buildBlogQaReport, getBlogQaPublishError } from "@/lib/blog-qa";
+import { getBlogHeroFields } from "@/lib/blog-hero";
 import { flags } from "@/lib/env";
 import { merchThemeOptions } from "@/lib/merch";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
@@ -611,6 +612,15 @@ function buildBlogQaPayload({
 }
 
 function mapBlogRowToQaCandidate(row: any): BlogPost {
+  const hero = getBlogHeroFields({
+    title: row.title,
+    category: row.category,
+    cuisineType: row.cuisine_type ?? undefined,
+    heatLevel: row.heat_level ?? undefined,
+    imageUrl: row.image_url ?? undefined,
+    imageAlt: row.image_alt ?? undefined
+  });
+
   return {
     id: row.id,
     type: "blog",
@@ -621,8 +631,8 @@ function mapBlogRowToQaCandidate(row: any): BlogPost {
     category: row.category,
     content: row.content,
     tags: row.tags ?? [],
-    imageUrl: row.image_url ?? undefined,
-    imageAlt: row.image_alt ?? undefined,
+    imageUrl: hero.imageUrl,
+    imageAlt: hero.imageAlt,
     featured: row.featured ?? false,
     source: row.source,
     status: row.status,

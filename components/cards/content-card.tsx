@@ -31,6 +31,7 @@ export function ContentCard({
             src={image}
             alt={imageAlt || title}
             fill
+            unoptimized
             className="object-cover transition duration-500 group-hover:scale-105"
           />
         </div>

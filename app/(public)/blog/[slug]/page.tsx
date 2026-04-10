@@ -88,6 +88,7 @@ export default async function BlogPostPage({
               src={post.imageUrl}
               alt={post.imageAlt || post.title}
               fill
+              unoptimized
               sizes="(min-width: 1280px) 960px, 100vw"
               className="object-cover"
             />
