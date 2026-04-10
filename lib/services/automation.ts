@@ -200,14 +200,14 @@ const generatedRecipeLooseSchema = z
   .object({
     title: z.string().min(10),
     description: z.string().min(40),
-    intro: z.string().min(24),
+    intro: z.string().min(24).optional(),
     hero_summary: z.string().min(20).optional(),
     heat_level: z.enum(heatLevelEnumValues).optional(),
     cuisine_type: z.enum(cuisineEnumValues).optional(),
-    prep_time_minutes: z.coerce.number().int().positive(),
-    cook_time_minutes: z.coerce.number().int().positive(),
+    prep_time_minutes: z.coerce.number().int().positive().optional(),
+    cook_time_minutes: z.coerce.number().int().positive().optional(),
     active_time_minutes: z.coerce.number().int().positive().optional(),
-    servings: z.coerce.number().int().positive(),
+    servings: z.coerce.number().int().positive().optional(),
     difficulty: z.enum(["beginner", "intermediate", "advanced"]).optional(),
     ingredients: z.array(recipeIngredientSchema).optional(),
     ingredient_sections: z.array(recipeIngredientSectionLooseSchema).optional(),
@@ -223,10 +223,10 @@ const generatedRecipeLooseSchema = z
     faqs: z.array(recipeFaqSchema).optional(),
     equipment: z.array(z.string().min(2)).optional(),
     tags: z.array(z.string().min(2)).optional(),
-    seo_title: z.string().min(10),
-    seo_description: z.string().min(40),
+    seo_title: z.string().min(10).optional(),
+    seo_description: z.string().min(40).optional(),
     hero_image_query: z.string().min(6).optional(),
-    image_alt: z.string().min(12)
+    image_alt: z.string().min(12).optional()
   })
   .passthrough();
 
@@ -582,6 +582,9 @@ function buildFallbackRecipeFaqs(input: {
 
 export function normalizeGeneratedRecipePayload(payload: Record<string, any>) {
   const loose = generatedRecipeLooseSchema.parse(normalizeGeneratedCommonPayload(payload));
+  const intro = loose.intro?.trim() || loose.description.trim();
+  const heroSummary = loose.hero_summary?.trim() || intro;
+  const cuisineType = loose.cuisine_type;
 
   const instructions =
     loose.instructions?.length
@@ -658,10 +661,25 @@ export function normalizeGeneratedRecipePayload(payload: Record<string, any>) {
     : loose.variations?.length
       ? loose.variations
       : ["Swap in a sweeter pepper or milder paste if you want an even gentler finish."];
+  const seoTitle = loose.seo_title?.trim() || `${loose.title.trim()} Recipe | FlamingFoodies`;
+  const seoDescription = loose.seo_description?.trim() || loose.description.trim();
+  const imageAlt =
+    loose.image_alt?.trim() ||
+    buildRecipeHeroImageAlt({
+      title: loose.title.trim(),
+      description: loose.description,
+      heroSummary,
+      cuisineType
+    });
 
   const normalized = {
     ...loose,
-    hero_summary: loose.hero_summary || loose.intro,
+    intro,
+    hero_summary: heroSummary,
+    prep_time_minutes: loose.prep_time_minutes ?? 20,
+    cook_time_minutes: loose.cook_time_minutes ?? 35,
+    servings: loose.servings ?? 4,
+    difficulty: loose.difficulty ?? "intermediate",
     ingredients,
     ingredient_sections: ingredientSections,
     instructions,
@@ -687,7 +705,10 @@ export function normalizeGeneratedRecipePayload(payload: Record<string, any>) {
             servingSuggestions
           }),
     equipment: loose.equipment?.length ? loose.equipment : ["large skillet", "pot", "spoon"],
-    tags: dedupeList([...(loose.tags ?? []), loose.cuisine_type || "", "spicy"]).slice(0, 6)
+    tags: dedupeList([...(loose.tags ?? []), cuisineType || "", "spicy"]).slice(0, 6),
+    seo_title: seoTitle,
+    seo_description: seoDescription,
+    image_alt: imageAlt
   };
 
   return generatedRecipeSchema.parse(normalized);

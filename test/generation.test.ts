@@ -153,6 +153,48 @@ describe("generation prompts", () => {
     expect(payload.tags).toContain("spicy");
   });
 
+  it("backfills missing top-level recipe fields before validation", () => {
+    const payload = normalizeGeneratedRecipePayload({
+      title: "Yellowbird Habanero Carnitas Tacos",
+      description:
+        "Slow-cooked pork shoulder gets a fiery finish with Yellowbird Habanero sauce, delivering serious heat balanced by bright carrot and citrus notes for rich, juicy tacos.",
+      heat_level: "hot",
+      cuisine_type: "mexican",
+      ingredients: [
+        { amount: "3", unit: "lb", item: "pork shoulder" },
+        { amount: "1/3", unit: "cup", item: "Yellowbird Habanero Hot Sauce" },
+        { amount: "12", unit: "", item: "corn tortillas" }
+      ],
+      instructions: [
+        {
+          step: 1,
+          text: "Season the pork shoulder well, then braise it gently until tender enough to shred with a spoon."
+        },
+        {
+          step: 2,
+          text: "Toss the shredded pork with Yellowbird Habanero sauce and pan-roast the edges until sticky and caramelized."
+        },
+        {
+          step: 3,
+          text: "Warm the tortillas, pile on the carnitas, and finish with onion, cilantro, and lime."
+        }
+      ],
+      tips: ["Crisp the pork in batches so the edges brown instead of steaming."],
+      variations: ["Swap in chicken thighs if you want a faster version."],
+      equipment: ["Dutch oven"],
+      tags: ["tacos", "pork"]
+    });
+
+    expect(payload.intro).toContain("Yellowbird Habanero");
+    expect(payload.prep_time_minutes).toBe(20);
+    expect(payload.cook_time_minutes).toBe(35);
+    expect(payload.servings).toBe(4);
+    expect(payload.difficulty).toBe("intermediate");
+    expect(payload.seo_title).toContain("Yellowbird Habanero Carnitas Tacos");
+    expect(payload.seo_description).toContain("Yellowbird Habanero");
+    expect(payload.image_alt).toContain("Yellowbird Habanero Carnitas Tacos");
+  });
+
   it("builds photo-first search queries for generated recipes", () => {
     const queries = buildRecipePhotoSearchQueries({
       title: "Calabrian Chili Vodka Rigatoni",
