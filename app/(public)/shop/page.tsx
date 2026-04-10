@@ -270,8 +270,8 @@ export default async function ShopPage() {
         <div className="mt-12">
           <SectionHeading
             eyebrow="Fresh shop picks"
-            title="The shelf keeps growing without waiting on a manual product upload."
-            copy="These picks rotate through the FlamingFoodies world every day: bottles, gear, pantry builders, and gift-ready subscriptions that actually fit the site."
+            title="What belongs on the shelf right now."
+            copy="These picks keep the shop feeling current: bottles, gear, pantry builders, and gift-ready subscriptions that fit the FlamingFoodies point of view."
           />
           <div className="mt-8 grid gap-6 lg:grid-cols-2 xl:grid-cols-4">
             {dailyShopPicks.map((item) => (
@@ -411,8 +411,8 @@ export default async function ShopPage() {
             Get the best bottle, gift, and gear picks by email.
           </h2>
           <p className="mt-4 text-sm leading-7 text-cream/75">
-            This list feeds the same newsletter engine as the rest of the site, so shop intent
-            becomes a real audience signal instead of disappearing after the click.
+            Get the strongest bottle, gear, and gift picks in one place so you can keep up with
+            the shelf without checking the shop every day.
           </p>
         </div>
         <div>
