@@ -218,7 +218,7 @@ export default async function ReviewPage({
             </div>
           </div>
           <div className="panel p-6">
-            <h2 className="font-display text-3xl text-cream">FlamingFoodies merch</h2>
+            <h2 className="font-display text-3xl text-cream">FlamingFoodies picks</h2>
             <div className="mt-4 space-y-4">
               {merchPreview.map((item) => (
                 <article

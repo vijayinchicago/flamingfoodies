@@ -39,6 +39,14 @@ const triggers = [
     type: "review",
     qty: 1,
     copy: "Create a product review draft with ratings and notes."
+  },
+  {
+    id: "merch_product",
+    label: "Shop pick",
+    type: "merch_product",
+    qty: 1,
+    copy:
+      "Publish one daily FlamingFoodies shop pick from the affiliate catalog so the store keeps growing without manual entry."
   }
 ] as const;
 

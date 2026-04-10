@@ -307,7 +307,13 @@ export interface SocialPost {
 
 export interface GenerationJob {
   id: number;
-  jobType: "blog_post" | "recipe" | "review" | "social_post" | "newsletter";
+  jobType:
+    | "blog_post"
+    | "recipe"
+    | "review"
+    | "merch_product"
+    | "social_post"
+    | "newsletter";
   promptTemplate?: string;
   parameters?: Record<string, unknown>;
   status: "queued" | "generating" | "completed" | "failed" | "skipped";
@@ -324,7 +330,13 @@ export interface GenerationJob {
 
 export interface GenerationSchedule {
   id: number;
-  jobType: "blog_post" | "recipe" | "review" | "social_post" | "newsletter";
+  jobType:
+    | "blog_post"
+    | "recipe"
+    | "review"
+    | "merch_product"
+    | "social_post"
+    | "newsletter";
   quantity: number;
   cronExpr: string;
   parameters?: Record<string, unknown>;

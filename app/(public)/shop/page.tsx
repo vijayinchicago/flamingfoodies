@@ -12,7 +12,9 @@ import {
   getAffiliateLinkEntries,
   resolveAffiliateLink
 } from "@/lib/affiliates";
+import { getMerchThemeClasses } from "@/lib/merch";
 import { buildMetadata } from "@/lib/seo";
+import { getMerchProducts } from "@/lib/services/content";
 import { getShopAffiliateCollections } from "@/lib/shop";
 
 export const metadata = buildMetadata({
@@ -23,6 +25,7 @@ export const metadata = buildMetadata({
 });
 
 export default async function ShopPage() {
+  const merchProducts = await getMerchProducts();
   const hotSauceLinks = getAffiliateLinkEntries(HOT_SAUCE_SPOTLIGHT_KEYS);
   const gearLinks = getAffiliateLinkEntries(KITCHEN_GEAR_KEYS);
   const pantryLinks = getAffiliateLinkEntries(PANTRY_HEAT_KEYS);
@@ -54,6 +57,9 @@ export default async function ShopPage() {
       }))
       .filter((entry): entry is { link: (typeof collection.items)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved))
   }));
+  const dailyShopPicks = merchProducts.slice(0, 4);
+  const buildShopPickHref = (href: string) =>
+    href.startsWith("/go/") ? `${href}?source=/shop&position=daily-shop-picks` : href;
 
   return (
     <section className="container-shell py-16">
@@ -162,8 +168,8 @@ export default async function ShopPage() {
               curated set, a subscription, or a short list that already narrows the shelf.
             </p>
             <p>
-              This keeps the shop useful for holidays, birthdays, and house gifts without forcing
-              us to manufacture a merch story before it is real.
+              This keeps the shop useful for holidays, birthdays, and house gifts without
+              pretending FlamingFoodies needs an owned product line on day one.
             </p>
           </div>
           <div className="mt-8 grid gap-4 md:grid-cols-2">
@@ -259,6 +265,40 @@ export default async function ShopPage() {
           ))}
         </div>
       </div>
+
+      {dailyShopPicks.length ? (
+        <div className="mt-12">
+          <SectionHeading
+            eyebrow="Fresh shop picks"
+            title="The shelf keeps growing without waiting on a manual product upload."
+            copy="These picks rotate through the FlamingFoodies world every day: bottles, gear, pantry builders, and gift-ready subscriptions that actually fit the site."
+          />
+          <div className="mt-8 grid gap-6 lg:grid-cols-2 xl:grid-cols-4">
+            {dailyShopPicks.map((item) => (
+              <article
+                key={item.slug}
+                className={`panel border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-6`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
+                  <span className="text-xs text-cream/55">{item.priceLabel}</span>
+                </div>
+                <h2 className="mt-3 font-display text-3xl text-cream">{item.name}</h2>
+                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-cream/55">
+                  {item.category}
+                </p>
+                <p className="mt-3 text-sm leading-7 text-cream/72">{item.description}</p>
+                <Link
+                  href={buildShopPickHref(item.href)}
+                  className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
+                >
+                  {item.ctaLabel}
+                </Link>
+              </article>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-12 grid gap-6 xl:grid-cols-4">
         <div id="hot-sauce-picks" className="panel p-8">

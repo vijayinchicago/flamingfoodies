@@ -1,11 +1,25 @@
 import type { GenerationJob } from "@/lib/types";
 
+function formatJobTypeLabel(jobType: GenerationJob["jobType"]) {
+  if (jobType === "blog_post") {
+    return "blog post";
+  }
+
+  if (jobType === "merch_product") {
+    return "shop pick";
+  }
+
+  return jobType.replace(/_/g, " ");
+}
+
 export function GenerationJobPanel({ job }: { job: GenerationJob }) {
   return (
     <article className="panel-light p-6">
       <div className="flex items-center justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-ember">{job.jobType}</p>
+          <p className="text-xs uppercase tracking-[0.24em] text-ember">
+            {formatJobTypeLabel(job.jobType)}
+          </p>
           <h2 className="mt-2 font-display text-3xl text-charcoal">
             Job #{job.id}
           </h2>

@@ -3,12 +3,13 @@ import { z } from "zod";
 
 import { requireAdminApiAccess, writeAdminAuditLog } from "@/lib/admin-api";
 import { runGenerationPipeline } from "@/lib/services/automation";
+import { runShopPickAutomation } from "@/lib/services/shop-automation";
 import { jsonResponse } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 const requestSchema = z.object({
-  type: z.enum(["recipe", "blog_post", "review"]),
+  type: z.enum(["recipe", "blog_post", "review", "merch_product"]),
   qty: z.coerce.number().int().min(1).max(20),
   profile: z.enum(["default", "hot_sauce_recipe"]).optional()
 }).superRefine((value, context) => {
@@ -21,7 +22,7 @@ const requestSchema = z.object({
   }
 });
 
-function revalidateGeneratedType(type: "recipe" | "blog_post" | "review") {
+function revalidateGeneratedType(type: "recipe" | "blog_post" | "review" | "merch_product") {
   revalidatePath("/admin/automation/jobs");
   revalidatePath("/admin/automation/trigger");
   revalidatePath("/admin");
@@ -36,6 +37,11 @@ function revalidateGeneratedType(type: "recipe" | "blog_post" | "review") {
 
   if (type === "review") {
     revalidatePath("/admin/content/reviews");
+  }
+
+  if (type === "merch_product") {
+    revalidatePath("/admin/content/merch");
+    revalidatePath("/shop");
   }
 }
 
@@ -60,10 +66,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await runGenerationPipeline(parsed.data.type, parsed.data.qty, {
-      source: "manual",
-      profile: parsed.data.profile
-    });
+    const result =
+      parsed.data.type === "merch_product"
+        ? await runShopPickAutomation(parsed.data.qty, {
+            source: "manual"
+          })
+        : await runGenerationPipeline(parsed.data.type, parsed.data.qty, {
+            source: "manual",
+            profile: parsed.data.profile
+          });
 
     if ("skippedReason" in result && result.skippedReason) {
       return jsonResponse(

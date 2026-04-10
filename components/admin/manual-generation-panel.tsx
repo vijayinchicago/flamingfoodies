@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { GenerationJob } from "@/lib/types";
 
-type GenerationType = "recipe" | "blog_post" | "review";
+type GenerationType = "recipe" | "blog_post" | "review" | "merch_product";
 type GenerationProfile = "default" | "hot_sauce_recipe";
 
 type Trigger = {
@@ -49,6 +49,10 @@ const ACTIVE_JOB_STATUSES = new Set<GenerationJob["status"]>(["queued", "generat
 function formatJobType(type: GenerationType) {
   if (type === "blog_post") {
     return "blog post";
+  }
+
+  if (type === "merch_product") {
+    return "shop pick";
   }
 
   return type.replace(/_/g, " ");

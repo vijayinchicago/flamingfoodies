@@ -18,11 +18,11 @@ export default async function AdminMerchPage({
 
   return (
     <AdminPage
-      title="Merch content"
-      description="Owned storefront inventory, drop previews, and waitlist offers managed from one CMS view."
+      title="Shop picks"
+      description="Affiliate-led shop picks, pantry builders, gear, and giftable finds managed from one CMS view."
     >
       <ContentTable
-        title="Merch"
+        title="Shop picks"
         filters={["status", "availability", "featured", "category"]}
         rows={products.map((product) => ({
           name: product.name,
@@ -34,9 +34,10 @@ export default async function AdminMerchPage({
         }))}
       />
       <div className="panel-light p-6">
-        <h2 className="font-display text-4xl text-charcoal">Create a merch product</h2>
+        <h2 className="font-display text-4xl text-charcoal">Create a shop pick</h2>
         <p className="mt-3 text-sm leading-7 text-charcoal/65">
-          Use this for launch-preview merch, waitlist drops, or live products once checkout is ready.
+          Use this for Amazon-linked shelf picks, pantry builders, gear, subscriptions, or any
+          other product that fits the FlamingFoodies world.
         </p>
         <form action={createMerchProductAction} encType="multipart/form-data" className="mt-6 space-y-4">
           <input
@@ -63,7 +64,7 @@ export default async function AdminMerchPage({
           </div>
           <textarea
             name="description"
-            placeholder="Merch description"
+            placeholder="Shop pick description"
             rows={4}
             className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
           />
@@ -88,8 +89,8 @@ export default async function AdminMerchPage({
             </select>
             <input
               name="ctaLabel"
-              placeholder="Join merch waitlist"
-              defaultValue="Join merch waitlist"
+              placeholder="View on Amazon"
+              defaultValue="View on Amazon"
               className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
             />
             <input
@@ -102,8 +103,8 @@ export default async function AdminMerchPage({
           </div>
           <input
             name="href"
-            placeholder="/shop#merch-waitlist or https://checkout.example.com"
-            defaultValue="/shop#merch-waitlist"
+            placeholder="/go/amazon-yellowbird-habanero or https://www.amazon.com/..."
+            defaultValue=""
             className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
           />
           <div className="grid gap-4 md:grid-cols-3">
@@ -134,14 +135,14 @@ export default async function AdminMerchPage({
             </select>
             <label className="flex items-center gap-3 text-sm text-charcoal/70">
               <input type="checkbox" name="featured" />
-              Featured merch
+              Featured shop pick
             </label>
           </div>
           {searchParams?.error ? <p className="text-sm text-rose-600">{searchParams.error}</p> : null}
-          {searchParams?.created ? <p className="text-sm text-emerald-700">Merch product created successfully.</p> : null}
-          {searchParams?.updated ? <p className="text-sm text-emerald-700">Merch product updated successfully.</p> : null}
+          {searchParams?.created ? <p className="text-sm text-emerald-700">Shop pick created successfully.</p> : null}
+          {searchParams?.updated ? <p className="text-sm text-emerald-700">Shop pick updated successfully.</p> : null}
           <button className="rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 font-semibold text-white">
-            Save merch product
+            Save shop pick
           </button>
         </form>
       </div>
@@ -172,7 +173,7 @@ export default async function AdminMerchPage({
                 href={`/admin/content/merch/${product.id}`}
                 className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal"
               >
-                Edit merch
+                Edit shop pick
               </Link>
               <form action={updateMerchProductStateAction} className="flex flex-wrap gap-3">
                 <input type="hidden" name="id" value={product.id} />
@@ -197,8 +198,8 @@ export default async function AdminMerchPage({
                 <button
                   name="intent"
                   value={product.featured ? "unfeature" : "feature"}
-                  className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal"
-                >
+                    className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal"
+                  >
                   {product.featured ? "Remove featured" : "Mark featured"}
                 </button>
               </form>

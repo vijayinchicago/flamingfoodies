@@ -6,6 +6,7 @@
       "schedule": "0 9 * * 1"
     },
     { "path": "/api/admin/generate?type=blog_post&qty=1", "schedule": "0 7 * * *" },
+    { "path": "/api/admin/generate?type=merch_product&qty=1", "schedule": "0 11 * * *" },
     { "path": "/api/admin/generate?type=review&qty=1", "schedule": "0 8 * * 1,4" },
     { "path": "/api/admin/publish-scheduled", "schedule": "0 18 * * *" },
     { "path": "/api/admin/growth-loop", "schedule": "30 18 * * *" },

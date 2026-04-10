@@ -1024,9 +1024,9 @@ export default async function RecipePage({
 
                 {merchPreview.length ? (
                   <div className="panel p-6 sm:p-7">
-                    <p className="eyebrow">FlamingFoodies merch</p>
+                    <p className="eyebrow">FlamingFoodies picks</p>
                     <h3 className="mt-3 font-display text-4xl text-cream">
-                      Brand pieces that belong next to the food
+                      Pantry, gear, and bottle picks that fit this meal
                     </h3>
                     <div className="mt-6 space-y-4">
                       {merchPreview.map((item) => (

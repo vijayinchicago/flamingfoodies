@@ -1,17 +1,22 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 async function importGenerateRoute({
-  runGenerationPipeline = vi.fn().mockResolvedValue({ mode: "live", createdJobs: [] })
+  runGenerationPipeline = vi.fn().mockResolvedValue({ mode: "live", createdJobs: [] }),
+  runShopPickAutomation = vi.fn().mockResolvedValue({ mode: "catalog", createdJobs: [] })
 } = {}) {
   vi.resetModules();
   vi.doMock("@/lib/services/automation", () => ({
     runGenerationPipeline
   }));
+  vi.doMock("@/lib/services/shop-automation", () => ({
+    runShopPickAutomation
+  }));
 
   const route = await import("@/app/api/admin/generate/route");
   return {
     route,
-    runGenerationPipeline
+    runGenerationPipeline,
+    runShopPickAutomation
   };
 }
 
@@ -301,6 +306,31 @@ describe("content generation cron route", () => {
       source: "cron",
       profile: "hot_sauce_recipe"
     });
+  });
+
+  it("runs daily shop-pick automation through the same cron route", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
+    const runShopPickAutomation = vi.fn().mockResolvedValue({
+      mode: "catalog",
+      createdJobs: [{ id: 21, type: "merch_product", slug: "shop-pick-amazon-yellowbird-habanero" }]
+    });
+    const { route, runGenerationPipeline } = await importGenerateRoute({
+      runShopPickAutomation
+    });
+
+    const response = await route.GET(
+      new Request("https://flamingfoodies.com/api/admin/generate?type=merch_product&qty=1", {
+        headers: {
+          authorization: "Bearer topsecret"
+        }
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(runShopPickAutomation).toHaveBeenCalledWith(1, {
+      source: "cron"
+    });
+    expect(runGenerationPipeline).not.toHaveBeenCalled();
   });
 });
 

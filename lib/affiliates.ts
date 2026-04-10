@@ -338,6 +338,15 @@ export const SUBSCRIPTION_KEYS = [
   "pepper-joe-superhot-seed-pack"
 ] as const;
 
+export const AUTOMATED_SHOP_PICK_KEYS = Array.from(
+  new Set([
+    ...HOT_SAUCE_SPOTLIGHT_KEYS,
+    ...KITCHEN_GEAR_KEYS,
+    ...PANTRY_HEAT_KEYS,
+    ...SUBSCRIPTION_KEYS
+  ])
+);
+
 export function getAffiliateLinkEntries(
   keys: readonly string[]
 ): AffiliateLinkEntry[] {
@@ -351,6 +360,10 @@ export function getAffiliateLinkEntries(
         ]
       : []
   );
+}
+
+export function getAutomatedShopPickEntries() {
+  return getAffiliateLinkEntries(AUTOMATED_SHOP_PICK_KEYS);
 }
 
 export function findAffiliateLinkByUrl(url?: string | null) {

@@ -21,14 +21,14 @@ export default async function AdminMerchEditPage({
 
   return (
     <AdminPage
-      title="Edit Merch"
-      description="Adjust storefront messaging, CTA, and launch status without touching code."
+      title="Edit Shop Pick"
+      description="Adjust storefront messaging, CTA, and featured status without touching code."
     >
       <Link
         href="/admin/content/merch"
         className="inline-flex rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal"
       >
-        Back to merch content
+        Back to shop picks
       </Link>
       <form action={updateMerchProductAction} encType="multipart/form-data" className="panel-light mt-6 space-y-4 p-6">
         <input type="hidden" name="id" value={product.id} />
@@ -131,11 +131,11 @@ export default async function AdminMerchEditPage({
           </select>
           <label className="flex items-center gap-3 text-sm text-charcoal/70">
             <input type="checkbox" name="featured" defaultChecked={product.featured} />
-            Featured merch
+            Featured shop pick
           </label>
         </div>
         {searchParams?.error ? <p className="text-sm text-rose-600">{searchParams.error}</p> : null}
-        {searchParams?.updated ? <p className="text-sm text-emerald-700">Merch product updated successfully.</p> : null}
+        {searchParams?.updated ? <p className="text-sm text-emerald-700">Shop pick updated successfully.</p> : null}
         <button className="rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 font-semibold text-white">
           Save changes
         </button>

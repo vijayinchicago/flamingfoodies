@@ -1,4 +1,5 @@
 import { runGenerationPipeline } from "@/lib/services/automation";
+import { runShopPickAutomation } from "@/lib/services/shop-automation";
 import { requireCronAuthorization } from "@/lib/cron";
 import { jsonResponse } from "@/lib/utils";
 
@@ -17,10 +18,15 @@ async function handleRequest(request: Request) {
   const qty = qtyParam ? Number(qtyParam) : undefined;
   const profile = profileParam === "hot_sauce_recipe" ? "hot_sauce_recipe" : undefined;
 
-  const result = await runGenerationPipeline(type, qty, {
-    source: "cron",
-    profile
-  });
+  const result =
+    type === "merch_product"
+      ? await runShopPickAutomation(qty, {
+          source: "cron"
+        })
+      : await runGenerationPipeline(type, qty, {
+          source: "cron",
+          profile
+        });
   return jsonResponse({ ok: true, ...result });
 }
 
