@@ -240,6 +240,7 @@ const generatedBlogSchema = z
     cuisine_type: z.enum(cuisineEnumValues).optional(),
     seo_title: z.string().min(10),
     seo_description: z.string().min(40),
+    hero_image_query: z.string().min(6).optional(),
     image_alt: z.string().min(12)
   })
   .passthrough();
@@ -1119,22 +1120,49 @@ export function buildBlogPhotoSearchQueries(input: {
   category?: string | null;
   cuisineType?: CuisineType;
   fallbackCuisineType?: CuisineType;
+  heroImageQuery?: string | null;
 }) {
   const cleanTitle = stripRecipeTitleQualifiers(input.title);
   const cuisineLabel =
     formatCuisineQuery(input.cuisineType) || formatCuisineQuery(input.fallbackCuisineType);
   const categoryLabel = input.category?.replace(/-/g, " ").trim();
+  const lowerTitle = cleanTitle.toLowerCase();
+  const topicHints = dedupeList(
+    [
+      lowerTitle.includes("spice blend") ? (cuisineLabel ? `${cuisineLabel} spice blend` : "spice blend bowls") : "",
+      lowerTitle.includes("spice")
+        ? cuisineLabel
+          ? `${cuisineLabel} spices`
+          : "assorted spices"
+        : "",
+      lowerTitle.includes("sauce")
+        ? cuisineLabel
+          ? `${cuisineLabel} sauce bowl`
+          : "spicy sauce bowl"
+        : "",
+      lowerTitle.includes("paste")
+        ? cuisineLabel
+          ? `${cuisineLabel} chili paste bowl`
+          : "chili paste bowl"
+        : "",
+      cuisineLabel ? `${cuisineLabel} food spread` : "",
+      cuisineLabel ? `${cuisineLabel} dishes` : ""
+    ].filter(Boolean)
+  );
 
   return dedupeList(
     [
+      normalizePhotoSearchQuery(input.heroImageQuery),
+      ...topicHints,
+      cuisineLabel ? `${cuisineLabel} food` : undefined,
+      categoryLabel && cuisineLabel ? `${categoryLabel} ${cuisineLabel} food` : undefined,
       cleanTitle,
       `${cleanTitle} food`,
       cuisineLabel ? `${cuisineLabel} ${cleanTitle}` : undefined,
-      cuisineLabel ? `${cuisineLabel} food` : undefined,
-      categoryLabel && cuisineLabel ? `${categoryLabel} ${cuisineLabel} food` : undefined,
+      cuisineLabel ? `${cuisineLabel} dishes` : undefined,
       categoryLabel ? `${categoryLabel} spicy food` : undefined
     ].filter(Boolean) as string[]
-  ).slice(0, 6);
+  ).slice(0, 8);
 }
 
 type ResolvedRecipeHeroAsset = {
@@ -1531,7 +1559,8 @@ async function resolveBlogHeroAsset(input: {
     title: input.generated.title,
     category: input.generated.category,
     cuisineType: input.generated.cuisine_type,
-    fallbackCuisineType: input.cuisine
+    fallbackCuisineType: input.cuisine,
+    heroImageQuery: input.generated.hero_image_query
   });
 
   for (const query of queries) {
@@ -1551,7 +1580,8 @@ async function resolveBlogHeroAsset(input: {
       title: input.generated.title,
       category: input.generated.category,
       cuisineType: input.generated.cuisine_type || input.cuisine,
-      heatLevel: input.generated.heat_level
+      heatLevel: input.generated.heat_level,
+      heroImageQuery: input.generated.hero_image_query
     }),
     heroSource: "generated",
     searchQuery: null

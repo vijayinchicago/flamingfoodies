@@ -50,6 +50,7 @@ describe("generation prompts", () => {
     expect(prompt).toContain("at least 1 short bullet or numbered list");
     expect(prompt).toContain("Write like a strong magazine-style food writer");
     expect(prompt).toContain("family-table oriented");
+    expect(prompt).toContain("\"hero_image_query\"");
   });
 
   it("creates a review prompt with warmer editorial guidance", () => {
@@ -164,12 +165,14 @@ describe("generation prompts", () => {
 
   it("builds photo-first search queries for generated blog stories", () => {
     const queries = buildBlogPhotoSearchQueries({
-      title: "Why Ethiopian Heat Is Having a Moment",
+      title: "Why Ethiopian Spice Blends Are Having Their Moment Right Now",
       category: "culture",
-      cuisineType: "ethiopian"
+      cuisineType: "ethiopian",
+      heroImageQuery: "ethiopian food spread injera berbere"
     });
 
-    expect(queries[0]).toBe("Why Ethiopian Heat Is Having a Moment");
+    expect(queries[0]).toBe("ethiopian food spread injera berbere");
+    expect(queries).toContain("ethiopian spices");
     expect(queries).toContain("ethiopian food");
     expect(queries).toContain("culture ethiopian food");
   });

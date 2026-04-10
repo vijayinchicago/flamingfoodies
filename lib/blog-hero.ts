@@ -33,6 +33,7 @@ export function buildBlogHeroImageUrl(input: {
   category?: string;
   cuisineType?: CuisineType;
   heatLevel?: HeatLevel;
+  heroImageQuery?: string | null;
 }) {
   const eyebrow = input.category
     ? input.category.replace(/-/g, " ")
@@ -48,10 +49,17 @@ export function buildBlogHeroImageUrl(input: {
   const params = new URLSearchParams({
     title: input.title,
     eyebrow,
-    subtitle
+    subtitle,
+    category: input.category || "story",
+    cuisine: input.cuisineType || "other",
+    heat: input.heatLevel || "medium"
   });
 
-  return absoluteUrl(`/api/og?${params.toString()}`);
+  if (input.heroImageQuery?.trim()) {
+    params.set("query", input.heroImageQuery.trim());
+  }
+
+  return absoluteUrl(`/api/blog-hero?${params.toString()}`);
 }
 
 export function buildBlogHeroImageAlt(input: {
@@ -104,5 +112,5 @@ export function isGeneratedBlogHeroImageUrl(imageUrl?: string | null) {
     return false;
   }
 
-  return imageUrl.includes("/api/og?");
+  return imageUrl.includes("/api/blog-hero?") || imageUrl.includes("/api/og?");
 }

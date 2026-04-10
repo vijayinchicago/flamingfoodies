@@ -144,6 +144,8 @@ Requirements:
 - Do not pad with thesis-restating transitions or empty setup paragraphs.
 - Do not invent first-hand experience, interviews, restaurant visits, or testing notes that did not happen.
 - Avoid filler, AI disclaimers, made-up sourcing, or unsupported product/fact claims.
+- The hero_image_query must describe a real editorial food or ingredient photo that fits the article.
+- For culture, ingredient, or trend stories, prefer a tangible food scene, ingredient spread, or plated dish related to the topic instead of the headline itself.
 
 Return ONLY valid JSON. Do not include any keys beyond the JSON schema below.
 {
@@ -156,6 +158,7 @@ Return ONLY valid JSON. Do not include any keys beyond the JSON schema below.
   "cuisine_type": "cuisine if relevant",
   "seo_title": "...",
   "seo_description": "...",
+  "hero_image_query": "concise search query for a relevant editorial food or ingredient photo",
   "image_alt": "..."
 }`;
 

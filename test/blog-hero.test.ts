@@ -13,7 +13,7 @@ describe("blog hero helpers", () => {
       imageAlt: undefined
     });
 
-    expect(hero.imageUrl).toContain("/api/og?");
+    expect(hero.imageUrl).toContain("/api/blog-hero?");
     expect(hero.imageAlt).toContain("Why Ethiopian Heat Is Having a Moment");
     expect(hero.usesGeneratedHeroCard).toBe(true);
   });
@@ -34,6 +34,7 @@ describe("blog hero helpers", () => {
   });
 
   it("detects generated blog hero cards", () => {
+    expect(isGeneratedBlogHeroImageUrl("https://flamingfoodies.com/api/blog-hero?title=Hello")).toBe(true);
     expect(isGeneratedBlogHeroImageUrl("https://flamingfoodies.com/api/og?title=Hello")).toBe(true);
   });
 
@@ -47,7 +48,7 @@ describe("blog hero helpers", () => {
       imageAlt: undefined
     });
 
-    expect(hero.imageUrl).toContain("/api/og?");
+    expect(hero.imageUrl).toContain("/api/blog-hero?");
     expect(hero.usesGeneratedHeroCard).toBe(true);
   });
 
@@ -61,7 +62,7 @@ describe("blog hero helpers", () => {
       imageAlt: undefined
     });
 
-    expect(hero.imageUrl).toContain("/api/og?");
+    expect(hero.imageUrl).toContain("/api/blog-hero?");
     expect(hero.imageUrl).not.toContain("localhost:3000");
     expect(hero.usesGeneratedHeroCard).toBe(true);
   });
