@@ -31,6 +31,23 @@ a {
   color-scheme: light;
 }
 
+.panel-light input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+.panel-light textarea,
+.panel-light select {
+  @apply bg-white text-charcoal caret-charcoal;
+  -webkit-text-fill-color: #221d1a;
+}
+
+.panel-light input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"])::placeholder,
+.panel-light textarea::placeholder {
+  color: rgba(34, 29, 26, 0.42);
+  opacity: 1;
+}
+
+.panel-light select option {
+  color: #221d1a;
+}
+
 .eyebrow {
   @apply text-xs font-semibold uppercase tracking-[0.32em] text-ember;
 }
