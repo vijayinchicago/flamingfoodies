@@ -439,7 +439,13 @@ export default async function RecipePage({
                 >
                   Community notes
                 </a>
-                <RecipeDisplayControls targetId="recipe-detail-shell" />
+                <RecipeDisplayControls
+                  targetId="recipe-detail-shell"
+                  recipeTitle={recipe.title}
+                  recipeUrl={absoluteUrl(`/recipes/${recipe.slug}`)}
+                  contentId={recipe.id}
+                  contentSlug={recipe.slug}
+                />
               </div>
 
               <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">

@@ -361,6 +361,7 @@ export interface NewsletterCampaign {
   previewText?: string;
   htmlContent: string;
   textContent?: string;
+  audienceTags?: string[];
   provider?: string;
   providerBroadcastId?: string;
   status: "draft" | "scheduled" | "sent";

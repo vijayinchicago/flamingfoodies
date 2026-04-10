@@ -1,5 +1,6 @@
 import { updateNewsletterCampaignStateAction } from "@/lib/actions/admin-newsletter";
 import { AdminPage } from "@/components/admin/admin-page";
+import { formatNewsletterAudience } from "@/lib/newsletter-segments";
 import { getNewsletterCampaigns } from "@/lib/services/admin";
 import { formatDate } from "@/lib/utils";
 
@@ -40,6 +41,9 @@ export default async function AdminCampaignsPage({
               <span>Clicks: {campaign.clickCount ?? "-"}</span>
               <span>Send at: {formatDate(campaign.sendAt || campaign.createdAt)}</span>
             </div>
+            <p className="mt-3 text-xs uppercase tracking-[0.18em] text-charcoal/50">
+              Audience: {formatNewsletterAudience(campaign.audienceTags)}
+            </p>
             {campaign.provider ? (
               <p className="mt-3 text-xs uppercase tracking-[0.18em] text-charcoal/45">
                 Provider: {campaign.provider}

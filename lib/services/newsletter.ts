@@ -1,4 +1,7 @@
 import { env, flags } from "@/lib/env";
+import {
+  normalizeNewsletterSegmentTags
+} from "@/lib/newsletter-segments";
 import { sampleSubscribers } from "@/lib/sample-data";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type { NewsletterCampaign } from "@/lib/types";
@@ -24,11 +27,21 @@ function extractKitBroadcastId(payload: unknown) {
   return String(rawId);
 }
 
-async function getActiveRecipientCount(supabase: AdminClient) {
-  const { count } = await supabase
+async function getActiveRecipientCount(
+  supabase: AdminClient,
+  audienceTags?: string[]
+) {
+  let query = supabase
     .from("newsletter_subscribers")
     .select("*", { count: "exact", head: true })
     .eq("status", "active");
+
+  const normalizedTags = normalizeNewsletterSegmentTags(audienceTags);
+  if (normalizedTags.length) {
+    query = query.overlaps("tags", normalizedTags);
+  }
+
+  const { count } = await query;
 
   return count ?? 0;
 }
@@ -58,6 +71,7 @@ function mapCampaignRow(row: any): NewsletterCampaign {
     previewText: row.preview_text ?? undefined,
     htmlContent: row.html_content,
     textContent: row.text_content ?? undefined,
+    audienceTags: row.audience_tags ?? [],
     provider: row.provider ?? undefined,
     providerBroadcastId: row.provider_broadcast_id ?? undefined,
     status: row.status,
@@ -120,17 +134,24 @@ export async function subscribeToNewsletter({
   email,
   firstName,
   source,
-  tag
+  tag,
+  tags
 }: {
   email: string;
   firstName?: string;
   source?: string;
   tag?: string;
+  tags?: string[];
 }) {
+  const mergedInputTags = normalizeNewsletterSegmentTags([
+    ...(tags ?? []),
+    ...(tag ? [tag] : [])
+  ]);
+
   const payload = {
     email_address: email,
     first_name: firstName,
-    tags: tag ? [tag] : [],
+    tags: mergedInputTags,
     fields: {
       source
     }
@@ -149,7 +170,7 @@ export async function subscribeToNewsletter({
         .maybeSingle();
 
       const mergedTags = Array.from(
-        new Set([...(existing?.tags ?? []), ...(tag ? [tag] : [])].filter(Boolean))
+        new Set([...(existing?.tags ?? []), ...mergedInputTags].filter(Boolean))
       );
 
       const { error } = await supabase.from("newsletter_subscribers").upsert(
@@ -214,10 +235,8 @@ export async function scheduleNewsletterCampaign(campaignId: number, sendAt: str
     };
   }
 
-  const [campaignRow, recipientCount] = await Promise.all([
-    getCampaignRow(supabase, campaignId),
-    getActiveRecipientCount(supabase)
-  ]);
+  const campaignRow = await getCampaignRow(supabase, campaignId);
+  const recipientCount = await getActiveRecipientCount(supabase, campaignRow.audience_tags ?? []);
   const campaign = mapCampaignRow(campaignRow);
   const providerSync = await syncCampaignToKit({
     campaign,
@@ -231,6 +250,7 @@ export async function scheduleNewsletterCampaign(campaignId: number, sendAt: str
       send_at: sendAt,
       sent_at: null,
       recipient_count: recipientCount,
+      audience_tags: campaign.audienceTags ?? [],
       provider: providerSync.provider ?? null,
       provider_broadcast_id: providerSync.providerBroadcastId ?? null
     })
@@ -262,10 +282,8 @@ export async function sendNewsletterCampaign(campaignId: number) {
   }
 
   const sentAt = new Date().toISOString();
-  const [campaignRow, recipientCount] = await Promise.all([
-    getCampaignRow(supabase, campaignId),
-    getActiveRecipientCount(supabase)
-  ]);
+  const campaignRow = await getCampaignRow(supabase, campaignId);
+  const recipientCount = await getActiveRecipientCount(supabase, campaignRow.audience_tags ?? []);
   const campaign = mapCampaignRow(campaignRow);
   const providerSync = await syncCampaignToKit({
     campaign,
@@ -279,6 +297,7 @@ export async function sendNewsletterCampaign(campaignId: number) {
       send_at: sentAt,
       sent_at: sentAt,
       recipient_count: recipientCount,
+      audience_tags: campaign.audienceTags ?? [],
       provider: providerSync.provider ?? null,
       provider_broadcast_id: providerSync.providerBroadcastId ?? null
     })

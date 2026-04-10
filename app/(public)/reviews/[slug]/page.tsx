@@ -16,6 +16,11 @@ import {
   resolveAffiliateLink
 } from "@/lib/affiliates";
 import { getAdRuntimeConfig } from "@/lib/ads";
+import {
+  getHotSauceBestForCopy,
+  getHotSauceSkipIfCopy,
+  getHotSauceWhyBuy
+} from "@/lib/hot-sauces";
 import { getMerchThemeClasses } from "@/lib/merch";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
@@ -82,6 +87,9 @@ export default async function ReviewPage({
     .filter((entry): entry is { offer: (typeof relatedOffers)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
   const merchPreview = await getFeaturedMerchProducts(2);
   const ads = await getAdRuntimeConfig();
+  const whyThisPick = getHotSauceWhyBuy(review);
+  const bestFor = getHotSauceBestForCopy(review);
+  const skipIf = getHotSauceSkipIfCopy(review);
 
   return (
     <article className="container-shell py-16">
@@ -143,6 +151,20 @@ export default async function ReviewPage({
       <div className="mt-12 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="prose-guide" dangerouslySetInnerHTML={{ __html: html }} />
         <aside className="space-y-6">
+          <div className="panel p-6">
+            <h2 className="font-display text-3xl text-cream">Why this pick</h2>
+            <p className="mt-4 text-sm leading-7 text-cream/75">{whyThisPick}</p>
+            <div className="mt-5 grid gap-4">
+              <div className="rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.22em] text-ember">Best for</p>
+                <p className="mt-2 text-sm leading-7 text-cream/78">{bestFor}</p>
+              </div>
+              <div className="rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.22em] text-ember">Skip if</p>
+                <p className="mt-2 text-sm leading-7 text-cream/78">{skipIf}</p>
+              </div>
+            </div>
+          </div>
           <div className="panel p-6">
             <h2 className="font-display text-3xl text-cream">Pros</h2>
             <ul className="mt-4 space-y-3 text-sm text-cream/75">

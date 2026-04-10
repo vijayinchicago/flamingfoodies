@@ -2,7 +2,22 @@
 
 import { useEffect, useState } from "react";
 
-export function RecipeDisplayControls({ targetId }: { targetId: string }) {
+import { trackEvent } from "@/lib/analytics";
+import { ANALYTICS_EVENTS } from "@/lib/telemetry-events";
+
+export function RecipeDisplayControls({
+  targetId,
+  recipeTitle,
+  recipeUrl,
+  contentId,
+  contentSlug
+}: {
+  targetId: string;
+  recipeTitle: string;
+  recipeUrl: string;
+  contentId: number;
+  contentSlug: string;
+}) {
   const [cookMode, setCookMode] = useState(false);
 
   useEffect(() => {
@@ -17,6 +32,24 @@ export function RecipeDisplayControls({ targetId }: { targetId: string }) {
       container.removeAttribute("data-cook-mode");
     }
   }, [cookMode, targetId]);
+
+  function emailRecipeToSelf() {
+    const subject = encodeURIComponent(`Email me this recipe: ${recipeTitle}`);
+    const body = encodeURIComponent(
+      `Save this FlamingFoodies recipe for later:\n\n${recipeTitle}\n${recipeUrl}`
+    );
+
+    trackEvent(ANALYTICS_EVENTS.recipeShare, {
+      path: window.location.pathname,
+      contentType: "recipe",
+      contentId,
+      contentSlug,
+      platform: "email",
+      shareAction: "mailto"
+    });
+
+    window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  }
 
   return (
     <div className="flex flex-wrap gap-3 print-hidden">
@@ -33,6 +66,13 @@ export function RecipeDisplayControls({ targetId }: { targetId: string }) {
         className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
       >
         Print recipe
+      </button>
+      <button
+        type="button"
+        onClick={emailRecipeToSelf}
+        className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+      >
+        Email this recipe
       </button>
     </div>
   );

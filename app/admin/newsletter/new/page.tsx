@@ -1,6 +1,7 @@
 import { createNewsletterCampaignAction } from "@/lib/actions/admin-newsletter";
 import { AdminPage } from "@/components/admin/admin-page";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { NEWSLETTER_SEGMENTS } from "@/lib/newsletter-segments";
 
 export default function AdminNewCampaignPage({
   searchParams
@@ -37,6 +38,32 @@ export default function AdminNewCampaignPage({
             type="datetime-local"
             className="rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
           />
+        </div>
+        <div className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.03] p-5">
+          <p className="eyebrow">Audience</p>
+          <h2 className="mt-3 font-display text-3xl text-charcoal">Choose who this is for</h2>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {NEWSLETTER_SEGMENTS.map((segment) => (
+              <label
+                key={segment.tag}
+                className="flex items-start gap-3 rounded-2xl border border-charcoal/10 bg-white p-4 text-sm text-charcoal/72"
+              >
+                <input
+                  type="checkbox"
+                  name="audienceTags"
+                  value={segment.tag}
+                  className="mt-1"
+                />
+                <span>
+                  <span className="block font-semibold text-charcoal">{segment.label}</span>
+                  <span className="mt-1 block">{segment.description}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <p className="mt-4 text-sm text-charcoal/60">
+            Leave everything unchecked to send to all active subscribers.
+          </p>
         </div>
         <RichTextEditor
           name="htmlContent"

@@ -417,7 +417,14 @@ export default async function ShopPage() {
         </div>
         <div>
           <div className="mt-1">
-            <EmailCapture source="shop" tag="shop-interest" />
+            <EmailCapture
+              source="shop"
+              tag="shop-interest"
+              heading="Get the shop lanes with the strongest buying intent."
+              description="Choose whether you mainly want bottle picks, shopping-minded recipe tie-ins, or the broader weekly roundup."
+              buttonLabel="Join the shop list"
+              defaultSegments={["cook-shop", "hot-sauce-shelf"]}
+            />
           </div>
         </div>
       </div>

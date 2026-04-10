@@ -3,7 +3,7 @@ import Link from "next/link";
 export function Footer() {
   return (
     <footer className="border-t border-white/10 bg-charcoal/95">
-      <div className="container-shell grid gap-10 py-14 md:grid-cols-[1.6fr_1fr_1fr]">
+      <div className="container-shell grid gap-10 py-14 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
         <div>
           <div className="font-display text-3xl text-cream">FlamingFoodies</div>
           <p className="mt-4 max-w-xl text-sm leading-7 text-cream/70">
@@ -31,6 +31,17 @@ export function Footer() {
             <Link href="/subscriptions">Subscription Boxes</Link>
             <Link href="/shop">Shop</Link>
             <Link href="/leaderboard">Leaderboard</Link>
+          </div>
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-ember">
+            Trust
+          </h2>
+          <div className="mt-4 flex flex-col gap-3 text-sm text-cream/75">
+            <Link href="/about">About</Link>
+            <Link href="/contact">Contact</Link>
+            <Link href="/privacy">Privacy</Link>
+            <Link href="/terms">Terms</Link>
           </div>
         </div>
       </div>

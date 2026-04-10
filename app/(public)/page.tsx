@@ -14,6 +14,7 @@ import {
 } from "@/lib/affiliates";
 import { getFeaturedCollection } from "@/lib/services/content";
 import { getGuides } from "@/lib/content/guides";
+import { getEditorialFranchises } from "@/lib/editorial-franchises";
 import { getShopAffiliateCollections } from "@/lib/shop";
 
 export default async function HomePage() {
@@ -23,6 +24,7 @@ export default async function HomePage() {
   ]);
   const homeAffiliateLinks = getAffiliateLinkEntries(HOME_FEATURED_AFFILIATE_KEYS);
   const shopCollections = getShopAffiliateCollections();
+  const editorialFranchises = getEditorialFranchises(blogPosts);
   const resolvedHomeAffiliateLinks = homeAffiliateLinks
     .map((link) => ({
       link,
@@ -250,6 +252,37 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <section className="container-shell py-10">
+        <SectionHeading
+          eyebrow="Recurring series"
+          title="Three editorial lanes we can keep compounding."
+          copy="These franchises give the blog and newsletter a steadier rhythm: sharper buying advice, more recipe utility, and a clearer shelf-building voice."
+        />
+        <div className="mt-10 grid gap-6 xl:grid-cols-3">
+          {editorialFranchises.map((franchise) => (
+            <article key={franchise.key} className="panel p-7">
+              <p className="eyebrow">{franchise.title}</p>
+              <p className="mt-4 text-sm leading-7 text-cream/72">{franchise.description}</p>
+              {franchise.posts[0] ? (
+                <Link
+                  href={`/blog/${franchise.posts[0].slug}`}
+                  className="mt-5 block rounded-[1.35rem] border border-white/10 bg-white/5 px-4 py-4 text-sm text-cream/80 transition hover:bg-white/[0.08]"
+                >
+                  <span className="text-xs uppercase tracking-[0.18em] text-ember">Recent post</span>
+                  <span className="mt-2 block font-semibold text-cream">{franchise.posts[0].title}</span>
+                </Link>
+              ) : null}
+              <Link
+                href={franchise.href}
+                className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+              >
+                {franchise.ctaLabel}
+              </Link>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="container-shell py-16">
         <SectionHeading
           eyebrow="Email capture"
@@ -257,7 +290,13 @@ export default async function HomePage() {
           copy="Get standout recipes, bottle picks, and new guides without having to hunt through the site every week."
         />
         <div className="mt-8">
-          <EmailCapture />
+          <EmailCapture
+            source="homepage"
+            tag="homepage-hero"
+            heading="Choose the newsletter lane that matches how you use the site."
+            description="Some readers want the full weekly mix. Others mainly want recipes, hot sauce shelf notes, or cook-and-shop ideas. Pick the lane that fits."
+            defaultSegments={["weekly-roundup", "recipe-club"]}
+          />
         </div>
       </section>
     </>

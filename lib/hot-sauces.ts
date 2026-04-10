@@ -291,6 +291,34 @@ export function getHotSauceWhyBuy(review: Review) {
   return "It earns shelf space by being more useful than a pure heat stunt.";
 }
 
+export function getHotSauceSkipIfCopy(review: Review) {
+  if (review.category === "subscription-box") {
+    return "Skip if you need one exact everyday bottle instead of a discovery-style gift.";
+  }
+
+  if (review.category === "gift-set") {
+    return "Skip if you already know the exact bottle you want and do not need a tasting route.";
+  }
+
+  if (review.category === "pantry-condiment" || hasAnyToken(review, ["hot honey", "sweet", "sticky"])) {
+    return "Skip if you want a classic vinegar-forward table sauce with almost no sweetness.";
+  }
+
+  if (isBigHeatHotSauceReview(review)) {
+    return "Skip if the table is heat-shy or you mainly want an easy everyday pour.";
+  }
+
+  if (hasAnyToken(review, ["seafood", "shrimp", "fish", "citrus", "lime"])) {
+    return "Skip if you want a thick, smoky wing sauce more than a bright finishing bottle.";
+  }
+
+  if (isEverydayHotSauceReview(review)) {
+    return "Skip if you are chasing a novelty-level heat hit or a super-special-occasion bottle.";
+  }
+
+  return "Skip if you want one bottle to solve every single spicy-food situation.";
+}
+
 export function buildHotSauceComparisonRows(
   reviews: Review[],
   context: HotSauceComparisonContext = "general"

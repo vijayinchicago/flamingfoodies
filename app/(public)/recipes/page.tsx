@@ -19,6 +19,7 @@ import {
   sortRecipes,
   type RecipeSortKey
 } from "@/lib/recipe-browse";
+import { getRecipeEditorialSections } from "@/lib/recipe-editorial-sections";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import { buildMetadata } from "@/lib/seo";
 import { getRecipes } from "@/lib/services/content";
@@ -90,6 +91,7 @@ export default async function RecipesIndexPage({
 }) {
   const recipes = await getRecipes();
   const browseOptions = getRecipeBrowseOptions(recipes);
+  const editorialSections = getRecipeEditorialSections(recipes);
   const query = getSingleSearchParam(searchParams?.q)?.trim() ?? "";
   const cuisine = getSingleSearchParam(searchParams?.cuisine) ?? "all";
   const heat = getSingleSearchParam(searchParams?.heat) ?? "all";
@@ -147,7 +149,35 @@ export default async function RecipesIndexPage({
         title="Search spicy recipes by cuisine, heat, cook time, and difficulty."
         copy="Find tacos, noodles, burgers, braises, and fiery comfort food without digging through an endless wall of cards."
       />
-      <form method="get" action="/recipes" className="panel-light mt-10 p-6">
+      {editorialSections.length ? (
+        <div className="mt-10 space-y-10">
+          {editorialSections.map((section) => (
+            <div key={section.key}>
+              <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p className="eyebrow">{section.eyebrow}</p>
+                  <h2 className="mt-3 font-display text-4xl text-cream">{section.title}</h2>
+                  <p className="mt-3 max-w-3xl text-sm leading-7 text-cream/70">
+                    {section.description}
+                  </p>
+                </div>
+                <Link
+                  href="/recipes#recipe-browse"
+                  className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+                >
+                  Browse the full archive
+                </Link>
+              </div>
+              <div className="mt-6 grid gap-6 lg:grid-cols-3 xl:grid-cols-4">
+                {section.items.map((recipe) => (
+                  <RecipeCard key={`${section.key}-${recipe.id}`} recipe={recipe} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+      <form id="recipe-browse" method="get" action="/recipes" className="panel-light mt-10 p-6">
         <div className="grid gap-4 xl:grid-cols-[2fr_repeat(4,minmax(0,1fr))_0.9fr]">
           <input
             type="search"

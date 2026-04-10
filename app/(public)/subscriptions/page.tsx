@@ -73,7 +73,26 @@ export default function SubscriptionsPage() {
           </Link>
         </div>
         <div>
-          <EmailCapture source="subscriptions" tag="subscription-interest" />
+          <EmailCapture
+            source="subscriptions"
+            tag="subscription-interest"
+            heading="Stay close to shelf notes, gifts, and recurring heat."
+            description="This lane works best for readers who care about hot sauce shelves, gift-ready picks, subscriptions, and the bottles worth reordering."
+            buttonLabel="Join this lane"
+            defaultSegments={["hot-sauce-shelf", "cook-shop"]}
+            segmentOptions={[
+              {
+                tag: "hot-sauce-shelf",
+                label: "Hot Sauce Shelf Notes",
+                description: "Bottle picks, reviews, and shelf-building guidance."
+              },
+              {
+                tag: "cook-shop",
+                label: "Cook / Shop",
+                description: "A tighter mix of useful recipes plus the gear or pantry picks behind them."
+              }
+            ]}
+          />
         </div>
       </div>
     </section>

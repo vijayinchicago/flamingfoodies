@@ -103,6 +103,7 @@ function mapNewsletterCampaign(row: any): NewsletterCampaign {
     previewText: row.preview_text ?? undefined,
     htmlContent: row.html_content,
     textContent: row.text_content ?? undefined,
+    audienceTags: row.audience_tags ?? [],
     provider: row.provider ?? undefined,
     providerBroadcastId: row.provider_broadcast_id ?? undefined,
     status: row.status,

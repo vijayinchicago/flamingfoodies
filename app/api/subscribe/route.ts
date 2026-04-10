@@ -7,7 +7,8 @@ const bodySchema = z.object({
   email: z.string().email(),
   firstName: z.string().optional(),
   source: z.string().optional(),
-  tag: z.string().optional()
+  tag: z.string().optional(),
+  tags: z.array(z.string()).optional()
 });
 
 export async function POST(request: Request) {

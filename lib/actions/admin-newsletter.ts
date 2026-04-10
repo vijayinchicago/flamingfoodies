@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { normalizeNewsletterSegmentTags } from "@/lib/newsletter-segments";
 import {
   scheduleNewsletterCampaign,
   sendNewsletterCampaign
@@ -17,7 +18,8 @@ const campaignSchema = z.object({
   htmlContent: z.string().min(20),
   textContent: z.string().optional(),
   status: z.enum(["draft", "scheduled"]),
-  sendAt: z.string().optional()
+  sendAt: z.string().optional(),
+  audienceTags: z.array(z.string()).optional()
 });
 
 const campaignStateSchema = z.object({
@@ -62,7 +64,8 @@ export async function createNewsletterCampaignAction(formData: FormData) {
     htmlContent: String(formData.get("htmlContent") || "").trim(),
     textContent: String(formData.get("textContent") || "").trim() || undefined,
     status: String(formData.get("status") || "draft"),
-    sendAt: String(formData.get("sendAt") || "").trim() || undefined
+    sendAt: String(formData.get("sendAt") || "").trim() || undefined,
+    audienceTags: formData.getAll("audienceTags").map((value) => String(value))
   });
 
   if (!parsed.success) {
@@ -76,11 +79,18 @@ export async function createNewsletterCampaignAction(formData: FormData) {
 
   const sendAt =
     parsed.data.status === "scheduled" ? normalizeSendAt(parsed.data.sendAt) : null;
+  const audienceTags = normalizeNewsletterSegmentTags(parsed.data.audienceTags);
 
-  const { count: recipientCount } = await supabase
+  let recipientQuery = supabase
     .from("newsletter_subscribers")
     .select("*", { count: "exact", head: true })
     .eq("status", "active");
+
+  if (audienceTags.length) {
+    recipientQuery = recipientQuery.overlaps("tags", audienceTags);
+  }
+
+  const { count: recipientCount } = await recipientQuery;
 
   const { data, error } = await supabase
     .from("newsletter_campaigns")
@@ -89,6 +99,7 @@ export async function createNewsletterCampaignAction(formData: FormData) {
       preview_text: parsed.data.previewText ?? null,
       html_content: parsed.data.htmlContent,
       text_content: parsed.data.textContent ?? null,
+      audience_tags: audienceTags,
       status: parsed.data.status,
       send_at: sendAt,
       recipient_count: recipientCount ?? 0,
@@ -122,7 +133,8 @@ export async function createNewsletterCampaignAction(formData: FormData) {
     targetType: "newsletter_campaign",
     targetId: String(data.id),
     metadata: {
-      status: parsed.data.status
+      status: parsed.data.status,
+      audienceTags
     }
   });
 
