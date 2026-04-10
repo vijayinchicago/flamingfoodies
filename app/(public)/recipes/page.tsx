@@ -127,6 +127,10 @@ export default async function RecipesIndexPage({
       })
     }))
     .filter((entry): entry is { link: (typeof kitchenGear)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
+  const filterFieldClass =
+    "rounded-2xl border border-charcoal/12 bg-white px-4 py-3 text-sm text-charcoal outline-none transition focus:border-ember focus:ring-2 focus:ring-ember/15";
+  const chipBaseClass =
+    "rounded-full border px-4 py-2 text-sm font-semibold transition";
 
   return (
     <section className="container-shell py-16">
@@ -150,12 +154,12 @@ export default async function RecipesIndexPage({
             name="q"
             defaultValue={query}
             placeholder="Search by dish, ingredient, or tag"
-            className="rounded-2xl border border-charcoal/10 px-4 py-3 text-sm text-charcoal outline-none focus:border-ember"
+            className={`${filterFieldClass} placeholder:text-charcoal/45`}
           />
           <select
             name="cuisine"
             defaultValue={cuisine}
-            className="rounded-2xl border border-charcoal/10 px-4 py-3 text-sm text-charcoal outline-none focus:border-ember"
+            className={filterFieldClass}
           >
             <option value="all">All cuisines</option>
             {browseOptions.cuisines.map((option) => (
@@ -167,7 +171,7 @@ export default async function RecipesIndexPage({
           <select
             name="heat"
             defaultValue={heat}
-            className="rounded-2xl border border-charcoal/10 px-4 py-3 text-sm text-charcoal outline-none focus:border-ember"
+            className={filterFieldClass}
           >
             <option value="all">All heat levels</option>
             {browseOptions.heatLevels.map((option) => (
@@ -179,7 +183,7 @@ export default async function RecipesIndexPage({
           <select
             name="difficulty"
             defaultValue={difficulty}
-            className="rounded-2xl border border-charcoal/10 px-4 py-3 text-sm text-charcoal outline-none focus:border-ember"
+            className={filterFieldClass}
           >
             <option value="all">Any difficulty</option>
             {browseOptions.difficulties.map((option) => (
@@ -191,7 +195,7 @@ export default async function RecipesIndexPage({
           <select
             name="maxTime"
             defaultValue={maxTimeKey}
-            className="rounded-2xl border border-charcoal/10 px-4 py-3 text-sm text-charcoal outline-none focus:border-ember"
+            className={filterFieldClass}
           >
             {RECIPE_TIME_OPTIONS.map((option) => (
               <option key={option.key} value={option.key}>
@@ -202,7 +206,7 @@ export default async function RecipesIndexPage({
           <select
             name="sort"
             defaultValue={sort}
-            className="rounded-2xl border border-charcoal/10 px-4 py-3 text-sm text-charcoal outline-none focus:border-ember"
+            className={filterFieldClass}
           >
             {RECIPE_SORT_OPTIONS.map((option) => (
               <option key={option.key} value={option.key}>
@@ -242,8 +246,8 @@ export default async function RecipesIndexPage({
             })}
             className={`rounded-full px-4 py-2 text-sm font-semibold ${
               cuisine === option
-                ? "bg-white text-charcoal"
-                : "border border-white/15 text-cream"
+                ? `${chipBaseClass} border-white bg-white text-charcoal shadow-sm`
+                : `${chipBaseClass} border-white/18 bg-white/[0.04] text-cream/90 hover:border-white/30 hover:bg-white/[0.07]`
             }`}
           >
             {formatCuisineLabel(option)}
@@ -262,8 +266,8 @@ export default async function RecipesIndexPage({
             })}
             className={`rounded-full px-4 py-2 text-sm font-semibold ${
               heat === option
-                ? "bg-ember text-white"
-                : "border border-white/15 text-cream"
+                ? `${chipBaseClass} border-ember bg-ember text-white shadow-sm`
+                : `${chipBaseClass} border-white/18 bg-white/[0.04] text-cream/90 hover:border-white/30 hover:bg-white/[0.07]`
             }`}
           >
             {formatHeatLabel(option)}

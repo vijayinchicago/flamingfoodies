@@ -28,6 +28,7 @@ a {
 
 .panel-light {
   @apply rounded-[2rem] border border-charcoal/10 bg-white shadow-panel;
+  color-scheme: light;
 }
 
 .eyebrow {
