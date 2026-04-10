@@ -52,6 +52,23 @@ async function importSocialRoute({
   };
 }
 
+async function importGrowthLoopRoute({
+  queueGrowthLoopPromotions = vi
+    .fn()
+    .mockResolvedValue({ queuedContent: 1, queuedPosts: 3, skipped: [] })
+} = {}) {
+  vi.resetModules();
+  vi.doMock("@/lib/services/growth-loop", () => ({
+    queueGrowthLoopPromotions
+  }));
+
+  const route = await import("@/app/api/admin/growth-loop/route");
+  return {
+    route,
+    queueGrowthLoopPromotions
+  };
+}
+
 afterEach(() => {
   vi.clearAllMocks();
   vi.unstubAllEnvs();
@@ -284,6 +301,75 @@ describe("content generation cron route", () => {
       source: "cron",
       profile: "hot_sauce_recipe"
     });
+  });
+});
+
+describe("growth loop cron route", () => {
+  it("rejects unauthorized requests when CRON_SECRET is set", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
+    const { route, queueGrowthLoopPromotions } = await importGrowthLoopRoute();
+
+    const response = await route.GET(
+      new Request("https://flamingfoodies.com/api/admin/growth-loop")
+    );
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ ok: false, error: "Unauthorized" });
+    expect(queueGrowthLoopPromotions).not.toHaveBeenCalled();
+  });
+
+  it("queues winner promotions when authorized", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
+    const queueGrowthLoopPromotions = vi.fn().mockResolvedValue({
+      mode: "mock",
+      windowDays: 30,
+      candidatesConsidered: 2,
+      queuedContent: 1,
+      queuedPosts: 3,
+      promoted: [
+        {
+          title: "Yellowbird Habanero Review",
+          path: "/reviews/yellowbird-habanero-hot-sauce-review",
+          contentType: "review",
+          reason: "Already converts.",
+          postsCreated: 3
+        }
+      ],
+      skipped: []
+    });
+    const { route } = await importGrowthLoopRoute({
+      queueGrowthLoopPromotions
+    });
+
+    const response = await route.POST(
+      new Request("https://flamingfoodies.com/api/admin/growth-loop", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer topsecret"
+        }
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      ok: true,
+      mode: "mock",
+      windowDays: 30,
+      candidatesConsidered: 2,
+      queuedContent: 1,
+      queuedPosts: 3,
+      promoted: [
+        {
+          title: "Yellowbird Habanero Review",
+          path: "/reviews/yellowbird-habanero-hot-sauce-review",
+          contentType: "review",
+          reason: "Already converts.",
+          postsCreated: 3
+        }
+      ],
+      skipped: []
+    });
+    expect(queueGrowthLoopPromotions).toHaveBeenCalledWith(30);
   });
 });
 

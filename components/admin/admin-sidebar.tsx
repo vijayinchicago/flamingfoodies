@@ -38,6 +38,7 @@ const navSections = [
       { href: "/admin/newsletter/new", label: "Compose" },
       { href: "/admin/social/queue", label: "Social queue" },
       { href: "/admin/analytics/pirate", label: "Pirate metrics" },
+      { href: "/admin/analytics/growth-loop", label: "Growth loop" },
       { href: "/admin/analytics/shares", label: "Share analytics" },
       { href: "/admin/analytics/search", label: "Search analytics" },
       { href: "/admin/analytics/ads", label: "Ads analytics" },

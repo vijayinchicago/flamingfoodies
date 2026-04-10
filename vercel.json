@@ -8,6 +8,7 @@
     { "path": "/api/admin/generate?type=blog_post&qty=1", "schedule": "0 7 * * *" },
     { "path": "/api/admin/generate?type=review&qty=1", "schedule": "0 8 * * 1,4" },
     { "path": "/api/admin/publish-scheduled", "schedule": "0 18 * * *" },
+    { "path": "/api/admin/growth-loop", "schedule": "30 18 * * *" },
     { "path": "/api/admin/social-scheduler", "schedule": "0 19 * * *" },
     { "path": "/api/admin/newsletter-digest", "schedule": "0 10 * * 0" }
   ]
