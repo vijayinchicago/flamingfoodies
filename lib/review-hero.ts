@@ -49,6 +49,20 @@ function slugifyToken(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function normalizeReviewImageUrl(imageUrl?: string | null) {
+  const trimmed = imageUrl?.trim();
+
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (/^(null|undefined)$/i.test(trimmed)) {
+    return undefined;
+  }
+
+  return trimmed;
+}
+
 export function buildReviewHeroImageUrl({
   title,
   productName,
@@ -77,6 +91,11 @@ export function buildReviewHeroImageAlt(title: string, productName?: string) {
   return `FlamingFoodies illustrated bottle hero for ${productName || title}`;
 }
 
+export function buildReviewProductImageAlt(productName?: string, brand?: string) {
+  const label = [brand, productName].filter(Boolean).join(" ").trim() || productName || brand || "product";
+  return `${label} product image`;
+}
+
 export function isGeneratedReviewHeroCardImageUrl(imageUrl?: string | null) {
   if (!imageUrl) return false;
 
@@ -97,6 +116,16 @@ export function isLikelyGenericStockReviewImageUrl(imageUrl?: string | null) {
   }
 }
 
+export function hasTrustedReviewProductImage(imageUrl?: string | null) {
+  const normalizedImageUrl = normalizeReviewImageUrl(imageUrl);
+
+  return Boolean(
+    normalizedImageUrl &&
+      !isGeneratedReviewHeroCardImageUrl(normalizedImageUrl) &&
+      !isLikelyGenericStockReviewImageUrl(normalizedImageUrl)
+  );
+}
+
 export function getReviewHeroFields(
   review: Pick<
     Review,
@@ -106,9 +135,11 @@ export function getReviewHeroFields(
   imageUrl: string;
   imageAlt: string;
   usesGeneratedHeroCard: boolean;
+  usesTrustedProductImage: boolean;
 } {
+  const normalizedImageUrl = normalizeReviewImageUrl(review.imageUrl);
   const shouldUseGeneratedHero =
-    !review.imageUrl || isLikelyGenericStockReviewImageUrl(review.imageUrl);
+    !normalizedImageUrl || isLikelyGenericStockReviewImageUrl(normalizedImageUrl);
   const imageUrl: string = shouldUseGeneratedHero
     ? buildReviewHeroImageUrl({
         title: review.title,
@@ -117,7 +148,7 @@ export function getReviewHeroFields(
         category: review.category,
         heatLevel: review.heatLevel
       })
-    : (review.imageUrl ?? buildReviewHeroImageUrl({
+    : (normalizedImageUrl ?? buildReviewHeroImageUrl({
         title: review.title,
         productName: review.productName,
         brand: review.brand,
@@ -125,14 +156,15 @@ export function getReviewHeroFields(
         heatLevel: review.heatLevel
       }));
   const imageAlt =
-    shouldUseGeneratedHero || !review.imageAlt
+    shouldUseGeneratedHero
       ? buildReviewHeroImageAlt(review.title, review.productName)
-      : review.imageAlt;
+      : review.imageAlt || buildReviewProductImageAlt(review.productName, review.brand);
 
   return {
     imageUrl,
     imageAlt,
-    usesGeneratedHeroCard: shouldUseGeneratedHero
+    usesGeneratedHeroCard: shouldUseGeneratedHero,
+    usesTrustedProductImage: hasTrustedReviewProductImage(normalizedImageUrl)
   };
 }
 

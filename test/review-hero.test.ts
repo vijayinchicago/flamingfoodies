@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildReviewHeroImageAlt,
+  buildReviewProductImageAlt,
   getReviewHeroFields,
+  hasTrustedReviewProductImage,
   isGeneratedReviewHeroCardImageUrl,
   isLikelyGenericStockReviewImageUrl
 } from "@/lib/review-hero";
@@ -43,8 +45,9 @@ describe("review hero fallbacks", () => {
 
     expect(hero.imageUrl).toBe("https://cdn.example.com/torchbearer-bottle.jpg");
     expect(hero.usesGeneratedHeroCard).toBe(false);
+    expect(hero.usesTrustedProductImage).toBe(true);
     expect(hero.imageAlt).toBe(
-      buildReviewHeroImageAlt("Torchbearer Garlic Reaper Review", "Torchbearer Garlic Reaper")
+      buildReviewProductImageAlt("Torchbearer Garlic Reaper", "Torchbearer")
     );
   });
 
@@ -57,6 +60,7 @@ describe("review hero fallbacks", () => {
         "https://flamingfoodies.com/api/review-hero?title=Yellowbird"
       )
     ).toBe(true);
+    expect(hasTrustedReviewProductImage("https://cdn.example.com/product.jpg")).toBe(true);
     expect(isLikelyGenericStockReviewImageUrl("https://cdn.example.com/product.jpg")).toBe(
       false
     );

@@ -4,7 +4,10 @@ import type {
   RecipeQaReport,
   Review
 } from "@/lib/types";
-import { isLikelyGenericStockReviewImageUrl } from "@/lib/review-hero";
+import {
+  hasTrustedReviewProductImage,
+  isLikelyGenericStockReviewImageUrl
+} from "@/lib/review-hero";
 
 const tokenStopwords = new Set([
   "and",
@@ -199,6 +202,16 @@ export function buildReviewQaReport(review: ReviewQaCandidate): RecipeQaReport {
         "blocker",
         "review-image-check-required",
         "Manually confirm the review image shows the actual product before publishing."
+      )
+    );
+  }
+
+  if (review.affiliateUrl && !hasTrustedReviewProductImage(review.imageUrl)) {
+    blockers.push(
+      createIssue(
+        "blocker",
+        "affiliate-review-exact-image-required",
+        "Affiliate-linked reviews need an exact product image, not a stock image or illustrated fallback."
       )
     );
   }

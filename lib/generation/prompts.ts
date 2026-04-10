@@ -181,6 +181,8 @@ Requirements:
 - Make practical judgments about value, usefulness, and who should skip it.
 - Avoid macho heat language, filler, fake testing claims, or empty product hype.
 - Let the opening and closing paragraphs sound human, generous, and specific.
+- The hero_image_query must describe the exact bottle or product photo, not a generic spicy-food scene.
+- If an affiliate_url is included, the image_alt must clearly describe the exact product image.
 
 Return ONLY valid JSON. Do not include any keys beyond the JSON schema below.
 {
@@ -203,6 +205,7 @@ Return ONLY valid JSON. Do not include any keys beyond the JSON schema below.
   "tags": ["..."],
   "seo_title": "...",
   "seo_description": "...",
+  "hero_image_query": "concise search query for the exact product or bottle image",
   "image_alt": "...",
   "recommended": true
 }`;

@@ -78,6 +78,18 @@ describe("review QA", () => {
     expect(report.warnings.map((issue) => issue.code)).toContain("generic-stock-review-image");
   });
 
+  it("blocks affiliate-linked reviews that do not have an exact product image", () => {
+    const report = buildReviewQaReport({
+      ...baseReview,
+      imageUrl: "https://flamingfoodies.com/api/review-hero?title=Yellowbird",
+      imageAlt: "FlamingFoodies illustrated bottle hero for Yellowbird Habanero Hot Sauce"
+    });
+
+    expect(report.blockers.map((issue) => issue.code)).toContain(
+      "affiliate-review-exact-image-required"
+    );
+  });
+
   it("auto-approves the curated sample review set for imports", () => {
     expect(
       getReviewManualReviewState({

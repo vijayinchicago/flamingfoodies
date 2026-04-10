@@ -549,7 +549,7 @@ function buildReviewQaPayload({
     cons: parseLineList(parsed.cons || ""),
     imageUrl: hero.imageUrl,
     imageAlt: hero.imageAlt,
-    imageReviewed: Boolean(parsed.imageReviewed) || hero.usesGeneratedHeroCard,
+    imageReviewed: Boolean(parsed.imageReviewed),
     factQaReviewed: parsed.factQaReviewed ?? false,
     qaNotes: parsed.qaNotes ?? undefined,
     qaReport: undefined,
@@ -749,7 +749,7 @@ function mapReviewRowToQaCandidate(row: any): Review {
     category: row.category,
     pros: row.pros ?? [],
     cons: row.cons ?? [],
-    imageReviewed: Boolean(row.image_reviewed) || hero.usesGeneratedHeroCard,
+    imageReviewed: Boolean(row.image_reviewed),
     factQaReviewed: row.fact_qa_reviewed ?? false,
     qaNotes: row.qa_notes ?? undefined,
     qaReport: row.qa_report ?? undefined,
@@ -2100,9 +2100,7 @@ export async function updateReviewStateAction(formData: FormData) {
         ? {
             image_url: publishHeroFields?.imageUrl ?? reviewRowForPublish?.image_url ?? null,
             image_alt: publishHeroFields?.imageAlt ?? reviewRowForPublish?.image_alt ?? null,
-            image_reviewed:
-              Boolean(reviewRowForPublish?.image_reviewed) ||
-              Boolean(publishHeroFields?.usesGeneratedHeroCard),
+            image_reviewed: Boolean(reviewRowForPublish?.image_reviewed),
             qa_checked_at: new Date().toISOString(),
             qa_report: qaReportForPublish
           }

@@ -29,6 +29,7 @@ import {
   splitInstructionText
 } from "@/lib/recipes";
 import { buildReviewQaReport } from "@/lib/review-qa";
+import { buildReviewHeroImageUrl } from "@/lib/review-hero";
 import {
   sampleBlogPosts,
   sampleGenerationJobs,
@@ -266,6 +267,7 @@ const generatedReviewSchema = z
     tags: z.array(z.string().min(2)).min(2),
     seo_title: z.string().min(10),
     seo_description: z.string().min(40),
+    hero_image_query: z.string().min(6).optional(),
     image_alt: z.string().min(12),
     recommended: z.boolean()
   })
@@ -1165,6 +1167,38 @@ export function buildBlogPhotoSearchQueries(input: {
   ).slice(0, 8);
 }
 
+export function buildReviewPhotoSearchQueries(input: {
+  productName: string;
+  brand?: string | null;
+  category?: string | null;
+  cuisineOrigin?: CuisineType;
+  heroImageQuery?: string | null;
+}) {
+  const productLabel = stripRecipeTitleQualifiers(input.productName);
+  const brandLabel = input.brand?.trim();
+  const cuisineLabel = formatCuisineQuery(input.cuisineOrigin);
+  const categoryLabel = input.category?.replace(/-/g, " ").trim();
+  const normalizedProductLabel =
+    brandLabel && productLabel.toLowerCase().startsWith(brandLabel.toLowerCase())
+      ? productLabel
+      : brandLabel
+        ? `${brandLabel} ${productLabel}`
+        : productLabel;
+
+  return dedupeList(
+    [
+      normalizePhotoSearchQuery(input.heroImageQuery),
+      `${normalizedProductLabel} bottle`,
+      `${normalizedProductLabel} hot sauce bottle`,
+      `${normalizedProductLabel} product`,
+      brandLabel && categoryLabel ? `${brandLabel} ${categoryLabel} bottle` : undefined,
+      brandLabel && cuisineLabel ? `${brandLabel} ${cuisineLabel} sauce bottle` : undefined,
+      `${productLabel} bottle`,
+      `${productLabel} product`
+    ].filter(Boolean) as string[]
+  ).slice(0, 8);
+}
+
 type ResolvedRecipeHeroAsset = {
   imageUrl: string;
   heroSource: "photo" | "generated";
@@ -1172,6 +1206,12 @@ type ResolvedRecipeHeroAsset = {
 };
 
 type ResolvedEditorialHeroAsset = {
+  imageUrl: string;
+  heroSource: "photo" | "generated";
+  searchQuery: string | null;
+};
+
+type ResolvedReviewHeroAsset = {
   imageUrl: string;
   heroSource: "photo" | "generated";
   searchQuery: string | null;
@@ -1588,6 +1628,43 @@ async function resolveBlogHeroAsset(input: {
   };
 }
 
+async function resolveReviewHeroAsset(input: {
+  generated: z.infer<typeof generatedReviewSchema>;
+  cuisine: CuisineType;
+}): Promise<ResolvedReviewHeroAsset> {
+  const queries = buildReviewPhotoSearchQueries({
+    productName: input.generated.product_name,
+    brand: input.generated.brand,
+    category: input.generated.category,
+    cuisineOrigin: input.generated.cuisine_origin || input.cuisine,
+    heroImageQuery: input.generated.hero_image_query
+  });
+
+  for (const query of queries) {
+    const imageUrl = await fetchImageForQuery(query);
+
+    if (imageUrl) {
+      return {
+        imageUrl,
+        heroSource: "photo",
+        searchQuery: query
+      };
+    }
+  }
+
+  return {
+    imageUrl: buildReviewHeroImageUrl({
+      title: input.generated.title,
+      productName: input.generated.product_name,
+      brand: input.generated.brand,
+      category: input.generated.category,
+      heatLevel: input.generated.heat_level
+    }),
+    heroSource: "generated",
+    searchQuery: null
+  };
+}
+
 async function makeUniqueSlug(
   supabase: AdminClient,
   table: "blog_posts" | "recipes" | "reviews",
@@ -1765,7 +1842,7 @@ function buildReviewDraft(
     affiliate_url:
       generated?.affiliate_url || "https://fuegobox.com/products/monthly-subscription",
     image_url: imageUrl ?? null,
-    image_alt: generated?.image_alt || `FlamingFoodies review card for ${productName}`,
+    image_alt: generated?.image_alt || `${productName} bottle product image`,
     heat_level: generated?.heat_level || getHeatLevel(index),
     scoville_min: Number(generated?.scoville_min ?? 1500),
     scoville_max: Number(generated?.scoville_max ?? 4500),
@@ -1960,13 +2037,17 @@ function buildGeneratedBlogQaState(
 
 function buildGeneratedReviewQaState(
   payload: ReturnType<typeof buildReviewDraft>,
-  agentReview: AgentQaReview | null
+  agentReview: AgentQaReview | null,
+  heroAsset?: Pick<ResolvedReviewHeroAsset, "heroSource" | "searchQuery">
 ) {
-  const usesSafeReviewCard = usesAutomationHeroCard(payload.image_url);
+  const heroSource =
+    heroAsset?.heroSource ??
+    (usesAutomationHeroCard(payload.image_url) ? "generated" : payload.image_url ? "photo" : "generated");
   const automatedFactQa = isAgentQaPass(agentReview);
-  const baseQaNote = usesSafeReviewCard
-    ? "Review draft uses a branded cover image and passed automated editorial QA checks where noted."
-    : "Draft is awaiting editorial product-image and fact QA.";
+  const exactImageFound = heroSource === "photo";
+  const baseQaNote = exactImageFound
+    ? `Review draft uses a sourced product image.${heroAsset?.searchQuery ? ` Photo search query: "${heroAsset.searchQuery}".` : ""} Manual confirmation is still required before publish.`
+    : "Review draft uses an illustrated fallback and is awaiting an exact product image plus editorial fact QA.";
   const reviewQaCandidate: Review = {
     id: 0,
     type: "review",
@@ -1989,7 +2070,7 @@ function buildGeneratedReviewQaState(
     cons: payload.cons,
     imageUrl: payload.image_url ?? undefined,
     imageAlt: payload.image_alt,
-    imageReviewed: usesSafeReviewCard,
+    imageReviewed: false,
     factQaReviewed: automatedFactQa,
     qaNotes: buildAgentQaNotes(baseQaNote, agentReview),
     qaReport: undefined,
@@ -2005,13 +2086,13 @@ function buildGeneratedReviewQaState(
   const qaReport = mergeAgentQaReview(buildReviewQaReport(reviewQaCandidate), agentReview);
 
   return {
-    image_reviewed: usesSafeReviewCard,
+    image_reviewed: false,
     fact_qa_reviewed: automatedFactQa,
     qa_notes: buildAgentQaNotes(baseQaNote, agentReview),
     qa_report: qaReport,
-    qa_checked_at: usesSafeReviewCard || automatedFactQa ? new Date().toISOString() : null,
+    qa_checked_at: automatedFactQa ? new Date().toISOString() : null,
     automated_publish_eligible:
-      usesSafeReviewCard &&
+      exactImageFound &&
       automatedFactQa &&
       qaReport.blockers.length === 0 &&
       qaReport.score >= AUTOMATED_REVIEW_PUBLISH_SCORE
@@ -2205,19 +2286,24 @@ async function insertGeneratedContent(
     type,
     validateGeneratedPayload(type, generated)
   );
-  const imageUrl = buildAutomationHeroImageUrl(type, validatedGenerated.title, cuisine);
+  const heroAsset = await resolveReviewHeroAsset({
+    generated: validatedGenerated,
+    cuisine
+  });
   const payload = buildReviewDraft(
     cuisine,
     index,
     validatedGenerated,
-    imageUrl
+    heroAsset.imageUrl
   );
   const slug = await makeUniqueSlug(supabase, "reviews", payload.title);
   const agentReview = await runEditorialQaReview(anthropic, "review", {
     slug,
-    ...payload
+    ...payload,
+    hero_image_source: heroAsset.heroSource,
+    hero_image_query_used: heroAsset.searchQuery
   });
-  const qaState = buildGeneratedReviewQaState(payload, agentReview);
+  const qaState = buildGeneratedReviewQaState(payload, agentReview, heroAsset);
   const { automated_publish_eligible: _reviewAutoPublishEligible, ...persistedQaState } = qaState;
   const { data, error } = await supabase
     .from("reviews")

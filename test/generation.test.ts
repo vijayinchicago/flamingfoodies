@@ -9,6 +9,7 @@ import {
 import { getQuizResult } from "@/lib/quiz";
 import {
   buildBlogPhotoSearchQueries,
+  buildReviewPhotoSearchQueries,
   buildRecipePhotoSearchQueries,
   normalizeGeneratedCommonPayload,
   normalizeGeneratedRecipePayload
@@ -59,6 +60,7 @@ describe("generation prompts", () => {
     expect(prompt).toContain("warm, generous, and family-table oriented");
     expect(prompt).toContain("what the bottle tastes like");
     expect(prompt).toContain("Avoid macho heat language");
+    expect(prompt).toContain("\"hero_image_query\"");
   });
 
   it("returns requested cuisine count", () => {
@@ -175,6 +177,20 @@ describe("generation prompts", () => {
     expect(queries).toContain("ethiopian spices");
     expect(queries).toContain("ethiopian food");
     expect(queries).toContain("culture ethiopian food");
+  });
+
+  it("builds exact-product search queries for generated reviews", () => {
+    const queries = buildReviewPhotoSearchQueries({
+      productName: "Yellowbird Habanero Hot Sauce",
+      brand: "Yellowbird",
+      category: "hot-sauce",
+      cuisineOrigin: "mexican",
+      heroImageQuery: "Yellowbird Habanero Hot Sauce bottle"
+    });
+
+    expect(queries[0]).toBe("Yellowbird Habanero Hot Sauce bottle");
+    expect(queries).toContain("Yellowbird Habanero Hot Sauce hot sauce bottle");
+    expect(queries).toContain("Yellowbird hot sauce bottle");
   });
 
   it("normalizes human-formatted enum labels before validation", () => {
