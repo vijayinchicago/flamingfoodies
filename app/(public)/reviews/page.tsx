@@ -13,16 +13,25 @@ import {
   resolveAffiliateLink
 } from "@/lib/affiliates";
 import {
-  HOT_SAUCE_FILTERS,
-  getFilteredHotSauceReviews,
   getHotSauceFilterMeta,
   getHotSauceIntentLabel,
   getTopHotSaucePicks,
-  type HotSauceFilterKey
 } from "@/lib/hot-sauces";
+import {
+  REVIEW_SORT_OPTIONS,
+  filterReviews,
+  formatReviewCategoryLabel,
+  formatReviewHeatLabel,
+  getReviewBrowseOptions,
+  paginateReviews,
+  parseReviewIntent,
+  parseReviewSort,
+  sortReviews
+} from "@/lib/review-browse";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
 import { getReviews } from "@/lib/services/content";
+import type { HeatLevel, Review } from "@/lib/types";
 import { absoluteUrl } from "@/lib/utils";
 
 export const metadata = buildMetadata({
@@ -32,26 +41,66 @@ export const metadata = buildMetadata({
   path: "/reviews"
 });
 
-function parseFilter(
-  value: string | string[] | undefined
-): HotSauceFilterKey {
-  const candidate = Array.isArray(value) ? value[0] : value;
+const REVIEWS_PER_PAGE = 10;
 
-  return HOT_SAUCE_FILTERS.some((entry) => entry.key === candidate)
-    ? (candidate as HotSauceFilterKey)
-    : "all";
+function getSingleSearchParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function buildReviewsBrowseHref(input: {
+  query?: string;
+  intent?: string;
+  category?: string;
+  heat?: string;
+  sort?: string;
+  page?: number;
+}) {
+  const params = new URLSearchParams();
+
+  if (input.query?.trim()) params.set("q", input.query.trim());
+  if (input.intent && input.intent !== "all") params.set("intent", input.intent);
+  if (input.category && input.category !== "all") params.set("category", input.category);
+  if (input.heat && input.heat !== "all") params.set("heat", input.heat);
+  if (input.sort && input.sort !== "featured") params.set("sort", input.sort);
+  if (input.page && input.page > 1) params.set("page", String(input.page));
+
+  const query = params.toString();
+  return query ? `/reviews?${query}` : "/reviews";
 }
 
 export default async function ReviewsIndexPage({
   searchParams
 }: {
-  searchParams?: { filter?: string | string[] };
+  searchParams?: {
+    q?: string | string[];
+    intent?: string | string[];
+    category?: string | string[];
+    heat?: string | string[];
+    sort?: string | string[];
+    page?: string | string[];
+  };
 }) {
   const reviews = await getReviews();
   const ads = await getAdRuntimeConfig();
-  const activeFilter = parseFilter(searchParams?.filter);
-  const filteredReviews = getFilteredHotSauceReviews(reviews, activeFilter);
-  const filterMeta = getHotSauceFilterMeta(activeFilter);
+  const browseOptions = getReviewBrowseOptions(reviews);
+  const query = getSingleSearchParam(searchParams?.q)?.trim() ?? "";
+  const activeIntent = parseReviewIntent(getSingleSearchParam(searchParams?.intent));
+  const activeCategory = getSingleSearchParam(searchParams?.category) ?? "all";
+  const activeHeat = (getSingleSearchParam(searchParams?.heat) ?? "all") as HeatLevel | "all";
+  const activeSort = parseReviewSort(getSingleSearchParam(searchParams?.sort));
+  const page = Number.parseInt(getSingleSearchParam(searchParams?.page) ?? "1", 10);
+  const filteredReviews = filterReviews(reviews, {
+    query,
+    intent: activeIntent,
+    category: activeCategory,
+    heat: activeHeat
+  });
+  const sortedReviews = sortReviews(filteredReviews, activeSort);
+  const paginatedReviews = paginateReviews(sortedReviews, Number.isFinite(page) ? page : 1, REVIEWS_PER_PAGE);
+  const filterMeta = getHotSauceFilterMeta(activeIntent);
+  const hasActiveFilters = Boolean(
+    query || activeIntent !== "all" || activeCategory !== "all" || activeHeat !== "all" || activeSort !== "featured"
+  );
   const topPicks = getTopHotSaucePicks(reviews, 3);
   const hotSauceLinks = getAffiliateLinkEntries(HOT_SAUCE_SPOTLIGHT_KEYS).slice(0, 3);
   const resolvedHotSauceLinks = hotSauceLinks
@@ -68,7 +117,7 @@ export default async function ReviewsIndexPage({
     <section className="container-shell py-16">
       <ItemListSchema
         name="FlamingFoodies review archive"
-        items={reviews.map((review) => ({
+        items={paginatedReviews.items.map((review) => ({
           name: review.title,
           url: absoluteUrl(`/reviews/${review.slug}`),
           image: getReviewHeroFields(review).imageUrl
@@ -191,22 +240,101 @@ export default async function ReviewsIndexPage({
           />
         </div>
       ) : null}
-      <div className="mt-10 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6">
+      <form method="get" action="/reviews" className="panel-light mt-10 p-6">
+        <div className="grid gap-4 xl:grid-cols-[1.8fr_repeat(3,minmax(0,1fr))_0.9fr]">
+          <input
+            type="search"
+            name="q"
+            defaultValue={query}
+            placeholder="Search by bottle, brand, flavor, or use case"
+            className="rounded-2xl border border-charcoal/12 bg-white px-4 py-3 text-sm text-charcoal outline-none transition placeholder:text-charcoal/45 focus:border-ember focus:ring-2 focus:ring-ember/15"
+          />
+          <select
+            name="intent"
+            defaultValue={activeIntent}
+            className="rounded-2xl border border-charcoal/12 bg-white px-4 py-3 text-sm text-charcoal outline-none transition focus:border-ember focus:ring-2 focus:ring-ember/15"
+          >
+            {browseOptions.intents.map((intent) => (
+              <option key={intent.key} value={intent.key}>
+                {intent.label}
+              </option>
+            ))}
+          </select>
+          <select
+            name="category"
+            defaultValue={activeCategory}
+            className="rounded-2xl border border-charcoal/12 bg-white px-4 py-3 text-sm text-charcoal outline-none transition focus:border-ember focus:ring-2 focus:ring-ember/15"
+          >
+            <option value="all">All categories</option>
+            {browseOptions.categories.map((category) => (
+              <option key={category} value={category}>
+                {formatReviewCategoryLabel(category)}
+              </option>
+            ))}
+          </select>
+          <select
+            name="heat"
+            defaultValue={activeHeat}
+            className="rounded-2xl border border-charcoal/12 bg-white px-4 py-3 text-sm text-charcoal outline-none transition focus:border-ember focus:ring-2 focus:ring-ember/15"
+          >
+            <option value="all">All heat levels</option>
+            {browseOptions.heatLevels.map((heat) => (
+              <option key={heat} value={heat}>
+                {formatReviewHeatLabel(heat)}
+              </option>
+            ))}
+          </select>
+          <select
+            name="sort"
+            defaultValue={activeSort}
+            className="rounded-2xl border border-charcoal/12 bg-white px-4 py-3 text-sm text-charcoal outline-none transition focus:border-ember focus:ring-2 focus:ring-ember/15"
+          >
+            {REVIEW_SORT_OPTIONS.map((option) => (
+              <option key={option.key} value={option.key}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button className="rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 text-sm font-semibold text-white">
+            Apply filters
+          </button>
+          {hasActiveFilters ? (
+            <Link
+              href="/reviews"
+              className="rounded-full border border-charcoal/10 px-5 py-3 text-sm font-semibold text-charcoal"
+            >
+              Clear all
+            </Link>
+          ) : null}
+          <p className="text-sm text-charcoal/60">
+            Search by bottle, browse by use case, or sort for the hottest and highest-rated shelf.
+          </p>
+        </div>
+      </form>
+      <div className="mt-6 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="eyebrow">Browse by intent</p>
             <h2 className="mt-3 font-display text-4xl text-cream">Filter the shelf like a buyer.</h2>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
-              Showing <span className="font-semibold text-cream">{filteredReviews.length}</span>{" "}
+              Showing <span className="font-semibold text-cream">{paginatedReviews.totalResults}</span>{" "}
               results for <span className="font-semibold text-cream">{filterMeta.label}</span>.{" "}
               {filterMeta.description}
             </p>
           </div>
         </div>
         <div className="mt-6 flex flex-wrap gap-3">
-          {HOT_SAUCE_FILTERS.map((filter) => {
-            const href = filter.key === "all" ? "/reviews" : `/reviews?filter=${filter.key}`;
-            const isActive = filter.key === activeFilter;
+          {browseOptions.intents.map((filter) => {
+            const href = buildReviewsBrowseHref({
+              query,
+              intent: filter.key,
+              category: activeCategory,
+              heat: activeHeat,
+              sort: activeSort
+            });
+            const isActive = filter.key === activeIntent;
 
             return (
               <Link
@@ -214,8 +342,8 @@ export default async function ReviewsIndexPage({
                 href={href}
                 className={
                   isActive
-                    ? "rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
-                    : "rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                    ? "rounded-full border border-white bg-white px-4 py-2 text-sm font-semibold text-charcoal shadow-sm"
+                    : "rounded-full border border-white/15 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-cream/90 hover:border-white/30 hover:bg-white/[0.07]"
                 }
               >
                 {filter.label}
@@ -224,9 +352,29 @@ export default async function ReviewsIndexPage({
           })}
         </div>
       </div>
+      <div className="mt-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="eyebrow">Review archive</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">
+            {paginatedReviews.totalResults
+              ? `Showing ${paginatedReviews.startResult}-${paginatedReviews.endResult} of ${paginatedReviews.totalResults}`
+              : "No reviews match those filters yet"}
+          </h2>
+          <p className="mt-3 text-sm leading-7 text-cream/70">
+            {paginatedReviews.totalResults
+              ? "Tighten the shelf by use case, then sort for the bottles that deserve a closer look."
+              : "Try a broader search, switch the intent lane, or clear one filter to open the shelf back up."}
+          </p>
+        </div>
+        {paginatedReviews.totalPages > 1 ? (
+          <p className="text-sm text-cream/60">
+            Page {paginatedReviews.currentPage} of {paginatedReviews.totalPages}
+          </p>
+        ) : null}
+      </div>
       <div className="mt-10 grid gap-6 lg:grid-cols-2">
-        {filteredReviews.length ? (
-          filteredReviews.map((review) => <ReviewCard key={review.id} review={review} />)
+        {paginatedReviews.items.length ? (
+          paginatedReviews.items.map((review) => <ReviewCard key={review.id} review={review} />)
         ) : (
           <div className="panel p-8 text-sm leading-7 text-cream/72 lg:col-span-2">
             No hot sauce reviews match that filter yet. Try another browse lane or head back to the{" "}
@@ -237,6 +385,42 @@ export default async function ReviewsIndexPage({
           </div>
         )}
       </div>
+      {paginatedReviews.totalPages > 1 ? (
+        <div className="mt-10 flex flex-wrap items-center justify-between gap-4">
+          {paginatedReviews.currentPage > 1 ? (
+            <Link
+              href={buildReviewsBrowseHref({
+                query,
+                intent: activeIntent,
+                category: activeCategory,
+                heat: activeHeat,
+                sort: activeSort,
+                page: paginatedReviews.currentPage - 1
+              })}
+              className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            >
+              Previous page
+            </Link>
+          ) : (
+            <span />
+          )}
+          {paginatedReviews.currentPage < paginatedReviews.totalPages ? (
+            <Link
+              href={buildReviewsBrowseHref({
+                query,
+                intent: activeIntent,
+                category: activeCategory,
+                heat: activeHeat,
+                sort: activeSort,
+                page: paginatedReviews.currentPage + 1
+              })}
+              className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
+            >
+              Next page
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
     </section>
   );
 }
