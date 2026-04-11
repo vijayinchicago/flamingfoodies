@@ -11,7 +11,6 @@ import { env, flags } from "@/lib/env";
 import {
   BLOG_POST_PROMPT,
   CUISINE_ROTATION,
-  getTodayCuisines,
   RECIPE_PROMPT,
   REVIEW_PROMPT
 } from "@/lib/generation/prompts";
@@ -83,6 +82,14 @@ type GenerationContext = {
   cuisine: CuisineType;
   heatLevel: HeatLevel;
   hotSauceFocus?: HotSauceFocus | null;
+};
+
+type GenerationHistoryEntry = {
+  type: GenerationType;
+  cuisine: CuisineType;
+  createdAt: string;
+  profile: GenerationProfile;
+  hotSauceSlug?: string | null;
 };
 
 const recipeIngredientSchema = z.object({
@@ -1257,6 +1264,94 @@ function getHeatLevel(index: number): HeatLevel {
   return heatLevels[index % heatLevels.length];
 }
 
+function coerceGenerationType(value?: string | null): GenerationType | null {
+  if (value === "recipe" || value === "blog_post" || value === "review") {
+    return value;
+  }
+
+  return null;
+}
+
+function deterministicSelectionJitter(seed: string) {
+  let hash = 0;
+
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = (hash * 31 + seed.charCodeAt(index)) % 9973;
+  }
+
+  return hash % 17;
+}
+
+function scoreCuisineCandidate(input: {
+  cuisine: CuisineType;
+  type: GenerationType;
+  history: GenerationHistoryEntry[];
+  index: number;
+  date: Date;
+}) {
+  const sameTypeHistory = input.history.filter((entry) => entry.type === input.type);
+  const sameTypeLastIndex = sameTypeHistory.findIndex((entry) => entry.cuisine === input.cuisine);
+  const globalLastIndex = input.history.findIndex((entry) => entry.cuisine === input.cuisine);
+  const sameTypeRecentCount = sameTypeHistory
+    .slice(0, 12)
+    .filter((entry) => entry.cuisine === input.cuisine).length;
+  const globalRecentCount = input.history
+    .slice(0, 24)
+    .filter((entry) => entry.cuisine === input.cuisine).length;
+  const sameTypeCooldownPenalty =
+    sameTypeLastIndex === 0 ? 110 : sameTypeLastIndex === 1 ? 70 : sameTypeLastIndex === 2 ? 35 : 0;
+  const globalCooldownPenalty =
+    globalLastIndex === 0 ? 45 : globalLastIndex === 1 ? 20 : 0;
+  const sameTypeRecencyReward =
+    sameTypeLastIndex === -1 ? 48 : Math.min(sameTypeLastIndex, 12) * 4;
+  const globalRecencyReward =
+    globalLastIndex === -1 ? 22 : Math.min(globalLastIndex, 18);
+  const saturationPenalty = sameTypeRecentCount * 18 + globalRecentCount * 7;
+  const jitter = deterministicSelectionJitter(
+    `${input.date.toISOString().slice(0, 10)}:${input.type}:${input.index}:${input.cuisine}`
+  );
+
+  return sameTypeRecencyReward + globalRecencyReward + jitter - saturationPenalty - sameTypeCooldownPenalty - globalCooldownPenalty;
+}
+
+export function planBalancedCuisines(input: {
+  qty: number;
+  type: GenerationType;
+  history: GenerationHistoryEntry[];
+  date?: Date;
+}) {
+  const date = input.date ?? new Date();
+  const planningHistory = [...input.history];
+  const plan: CuisineType[] = [];
+
+  for (let index = 0; index < input.qty; index += 1) {
+    const rankedCuisines = CUISINE_ROTATION.map((cuisine) => ({
+      cuisine,
+      score: scoreCuisineCandidate({
+        cuisine,
+        type: input.type,
+        history: planningHistory,
+        index,
+        date
+      })
+    })).sort((left, right) => right.score - left.score || left.cuisine.localeCompare(right.cuisine));
+
+    const selectedCuisine =
+      rankedCuisines[0]?.cuisine ?? CUISINE_ROTATION[index % CUISINE_ROTATION.length];
+
+    plan.push(selectedCuisine);
+    planningHistory.unshift({
+      type: input.type,
+      cuisine: selectedCuisine,
+      createdAt: new Date(date.getTime() + index).toISOString(),
+      profile: "default",
+      hotSauceSlug: null
+    });
+  }
+
+  return plan;
+}
+
 function normalizeGenerationProfile(
   type: GenerationType,
   profile?: string | null
@@ -1268,15 +1363,6 @@ function normalizeGenerationProfile(
   return "default";
 }
 
-function getWeeklyRotationSeed(date = new Date()) {
-  const utcDate = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  const day = utcDate.getUTCDay();
-  const diffToMonday = day === 0 ? -6 : 1 - day;
-  utcDate.setUTCDate(utcDate.getUTCDate() + diffToMonday);
-  utcDate.setUTCHours(0, 0, 0, 0);
-  return Math.floor(utcDate.getTime() / 604800000);
-}
-
 function sortHotSauceCandidates<T extends { featured?: boolean; publishedAt?: string }>(rows: T[]) {
   return [...rows].sort((left, right) => {
     if (Boolean(left.featured) !== Boolean(right.featured)) {
@@ -1285,6 +1371,85 @@ function sortHotSauceCandidates<T extends { featured?: boolean; publishedAt?: st
 
     return new Date(right.publishedAt || 0).getTime() - new Date(left.publishedAt || 0).getTime();
   });
+}
+
+function buildSampleGenerationHistory() {
+  return [
+    ...sampleRecipes.map((recipe) => ({
+      type: "recipe" as const,
+      cuisine: recipe.cuisineType,
+      createdAt: recipe.publishedAt || new Date(0).toISOString(),
+      profile: "default" as const,
+      hotSauceSlug: null
+    })),
+    ...sampleBlogPosts.map((post) => ({
+      type: "blog_post" as const,
+      cuisine: post.cuisineType ?? "other",
+      createdAt: post.publishedAt || new Date(0).toISOString(),
+      profile: "default" as const,
+      hotSauceSlug: null
+    })),
+    ...sampleReviews.map((review) => ({
+      type: "review" as const,
+      cuisine: review.cuisineOrigin ?? "other",
+      createdAt: review.publishedAt || new Date(0).toISOString(),
+      profile: "default" as const,
+      hotSauceSlug: null
+    }))
+  ].sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
+}
+
+async function listRecentGenerationHistory(supabase: AdminClient) {
+  const { data } = await supabase
+    .from("content_generation_jobs")
+    .select("job_type, status, created_at, parameters")
+    .order("created_at", { ascending: false })
+    .limit(180);
+
+  return (data ?? [])
+    .flatMap((row) => {
+      if (row.status === "failed") {
+        return [];
+      }
+
+      const type = coerceGenerationType(row.job_type);
+      if (!type) {
+        return [];
+      }
+
+      const parameters =
+        row.parameters && typeof row.parameters === "object" ? row.parameters : {};
+      const parameterRecord = parameters as Record<string, unknown>;
+      const normalizedParameters = normalizeGeneratedCommonPayload(
+        parameterRecord
+      );
+      const cuisine =
+        typeof normalizedParameters.cuisine_type === "string"
+          ? (normalizedParameters.cuisine_type as CuisineType)
+          : null;
+
+      if (!cuisine || !cuisineSet.has(cuisine)) {
+        return [];
+      }
+
+      const rawProfile = typeof parameterRecord.profile === "string" ? parameterRecord.profile : null;
+      const profile = normalizeGenerationProfile(type, rawProfile);
+      const hotSauceSlug =
+        typeof parameterRecord.hot_sauce_slug === "string"
+          ? String(parameterRecord.hot_sauce_slug)
+          : null;
+
+      return [
+        {
+          type,
+          cuisine,
+          createdAt: row.created_at || new Date(0).toISOString(),
+          profile,
+          hotSauceSlug
+        } satisfies GenerationHistoryEntry
+      ];
+    })
+    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
 }
 
 async function listPublishedHotSauceCandidates(supabase: AdminClient) {
@@ -1335,12 +1500,65 @@ async function listPublishedHotSauceCandidates(supabase: AdminClient) {
   ).map(({ publishedAt: _publishedAt, ...candidate }) => candidate);
 }
 
-function pickWeeklyHotSauceFocus(candidates: HotSauceFocus[], index: number) {
+export function pickBalancedHotSauceFocus(
+  candidates: HotSauceFocus[],
+  history: GenerationHistoryEntry[],
+  usedSlugs: Set<string>,
+  index: number,
+  date = new Date()
+) {
   if (!candidates.length) {
     return null;
   }
 
-  return candidates[(getWeeklyRotationSeed() + index) % candidates.length] ?? candidates[0];
+  const hotSauceHistory = history.filter(
+    (entry) => entry.type === "recipe" && entry.profile === "hot_sauce_recipe"
+  );
+
+  const rankedCandidates = candidates
+    .map((candidate, candidateIndex) => {
+      const slugLastIndex = hotSauceHistory.findIndex(
+        (entry) => entry.hotSauceSlug === candidate.slug
+      );
+      const slugRecentCount = hotSauceHistory
+        .slice(0, 10)
+        .filter((entry) => entry.hotSauceSlug === candidate.slug).length;
+      const slugPenalty =
+        usedSlugs.has(candidate.slug)
+          ? 200
+          : slugLastIndex === 0
+            ? 120
+            : slugLastIndex === 1
+              ? 70
+              : slugLastIndex === 2
+                ? 35
+                : 0;
+      const cuisineScore =
+        candidate.cuisineOrigin && candidate.cuisineOrigin !== "other"
+          ? scoreCuisineCandidate({
+              cuisine: candidate.cuisineOrigin,
+              type: "recipe",
+              history,
+              index,
+              date
+            })
+          : 0;
+      const featuredBoost = candidate.featured ? 10 : 0;
+      const freshnessBoost = Math.max(candidates.length - candidateIndex, 1);
+
+      return {
+        candidate,
+        score: cuisineScore + featuredBoost + freshnessBoost - slugPenalty - slugRecentCount * 28
+      };
+    })
+    .sort((left, right) => right.score - left.score);
+
+  const selected = rankedCandidates[0]?.candidate ?? candidates[0];
+  if (selected) {
+    usedSlugs.add(selected.slug);
+  }
+
+  return selected;
 }
 
 function buildGenerationContext(
@@ -2363,7 +2581,12 @@ export async function runGenerationPipeline(
   const source = options?.source ?? "manual";
   const profile = normalizeGenerationProfile(generationType, options?.profile);
   const requestedQty = Math.min(Math.max(qty ?? 1, 1), 20);
-  const scheduledCuisines = getTodayCuisines(requestedQty);
+  const sampleHistory = buildSampleGenerationHistory();
+  const requestedCuisinePlan = planBalancedCuisines({
+    qty: requestedQty,
+    type: generationType,
+    history: sampleHistory
+  });
 
   if (!flags.hasSupabaseAdmin) {
     return {
@@ -2372,9 +2595,9 @@ export async function runGenerationPipeline(
         id: sampleGenerationJobs.length + index + 1,
         type: generationType,
         slug: slugify(
-          `${generationType}-${scheduledCuisines[index] || "flamingfoodies"}-${Date.now()}-${index}`
+          `${generationType}-${requestedCuisinePlan[index] || "flamingfoodies"}-${Date.now()}-${index}`
         ),
-        scheduledCuisine: scheduledCuisines[index] || null,
+        scheduledCuisine: requestedCuisinePlan[index] || null,
         profile
       }))
     };
@@ -2388,9 +2611,9 @@ export async function runGenerationPipeline(
         id: sampleGenerationJobs.length + index + 1,
         type: generationType,
         slug: slugify(
-          `${generationType}-${scheduledCuisines[index] || "flamingfoodies"}-${Date.now()}-${index}`
+          `${generationType}-${requestedCuisinePlan[index] || "flamingfoodies"}-${Date.now()}-${index}`
         ),
-        scheduledCuisine: scheduledCuisines[index] || null,
+        scheduledCuisine: requestedCuisinePlan[index] || null,
         profile
       }))
     };
@@ -2426,7 +2649,12 @@ export async function runGenerationPipeline(
     ),
     20
   );
-  const effectiveCuisines = getTodayCuisines(effectiveQty);
+  const generationHistory = await listRecentGenerationHistory(supabase);
+  const effectiveCuisines = planBalancedCuisines({
+    qty: effectiveQty,
+    type: generationType,
+    history: generationHistory
+  });
   const anthropic = flags.hasAnthropic
     ? new Anthropic({
         apiKey: env.ANTHROPIC_API_KEY
@@ -2438,13 +2666,20 @@ export async function runGenerationPipeline(
       : [];
 
   const createdJobs: Array<Record<string, unknown>> = [];
+  const planningHistory = [...generationHistory];
+  const usedHotSauceSlugs = new Set<string>();
 
   for (let index = 0; index < effectiveQty; index += 1) {
     const defaultCuisine =
       effectiveCuisines[index] ?? CUISINE_ROTATION[index % CUISINE_ROTATION.length];
     const hotSauceFocus =
       generationType === "recipe" && profile === "hot_sauce_recipe"
-        ? pickWeeklyHotSauceFocus(hotSauceCandidates, index)
+        ? pickBalancedHotSauceFocus(
+            hotSauceCandidates,
+            planningHistory,
+            usedHotSauceSlugs,
+            index
+          )
         : null;
     const generationContext = buildGenerationContext(
       index,
@@ -2452,6 +2687,13 @@ export async function runGenerationPipeline(
       profile,
       hotSauceFocus
     );
+    planningHistory.unshift({
+      type: generationType,
+      cuisine: generationContext.cuisine,
+      createdAt: new Date().toISOString(),
+      profile,
+      hotSauceSlug: hotSauceFocus?.slug ?? null
+    });
     const { data: job, error: jobError } = await supabase
       .from("content_generation_jobs")
       .insert({

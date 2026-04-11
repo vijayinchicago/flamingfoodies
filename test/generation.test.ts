@@ -12,7 +12,9 @@ import {
   buildReviewPhotoSearchQueries,
   buildRecipePhotoSearchQueries,
   normalizeGeneratedCommonPayload,
-  normalizeGeneratedRecipePayload
+  normalizeGeneratedRecipePayload,
+  pickBalancedHotSauceFocus,
+  planBalancedCuisines
 } from "@/lib/services/automation";
 
 describe("generation prompts", () => {
@@ -65,6 +67,103 @@ describe("generation prompts", () => {
 
   it("returns requested cuisine count", () => {
     expect(getTodayCuisines(3)).toHaveLength(3);
+  });
+
+  it("balances cuisine plans away from recently overused lanes", () => {
+    const plan = planBalancedCuisines({
+      qty: 3,
+      type: "recipe",
+      history: [
+        {
+          type: "recipe",
+          cuisine: "jamaican",
+          createdAt: "2026-04-10T12:00:00Z",
+          profile: "default",
+          hotSauceSlug: null
+        },
+        {
+          type: "recipe",
+          cuisine: "jamaican",
+          createdAt: "2026-04-09T12:00:00Z",
+          profile: "default",
+          hotSauceSlug: null
+        },
+        {
+          type: "blog_post",
+          cuisine: "jamaican",
+          createdAt: "2026-04-08T12:00:00Z",
+          profile: "default",
+          hotSauceSlug: null
+        },
+        {
+          type: "review",
+          cuisine: "jamaican",
+          createdAt: "2026-04-07T12:00:00Z",
+          profile: "default",
+          hotSauceSlug: null
+        },
+        {
+          type: "recipe",
+          cuisine: "mexican",
+          createdAt: "2026-04-06T12:00:00Z",
+          profile: "default",
+          hotSauceSlug: null
+        }
+      ],
+      date: new Date("2026-04-11T12:00:00Z")
+    });
+
+    expect(plan).toHaveLength(3);
+    expect(new Set(plan).size).toBe(3);
+    expect(plan[0]).not.toBe("jamaican");
+  });
+
+  it("avoids reusing the same hot sauce too aggressively when alternatives exist", () => {
+    const pick = pickBalancedHotSauceFocus(
+      [
+        {
+          slug: "yellowbird-habanero",
+          productName: "Habanero Hot Sauce",
+          brand: "Yellowbird",
+          description: "Bright carrot-forward heat.",
+          heatLevel: "hot",
+          flavorNotes: ["carrot", "citrus"],
+          cuisineOrigin: "mexican",
+          featured: true
+        },
+        {
+          slug: "queen-majesty-scotch-bonnet-ginger",
+          productName: "Scotch Bonnet and Ginger",
+          brand: "Queen Majesty",
+          description: "Bright, gingery, and fruit-forward.",
+          heatLevel: "hot",
+          flavorNotes: ["ginger", "fruit"],
+          cuisineOrigin: "caribbean",
+          featured: true
+        }
+      ],
+      [
+        {
+          type: "recipe",
+          cuisine: "mexican",
+          createdAt: "2026-04-10T12:00:00Z",
+          profile: "hot_sauce_recipe",
+          hotSauceSlug: "yellowbird-habanero"
+        },
+        {
+          type: "recipe",
+          cuisine: "mexican",
+          createdAt: "2026-04-03T12:00:00Z",
+          profile: "hot_sauce_recipe",
+          hotSauceSlug: "yellowbird-habanero"
+        }
+      ],
+      new Set<string>(),
+      0,
+      new Date("2026-04-11T12:00:00Z")
+    );
+
+    expect(pick?.slug).toBe("queen-majesty-scotch-bonnet-ginger");
   });
 
   it("scores quiz answers into a persona", () => {
