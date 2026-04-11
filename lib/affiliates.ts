@@ -31,6 +31,10 @@ export type AffiliateMonetizationStrategy =
   | "merchant_redirect";
 
 export type AffiliateClickTrackingMode = "server_redirect" | "client_beacon";
+export type AffiliateDestinationKind =
+  | "amazon_product"
+  | "amazon_search"
+  | "merchant_page";
 
 export interface ResolvedAffiliateLink extends AffiliateLinkEntry {
   href: string;
@@ -65,6 +69,28 @@ export function buildAffiliateDestinationUrl(
   }
 
   return entry.url;
+}
+
+export function getAffiliateDestinationKind(
+  entry: AffiliateLinkEntry | AffiliateLinkDefinition
+): AffiliateDestinationKind {
+  const destination = buildAffiliateDestinationUrl(entry);
+
+  if (/amazon\.com\/dp\//i.test(destination)) {
+    return "amazon_product";
+  }
+
+  if (/amazon\.com\/s\?/i.test(destination)) {
+    return "amazon_search";
+  }
+
+  return "merchant_page";
+}
+
+export function isExactAmazonProductDestination(
+  entry: AffiliateLinkEntry | AffiliateLinkDefinition
+) {
+  return getAffiliateDestinationKind(entry) === "amazon_product";
 }
 
 function buildAffiliateRedirectHref(

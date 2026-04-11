@@ -1,4 +1,10 @@
 import { flags } from "@/lib/env";
+import {
+  buildAffiliateDestinationUrl,
+  getAffiliateDestinationKind,
+  getAffiliateRegistry,
+  isExactAmazonProductDestination
+} from "@/lib/affiliates";
 import { classifyAcquisitionSource } from "@/lib/pirate-metrics";
 import { buildShareAnalytics } from "@/lib/share-analytics";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -261,6 +267,140 @@ export async function getAffiliateAnalytics(windowDays = 30) {
       .map(([position, clicks]) => ({ position, clicks }))
       .sort((left, right) => right.clicks - left.clicks)
       .slice(0, 8)
+  };
+}
+
+export async function getAffiliateRegistryHealth(windowDays = 30) {
+  const registry = getAffiliateRegistry();
+  const baseEntries = registry.map((entry) => ({
+    key: entry.key,
+    partner: entry.partner,
+    product: entry.product,
+    monetizationLabel: entry.monetizationLabel,
+    destinationUrl: buildAffiliateDestinationUrl(entry),
+    destinationKind: getAffiliateDestinationKind(entry),
+    exactAmazonProduct: isExactAmazonProductDestination(entry),
+    clicks: 0,
+    lastClickedAt: null as string | null,
+    topSourcePage: null as string | null
+  }));
+
+  if (!flags.hasSupabaseAdmin) {
+    const topRisks = baseEntries
+      .filter((entry) => !entry.exactAmazonProduct)
+      .slice(0, 8);
+
+    return {
+      windowDays,
+      totals: {
+        catalogSize: baseEntries.length,
+        exactAmazonProducts: baseEntries.filter((entry) => entry.exactAmazonProduct).length,
+        searchFallbacks: baseEntries.filter((entry) => entry.destinationKind === "amazon_search")
+          .length,
+        clickedSearchFallbacks: 0
+      },
+      topRisks,
+      entries: baseEntries
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    const topRisks = baseEntries
+      .filter((entry) => !entry.exactAmazonProduct)
+      .slice(0, 8);
+
+    return {
+      windowDays,
+      totals: {
+        catalogSize: baseEntries.length,
+        exactAmazonProducts: baseEntries.filter((entry) => entry.exactAmazonProduct).length,
+        searchFallbacks: baseEntries.filter((entry) => entry.destinationKind === "amazon_search")
+          .length,
+        clickedSearchFallbacks: 0
+      },
+      topRisks,
+      entries: baseEntries
+    };
+  }
+
+  const { data } = await supabase
+    .from("affiliate_clicks")
+    .select("partner, product, source_page, clicked_at")
+    .gte("clicked_at", isoDaysAgo(windowDays));
+
+  const clickCounts = new Map<string, number>();
+  const lastClicked = new Map<string, string>();
+  const sourcePageCounts = new Map<string, Map<string, number>>();
+
+  for (const row of data ?? []) {
+    const key = `${row.partner}::${row.product}`;
+    clickCounts.set(key, (clickCounts.get(key) ?? 0) + 1);
+
+    if (row.clicked_at) {
+      const current = lastClicked.get(key);
+      if (!current || new Date(row.clicked_at).getTime() > new Date(current).getTime()) {
+        lastClicked.set(key, row.clicked_at);
+      }
+    }
+
+    if (row.source_page) {
+      const pageCounts = sourcePageCounts.get(key) ?? new Map<string, number>();
+      pageCounts.set(row.source_page, (pageCounts.get(row.source_page) ?? 0) + 1);
+      sourcePageCounts.set(key, pageCounts);
+    }
+  }
+
+  const entries = baseEntries
+    .map((entry) => {
+      const metricKey = `${entry.partner}::${entry.product}`;
+      const pageCounts = sourcePageCounts.get(metricKey);
+      const topSourcePage = pageCounts
+        ? Array.from(pageCounts.entries()).sort((left, right) => right[1] - left[1])[0]?.[0] ?? null
+        : null;
+
+      return {
+        ...entry,
+        clicks: clickCounts.get(metricKey) ?? 0,
+        lastClickedAt: lastClicked.get(metricKey) ?? null,
+        topSourcePage
+      };
+    })
+    .sort((left, right) => {
+      if (Number(left.exactAmazonProduct) !== Number(right.exactAmazonProduct)) {
+        return Number(right.exactAmazonProduct) - Number(left.exactAmazonProduct);
+      }
+
+      if (right.clicks !== left.clicks) {
+        return right.clicks - left.clicks;
+      }
+
+      return left.product.localeCompare(right.product);
+    });
+
+  const topRisks = entries
+    .filter((entry) => !entry.exactAmazonProduct)
+    .sort((left, right) => {
+      if (right.clicks !== left.clicks) {
+        return right.clicks - left.clicks;
+      }
+
+      return left.product.localeCompare(right.product);
+    })
+    .slice(0, 8);
+
+  return {
+    windowDays,
+    totals: {
+      catalogSize: entries.length,
+      exactAmazonProducts: entries.filter((entry) => entry.exactAmazonProduct).length,
+      searchFallbacks: entries.filter((entry) => entry.destinationKind === "amazon_search").length,
+      clickedSearchFallbacks: entries.filter(
+        (entry) => entry.destinationKind === "amazon_search" && entry.clicks > 0
+      ).length
+    },
+    topRisks,
+    entries
   };
 }
 
