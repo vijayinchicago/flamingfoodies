@@ -2,6 +2,7 @@ import {
   runDueNewsletterSendsAction,
   runNewsletterDigestAction,
   runPublishScheduledAction,
+  runShopCatalogRefreshAction,
   runSocialSchedulerAction
 } from "@/lib/actions/admin-automation";
 import { ManualGenerationPanel } from "@/components/admin/manual-generation-panel";
@@ -62,6 +63,9 @@ export default async function AdminTriggerPage({
     processedNewsletters?: string;
     sentNewsletters?: string;
     failedNewsletters?: string;
+    shopRefreshReviewed?: string;
+    shopRefreshCreated?: string;
+    shopRefreshUpdated?: string;
     error?: string;
   };
 }) {
@@ -103,6 +107,13 @@ export default async function AdminTriggerPage({
           Processed {searchParams.processedNewsletters} scheduled newsletter(s), sent{" "}
           {searchParams.sentNewsletters || "0"}, failed{" "}
           {searchParams.failedNewsletters || "0"}.
+        </p>
+      ) : null}
+      {searchParams?.shopRefreshReviewed ? (
+        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          Refreshed {searchParams.shopRefreshReviewed} shop picks, created{" "}
+          {searchParams.shopRefreshCreated || "0"}, updated{" "}
+          {searchParams.shopRefreshUpdated || "0"}.
         </p>
       ) : null}
       <ManualGenerationPanel triggers={triggers} initialJobs={initialJobs} />
@@ -152,6 +163,19 @@ export default async function AdminTriggerPage({
           <AdminSubmitButton
             idleLabel="Send due campaigns"
             pendingLabel="Sending..."
+            className="mt-6 rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
+          />
+        </form>
+        <form action={runShopCatalogRefreshAction} className="panel-light p-6">
+          <p className="eyebrow">Refresh</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Shop catalog</h2>
+          <p className="mt-3 text-sm text-charcoal/65">
+            Review every automated shop pick against real click data, refresh the shelf, and
+            surface the strongest products.
+          </p>
+          <AdminSubmitButton
+            idleLabel="Refresh shop picks"
+            pendingLabel="Refreshing..."
             className="mt-6 rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
           />
         </form>

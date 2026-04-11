@@ -74,6 +74,31 @@ async function importGrowthLoopRoute({
   };
 }
 
+async function importShopRefreshRoute({
+  runShopCatalogRefresh = vi.fn().mockResolvedValue({
+    mode: "scheduled_refresh",
+    windowDays: 30,
+    reviewed: 10,
+    created: 2,
+    updated: 8,
+    featured: 4,
+    exactAmazonReady: 3,
+    needsExactAmazonLink: 7,
+    topEntries: []
+  })
+} = {}) {
+  vi.resetModules();
+  vi.doMock("@/lib/services/shop-automation", () => ({
+    runShopCatalogRefresh
+  }));
+
+  const route = await import("@/app/api/admin/shop-refresh/route");
+  return {
+    route,
+    runShopCatalogRefresh
+  };
+}
+
 afterEach(() => {
   vi.clearAllMocks();
   vi.unstubAllEnvs();
@@ -400,6 +425,66 @@ describe("growth loop cron route", () => {
       skipped: []
     });
     expect(queueGrowthLoopPromotions).toHaveBeenCalledWith(30);
+  });
+});
+
+describe("shop refresh cron route", () => {
+  it("rejects unauthorized requests when the cron secret is set", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
+    const { route, runShopCatalogRefresh } = await importShopRefreshRoute();
+
+    const response = await route.GET(
+      new Request("https://flamingfoodies.com/api/admin/shop-refresh")
+    );
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ ok: false, error: "Unauthorized" });
+    expect(runShopCatalogRefresh).not.toHaveBeenCalled();
+  });
+
+  it("runs the nightly shop refresh when authorized", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
+    const runShopCatalogRefresh = vi.fn().mockResolvedValue({
+      mode: "scheduled_refresh",
+      windowDays: 45,
+      reviewed: 14,
+      created: 1,
+      updated: 13,
+      featured: 4,
+      exactAmazonReady: 5,
+      needsExactAmazonLink: 9,
+      topEntries: [{ affiliateKey: "amazon-yellowbird-habanero", clicks: 12 }]
+    });
+    const { route } = await importShopRefreshRoute({
+      runShopCatalogRefresh
+    });
+
+    const response = await route.POST(
+      new Request("https://flamingfoodies.com/api/admin/shop-refresh?windowDays=45", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer topsecret"
+        }
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      ok: true,
+      mode: "scheduled_refresh",
+      windowDays: 45,
+      reviewed: 14,
+      created: 1,
+      updated: 13,
+      featured: 4,
+      exactAmazonReady: 5,
+      needsExactAmazonLink: 9,
+      topEntries: [{ affiliateKey: "amazon-yellowbird-habanero", clicks: 12 }]
+    });
+    expect(runShopCatalogRefresh).toHaveBeenCalledWith({
+      source: "cron",
+      windowDays: 45
+    });
   });
 });
 

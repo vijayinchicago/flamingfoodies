@@ -11,6 +11,7 @@ import {
   runGenerationPipeline
 } from "@/lib/services/automation";
 import { processScheduledNewsletterCampaigns } from "@/lib/services/newsletter";
+import { runShopCatalogRefresh } from "@/lib/services/shop-automation";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
@@ -237,5 +238,28 @@ export async function runDueNewsletterSendsAction() {
   revalidatePath("/admin/automation/trigger");
   redirect(
     `/admin/automation/trigger?processedNewsletters=${result.processed}&sentNewsletters=${result.sent}&failedNewsletters=${result.failures}`
+  );
+}
+
+export async function runShopCatalogRefreshAction() {
+  const admin = await requireAdmin();
+  const result = await runShopCatalogRefresh({
+    source: "manual"
+  });
+  const supabase = createSupabaseAdminClient();
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "refresh_shop_catalog",
+    targetType: "merch_product",
+    targetId: "shop_catalog",
+    metadata: result
+  });
+
+  revalidatePath("/admin/content/merch");
+  revalidatePath("/admin/automation/trigger");
+  revalidatePath("/shop");
+  redirect(
+    `/admin/automation/trigger?shopRefreshReviewed=${result.reviewed}&shopRefreshCreated=${result.created}&shopRefreshUpdated=${result.updated}`
   );
 }

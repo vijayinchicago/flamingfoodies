@@ -9,6 +9,10 @@ import type { MerchAvailability, MerchThemeKey } from "@/lib/types";
 
 type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
 type ShopAutomationSource = "manual" | "cron";
+type ShopPickUpsertOptions = {
+  featured?: boolean;
+  sortOrder?: number;
+};
 
 function getDailyRotationSeed(date = new Date()) {
   return Math.floor(
@@ -69,6 +73,37 @@ function buildShopPickHref(entry: AffiliateLinkEntry) {
 
 function buildShopPickDescription(entry: AffiliateLinkEntry) {
   return `${entry.description} Best for ${entry.bestFor.toLowerCase()}.`;
+}
+
+function buildShopMetricKey(entry: Pick<AffiliateLinkEntry, "partner" | "product">) {
+  return `${entry.partner}::${entry.product}`;
+}
+
+function hasExactAmazonProductLink(entry: AffiliateLinkEntry) {
+  const candidate = entry.partner === "amazon" ? entry.url : entry.amazonOnlyUrl;
+  return Boolean(candidate?.includes("/dp/"));
+}
+
+function buildShopPickPayload(
+  entry: AffiliateLinkEntry,
+  options?: ShopPickUpsertOptions
+) {
+  return {
+    name: entry.product,
+    category: formatShopCategory(entry.category),
+    badge: entry.badge,
+    description: buildShopPickDescription(entry),
+    price_label: entry.priceLabel || "Check Amazon",
+    availability: getShopAvailability(entry.category),
+    theme_key: getShopThemeKey(entry.category),
+    href: buildShopPickHref(entry),
+    cta_label: "View on Amazon",
+    image_url: null,
+    image_alt: `${entry.product} product pick`,
+    featured: options?.featured ?? true,
+    status: "published",
+    sort_order: options?.sortOrder ?? 0
+  };
 }
 
 export function chooseShopPickEntries(
@@ -138,7 +173,8 @@ async function updateGenerationJob(
 
 async function upsertShopPick(
   supabase: AdminClient,
-  entry: AffiliateLinkEntry
+  entry: AffiliateLinkEntry,
+  options?: ShopPickUpsertOptions
 ) {
   const slug = buildShopPickSlug(entry);
   const href = buildShopPickHref(entry);
@@ -150,20 +186,7 @@ async function upsertShopPick(
 
   const payload = {
     slug: existing?.slug || slug,
-    name: entry.product,
-    category: formatShopCategory(entry.category),
-    badge: entry.badge,
-    description: buildShopPickDescription(entry),
-    price_label: entry.priceLabel || "Check Amazon",
-    availability: getShopAvailability(entry.category),
-    theme_key: getShopThemeKey(entry.category),
-    href,
-    cta_label: "View on Amazon",
-    image_url: null,
-    image_alt: `${entry.product} product pick`,
-    featured: true,
-    status: "published",
-    sort_order: 0
+    ...buildShopPickPayload(entry, options)
   };
 
   if (existing?.id) {
@@ -178,7 +201,10 @@ async function upsertShopPick(
       throw new Error(error.message);
     }
 
-    return data;
+    return {
+      ...data,
+      operation: "updated" as const
+    };
   }
 
   const { data, error } = await supabase
@@ -191,7 +217,34 @@ async function upsertShopPick(
     throw new Error(error.message);
   }
 
-  return data;
+  return {
+    ...data,
+    operation: "created" as const
+  };
+}
+
+export function rankShopPickEntries(
+  entries: AffiliateLinkEntry[],
+  clickCounts: Map<string, number>
+) {
+  return entries
+    .map((entry, index) => ({
+      entry,
+      index,
+      clicks: clickCounts.get(buildShopMetricKey(entry)) ?? 0,
+      exactAmazonLink: hasExactAmazonProductLink(entry)
+    }))
+    .sort((left, right) => {
+      if (right.clicks !== left.clicks) {
+        return right.clicks - left.clicks;
+      }
+
+      if (Number(right.exactAmazonLink) !== Number(left.exactAmazonLink)) {
+        return Number(right.exactAmazonLink) - Number(left.exactAmazonLink);
+      }
+
+      return left.index - right.index;
+    });
 }
 
 export async function runShopPickAutomation(
@@ -311,5 +364,115 @@ export async function runShopPickAutomation(
   return {
     mode: options?.source === "cron" ? "scheduled_catalog" : "catalog",
     createdJobs
+  };
+}
+
+export async function runShopCatalogRefresh(options?: {
+  source?: ShopAutomationSource;
+  windowDays?: number;
+}) {
+  const windowDays = Math.min(Math.max(options?.windowDays ?? 30, 7), 180);
+  const catalog = getAutomatedShopPickEntries();
+
+  if (!flags.hasSupabaseAdmin) {
+    const ranked = rankShopPickEntries(catalog, new Map());
+
+    return {
+      mode: options?.source === "cron" ? "scheduled_refresh" : "refresh",
+      windowDays,
+      reviewed: ranked.length,
+      created: ranked.length,
+      updated: 0,
+      featured: Math.min(4, ranked.length),
+      exactAmazonReady: ranked.filter((item) => item.exactAmazonLink).length,
+      needsExactAmazonLink: ranked.filter((item) => !item.exactAmazonLink).length,
+      topEntries: ranked.slice(0, 8).map((item) => ({
+        affiliateKey: item.entry.key,
+        product: item.entry.product,
+        clicks: item.clicks,
+        exactAmazonLink: item.exactAmazonLink
+      }))
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return {
+      mode: options?.source === "cron" ? "scheduled_refresh" : "refresh",
+      windowDays,
+      reviewed: 0,
+      created: 0,
+      updated: 0,
+      featured: 0,
+      exactAmazonReady: 0,
+      needsExactAmazonLink: 0,
+      topEntries: []
+    };
+  }
+
+  const since = new Date(Date.now() - windowDays * 86400000).toISOString();
+  const [{ data: clickRows }, { data: existingRows }] = await Promise.all([
+    supabase
+      .from("affiliate_clicks")
+      .select("partner, product")
+      .gte("clicked_at", since),
+    supabase
+      .from("merch_products")
+      .select("id, slug")
+      .like("slug", "shop-pick-%")
+  ]);
+
+  const clickCounts = new Map<string, number>();
+  for (const row of clickRows ?? []) {
+    const key = `${row.partner}::${row.product}`;
+    clickCounts.set(key, (clickCounts.get(key) ?? 0) + 1);
+  }
+
+  const ranked = rankShopPickEntries(catalog, clickCounts);
+  const existingSlugSet = new Set((existingRows ?? []).map((row) => row.slug));
+  let created = 0;
+  let updated = 0;
+
+  for (const [index, item] of ranked.entries()) {
+    const result = await upsertShopPick(supabase, item.entry, {
+      featured: index < 4,
+      sortOrder: index
+    });
+
+    if (result.operation === "created") {
+      created += 1;
+    } else {
+      updated += 1;
+    }
+  }
+
+  const catalogSlugSet = new Set(ranked.map((item) => buildShopPickSlug(item.entry)));
+  const obsoleteIds = (existingRows ?? [])
+    .filter((row) => !catalogSlugSet.has(row.slug))
+    .map((row) => row.id);
+
+  if (obsoleteIds.length) {
+    await supabase
+      .from("merch_products")
+      .update({ featured: false })
+      .in("id", obsoleteIds);
+  }
+
+  return {
+    mode: options?.source === "cron" ? "scheduled_refresh" : "refresh",
+    windowDays,
+    reviewed: ranked.length,
+    created,
+    updated,
+    featured: Math.min(4, ranked.length),
+    exactAmazonReady: ranked.filter((item) => item.exactAmazonLink).length,
+    needsExactAmazonLink: ranked.filter((item) => !item.exactAmazonLink).length,
+    topEntries: ranked.slice(0, 8).map((item) => ({
+      affiliateKey: item.entry.key,
+      product: item.entry.product,
+      clicks: item.clicks,
+      exactAmazonLink: item.exactAmazonLink,
+      alreadyInCatalog: existingSlugSet.has(buildShopPickSlug(item.entry))
+    }))
   };
 }
