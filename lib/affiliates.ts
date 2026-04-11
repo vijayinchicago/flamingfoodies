@@ -11,6 +11,7 @@ export interface AffiliateLinkDefinition {
   partner: string;
   product: string;
   url: string;
+  amazonOnlyUrl?: string;
   category: AffiliateCategory;
   badge: string;
   description: string;
@@ -52,11 +53,15 @@ export function buildAmazonSearchUrl(query: string) {
   return `https://www.amazon.com/s?k=${encodeURIComponent(query)}&tag=${AMAZON_TAG}`;
 }
 
+export function buildAmazonProductUrl(asin: string) {
+  return `https://www.amazon.com/dp/${asin}?tag=${AMAZON_TAG}`;
+}
+
 export function buildAffiliateDestinationUrl(
   entry: AffiliateLinkEntry | AffiliateLinkDefinition
 ) {
   if (AMAZON_ONLY_MODE && entry.partner !== "amazon") {
-    return buildAmazonSearchUrl(entry.product);
+    return entry.amazonOnlyUrl ?? buildAmazonSearchUrl(entry.product);
   }
 
   return entry.url;
@@ -85,7 +90,7 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
   "amazon-cast-iron-skillet": {
     partner: "amazon",
     product: "12-Inch Cast Iron Skillet",
-    url: buildAmazonSearchUrl("12 inch cast iron skillet lodge"),
+    url: buildAmazonProductUrl("B0714CXBTF"),
     category: "gear",
     badge: "Kitchen staple",
     description: "The sear-and-char pan for smash burgers, fajitas, cornbread, and anything that likes hard edges.",
@@ -181,7 +186,7 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
   "amazon-yellowbird-habanero": {
     partner: "amazon",
     product: "Yellowbird Habanero Hot Sauce",
-    url: buildAmazonSearchUrl("Yellowbird habanero hot sauce"),
+    url: buildAmazonProductUrl("B09JBN8F5G"),
     category: "hot_sauce",
     badge: "Everyday bottle",
     description: "Bright carrot-habanero heat with enough body to work on eggs, tacos, and roasted vegetables.",
@@ -205,7 +210,7 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
   "amazon-fly-by-jing-sichuan-gold": {
     partner: "amazon",
     product: "Fly By Jing Sichuan Gold",
-    url: buildAmazonSearchUrl("Fly By Jing Sichuan Gold"),
+    url: buildAmazonProductUrl("B0BF9R213D"),
     category: "hot_sauce",
     badge: "Numbing heat",
     description: "A more citrusy, peppercorn-leaning sauce when you want flavor movement instead of pure capsaicin.",
@@ -230,6 +235,7 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     partner: "mike_hot_sauce",
     product: "Mike's Hot Honey",
     url: "https://mikeshothoney.com/products/mikes-hot-honey-original",
+    amazonOnlyUrl: buildAmazonProductUrl("B085B1YZ8Q"),
     category: "ingredient",
     badge: "Sweet heat",
     description: "The fast-track drizzle for pizza, fried chicken, salmon, Brussels sprouts, and hot sandwiches.",

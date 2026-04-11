@@ -151,6 +151,7 @@ export async function getAffiliateAnalytics(windowDays = 30) {
         estimatedRevenue: formatCurrency(0)
       },
       partners: [],
+      topProducts: [],
       topSourcePages: [],
       topPositions: []
     };
@@ -166,6 +167,7 @@ export async function getAffiliateAnalytics(windowDays = 30) {
         estimatedRevenue: formatCurrency(0)
       },
       partners: [],
+      topProducts: [],
       topSourcePages: [],
       topPositions: []
     };
@@ -185,6 +187,7 @@ export async function getAffiliateAnalytics(windowDays = 30) {
         estimatedRevenue: formatCurrency(0)
       },
       partners: [],
+      topProducts: [],
       topSourcePages: [],
       topPositions: []
     };
@@ -192,6 +195,7 @@ export async function getAffiliateAnalytics(windowDays = 30) {
 
   const totalClicks = data.length;
   const byPartner = new Map<string, { clicks: number; products: Map<string, number> }>();
+  const productCounts = new Map<string, { partner: string; product: string; clicks: number }>();
   const sourcePageCounts = new Map<string, number>();
   const positionCounts = new Map<string, number>();
   let estimatedRevenueValue = 0;
@@ -207,6 +211,14 @@ export async function getAffiliateAnalytics(windowDays = 30) {
 
     if (row.product) {
       group.products.set(row.product, (group.products.get(row.product) ?? 0) + 1);
+      const productKey = `${row.partner}::${row.product}`;
+      const productGroup = productCounts.get(productKey) ?? {
+        partner: row.partner,
+        product: row.product,
+        clicks: 0
+      };
+      productGroup.clicks += 1;
+      productCounts.set(productKey, productGroup);
     }
 
     if (row.source_page) {
@@ -238,6 +250,9 @@ export async function getAffiliateAnalytics(windowDays = 30) {
           "Mixed catalog"
       }))
       .sort((left, right) => right.clicks - left.clicks),
+    topProducts: Array.from(productCounts.values())
+      .sort((left, right) => right.clicks - left.clicks)
+      .slice(0, 10),
     topSourcePages: Array.from(sourcePageCounts.entries())
       .map(([path, clicks]) => ({ path, clicks }))
       .sort((left, right) => right.clicks - left.clicks)

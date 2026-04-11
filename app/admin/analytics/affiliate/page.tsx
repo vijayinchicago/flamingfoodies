@@ -45,6 +45,30 @@ export default async function AdminAffiliatePage() {
           </div>
 
           <div className="grid gap-6 xl:grid-cols-2">
+            {analytics.topProducts.length ? (
+              <div className="panel-light p-6">
+                <p className="eyebrow">Top clicked products</p>
+                <div className="mt-4 grid gap-3">
+                  {analytics.topProducts.map((item) => (
+                    <article
+                      key={`${item.partner}-${item.product}`}
+                      className="flex items-center justify-between gap-4 rounded-[1.25rem] border border-charcoal/10 p-4"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-charcoal">{item.product}</p>
+                        <p className="text-xs uppercase tracking-[0.24em] text-charcoal/45">
+                          {item.partner}
+                        </p>
+                      </div>
+                      <span className="shrink-0 text-sm text-charcoal/60">
+                        {item.clicks} clicks
+                      </span>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
             {analytics.topSourcePages.length ? (
               <div className="panel-light p-6">
                 <p className="eyebrow">Top source pages</p>
