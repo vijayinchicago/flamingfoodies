@@ -78,10 +78,29 @@ export function Header() {
               type="button"
               aria-expanded={mobileOpen}
               aria-controls="mobile-header-nav"
+              aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
               onClick={() => setMobileOpen((value) => !value)}
-              className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream/85 hover:border-white/30 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-2 text-sm font-semibold text-cream/85 hover:border-white/30 hover:text-white"
             >
-              {mobileOpen ? "Close" : "Menu"}
+              <span className="sr-only">{mobileOpen ? "Close menu" : "Open menu"}</span>
+              <span className="relative flex h-5 w-5 items-center justify-center" aria-hidden="true">
+                <span
+                  className={`absolute h-0.5 w-5 rounded-full bg-current transition ${
+                    mobileOpen ? "rotate-45" : "-translate-y-1.5"
+                  }`}
+                />
+                <span
+                  className={`absolute h-0.5 w-5 rounded-full bg-current transition ${
+                    mobileOpen ? "opacity-0" : "opacity-100"
+                  }`}
+                />
+                <span
+                  className={`absolute h-0.5 w-5 rounded-full bg-current transition ${
+                    mobileOpen ? "-rotate-45" : "translate-y-1.5"
+                  }`}
+                />
+              </span>
+              <span className="hidden sm:inline">{mobileOpen ? "Close" : "Menu"}</span>
             </button>
           </div>
         </div>
