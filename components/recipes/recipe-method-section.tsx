@@ -85,7 +85,7 @@ export function RecipeMethodSection({
         </p>
       </div>
 
-      <div className="recipe-step-nav mt-8 overflow-x-auto rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-3 print-hidden">
+      <div className="recipe-step-nav mt-8 overflow-x-auto rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-3 print-hidden [-webkit-overflow-scrolling:touch]">
         <div className="flex min-w-max gap-3">
           {steps.map((step) => (
             <button
@@ -121,12 +121,12 @@ export function RecipeMethodSection({
               className="recipe-step-card recipe-print-keep rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 sm:p-6"
             >
               <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
-                <div>
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-3">
                     <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-flame to-ember font-display text-3xl text-white">
                       {step.step}
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-xs uppercase tracking-[0.24em] text-ember">
                         Step {step.step} of {steps.length}
                       </p>
@@ -153,7 +153,7 @@ export function RecipeMethodSection({
                   ) : null}
                 </div>
 
-                <aside className="recipe-step-aside space-y-4 rounded-[1.75rem] border border-white/10 bg-charcoal/35 p-4">
+                <aside className="recipe-step-aside min-w-0 space-y-4 rounded-[1.75rem] border border-white/10 bg-charcoal/35 p-4">
                   <div>
                     <p className="text-xs uppercase tracking-[0.22em] text-ember">You&apos;ll use</p>
                     {matchedIngredients.length ? (

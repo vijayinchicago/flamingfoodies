@@ -34,7 +34,7 @@ export function RecipeIngredientRail({
 
       <div className="recipe-ingredient-controls mt-6 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4 print-hidden">
         <p className="text-xs uppercase tracking-[0.22em] text-ember">Scale the recipe</p>
-        <div className="mt-4 flex items-center gap-3">
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <button
             type="button"
             onClick={() => setTargetServings((value) => Math.max(1, value - 1))}
@@ -107,7 +107,7 @@ export function RecipeIngredientRail({
                         .filter(Boolean)
                         .join(" ")}
                     </div>
-                    <div className={checked ? "text-cream/55" : ""}>
+                    <div className={`min-w-0 ${checked ? "text-cream/55" : ""}`}>
                       <p className="text-base text-cream">{ingredient.item}</p>
                       {ingredient.notes ? (
                         <p className="mt-1 text-sm text-cream/55">{ingredient.notes}</p>

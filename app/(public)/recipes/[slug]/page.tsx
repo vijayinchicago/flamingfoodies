@@ -300,7 +300,7 @@ export default async function RecipePage({
   ].filter(Boolean) as Array<{ label: string; value: string }>;
 
   return (
-    <article className="container-shell py-10 sm:py-16">
+    <article className="container-shell overflow-x-clip py-10 sm:py-16">
       <RecipeSchema recipe={recipe} />
       <FaqSchema faqs={faqs} />
       <BreadcrumbSchema
@@ -397,12 +397,12 @@ export default async function RecipePage({
 
       <div
         id="recipe-detail-shell"
-        className="recipe-detail-shell recipe-screen-content space-y-10"
+        className="recipe-detail-shell recipe-screen-content space-y-10 overflow-x-clip"
       >
         <section className="recipe-hero-shell recipe-core-panel relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#140b09] shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
           <div className="recipe-hero-bg absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(230,57,70,0.28),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(244,162,97,0.18),transparent_30%)]" />
           <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_460px]">
-            <div className="p-6 sm:p-8 lg:p-10 xl:p-12">
+            <div className="min-w-0 p-6 sm:p-8 lg:p-10 xl:p-12">
               <div className="flex flex-wrap items-center gap-3 text-sm text-cream/65">
                 <span className="eyebrow">{formatLabel(recipe.cuisineType)}</span>
                 <span className="rounded-full border border-white/10 px-3 py-1">
@@ -496,7 +496,7 @@ export default async function RecipePage({
               </div>
             </div>
 
-            <div className="recipe-hero-media relative min-h-[260px] border-t border-white/10 sm:min-h-[340px] xl:min-h-full xl:border-l xl:border-t-0">
+            <div className="recipe-hero-media relative min-w-0 min-h-[260px] border-t border-white/10 sm:min-h-[340px] xl:min-h-full xl:border-l xl:border-t-0">
               <PinterestSaveButton
                 title={recipe.title}
                 description={recipe.description}
@@ -646,7 +646,7 @@ export default async function RecipePage({
             </section>
           </aside>
 
-          <div className="space-y-8">
+          <div className="min-w-0 space-y-8">
             <section className="recipe-print-section recipe-core-panel panel p-6 sm:p-8">
               <p className="eyebrow">Why this recipe works</p>
               <h2 className="mt-3 font-display text-5xl text-cream">Editorial notes before you cook</h2>
@@ -894,7 +894,7 @@ export default async function RecipePage({
                   </div>
                 ) : null}
 
-                <div className="space-y-6">
+                <div className="min-w-0 space-y-6">
                   {resolvedPantryLinks.length ? (
                     <div className="panel p-6 sm:p-7">
                       <div className="flex flex-wrap items-center justify-between gap-4">
