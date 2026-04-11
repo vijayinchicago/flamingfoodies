@@ -85,8 +85,8 @@ export function RecipeMethodSection({
         </p>
       </div>
 
-      <div className="recipe-step-nav mt-8 overflow-x-auto rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-3 print-hidden [-webkit-overflow-scrolling:touch]">
-        <div className="flex min-w-max gap-3">
+      <div className="recipe-step-nav mt-8 rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-3 print-hidden">
+        <div className="grid gap-3 sm:grid-cols-2 xl:flex xl:flex-wrap">
           {steps.map((step) => (
             <button
               key={step.step}
@@ -98,7 +98,7 @@ export function RecipeMethodSection({
                   block: "start"
                 });
               }}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+              className={`w-full rounded-[1.25rem] px-4 py-3 text-left text-sm font-semibold leading-snug transition xl:w-auto xl:rounded-full xl:py-2 ${
                 activeStep === step.step
                   ? "bg-white text-charcoal"
                   : "border border-white/10 text-cream"
