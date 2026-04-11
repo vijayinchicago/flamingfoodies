@@ -102,10 +102,10 @@ export default async function ReviewPage({
         ]}
       />
       <p className="eyebrow">{review.brand}</p>
-      <h1 className="mt-4 max-w-4xl font-display text-6xl leading-tight text-cream">
+      <h1 className="mt-4 max-w-4xl font-display text-4xl leading-tight text-cream sm:text-5xl lg:text-6xl">
         {review.title}
       </h1>
-      <p className="mt-4 max-w-3xl text-lg leading-8 text-cream/75">{review.description}</p>
+      <p className="mt-4 max-w-3xl text-base leading-7 text-cream/75 sm:text-lg sm:leading-8">{review.description}</p>
       <div className="mt-6 flex flex-wrap gap-4 text-sm text-cream/60">
         <span>{review.rating.toFixed(1)}/5</span>
         <span>{review.heatLevel || "all heat levels"}</span>
@@ -137,7 +137,7 @@ export default async function ReviewPage({
             contentSlug={review.slug}
             className="absolute right-4 top-4 z-10 inline-flex rounded-full border border-white/15 bg-charcoal/70 px-4 py-2 text-sm font-semibold text-cream backdrop-blur-md transition hover:border-white/30 hover:bg-charcoal/80"
           />
-          <div className="relative h-[340px]">
+          <div className="relative h-[260px] sm:h-[340px]">
             <Image
               src={hero.imageUrl}
               alt={hero.imageAlt}

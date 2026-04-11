@@ -45,10 +45,10 @@ export default async function SearchPage({
       {query ? <SearchTracker query={query} resultCount={results.length} source={source} /> : null}
       <div className="max-w-4xl">
         <p className="eyebrow">Search</p>
-        <h1 className="mt-4 font-display text-6xl text-cream">
+        <h1 className="mt-4 font-display text-4xl text-cream sm:text-5xl lg:text-6xl">
           Find the right recipe, review, or guide faster.
         </h1>
-        <p className="mt-4 max-w-3xl text-lg leading-8 text-cream/72">
+        <p className="mt-4 max-w-3xl text-base leading-7 text-cream/72 sm:text-lg sm:leading-8">
           Search across the cooking layer, hot sauce reviews, and editorial library without
           bouncing around the site.
         </p>
@@ -75,7 +75,7 @@ export default async function SearchPage({
           <div className="panel p-6">
             <p className="eyebrow">Search results</p>
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="font-display text-4xl text-cream">
+              <h2 className="font-display text-3xl text-cream sm:text-4xl">
                 {results.length ? `${results.length} matches for “${query}”` : `No matches for “${query}”`}
               </h2>
             </div>
@@ -95,7 +95,7 @@ export default async function SearchPage({
                     </p>
                     <span className="text-sm text-cream/55">{result.meta}</span>
                   </div>
-                  <h3 className="mt-3 font-display text-4xl text-cream">{result.title}</h3>
+                  <h3 className="mt-3 font-display text-3xl text-cream sm:text-4xl">{result.title}</h3>
                   <p className="mt-3 max-w-3xl text-sm leading-7 text-cream/72">
                     {result.description}
                   </p>

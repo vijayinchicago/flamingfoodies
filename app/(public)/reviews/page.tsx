@@ -130,9 +130,9 @@ export default async function ReviewsIndexPage({
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="panel p-8">
+        <div className="panel p-6 sm:p-8">
           <p className="eyebrow">Hot sauce map</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-3xl text-cream sm:text-4xl">
             Find the right bottle faster, not just the loudest one.
           </h2>
           <p className="mt-4 text-sm leading-7 text-cream/75">
@@ -162,9 +162,9 @@ export default async function ReviewsIndexPage({
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           {resolvedHotSauceLinks.map(({ link, resolved }) => (
-            <article key={link.key} className="panel p-5">
+            <article key={link.key} className="panel p-5 sm:p-6">
               <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
-              <h3 className="mt-3 font-display text-3xl text-cream">{link.product}</h3>
+              <h3 className="mt-3 font-display text-2xl text-cream sm:text-3xl">{link.product}</h3>
               <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
               <AffiliateLink
                 href={resolved.href}
@@ -181,10 +181,10 @@ export default async function ReviewsIndexPage({
         </div>
       </div>
       <div className="mt-10">
-        <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="eyebrow">Top picks</p>
-            <h2 className="mt-3 font-display text-4xl text-cream">
+            <h2 className="mt-3 font-display text-3xl text-cream sm:text-4xl">
               Start with the bottles we would hand someone first.
             </h2>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
@@ -192,24 +192,26 @@ export default async function ReviewsIndexPage({
               giftable standout, and at least one bottle that keeps things interesting.
             </p>
           </div>
-          <Link
-            href="/hot-sauces/best-for-tacos"
-            className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
-          >
-            Best for tacos
-          </Link>
-          <Link
-            href="/hot-sauces/under-15"
-            className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
-          >
-            Best under $15
-          </Link>
-          <Link
-            href="/hot-sauces/gifts-under-50"
-            className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
-          >
-            Gifts under $50
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/hot-sauces/best-for-tacos"
+              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            >
+              Best for tacos
+            </Link>
+            <Link
+              href="/hot-sauces/under-15"
+              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            >
+              Best under $15
+            </Link>
+            <Link
+              href="/hot-sauces/gifts-under-50"
+              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            >
+              Gifts under $50
+            </Link>
+          </div>
         </div>
         <div className="mt-6 grid gap-6 lg:grid-cols-3">
           {topPicks.map((review) => (

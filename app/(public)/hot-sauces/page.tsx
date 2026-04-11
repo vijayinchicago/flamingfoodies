@@ -48,9 +48,9 @@ export default async function HotSaucesHubPage() {
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="panel p-8">
+        <div className="panel p-6 sm:p-8">
           <p className="eyebrow">What this hub does</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-3xl text-cream sm:text-4xl">
             Shortcut the shelf before you waste money on the wrong bottle.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
@@ -87,9 +87,9 @@ export default async function HotSaucesHubPage() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {HOT_SAUCE_LANDING_LINKS.map((item) => (
-            <article key={item.href} className="panel p-5">
+            <article key={item.href} className="panel p-5 sm:p-6">
               <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.eyebrow}</p>
-              <h2 className="mt-3 font-display text-3xl text-cream">{item.title}</h2>
+              <h2 className="mt-3 font-display text-2xl text-cream sm:text-3xl">{item.title}</h2>
               <p className="mt-3 text-sm leading-7 text-cream/72">{item.description}</p>
               <Link
                 href={item.href}

@@ -23,7 +23,7 @@ export function SearchForm({
       )}
     >
       <input type="hidden" name="source" value={source} />
-      <div className={compact ? "min-w-[220px] flex-1" : "flex-1"}>
+      <div className={compact ? "min-w-0 flex-1" : "flex-1"}>
         {compact ? null : (
           <label htmlFor={`search-q-${source}`} className="mb-2 block text-sm text-cream/70">
             Search the site

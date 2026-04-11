@@ -62,11 +62,11 @@ export default async function BlogPostPage({
         ]}
       />
       <p className="eyebrow">{post.category}</p>
-      <h1 className="mt-4 max-w-4xl font-display text-6xl leading-tight text-cream">
+      <h1 className="mt-4 max-w-4xl font-display text-4xl leading-tight text-cream sm:text-5xl lg:text-6xl">
         {post.title}
       </h1>
-      <p className="mt-4 max-w-3xl text-lg leading-8 text-cream/75">{post.description}</p>
-      <div className="mt-4 flex gap-6 text-sm text-cream/55">
+      <p className="mt-4 max-w-3xl text-base leading-7 text-cream/75 sm:text-lg sm:leading-8">{post.description}</p>
+      <div className="mt-4 flex flex-wrap gap-4 text-sm text-cream/55">
         <span>{post.authorName}</span>
         <span>{formatDate(post.publishedAt)}</span>
         <span>{post.readTimeMinutes || 4} min read</span>
@@ -83,7 +83,7 @@ export default async function BlogPostPage({
             contentSlug={post.slug}
             className="absolute right-4 top-4 z-10 inline-flex rounded-full border border-white/15 bg-charcoal/70 px-4 py-2 text-sm font-semibold text-cream backdrop-blur-md transition hover:border-white/30 hover:bg-charcoal/80"
           />
-          <div className="relative h-[360px]">
+          <div className="relative h-[260px] sm:h-[360px]">
             <Image
               src={post.imageUrl}
               alt={post.imageAlt || post.title}

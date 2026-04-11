@@ -40,14 +40,14 @@ export default async function HomePage() {
       <OrganizationSchema />
       <section className="container-shell py-16 sm:py-24">
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="panel relative overflow-hidden px-8 py-12 sm:px-12 sm:py-16">
+          <div className="panel relative overflow-hidden px-5 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-16">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(244,99,30,0.22),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(230,57,70,0.22),transparent_30%)]" />
             <div className="relative">
               <p className="eyebrow">Bold recipes. Sauce reviews. Heat-loving people.</p>
-              <h1 className="mt-4 max-w-4xl font-display text-6xl leading-none text-cream sm:text-7xl">
+              <h1 className="mt-4 max-w-4xl font-display text-4xl leading-none text-cream sm:text-6xl xl:text-7xl">
                 The spicy food platform for people who want flavor before flexing.
               </h1>
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-cream/78">
+              <p className="mt-6 max-w-2xl text-base leading-7 text-cream/78 sm:text-lg sm:leading-8">
                 Explore high-heat recipes, product reviews, community posts, and practical guides
                 for people who care about heat, flavor, and what is actually worth cooking or
                 buying.
@@ -55,19 +55,19 @@ export default async function HomePage() {
               <div className="mt-8 flex flex-wrap gap-4">
                 <Link
                   href="/recipes"
-                  className="rounded-full bg-gradient-to-r from-flame to-ember px-6 py-3 font-semibold text-white"
+                  className="inline-flex w-full justify-center rounded-full bg-gradient-to-r from-flame to-ember px-6 py-3 font-semibold text-white sm:w-auto"
                 >
                   Browse recipes
                 </Link>
                 <Link
                   href="/shop"
-                  className="rounded-full bg-white px-6 py-3 font-semibold text-charcoal"
+                  className="inline-flex w-full justify-center rounded-full bg-white px-6 py-3 font-semibold text-charcoal sm:w-auto"
                 >
                   Shop sauces and gear
                 </Link>
                 <Link
                   href="/quiz"
-                  className="rounded-full border border-white/15 px-6 py-3 font-semibold text-cream"
+                  className="inline-flex w-full justify-center rounded-full border border-white/15 px-6 py-3 font-semibold text-cream sm:w-auto"
                 >
                   Take the heat quiz
                 </Link>
@@ -152,16 +152,16 @@ export default async function HomePage() {
         <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
         <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
           <div className="panel p-8">
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="eyebrow">Shop lanes</p>
-                <h2 className="mt-3 font-display text-4xl text-cream">
+                <h2 className="mt-3 font-display text-3xl text-cream sm:text-4xl">
                   Start with the shelves and gift lanes people actually need.
                 </h2>
               </div>
               <Link
                 href="/shop#starter-kits"
-                className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                className="inline-flex w-full justify-center rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream sm:w-auto"
               >
                 Open the shop
               </Link>

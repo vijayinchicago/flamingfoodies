@@ -413,29 +413,29 @@ export default async function RecipePage({
                 </span>
               </div>
 
-              <h1 className="mt-5 max-w-4xl font-display text-5xl leading-[0.98] text-cream sm:text-6xl lg:text-7xl">
+              <h1 className="mt-5 max-w-4xl font-display text-4xl leading-[0.98] text-cream sm:text-5xl lg:text-7xl">
                 {recipe.title}
               </h1>
-              <p className="mt-5 max-w-3xl text-lg leading-8 text-cream/74 sm:text-xl">
+              <p className="mt-5 max-w-3xl text-base leading-7 text-cream/74 sm:text-lg sm:leading-8 lg:text-xl">
                 {recipe.description}
               </p>
 
-              <div className="mt-8 flex flex-wrap gap-3 text-sm">
+              <div className="mt-8 flex flex-col gap-3 text-sm sm:flex-row sm:flex-wrap">
                 <a
                   href="#ingredients"
-                  className="rounded-full bg-white px-5 py-3 font-semibold text-charcoal"
+                  className="inline-flex justify-center rounded-full bg-white px-5 py-3 font-semibold text-charcoal"
                 >
                   Jump to ingredients
                 </a>
                 <a
                   href="#method"
-                  className="rounded-full border border-white/15 px-5 py-3 font-semibold text-cream"
+                  className="inline-flex justify-center rounded-full border border-white/15 px-5 py-3 font-semibold text-cream"
                 >
                   Jump to method
                 </a>
                 <a
                   href="#comments"
-                  className="rounded-full border border-white/15 px-5 py-3 font-semibold text-cream"
+                  className="inline-flex justify-center rounded-full border border-white/15 px-5 py-3 font-semibold text-cream"
                 >
                   Community notes
                 </a>
@@ -448,7 +448,7 @@ export default async function RecipePage({
                 />
               </div>
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+              <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-5">
                 {planningStats.map((stat) => (
                   <div
                     key={stat.label}
@@ -496,7 +496,7 @@ export default async function RecipePage({
               </div>
             </div>
 
-            <div className="recipe-hero-media relative min-h-[340px] border-t border-white/10 xl:min-h-full xl:border-l xl:border-t-0">
+            <div className="recipe-hero-media relative min-h-[260px] border-t border-white/10 sm:min-h-[340px] xl:min-h-full xl:border-l xl:border-t-0">
               <PinterestSaveButton
                 title={recipe.title}
                 description={recipe.description}

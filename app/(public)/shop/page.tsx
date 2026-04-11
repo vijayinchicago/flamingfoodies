@@ -70,9 +70,9 @@ export default async function ShopPage() {
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="panel p-8">
+        <div className="panel p-6 sm:p-8">
           <p className="eyebrow">Shop by intent</p>
-          <h2 className="mt-3 font-display text-5xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-cream sm:text-5xl">
             Start with starter kits, gift ideas, or recurring heat.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
@@ -127,9 +127,9 @@ export default async function ShopPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-          <article className="panel p-5">
+          <article className="panel p-5 sm:p-6">
             <p className="text-xs uppercase tracking-[0.24em] text-ember">Best for first-time buyers</p>
-            <h2 className="mt-3 font-display text-3xl text-cream">Build a practical starter shelf.</h2>
+            <h2 className="mt-3 font-display text-2xl text-cream sm:text-3xl">Build a practical starter shelf.</h2>
             <p className="mt-3 text-sm leading-7 text-cream/72">
               Start with one everyday bottle, one pantry builder, and one piece of gear that makes the recipes easier to repeat.
             </p>
@@ -140,9 +140,9 @@ export default async function ShopPage() {
               Open starter kits
             </Link>
           </article>
-          <article className="panel p-5">
+          <article className="panel p-5 sm:p-6">
             <p className="text-xs uppercase tracking-[0.24em] text-ember">Best for gifting</p>
-            <h2 className="mt-3 font-display text-3xl text-cream">Give heat without overthinking the bottle.</h2>
+            <h2 className="mt-3 font-display text-2xl text-cream sm:text-3xl">Give heat without overthinking the bottle.</h2>
             <p className="mt-3 text-sm leading-7 text-cream/72">
               Use gift sets, subscriptions, and curated guides instead of guessing at one sauce for someone else.
             </p>
@@ -157,9 +157,9 @@ export default async function ShopPage() {
       </div>
 
       <div id="gift-ideas" className="mt-12 grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
-        <div className="panel p-8">
+        <div className="panel p-6 sm:p-8">
           <p className="eyebrow">Gift ideas</p>
-          <h2 className="mt-3 font-display text-5xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-cream sm:text-5xl">
             The easiest “buy for someone else” paths on the site.
           </h2>
           <div className="mt-6 space-y-4 text-sm leading-7 text-cream/72">
@@ -196,9 +196,9 @@ export default async function ShopPage() {
           </div>
         </div>
 
-        <div className="panel p-8">
+        <div className="panel p-6 sm:p-8">
           <p className="eyebrow">Gift routes</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-3xl text-cream sm:text-4xl">
             The easiest “buy for someone else” paths on the site.
           </h2>
           <div className="mt-6 space-y-4 text-sm leading-7 text-cream/72">

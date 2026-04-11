@@ -34,10 +34,10 @@ export default async function GuidePage({
     return (
       <article className="container-shell py-16">
         <p className="eyebrow">Guide</p>
-        <h1 className="mt-4 max-w-4xl font-display text-6xl leading-tight text-cream">
+        <h1 className="mt-4 max-w-4xl font-display text-4xl leading-tight text-cream sm:text-5xl lg:text-6xl">
           {guide.title}
         </h1>
-        <p className="mt-4 max-w-3xl text-lg leading-8 text-cream/75">{guide.description}</p>
+        <p className="mt-4 max-w-3xl text-base leading-7 text-cream/75 sm:text-lg sm:leading-8">{guide.description}</p>
         <div
           className="prose-guide mt-12"
           dangerouslySetInnerHTML={{ __html: guide.html }}
