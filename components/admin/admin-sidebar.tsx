@@ -25,6 +25,7 @@ const navSections = [
   {
     title: "Automation",
     items: [
+      { href: "/admin/automation/agents", label: "Agent runs" },
       { href: "/admin/automation/jobs", label: "Jobs" },
       { href: "/admin/automation/schedule", label: "Schedule" },
       { href: "/admin/automation/trigger", label: "Trigger" }
