@@ -24,7 +24,7 @@ export function getAutonomousAgents(input: {
       id: "editorial-autopublisher",
       name: "Editorial autopublisher",
       status: input.autoPublishEnabled ? "live" : "needs_config",
-      cadence: "Whenever generation runs, then hourly publish checks",
+      cadence: "Whenever generation runs, then daily publish checks",
       purpose:
         "Turns generated recipes, blog posts, and review drafts into scheduled published content without waiting for manual approval.",
       outcome:
@@ -37,7 +37,7 @@ export function getAutonomousAgents(input: {
       id: "pinterest-distributor",
       name: "Pinterest distributor",
       status: pinterestReady ? "live" : "needs_config",
-      cadence: "Hourly social queue + publish pass",
+      cadence: "Daily social queue + publish pass",
       purpose:
         "Creates Pinterest social posts for newly published recipes, blog posts, and reviews, then publishes them through Buffer.",
       outcome:
@@ -50,7 +50,7 @@ export function getAutonomousAgents(input: {
       id: "growth-loop-promoter",
       name: "Growth loop promoter",
       status: socialReady ? "live" : "needs_config",
-      cadence: "Daily winner scan + hourly social queue",
+      cadence: "Daily winner scan + daily social queue",
       purpose:
         "Finds winner pages from live traffic, share, and affiliate signals, then re-queues the strongest pages for social distribution.",
       outcome:

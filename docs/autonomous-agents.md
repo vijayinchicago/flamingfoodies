@@ -76,6 +76,17 @@ Why it matters:
 Dependencies:
 - ConvertKit configuration for live sends
 
+## Current cadence note
+
+On the current Vercel Hobby plan, cron jobs are limited to daily schedules.
+
+That means:
+- content generation can still run on its normal daily schedule
+- scheduled publishing runs once per day
+- social queueing and Pinterest distribution run once per day
+
+If you later move to Vercel Pro, these agents can be tightened into higher-frequency loops.
+
 ## Recommended Operating Model
 
 For a lean launch, the best autonomous stack is:
