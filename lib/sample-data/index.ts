@@ -3235,7 +3235,7 @@ export const sampleSettings: SiteSetting[] = [
   { key: "show_ads", value: false, updatedAt: "2026-04-01T12:00:00.000Z" },
   {
     key: "auto_publish_ai_content",
-    value: false,
+    value: true,
     updatedAt: "2026-04-01T12:00:00.000Z"
   },
   {

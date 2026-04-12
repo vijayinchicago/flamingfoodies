@@ -8,7 +8,10 @@ import {
 import { ManualGenerationPanel } from "@/components/admin/manual-generation-panel";
 import { AdminSubmitButton } from "@/components/admin/admin-submit-button";
 import { AdminPage } from "@/components/admin/admin-page";
-import { getGenerationJobs } from "@/lib/services/admin";
+import { getAutonomousAgents } from "@/lib/autonomous-agents";
+import { flags } from "@/lib/env";
+import { getGenerationJobs, getSiteSettings } from "@/lib/services/admin";
+import { parseBufferProfileIds } from "@/lib/services/social";
 
 const triggers = [
   {
@@ -16,7 +19,7 @@ const triggers = [
     label: "Recipe draft",
     type: "recipe",
     qty: 3,
-    copy: "Generate recipe drafts that land in editorial review."
+    copy: "Generate recipe drafts that can auto-schedule publish once the automated QA gate clears."
   },
   {
     id: "hot_sauce_recipe",
@@ -39,7 +42,8 @@ const triggers = [
     label: "Review draft",
     type: "review",
     qty: 1,
-    copy: "Create a product review draft with ratings and notes."
+    copy:
+      "Create a product review draft with ratings and notes. Exact-image reviews can now auto-schedule publish too."
   },
   {
     id: "merch_product",
@@ -69,12 +73,22 @@ export default async function AdminTriggerPage({
     error?: string;
   };
 }) {
-  const initialJobs = await getGenerationJobs();
+  const [initialJobs, settings] = await Promise.all([getGenerationJobs(), getSiteSettings()]);
+  const autoPublishEnabled =
+    settings.find((setting) => setting.key === "auto_publish_ai_content")?.value !== false;
+  const bufferProfiles = parseBufferProfileIds();
+  const autonomousAgents = getAutonomousAgents({
+    autoPublishEnabled,
+    hasBuffer: flags.hasBuffer,
+    hasPinterestProfile:
+      bufferProfiles.has("pinterest") || bufferProfiles.has("all"),
+    hasConvertKit: flags.hasConvertKit
+  });
 
   return (
     <AdminPage
       title="Manual trigger"
-      description="Fire generation runs on demand during QA or editorial planning."
+      description="Fire generation runs on demand, inspect the autonomous agents, and keep the hands-off publishing loop healthy."
     >
       {searchParams?.error ? (
         <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -116,6 +130,47 @@ export default async function AdminTriggerPage({
           {searchParams.shopRefreshUpdated || "0"}.
         </p>
       ) : null}
+      <div className="panel-light p-6">
+        <p className="eyebrow">Autonomous agents</p>
+        <h2 className="mt-3 font-display text-4xl text-charcoal">
+          The hands-off loop that can run this site day after day.
+        </h2>
+        <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/65">
+          These are the agents we can run in-project right now for publishing, Pinterest
+          distribution, re-promotion, shop refreshes, and repeat traffic.
+        </p>
+        <div className="mt-6 grid gap-4 xl:grid-cols-2">
+          {autonomousAgents.map((agent) => (
+            <article
+              key={agent.id}
+              className="rounded-[1.5rem] border border-charcoal/10 p-5"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                    {agent.cadence}
+                  </p>
+                  <h3 className="mt-2 font-display text-3xl text-charcoal">{agent.name}</h3>
+                </div>
+                <span
+                  className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${
+                    agent.status === "live"
+                      ? "bg-emerald-100 text-emerald-800"
+                      : "bg-amber-100 text-amber-800"
+                  }`}
+                >
+                  {agent.status === "live" ? "Live" : "Needs config"}
+                </span>
+              </div>
+              <p className="mt-4 text-sm leading-7 text-charcoal/70">{agent.purpose}</p>
+              <p className="mt-4 text-sm leading-7 text-charcoal/60">{agent.outcome}</p>
+              <p className="mt-4 rounded-2xl bg-charcoal/5 px-4 py-3 text-sm text-charcoal/65">
+                {agent.dependencyNote}
+              </p>
+            </article>
+          ))}
+        </div>
+      </div>
       <ManualGenerationPanel triggers={triggers} initialJobs={initialJobs} />
       <div className="grid gap-4 lg:grid-cols-3">
         <form action={runPublishScheduledAction} className="panel-light p-6">

@@ -2284,8 +2284,9 @@ function buildGeneratedReviewQaState(
     (usesAutomationHeroCard(payload.image_url) ? "generated" : payload.image_url ? "photo" : "generated");
   const automatedFactQa = isAgentQaPass(agentReview);
   const exactImageFound = heroSource === "photo";
+  const automatedImageQa = exactImageFound;
   const baseQaNote = exactImageFound
-    ? `Review draft uses a sourced product image.${heroAsset?.searchQuery ? ` Photo search query: "${heroAsset.searchQuery}".` : ""} Manual confirmation is still required before publish.`
+    ? `Review draft uses a sourced exact product image.${heroAsset?.searchQuery ? ` Photo search query: "${heroAsset.searchQuery}".` : ""} Automated image QA passed where noted.`
     : "Review draft uses an illustrated fallback and is awaiting an exact product image plus editorial fact QA.";
   const reviewQaCandidate: Review = {
     id: 0,
@@ -2309,7 +2310,7 @@ function buildGeneratedReviewQaState(
     cons: payload.cons,
     imageUrl: payload.image_url ?? undefined,
     imageAlt: payload.image_alt,
-    imageReviewed: false,
+    imageReviewed: automatedImageQa,
     factQaReviewed: automatedFactQa,
     qaNotes: buildAgentQaNotes(baseQaNote, agentReview),
     qaReport: undefined,
@@ -2325,11 +2326,11 @@ function buildGeneratedReviewQaState(
   const qaReport = mergeAgentQaReview(buildReviewQaReport(reviewQaCandidate), agentReview);
 
   return {
-    image_reviewed: false,
+    image_reviewed: automatedImageQa,
     fact_qa_reviewed: automatedFactQa,
     qa_notes: buildAgentQaNotes(baseQaNote, agentReview),
     qa_report: qaReport,
-    qa_checked_at: automatedFactQa ? new Date().toISOString() : null,
+    qa_checked_at: automatedImageQa || automatedFactQa ? new Date().toISOString() : null,
     automated_publish_eligible:
       exactImageFound &&
       automatedFactQa &&
@@ -2394,7 +2395,9 @@ async function insertGeneratedContent(
   generated: Record<string, any> | null,
   cuisine: CuisineType
 ) {
-  const autoPublish = Boolean(settings.get("auto_publish_ai_content") ?? false);
+  const autoPublishSetting = settings.get("auto_publish_ai_content");
+  const autoPublish =
+    autoPublishSetting === undefined ? true : Boolean(autoPublishSetting);
   const delayHours = Number(settings.get("auto_publish_delay_hours") ?? 4);
   const publishAt = autoPublish
     ? new Date(Date.now() + delayHours * 60 * 60 * 1000).toISOString()
@@ -2543,6 +2546,9 @@ async function insertGeneratedContent(
     hero_image_query_used: heroAsset.searchQuery
   });
   const qaState = buildGeneratedReviewQaState(payload, agentReview, heroAsset);
+  const shouldScheduleAutoPublish = Boolean(
+    autoPublish && qaState.automated_publish_eligible && publishAt
+  );
   const { automated_publish_eligible: _reviewAutoPublishEligible, ...persistedQaState } = qaState;
   const { data, error } = await supabase
     .from("reviews")
@@ -2550,20 +2556,31 @@ async function insertGeneratedContent(
       ...payload,
       ...persistedQaState,
       slug,
-      status: "pending_review",
-      published_at: null
+      status: shouldScheduleAutoPublish ? "draft" : "pending_review",
+      published_at: shouldScheduleAutoPublish ? publishAt : null
     })
     .select("id, slug, title, image_url")
     .single();
 
   if (error) throw new Error(error.message);
 
+  if (shouldScheduleAutoPublish) {
+    await createSocialPostsForContent({
+      contentType: "review",
+      contentId: data.id,
+      title: data.title,
+      slug: data.slug,
+      imageUrl: data.image_url ?? undefined,
+      scheduledAt: publishAt
+    });
+  }
+
   return {
     resultId: data.id,
     resultType: "review",
     slug: data.slug,
     title: data.title,
-    publishAt: null
+    publishAt: shouldScheduleAutoPublish ? publishAt : null
   };
 }
 
@@ -2872,22 +2889,31 @@ async function publishFromTable(
 export async function publishScheduledContent() {
   if (!flags.hasSupabaseAdmin) {
     return {
-      published: sampleRecipes.filter((recipe) => recipe.status === "published").slice(0, 2)
+      published: [
+        ...sampleRecipes.filter((recipe) => recipe.status === "published").slice(0, 1),
+        ...sampleBlogPosts.filter((post) => post.status === "published").slice(0, 1),
+        ...sampleReviews.filter((review) => review.status === "published").slice(0, 1)
+      ]
     };
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
     return {
-      published: sampleRecipes.filter((recipe) => recipe.status === "published").slice(0, 2)
+      published: [
+        ...sampleRecipes.filter((recipe) => recipe.status === "published").slice(0, 1),
+        ...sampleBlogPosts.filter((post) => post.status === "published").slice(0, 1),
+        ...sampleReviews.filter((review) => review.status === "published").slice(0, 1)
+      ]
     };
   }
 
   const recipes = await publishFromTable(supabase, "recipes");
   const blogPosts = await publishFromTable(supabase, "blog_posts");
+  const reviews = await publishFromTable(supabase, "reviews");
 
   return {
-    published: [...recipes, ...blogPosts]
+    published: [...recipes, ...blogPosts, ...reviews]
   };
 }
 
