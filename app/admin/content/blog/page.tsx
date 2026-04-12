@@ -56,7 +56,7 @@ export default async function AdminBlogPage({
         </section>
       ) : null}
       {queueEntries.length ? (
-        <section className="panel-light p-6">
+        <section id="review-queue" className="panel-light p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
               <p className="eyebrow">Review queue</p>

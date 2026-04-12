@@ -24,6 +24,7 @@ export type AgentRunSummaryCard = {
   value: string;
   note: string;
   tone: SummaryTone;
+  links: AgentRunLink[];
 };
 
 export type AgentRunScheduleWindow = {
@@ -407,7 +408,8 @@ function buildFallbackReport(baseAgents: AutonomousAgent[], now = new Date()): A
         label: "Live data",
         value: "Unavailable",
         note: "Supabase admin access is not configured in this environment, so run counts cannot be read.",
-        tone: "warning"
+        tone: "warning",
+        links: [{ label: "Automation trigger", href: "/admin/automation/trigger" }]
       }
     ],
     nextRuns,
@@ -674,6 +676,42 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
     note: entry.note
   }));
 
+  const waitingReviewLinks: AgentRunLink[] = [
+    ...(waitingReviewBreakdown.recipe > 0
+      ? [{ label: "Recipes queue", href: "/admin/content/recipes#review-queue" }]
+      : []),
+    ...(waitingReviewBreakdown.blog_post > 0
+      ? [{ label: "Blog queue", href: "/admin/content/blog#review-queue" }]
+      : []),
+    ...(waitingReviewBreakdown.review > 0
+      ? [{ label: "Review queue", href: "/admin/content/reviews#review-queue" }]
+      : [])
+  ];
+
+  const autoPublishedLinks: AgentRunLink[] = [
+    ...(autoPublishedTodayBreakdown.recipe > 0
+      ? [{ label: "Recipes", href: "/admin/content/recipes" }]
+      : []),
+    ...(autoPublishedTodayBreakdown.blog_post > 0
+      ? [{ label: "Blog", href: "/admin/content/blog" }]
+      : []),
+    ...(autoPublishedTodayBreakdown.review > 0
+      ? [{ label: "Reviews", href: "/admin/content/reviews" }]
+      : [])
+  ];
+
+  const manualPublishedLinks: AgentRunLink[] = [
+    ...(manualPublishedTodayBreakdown.recipe > 0
+      ? [{ label: "Recipes", href: "/admin/content/recipes" }]
+      : []),
+    ...(manualPublishedTodayBreakdown.blog_post > 0
+      ? [{ label: "Blog", href: "/admin/content/blog" }]
+      : []),
+    ...(manualPublishedTodayBreakdown.review > 0
+      ? [{ label: "Reviews", href: "/admin/content/reviews" }]
+      : [])
+  ];
+
   const todaySummary: AgentRunSummaryCard[] = [
     {
       label: "Completed runs today",
@@ -688,7 +726,11 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
         },
         "No completed automation runs yet today."
       ),
-      tone: completedJobsToday.length > 0 ? "good" : "neutral"
+      tone: completedJobsToday.length > 0 ? "good" : "neutral",
+      links: [
+        { label: "View jobs", href: "/admin/automation/jobs" },
+        { label: "Trigger runs", href: "/admin/automation/trigger" }
+      ]
     },
     {
       label: "Auto-published today",
@@ -702,7 +744,10 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
         },
         "Nothing has auto-published yet today."
       ),
-      tone: autoPublishedTodayRows.length > 0 ? "good" : "neutral"
+      tone: autoPublishedTodayRows.length > 0 ? "good" : "neutral",
+      links: autoPublishedLinks.length
+        ? autoPublishedLinks
+        : [{ label: "Content queues", href: "/admin/content/recipes" }]
     },
     {
       label: "Manual publishes today",
@@ -716,7 +761,10 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
         },
         "No AI-generated content needed a manual publish today."
       ),
-      tone: manualPublishedTodayRows.length === 0 ? "good" : "warning"
+      tone: manualPublishedTodayRows.length === 0 ? "good" : "warning",
+      links: manualPublishedLinks.length
+        ? manualPublishedLinks
+        : [{ label: "Content queues", href: "/admin/content/recipes" }]
     },
     {
       label: "Failed runs today",
@@ -731,7 +779,11 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
         },
         "No automation jobs have failed today."
       ),
-      tone: failedJobsToday.length === 0 ? "good" : "warning"
+      tone: failedJobsToday.length === 0 ? "good" : "warning",
+      links: [
+        { label: "View jobs", href: "/admin/automation/jobs" },
+        { label: "Open trigger", href: "/admin/automation/trigger" }
+      ]
     },
     {
       label: "Waiting for review",
@@ -755,7 +807,10 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
           waitingReviewBreakdown.review >
         0
           ? "warning"
-          : "good"
+          : "good",
+      links: waitingReviewLinks.length
+        ? waitingReviewLinks
+        : [{ label: "Recipes", href: "/admin/content/recipes" }]
     }
   ];
 
