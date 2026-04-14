@@ -28,7 +28,7 @@ import {
   splitInstructionText
 } from "@/lib/recipes";
 import { buildReviewQaReport } from "@/lib/review-qa";
-import { buildReviewHeroImageUrl } from "@/lib/review-hero";
+import { buildReviewHeroImageUrl, hasTrustedReviewProductImage } from "@/lib/review-hero";
 import {
   sampleBlogPosts,
   sampleGenerationJobs,
@@ -1259,6 +1259,31 @@ function isAgentQaPass(agentReview: AgentQaReview | null) {
   return Boolean(agentReview && agentReview.verdict === "pass" && !(agentReview.blockers ?? []).length);
 }
 
+export function getAgentQaAutomationDecision(agentReview: AgentQaReview | null) {
+  const verdict = agentReview?.verdict ?? null;
+
+  return {
+    passesAutomation: Boolean(agentReview) && verdict !== "fail",
+    demoteBlockersToWarnings: verdict === "revise"
+  };
+}
+
+export function shouldAutonomousPublish(input: {
+  baseReport: RecipeQaReport;
+  readinessChecks: boolean[];
+  agentReview: AgentQaReview | null;
+  scoreThreshold: number;
+}) {
+  const decision = getAgentQaAutomationDecision(input.agentReview);
+
+  return (
+    decision.passesAutomation &&
+    input.readinessChecks.every(Boolean) &&
+    input.baseReport.blockers.length === 0 &&
+    input.baseReport.score >= input.scoreThreshold
+  );
+}
+
 function getHeatLevel(index: number): HeatLevel {
   const heatLevels: HeatLevel[] = ["mild", "medium", "hot", "inferno", "reaper"];
   return heatLevels[index % heatLevels.length];
@@ -1687,19 +1712,35 @@ function buildQaIssue(
   };
 }
 
-function mergeAgentQaReview(report: RecipeQaReport, agentReview: AgentQaReview | null) {
+function mergeAgentQaReview(
+  report: RecipeQaReport,
+  agentReview: AgentQaReview | null,
+  options?: { demoteReviseBlockersToWarnings?: boolean }
+) {
   if (!agentReview) {
     return report;
   }
 
+  const automationDecision = getAgentQaAutomationDecision(agentReview);
+  const demoteAgentBlockers =
+    Boolean(options?.demoteReviseBlockersToWarnings) &&
+    automationDecision.demoteBlockersToWarnings;
+
   const blockers = [
     ...report.blockers,
-    ...(agentReview.blockers ?? []).map((message, index) =>
-      buildQaIssue("blocker", "agent-blocker", index, message)
-    )
+    ...(!demoteAgentBlockers
+      ? (agentReview.blockers ?? []).map((message, index) =>
+          buildQaIssue("blocker", "agent-blocker", index, message)
+        )
+      : [])
   ];
   const warnings = [
     ...report.warnings,
+    ...(demoteAgentBlockers
+      ? (agentReview.blockers ?? []).map((message, index) =>
+          buildQaIssue("warning", "agent-review-note", index, message)
+        )
+      : []),
     ...(agentReview.warnings ?? []).map((message, index) =>
       buildQaIssue("warning", "agent-warning", index, message)
     )
@@ -1717,6 +1758,15 @@ function mergeAgentQaReview(report: RecipeQaReport, agentReview: AgentQaReview |
     blockers,
     warnings
   } satisfies RecipeQaReport;
+}
+
+export function mergeAgentQaReviewForAutonomousDraft(
+  report: RecipeQaReport,
+  agentReview: AgentQaReview | null
+) {
+  return mergeAgentQaReview(report, agentReview, {
+    demoteReviseBlockersToWarnings: true
+  });
 }
 
 function buildAgentQaNotes(baseNote: string, agentReview: AgentQaReview | null) {
@@ -2107,7 +2157,8 @@ function buildGeneratedRecipeQaState(
   const heroSource =
     heroAsset?.heroSource ??
     (isGeneratedRecipeHeroImageUrl(payload.image_url) ? "generated" : payload.image_url ? "photo" : "generated");
-  const automatedCuisineQa = isAgentQaPass(agentReview);
+  const automationDecision = getAgentQaAutomationDecision(agentReview);
+  const automatedCuisineQa = automationDecision.passesAutomation;
   const automatedHeroReview = Boolean(payload.image_url) && (heroSource === "generated" || automatedCuisineQa);
   const heroSourceNote =
     heroSource === "photo"
@@ -2187,7 +2238,8 @@ function buildGeneratedRecipeQaState(
     saveCount: 0
   };
 
-  const qaReport = mergeAgentQaReview(buildRecipeQaReport(recipeQaCandidate), agentReview);
+  const baseQaReport = buildRecipeQaReport(recipeQaCandidate);
+  const qaReport = mergeAgentQaReviewForAutonomousDraft(baseQaReport, agentReview);
 
   return {
     hero_summary: payload.hero_summary || getRecipeHeroSummary(recipeQaCandidate),
@@ -2205,11 +2257,12 @@ function buildGeneratedRecipeQaState(
     qa_notes: buildAgentQaNotes(baseQaNote, agentReview),
     qa_report: qaReport,
     qa_checked_at: automatedHeroReview || automatedCuisineQa ? new Date().toISOString() : null,
-    automated_publish_eligible:
-      automatedHeroReview &&
-      automatedCuisineQa &&
-      qaReport.blockers.length === 0 &&
-      qaReport.score >= AUTOMATED_RECIPE_PUBLISH_SCORE
+    automated_publish_eligible: shouldAutonomousPublish({
+      agentReview,
+      baseReport: baseQaReport,
+      readinessChecks: [automatedHeroReview, automatedCuisineQa],
+      scoreThreshold: AUTOMATED_RECIPE_PUBLISH_SCORE
+    })
   };
 }
 
@@ -2221,7 +2274,8 @@ function buildGeneratedBlogQaState(
   const heroSource =
     heroAsset?.heroSource ??
     (usesAutomationHeroCard(payload.image_url) ? "generated" : payload.image_url ? "photo" : "generated");
-  const automatedEditorialQa = isAgentQaPass(agentReview);
+  const automationDecision = getAgentQaAutomationDecision(agentReview);
+  const automatedEditorialQa = automationDecision.passesAutomation;
   const automatedImageQa = Boolean(payload.image_url) && (heroSource === "generated" || automatedEditorialQa);
   const heroSourceNote =
     heroSource === "photo"
@@ -2261,16 +2315,18 @@ function buildGeneratedBlogQaState(
     readTimeMinutes: payload.read_time_minutes
   };
 
-  const qaReport = mergeAgentQaReview(buildBlogQaReport(blogQaCandidate), agentReview);
+  const baseQaReport = buildBlogQaReport(blogQaCandidate);
+  const qaReport = mergeAgentQaReviewForAutonomousDraft(baseQaReport, agentReview);
 
   return {
     qaNotes: buildAgentQaNotes(baseQaNote, agentReview),
     qaReport,
-    automated_publish_eligible:
-      automatedImageQa &&
-      automatedEditorialQa &&
-      qaReport.blockers.length === 0 &&
-      qaReport.score >= AUTOMATED_BLOG_PUBLISH_SCORE
+    automated_publish_eligible: shouldAutonomousPublish({
+      agentReview,
+      baseReport: baseQaReport,
+      readinessChecks: [automatedImageQa, automatedEditorialQa],
+      scoreThreshold: AUTOMATED_BLOG_PUBLISH_SCORE
+    })
   };
 }
 
@@ -2282,8 +2338,9 @@ function buildGeneratedReviewQaState(
   const heroSource =
     heroAsset?.heroSource ??
     (usesAutomationHeroCard(payload.image_url) ? "generated" : payload.image_url ? "photo" : "generated");
-  const automatedFactQa = isAgentQaPass(agentReview);
-  const exactImageFound = heroSource === "photo";
+  const automationDecision = getAgentQaAutomationDecision(agentReview);
+  const automatedFactQa = automationDecision.passesAutomation;
+  const exactImageFound = heroSource === "photo" && hasTrustedReviewProductImage(payload.image_url);
   const automatedImageQa = exactImageFound;
   const baseQaNote = exactImageFound
     ? `Review draft uses a sourced exact product image.${heroAsset?.searchQuery ? ` Photo search query: "${heroAsset.searchQuery}".` : ""} Automated image QA passed where noted.`
@@ -2323,7 +2380,8 @@ function buildGeneratedReviewQaState(
     likeCount: 0
   };
 
-  const qaReport = mergeAgentQaReview(buildReviewQaReport(reviewQaCandidate), agentReview);
+  const baseQaReport = buildReviewQaReport(reviewQaCandidate);
+  const qaReport = mergeAgentQaReviewForAutonomousDraft(baseQaReport, agentReview);
 
   return {
     image_reviewed: automatedImageQa,
@@ -2331,11 +2389,12 @@ function buildGeneratedReviewQaState(
     qa_notes: buildAgentQaNotes(baseQaNote, agentReview),
     qa_report: qaReport,
     qa_checked_at: automatedImageQa || automatedFactQa ? new Date().toISOString() : null,
-    automated_publish_eligible:
-      exactImageFound &&
-      automatedFactQa &&
-      qaReport.blockers.length === 0 &&
-      qaReport.score >= AUTOMATED_REVIEW_PUBLISH_SCORE
+    automated_publish_eligible: shouldAutonomousPublish({
+      agentReview,
+      baseReport: baseQaReport,
+      readinessChecks: [exactImageFound, automatedFactQa],
+      scoreThreshold: AUTOMATED_REVIEW_PUBLISH_SCORE
+    })
   };
 }
 

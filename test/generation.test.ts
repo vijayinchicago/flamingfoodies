@@ -11,10 +11,13 @@ import {
   buildBlogPhotoSearchQueries,
   buildReviewPhotoSearchQueries,
   buildRecipePhotoSearchQueries,
+  getAgentQaAutomationDecision,
+  mergeAgentQaReviewForAutonomousDraft,
   normalizeGeneratedCommonPayload,
   normalizeGeneratedRecipePayload,
   pickBalancedHotSauceFocus,
-  planBalancedCuisines
+  planBalancedCuisines,
+  shouldAutonomousPublish
 } from "@/lib/services/automation";
 
 describe("generation prompts", () => {
@@ -164,6 +167,88 @@ describe("generation prompts", () => {
     );
 
     expect(pick?.slug).toBe("queen-majesty-scotch-bonnet-ginger");
+  });
+
+  it("treats revise verdicts as automation-pass guidance instead of hard failure", () => {
+    expect(
+      getAgentQaAutomationDecision({
+        verdict: "revise",
+        blockers: ["Needs stronger sourcing note"]
+      })
+    ).toEqual({
+      passesAutomation: true,
+      demoteBlockersToWarnings: true
+    });
+
+    expect(
+      getAgentQaAutomationDecision({
+        verdict: "fail",
+        blockers: ["Cuisine is not credible"]
+      })
+    ).toEqual({
+      passesAutomation: false,
+      demoteBlockersToWarnings: false
+    });
+  });
+
+  it("demotes revise blockers to warnings for autonomous draft QA display", () => {
+    const report = mergeAgentQaReviewForAutonomousDraft(
+      {
+        status: "pass",
+        score: 100,
+        blockers: [],
+        warnings: []
+      },
+      {
+        verdict: "revise",
+        blockers: ["Tighten the intro"],
+        warnings: ["Add one better serving suggestion"]
+      }
+    );
+
+    expect(report.blockers).toHaveLength(0);
+    expect(report.warnings.map((issue) => issue.message)).toContain("Tighten the intro");
+    expect(report.warnings.map((issue) => issue.message)).toContain(
+      "Add one better serving suggestion"
+    );
+  });
+
+  it("allows autonomous publish when hard QA passes and the editorial verdict is revise", () => {
+    const eligible = shouldAutonomousPublish({
+      agentReview: {
+        verdict: "revise",
+        blockers: ["Needs stronger sourcing note"]
+      },
+      baseReport: {
+        status: "warn",
+        score: 90,
+        blockers: [],
+        warnings: []
+      },
+      readinessChecks: [true, true],
+      scoreThreshold: 84
+    });
+
+    expect(eligible).toBe(true);
+  });
+
+  it("still blocks autonomous publish when the editorial verdict is fail", () => {
+    const eligible = shouldAutonomousPublish({
+      agentReview: {
+        verdict: "fail",
+        blockers: ["Cuisine is not credible"]
+      },
+      baseReport: {
+        status: "warn",
+        score: 95,
+        blockers: [],
+        warnings: []
+      },
+      readinessChecks: [true, true],
+      scoreThreshold: 84
+    });
+
+    expect(eligible).toBe(false);
   });
 
   it("scores quiz answers into a persona", () => {
