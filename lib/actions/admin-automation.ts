@@ -7,6 +7,7 @@ import { z } from "zod";
 import {
   createWeeklyDigest,
   publishScheduledContent,
+  reevaluatePendingAiDraftsForAutopublish,
   queueSocialScheduler,
   runGenerationPipeline
 } from "@/lib/services/automation";
@@ -181,6 +182,46 @@ export async function runPublishScheduledAction() {
   }
 
   redirect(`/admin/automation/trigger?published=${result.published.length}`);
+}
+
+export async function runReevaluatePendingAiDraftsAction() {
+  const admin = await requireAdmin();
+  const result = await reevaluatePendingAiDraftsForAutopublish({
+    publishDueAfterReevaluation: true
+  });
+  const supabase = createSupabaseAdminClient();
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "reevaluate_pending_ai_drafts",
+    targetType: "automation",
+    targetId: "autonomous_publish_backfill",
+    metadata: result
+  });
+
+  revalidatePath("/admin/automation/jobs");
+  revalidatePath("/admin/automation/trigger");
+  revalidatePath("/admin/automation/agents");
+  revalidatePath("/admin/content/recipes");
+  revalidatePath("/admin/content/blog");
+  revalidatePath("/admin/content/reviews");
+  revalidatePath("/blog");
+  revalidatePath("/recipes");
+  revalidatePath("/reviews");
+
+  for (const item of result.items) {
+    if (item.type === "blog_post") revalidatePath(`/blog/${item.slug}`);
+    if (item.type === "recipe") revalidatePath(`/recipes/${item.slug}`);
+    if (item.type === "review") revalidatePath(`/reviews/${item.slug}`);
+  }
+
+  if ("skippedReason" in result && result.skippedReason) {
+    redirect(`/admin/automation/trigger?error=${encodeURIComponent(result.skippedReason)}`);
+  }
+
+  redirect(
+    `/admin/automation/trigger?reevaluated=${result.reviewed}&promoted=${result.promoted}&backfillPublished=${result.published}`
+  );
 }
 
 export async function runSocialSchedulerAction() {

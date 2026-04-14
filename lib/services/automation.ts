@@ -92,6 +92,16 @@ type GenerationHistoryEntry = {
   hotSauceSlug?: string | null;
 };
 
+type AutonomousReevaluationItem = {
+  id: number;
+  type: GenerationType;
+  slug: string;
+  title: string;
+  status: "promoted" | "published" | "still_pending" | "skipped";
+  publishAt?: string | null;
+  reason?: string;
+};
+
 const recipeIngredientSchema = z.object({
   amount: z.string().min(1),
   unit: z.string().optional().default(""),
@@ -1284,6 +1294,27 @@ export function shouldAutonomousPublish(input: {
   );
 }
 
+export function resolveAutonomousPublishAt(input: {
+  createdAt?: string | null;
+  delayHours: number;
+  now?: Date;
+}) {
+  const now = input.now ?? new Date();
+  const delayMs = Math.max(0, Number(input.delayHours) || 0) * 60 * 60 * 1000;
+
+  if (!input.createdAt) {
+    return new Date(now.getTime() + delayMs).toISOString();
+  }
+
+  const createdAt = new Date(input.createdAt);
+  if (Number.isNaN(createdAt.getTime())) {
+    return new Date(now.getTime() + delayMs).toISOString();
+  }
+
+  const intendedPublishAt = new Date(createdAt.getTime() + delayMs);
+  return intendedPublishAt <= now ? now.toISOString() : intendedPublishAt.toISOString();
+}
+
 function getHeatLevel(index: number): HeatLevel {
   const heatLevels: HeatLevel[] = ["mild", "medium", "hot", "inferno", "reaper"];
   return heatLevels[index % heatLevels.length];
@@ -2458,9 +2489,7 @@ async function insertGeneratedContent(
   const autoPublish =
     autoPublishSetting === undefined ? true : Boolean(autoPublishSetting);
   const delayHours = Number(settings.get("auto_publish_delay_hours") ?? 4);
-  const publishAt = autoPublish
-    ? new Date(Date.now() + delayHours * 60 * 60 * 1000).toISOString()
-    : null;
+  const publishAt = autoPublish ? resolveAutonomousPublishAt({ delayHours }) : null;
 
   if (type === "recipe") {
     const validatedGenerated = await humanizeGeneratedDraft(
@@ -2640,6 +2669,534 @@ async function insertGeneratedContent(
     slug: data.slug,
     title: data.title,
     publishAt: shouldScheduleAutoPublish ? publishAt : null
+  };
+}
+
+function inferCuisineFromValue(value?: string | null): CuisineType {
+  if (!value) {
+    return "other";
+  }
+
+  const normalized = normalizeGeneratedCommonPayload({
+    cuisine_type: value
+  }).cuisine_type;
+
+  return normalized && cuisineSet.has(normalized) ? (normalized as CuisineType) : "other";
+}
+
+function buildStoredRecipeDraft(row: Record<string, any>) {
+  const cuisine = inferCuisineFromValue(row.cuisine_type);
+  const heroSummary =
+    row.hero_summary ||
+    getRecipeHeroSummary({
+      description: row.description,
+      intro: row.intro,
+      heroSummary: row.hero_summary
+    });
+
+  return {
+    title: row.title,
+    description: row.description,
+    intro: row.intro || row.description,
+    hero_summary: heroSummary,
+    author_name: row.author_name || "FlamingFoodies Test Kitchen",
+    heat_level: heatLevelSet.has(row.heat_level) ? row.heat_level : "medium",
+    cuisine_type: cuisine,
+    prep_time_minutes: Number(row.prep_time_minutes ?? 20),
+    cook_time_minutes: Number(row.cook_time_minutes ?? 25),
+    active_time_minutes: Number(row.active_time_minutes ?? row.prep_time_minutes ?? 20),
+    servings: Number(row.servings ?? 4),
+    difficulty:
+      row.difficulty === "beginner" ||
+      row.difficulty === "intermediate" ||
+      row.difficulty === "advanced"
+        ? row.difficulty
+        : "intermediate",
+    ingredients: Array.isArray(row.ingredients) ? row.ingredients : [],
+    ingredient_sections: Array.isArray(row.ingredient_sections) ? row.ingredient_sections : null,
+    instructions: Array.isArray(row.instructions) ? row.instructions : [],
+    method_steps: Array.isArray(row.method_steps) ? row.method_steps : null,
+    tips: Array.isArray(row.tips) ? row.tips : [],
+    variations: Array.isArray(row.variations) ? row.variations : [],
+    make_ahead_notes: row.make_ahead_notes ?? null,
+    storage_notes: row.storage_notes ?? null,
+    reheat_notes: row.reheat_notes ?? null,
+    serving_suggestions: Array.isArray(row.serving_suggestions) ? row.serving_suggestions : [],
+    substitutions: Array.isArray(row.substitutions) ? row.substitutions : [],
+    faqs: Array.isArray(row.faqs) ? row.faqs : [],
+    equipment: Array.isArray(row.equipment) ? row.equipment : [],
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    image_url: row.image_url ?? null,
+    image_alt:
+      row.image_alt ||
+      buildRecipeHeroImageAlt({
+        title: row.title,
+        description: row.description,
+        heroSummary,
+        cuisineType: cuisine
+      }),
+    featured: Boolean(row.featured),
+    source: "ai_generated" as const,
+    seo_title: row.seo_title || `${row.title} Recipe | FlamingFoodies`,
+    seo_description: row.seo_description || String(row.description || "").slice(0, 160),
+    affiliate_disclosure: true
+  };
+}
+
+function buildStoredBlogDraft(row: Record<string, any>) {
+  const cuisine = inferCuisineFromValue(row.cuisine_type);
+  const category = typeof row.category === "string" && row.category.trim() ? row.category : "guides";
+
+  return {
+    title: row.title,
+    description: row.description,
+    content: row.content,
+    author_name: row.author_name || "FlamingFoodies",
+    category,
+    tags:
+      Array.isArray(row.tags) && row.tags.length >= 2
+        ? row.tags
+        : [category, cuisine === "other" ? "spicy-food" : cuisine].filter(Boolean),
+    image_url: row.image_url ?? null,
+    image_alt:
+      row.image_alt ||
+      buildBlogHeroImageAlt({
+        title: row.title,
+        category,
+        cuisineType: cuisine
+      }),
+    heat_level: heatLevelSet.has(row.heat_level) ? row.heat_level : "medium",
+    cuisine_type: cuisine,
+    scoville_rating: Number(row.scoville_rating ?? 7),
+    featured: Boolean(row.featured),
+    affiliate_disclosure: true,
+    status: row.status === "published" ? "published" : "draft",
+    source: "ai_generated" as const,
+    seo_title: row.seo_title || `${row.title} | FlamingFoodies`,
+    seo_description: row.seo_description || String(row.description || "").slice(0, 160),
+    read_time_minutes: Number(row.read_time_minutes ?? calculateReadTime(String(row.content || "")))
+  };
+}
+
+function buildStoredReviewDraft(row: Record<string, any>) {
+  const cuisine = inferCuisineFromValue(row.cuisine_origin);
+  const productName = row.product_name || row.title;
+  const brand = row.brand || "FlamingFoodies Test Kitchen";
+
+  return {
+    title: row.title,
+    description: row.description,
+    content: row.content,
+    product_name: productName,
+    brand,
+    rating: Number(row.rating ?? 4.2),
+    price_usd: Number(row.price_usd ?? 12.99),
+    affiliate_url: row.affiliate_url,
+    image_url: row.image_url ?? null,
+    image_alt: row.image_alt || `${brand} ${productName} bottle product image`,
+    heat_level: heatLevelSet.has(row.heat_level) ? row.heat_level : "medium",
+    scoville_min: Number(row.scoville_min ?? 1500),
+    scoville_max: Number(row.scoville_max ?? 4500),
+    flavor_notes: Array.isArray(row.flavor_notes) ? row.flavor_notes : [],
+    cuisine_origin: cuisine,
+    category: row.category || "hot-sauce",
+    pros: Array.isArray(row.pros) ? row.pros : [],
+    cons: Array.isArray(row.cons) ? row.cons : [],
+    tags: Array.isArray(row.tags) ? row.tags : [],
+    recommended: Boolean(row.recommended ?? true),
+    featured: Boolean(row.featured),
+    source: "ai_generated" as const,
+    seo_title: row.seo_title || `${row.title} | FlamingFoodies`,
+    seo_description: row.seo_description || String(row.description || "").slice(0, 160)
+  };
+}
+
+async function ensureScheduledSocialPostsForContent(
+  supabase: AdminClient,
+  input: {
+    contentType: GenerationType;
+    contentId: number;
+    title: string;
+    slug: string;
+    imageUrl?: string | null;
+    scheduledAt?: string | null;
+  }
+) {
+  const { count } = await supabase
+    .from("social_posts")
+    .select("id", { count: "exact", head: true })
+    .eq("content_type", input.contentType)
+    .eq("content_id", input.contentId);
+
+  if ((count ?? 0) > 0) {
+    if (input.scheduledAt) {
+      await supabase
+        .from("social_posts")
+        .update({
+          status: "scheduled",
+          scheduled_at: input.scheduledAt
+        })
+        .eq("content_type", input.contentType)
+        .eq("content_id", input.contentId)
+        .in("status", ["pending", "scheduled", "failed"]);
+    }
+
+    return {
+      reusedExisting: true,
+      socialPostCount: count ?? 0
+    };
+  }
+
+  await createSocialPostsForContent({
+    contentType: input.contentType,
+    contentId: input.contentId,
+    title: input.title,
+    slug: input.slug,
+    imageUrl: input.imageUrl ?? undefined,
+    scheduledAt: input.scheduledAt ?? null
+  });
+
+  return {
+    reusedExisting: false,
+    socialPostCount: 3
+  };
+}
+
+async function reevaluatePendingRecipeRow(
+  supabase: AdminClient,
+  anthropic: Anthropic,
+  settings: Map<string, any>,
+  row: Record<string, any>
+): Promise<AutonomousReevaluationItem> {
+  const payload = buildStoredRecipeDraft(row);
+  const agentReview = await runEditorialQaReview(anthropic, "recipe", {
+    slug: row.slug,
+    ...payload,
+    hero_image_source: isGeneratedRecipeHeroImageUrl(payload.image_url) ? "generated" : "photo"
+  });
+  const qaState = buildGeneratedRecipeQaState(payload, agentReview);
+  const autoPublishSetting = settings.get("auto_publish_ai_content");
+  const autoPublish =
+    autoPublishSetting === undefined ? true : Boolean(autoPublishSetting);
+
+  if (!autoPublish || !qaState.automated_publish_eligible) {
+    await supabase
+      .from("recipes")
+      .update({
+        hero_summary: qaState.hero_summary,
+        active_time_minutes: qaState.active_time_minutes,
+        ingredient_sections: qaState.ingredient_sections,
+        method_steps: qaState.method_steps,
+        substitutions: qaState.substitutions,
+        serving_suggestions: qaState.serving_suggestions,
+        faqs: qaState.faqs,
+        make_ahead_notes: qaState.make_ahead_notes,
+        storage_notes: qaState.storage_notes,
+        reheat_notes: qaState.reheat_notes,
+        hero_image_reviewed: qaState.hero_image_reviewed,
+        cuisine_qa_reviewed: qaState.cuisine_qa_reviewed,
+        qa_notes: qaState.qa_notes,
+        qa_report: qaState.qa_report,
+        qa_checked_at: qaState.qa_checked_at
+      })
+      .eq("id", row.id);
+
+    return {
+      id: row.id,
+      type: "recipe",
+      slug: row.slug,
+      title: row.title,
+      status: "still_pending",
+      reason: autoPublish ? "Recipe draft still did not clear the autonomous QA gate." : "Auto-publish is disabled."
+    };
+  }
+
+  const publishAt = resolveAutonomousPublishAt({
+    createdAt: row.created_at,
+    delayHours: Number(settings.get("auto_publish_delay_hours") ?? 4)
+  });
+
+  await supabase
+    .from("recipes")
+    .update({
+      hero_summary: qaState.hero_summary,
+      active_time_minutes: qaState.active_time_minutes,
+      ingredient_sections: qaState.ingredient_sections,
+      method_steps: qaState.method_steps,
+      substitutions: qaState.substitutions,
+      serving_suggestions: qaState.serving_suggestions,
+      faqs: qaState.faqs,
+      make_ahead_notes: qaState.make_ahead_notes,
+      storage_notes: qaState.storage_notes,
+      reheat_notes: qaState.reheat_notes,
+      hero_image_reviewed: qaState.hero_image_reviewed,
+      cuisine_qa_reviewed: qaState.cuisine_qa_reviewed,
+      qa_notes: qaState.qa_notes,
+      qa_report: qaState.qa_report,
+      qa_checked_at: qaState.qa_checked_at,
+      status: "draft",
+      published_at: publishAt
+    })
+    .eq("id", row.id);
+
+  await ensureScheduledSocialPostsForContent(supabase, {
+    contentType: "recipe",
+    contentId: row.id,
+    title: row.title,
+    slug: row.slug,
+    imageUrl: row.image_url ?? null,
+    scheduledAt: publishAt
+  });
+
+  return {
+    id: row.id,
+    type: "recipe",
+    slug: row.slug,
+    title: row.title,
+    status: "promoted",
+    publishAt
+  };
+}
+
+async function reevaluatePendingBlogRow(
+  supabase: AdminClient,
+  anthropic: Anthropic,
+  settings: Map<string, any>,
+  row: Record<string, any>
+): Promise<AutonomousReevaluationItem> {
+  const payload = buildStoredBlogDraft(row);
+  const agentReview = await runEditorialQaReview(anthropic, "blog_post", {
+    slug: row.slug,
+    ...payload,
+    hero_image_source: usesAutomationHeroCard(payload.image_url) ? "generated" : "photo"
+  });
+  const qaState = buildGeneratedBlogQaState(payload, agentReview);
+  const autoPublishSetting = settings.get("auto_publish_ai_content");
+  const autoPublish =
+    autoPublishSetting === undefined ? true : Boolean(autoPublishSetting);
+
+  if (!autoPublish || !qaState.automated_publish_eligible) {
+    return {
+      id: row.id,
+      type: "blog_post",
+      slug: row.slug,
+      title: row.title,
+      status: "still_pending",
+      reason: autoPublish ? "Blog draft still did not clear the autonomous QA gate." : "Auto-publish is disabled."
+    };
+  }
+
+  const publishAt = resolveAutonomousPublishAt({
+    createdAt: row.created_at,
+    delayHours: Number(settings.get("auto_publish_delay_hours") ?? 4)
+  });
+
+  await supabase
+    .from("blog_posts")
+    .update({
+      status: "draft",
+      published_at: publishAt
+    })
+    .eq("id", row.id);
+
+  await ensureScheduledSocialPostsForContent(supabase, {
+    contentType: "blog_post",
+    contentId: row.id,
+    title: row.title,
+    slug: row.slug,
+    imageUrl: row.image_url ?? null,
+    scheduledAt: publishAt
+  });
+
+  return {
+    id: row.id,
+    type: "blog_post",
+    slug: row.slug,
+    title: row.title,
+    status: "promoted",
+    publishAt
+  };
+}
+
+async function reevaluatePendingReviewRow(
+  supabase: AdminClient,
+  anthropic: Anthropic,
+  settings: Map<string, any>,
+  row: Record<string, any>
+): Promise<AutonomousReevaluationItem> {
+  const payload = buildStoredReviewDraft(row);
+  const agentReview = await runEditorialQaReview(anthropic, "review", {
+    slug: row.slug,
+    ...payload,
+    hero_image_source: usesAutomationHeroCard(payload.image_url) ? "generated" : "photo"
+  });
+  const qaState = buildGeneratedReviewQaState(payload, agentReview);
+  const autoPublishSetting = settings.get("auto_publish_ai_content");
+  const autoPublish =
+    autoPublishSetting === undefined ? true : Boolean(autoPublishSetting);
+
+  if (!autoPublish || !qaState.automated_publish_eligible) {
+    await supabase
+      .from("reviews")
+      .update({
+        image_reviewed: qaState.image_reviewed,
+        fact_qa_reviewed: qaState.fact_qa_reviewed,
+        qa_notes: qaState.qa_notes,
+        qa_report: qaState.qa_report,
+        qa_checked_at: qaState.qa_checked_at
+      })
+      .eq("id", row.id);
+
+    return {
+      id: row.id,
+      type: "review",
+      slug: row.slug,
+      title: row.title,
+      status: "still_pending",
+      reason: autoPublish ? "Review draft still did not clear the autonomous QA gate." : "Auto-publish is disabled."
+    };
+  }
+
+  const publishAt = resolveAutonomousPublishAt({
+    createdAt: row.created_at,
+    delayHours: Number(settings.get("auto_publish_delay_hours") ?? 4)
+  });
+
+  await supabase
+    .from("reviews")
+    .update({
+      image_reviewed: qaState.image_reviewed,
+      fact_qa_reviewed: qaState.fact_qa_reviewed,
+      qa_notes: qaState.qa_notes,
+      qa_report: qaState.qa_report,
+      qa_checked_at: qaState.qa_checked_at,
+      status: "draft",
+      published_at: publishAt
+    })
+    .eq("id", row.id);
+
+  await ensureScheduledSocialPostsForContent(supabase, {
+    contentType: "review",
+    contentId: row.id,
+    title: row.title,
+    slug: row.slug,
+    imageUrl: row.image_url ?? null,
+    scheduledAt: publishAt
+  });
+
+  return {
+    id: row.id,
+    type: "review",
+    slug: row.slug,
+    title: row.title,
+    status: "promoted",
+    publishAt
+  };
+}
+
+export async function reevaluatePendingAiDraftsForAutopublish(options?: {
+  windowDays?: number;
+  limitPerType?: number;
+  types?: GenerationType[];
+  publishDueAfterReevaluation?: boolean;
+}) {
+  const types = options?.types?.length
+    ? options.types
+    : (["recipe", "blog_post", "review"] satisfies GenerationType[]);
+  const windowDays = Math.max(1, Math.min(options?.windowDays ?? 14, 60));
+  const limitPerType = Math.max(1, Math.min(options?.limitPerType ?? 12, 40));
+
+  if (!flags.hasSupabaseAdmin) {
+    return {
+      mode: "mock" as const,
+      reviewed: 0,
+      promoted: 0,
+      published: 0,
+      items: [] as AutonomousReevaluationItem[]
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return {
+      mode: "mock" as const,
+      reviewed: 0,
+      promoted: 0,
+      published: 0,
+      items: [] as AutonomousReevaluationItem[]
+    };
+  }
+
+  if (!flags.hasAnthropic) {
+    return {
+      mode: "disabled" as const,
+      reviewed: 0,
+      promoted: 0,
+      published: 0,
+      items: [] as AutonomousReevaluationItem[],
+      skippedReason: "ANTHROPIC_API_KEY is not configured for AI draft reevaluation."
+    };
+  }
+
+  const anthropic = new Anthropic({
+    apiKey: env.ANTHROPIC_API_KEY
+  });
+  const settings = await getSettingMap(supabase);
+  const cutoffIso = new Date(Date.now() - windowDays * 24 * 60 * 60 * 1000).toISOString();
+  const items: AutonomousReevaluationItem[] = [];
+
+  for (const type of types) {
+    const table =
+      type === "recipe" ? "recipes" : type === "blog_post" ? "blog_posts" : "reviews";
+    const { data: rows, error } = await supabase
+      .from(table)
+      .select("*")
+      .eq("source", "ai_generated")
+      .eq("status", "pending_review")
+      .gte("created_at", cutoffIso)
+      .order("created_at", { ascending: false })
+      .limit(limitPerType);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    for (const row of rows ?? []) {
+      if (type === "recipe") {
+        items.push(await reevaluatePendingRecipeRow(supabase, anthropic, settings, row));
+        continue;
+      }
+
+      if (type === "blog_post") {
+        items.push(await reevaluatePendingBlogRow(supabase, anthropic, settings, row));
+        continue;
+      }
+
+      items.push(await reevaluatePendingReviewRow(supabase, anthropic, settings, row));
+    }
+  }
+
+  let published = 0;
+  if (options?.publishDueAfterReevaluation) {
+    const publishResult = await publishScheduledContent();
+    published = publishResult.published.length;
+    const publishedBySlug = new Set(
+      publishResult.published.map((item) => `${item.type}:${item.slug}`)
+    );
+
+    for (const item of items) {
+      if (publishedBySlug.has(`${item.type}:${item.slug}`)) {
+        item.status = "published";
+      }
+    }
+  }
+
+  return {
+    mode: "live" as const,
+    reviewed: items.length,
+    promoted: items.filter((item) => item.status === "promoted" || item.status === "published").length,
+    published,
+    items
   };
 }
 

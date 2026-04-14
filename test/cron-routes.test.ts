@@ -99,6 +99,30 @@ async function importShopRefreshRoute({
   };
 }
 
+async function importReevaluateAiDraftsRoute({
+  reevaluatePendingAiDraftsForAutopublish = vi.fn().mockResolvedValue({
+    mode: "live",
+    reviewed: 4,
+    promoted: 2,
+    published: 2,
+    items: []
+  })
+} = {}) {
+  vi.resetModules();
+  vi.doMock("next/cache", () => ({
+    revalidatePath: vi.fn()
+  }));
+  vi.doMock("@/lib/services/automation", () => ({
+    reevaluatePendingAiDraftsForAutopublish
+  }));
+
+  const route = await import("@/app/api/admin/reevaluate-ai-drafts/route");
+  return {
+    route,
+    reevaluatePendingAiDraftsForAutopublish
+  };
+}
+
 afterEach(() => {
   vi.clearAllMocks();
   vi.unstubAllEnvs();
@@ -259,6 +283,78 @@ describe("newsletter digest cron route", () => {
     });
     expect(createWeeklyDigest).toHaveBeenCalledTimes(1);
     expect(processScheduledNewsletterCampaigns).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("AI reevaluation cron route", () => {
+  it("fails closed when the cron secret is not configured", async () => {
+    const { route, reevaluatePendingAiDraftsForAutopublish } =
+      await importReevaluateAiDraftsRoute();
+
+    const response = await route.POST(
+      new Request("https://flamingfoodies.com/api/admin/reevaluate-ai-drafts", {
+        method: "POST"
+      })
+    );
+
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({
+      ok: false,
+      error: "CRON_SECRET is not configured"
+    });
+    expect(reevaluatePendingAiDraftsForAutopublish).not.toHaveBeenCalled();
+  });
+
+  it("rejects unauthorized reevaluation requests", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
+    const { route, reevaluatePendingAiDraftsForAutopublish } =
+      await importReevaluateAiDraftsRoute();
+
+    const response = await route.POST(
+      new Request("https://flamingfoodies.com/api/admin/reevaluate-ai-drafts", {
+        method: "POST"
+      })
+    );
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({ ok: false, error: "Unauthorized" });
+    expect(reevaluatePendingAiDraftsForAutopublish).not.toHaveBeenCalled();
+  });
+
+  it("reevaluates stuck drafts when authorized", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
+    const reevaluatePendingAiDraftsForAutopublish = vi.fn().mockResolvedValue({
+      mode: "live",
+      reviewed: 5,
+      promoted: 3,
+      published: 2,
+      items: []
+    });
+    const { route } = await importReevaluateAiDraftsRoute({
+      reevaluatePendingAiDraftsForAutopublish
+    });
+
+    const response = await route.POST(
+      new Request("https://flamingfoodies.com/api/admin/reevaluate-ai-drafts", {
+        method: "POST",
+        headers: {
+          authorization: "Bearer topsecret"
+        }
+      })
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      ok: true,
+      mode: "live",
+      reviewed: 5,
+      promoted: 3,
+      published: 2,
+      items: []
+    });
+    expect(reevaluatePendingAiDraftsForAutopublish).toHaveBeenCalledWith({
+      publishDueAfterReevaluation: true
+    });
   });
 });
 

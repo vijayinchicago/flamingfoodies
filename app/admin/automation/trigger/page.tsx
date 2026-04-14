@@ -1,4 +1,5 @@
 import {
+  runReevaluatePendingAiDraftsAction,
   runDueNewsletterSendsAction,
   runNewsletterDigestAction,
   runPublishScheduledAction,
@@ -61,6 +62,9 @@ export default async function AdminTriggerPage({
   searchParams?: {
     created?: string;
     published?: string;
+    reevaluated?: string;
+    promoted?: string;
+    backfillPublished?: string;
     queued?: string;
     publishedSocial?: string;
     digest?: string;
@@ -88,7 +92,7 @@ export default async function AdminTriggerPage({
   return (
     <AdminPage
       title="Manual trigger"
-      description="Fire generation runs on demand, inspect the autonomous agents, and keep the hands-off publishing loop healthy."
+    description="Fire generation runs on demand, inspect the autonomous agents, and keep the hands-off publishing loop healthy."
     >
       {searchParams?.error ? (
         <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -103,6 +107,12 @@ export default async function AdminTriggerPage({
       {searchParams?.published ? (
         <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
           Published {searchParams.published} scheduled item(s).
+        </p>
+      ) : null}
+      {searchParams?.reevaluated ? (
+        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          Re-evaluated {searchParams.reevaluated} stuck AI draft(s), promoted{" "}
+          {searchParams.promoted || "0"}, and published {searchParams.backfillPublished || "0"}.
         </p>
       ) : null}
       {searchParams?.queued ? (
@@ -182,6 +192,19 @@ export default async function AdminTriggerPage({
           <AdminSubmitButton
             idleLabel="Publish due items"
             pendingLabel="Publishing..."
+            className="mt-6 rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
+          />
+        </form>
+        <form action={runReevaluatePendingAiDraftsAction} className="panel-light p-6">
+          <p className="eyebrow">Recover</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Stuck AI drafts</h2>
+          <p className="mt-3 text-sm text-charcoal/65">
+            Re-run editorial QA on recent pending AI drafts, promote the ones that now clear the
+            autonomous gate, and publish anything already due.
+          </p>
+          <AdminSubmitButton
+            idleLabel="Re-evaluate stuck drafts"
+            pendingLabel="Re-evaluating..."
             className="mt-6 rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
           />
         </form>

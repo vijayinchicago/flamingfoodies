@@ -17,6 +17,7 @@ import {
   normalizeGeneratedRecipePayload,
   pickBalancedHotSauceFocus,
   planBalancedCuisines,
+  resolveAutonomousPublishAt,
   shouldAutonomousPublish
 } from "@/lib/services/automation";
 
@@ -249,6 +250,26 @@ describe("generation prompts", () => {
     });
 
     expect(eligible).toBe(false);
+  });
+
+  it("catches up overdue autonomous publish times during reevaluation", () => {
+    const publishAt = resolveAutonomousPublishAt({
+      createdAt: "2026-04-10T12:00:00Z",
+      delayHours: 4,
+      now: new Date("2026-04-14T12:00:00Z")
+    });
+
+    expect(publishAt).toBe("2026-04-14T12:00:00.000Z");
+  });
+
+  it("preserves the original delay window for recent drafts during reevaluation", () => {
+    const publishAt = resolveAutonomousPublishAt({
+      createdAt: "2026-04-14T09:30:00Z",
+      delayHours: 4,
+      now: new Date("2026-04-14T12:00:00Z")
+    });
+
+    expect(publishAt).toBe("2026-04-14T13:30:00.000Z");
   });
 
   it("scores quiz answers into a persona", () => {
