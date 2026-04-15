@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
@@ -407,24 +408,45 @@ export default async function ShopPage() {
             {dailyShopPicks.map((item, index) => (
               <article
                 key={item.slug}
-                className={`panel relative overflow-hidden border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-6`}
+                className={`panel relative overflow-hidden border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)}`}
               >
-                <div className="absolute right-5 top-5 rounded-full border border-white/12 bg-charcoal/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cream/80">
-                  #{index + 1}
+                {/* Product image if available, else gradient header */}
+                {item.imageUrl ? (
+                  <div className="relative h-48 overflow-hidden">
+                    <Image
+                      src={item.imageUrl}
+                      alt={item.imageAlt || item.name}
+                      fill
+                      unoptimized
+                      className="object-cover transition duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 to-transparent" />
+                    <div className="absolute right-4 top-4 rounded-full border border-white/12 bg-charcoal/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cream/90 backdrop-blur-sm">
+                      #{index + 1}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative h-20">
+                    <div className="absolute right-5 top-5 rounded-full border border-white/12 bg-charcoal/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cream/80">
+                      #{index + 1}
+                    </div>
+                  </div>
+                )}
+                <div className="p-6">
+                  <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
+                  <h2 className="mt-3 font-display text-3xl text-cream">{item.name}</h2>
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-cream/55">
+                    <span>{item.category}</span>
+                    <span>{item.priceLabel}</span>
+                  </div>
+                  <p className="mt-4 text-sm leading-7 text-cream/74">{item.description}</p>
+                  <Link
+                    href={buildShopPickHref(item.href, `hot-right-now-${index + 1}`)}
+                    className="mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
+                  >
+                    Shop this pick
+                  </Link>
                 </div>
-                <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
-                <h2 className="mt-3 font-display text-3xl text-cream">{item.name}</h2>
-                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-cream/55">
-                  <span>{item.category}</span>
-                  <span>{item.priceLabel}</span>
-                </div>
-                <p className="mt-4 text-sm leading-7 text-cream/74">{item.description}</p>
-                <Link
-                  href={buildShopPickHref(item.href, `hot-right-now-${index + 1}`)}
-                  className="mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
-                >
-                  Shop this pick
-                </Link>
               </article>
             ))}
           </div>

@@ -8,6 +8,7 @@ import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { AffiliateLink } from "@/components/content/affiliate-link";
 import { PinterestSaveButton } from "@/components/content/pinterest-save-button";
 import { ShareBar } from "@/components/content/share-bar";
+import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { ReviewSchema } from "@/components/schema/review-schema";
 import {
@@ -99,6 +100,13 @@ export default async function ReviewPage({
           { name: "Home", item: absoluteUrl("/") },
           { name: "Hot Sauces", item: absoluteUrl("/hot-sauces") },
           { name: review.title, item: absoluteUrl(`/reviews/${review.slug}`) }
+        ]}
+      />
+      <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Hot Sauces", href: "/hot-sauces" },
+          { label: review.title }
         ]}
       />
       <p className="eyebrow">{review.brand}</p>

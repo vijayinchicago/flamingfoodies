@@ -9,6 +9,7 @@ import { AffiliateLink } from "@/components/content/affiliate-link";
 import { PinterestSaveButton } from "@/components/content/pinterest-save-button";
 import { ShareBar } from "@/components/content/share-bar";
 import { RecipeDisplayControls } from "@/components/recipes/recipe-display-controls";
+import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { RecipeBrowseStrip } from "@/components/recipes/recipe-browse-strip";
 import { RecipeIngredientRail } from "@/components/recipes/recipe-ingredient-rail";
 import { RecipeMethodSection } from "@/components/recipes/recipe-method-section";
@@ -402,7 +403,14 @@ export default async function RecipePage({
         id="recipe-detail-shell"
         className="recipe-detail-shell recipe-screen-content space-y-10 overflow-x-clip"
       >
-        <RecipeBrowseStrip recipe={recipe} browseOptions={browseOptions} />
+        <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Recipes", href: "/recipes" },
+          { label: recipe.title }
+        ]}
+      />
+      <RecipeBrowseStrip recipe={recipe} browseOptions={browseOptions} />
 
         <section className="recipe-hero-shell recipe-core-panel relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#140b09] shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
           <div className="recipe-hero-bg absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(230,57,70,0.28),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(244,162,97,0.18),transparent_30%)]" />

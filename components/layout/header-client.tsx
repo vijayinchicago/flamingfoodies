@@ -7,12 +7,11 @@ import { SearchForm } from "@/components/search/search-form";
 
 const nav = [
   { href: "/recipes", label: "Recipes" },
-  { href: "/blog", label: "Blog" },
   { href: "/hot-sauces", label: "Hot Sauces" },
   { href: "/community", label: "Community" },
   { href: "/shop", label: "Shop" },
-  { href: "/quiz", label: "Heat Quiz" },
-  { href: "/search", label: "Search" }
+  { href: "/seasonal", label: "Seasonal" },
+  { href: "/blog", label: "Blog" }
 ];
 
 export function HeaderClient({

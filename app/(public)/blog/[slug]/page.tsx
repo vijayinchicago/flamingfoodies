@@ -5,6 +5,7 @@ import { AdSlot } from "@/components/ads/ad-slot";
 import { CommentSection } from "@/components/community/comment-section";
 import { PinterestSaveButton } from "@/components/content/pinterest-save-button";
 import { ShareBar } from "@/components/content/share-bar";
+import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { ArticleSchema } from "@/components/schema/article-schema";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { getAdRuntimeConfig } from "@/lib/ads";
@@ -61,7 +62,14 @@ export default async function BlogPostPage({
           { name: post.title, item: absoluteUrl(`/blog/${post.slug}`) }
         ]}
       />
-      <p className="eyebrow">{post.category}</p>
+      <Breadcrumbs
+        items={[
+          { label: "Home", href: "/" },
+          { label: "Blog", href: "/blog" },
+          { label: post.title }
+        ]}
+      />
+      <p className="eyebrow mt-5">{post.category}</p>
       <h1 className="mt-4 max-w-4xl font-display text-4xl leading-tight text-cream sm:text-5xl lg:text-6xl">
         {post.title}
       </h1>

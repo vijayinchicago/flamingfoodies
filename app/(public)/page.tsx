@@ -12,16 +12,20 @@ import {
   getAffiliateLinkEntries,
   resolveAffiliateLink
 } from "@/lib/affiliates";
-import { getFeaturedCollection } from "@/lib/services/content";
+import { getFeaturedCollection, getCompetitions } from "@/lib/services/content";
 import { getGuides } from "@/lib/content/guides";
 import { getEditorialFranchises } from "@/lib/editorial-franchises";
 import { getShopAffiliateCollections } from "@/lib/shop";
+import { getCurrentOccasions } from "@/lib/seasonal/occasions";
+import { formatDate } from "@/lib/utils";
 
 export default async function HomePage() {
-  const [{ recipes, blogPosts, reviews }, guides] = await Promise.all([
+  const [{ recipes, blogPosts, reviews }, guides, competitions] = await Promise.all([
     getFeaturedCollection(),
-    getGuides()
+    getGuides(),
+    getCompetitions()
   ]);
+  const seasonalNow = getCurrentOccasions();
   const homeAffiliateLinks = getAffiliateLinkEntries(HOME_FEATURED_AFFILIATE_KEYS);
   const shopCollections = getShopAffiliateCollections();
   const editorialFranchises = getEditorialFranchises(blogPosts);
@@ -255,10 +259,23 @@ export default async function HomePage() {
       <section className="container-shell py-10">
         <SectionHeading
           eyebrow="Recurring series"
-          title="Three recurring series to explore."
-          copy="Browse regular features with helpful buying advice, spicy recipes, and ideas for what to cook next."
+          title="Series, seasons, and ideas to explore."
+          copy="Browse regular features with helpful buying advice, spicy recipes, seasonal guides, and ideas for what to cook next."
         />
         <div className="mt-10 grid gap-6 xl:grid-cols-3">
+          {seasonalNow.slice(0, 1).map((occasion) => (
+            <article key={occasion.slug} className="panel p-7">
+              <p className="eyebrow">In season now</p>
+              <h3 className="mt-3 font-display text-4xl text-cream">{occasion.title}</h3>
+              <p className="mt-4 text-sm leading-7 text-cream/72">{occasion.tagline}</p>
+              <Link
+                href={`/seasonal/${occasion.slug}`}
+                className="mt-5 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-4 py-2 text-sm font-semibold text-white"
+              >
+                Open the guide
+              </Link>
+            </article>
+          ))}
           {editorialFranchises.map((franchise) => (
             <article key={franchise.key} className="panel p-7">
               <p className="eyebrow">{franchise.title}</p>
@@ -282,6 +299,83 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
+
+      {competitions.filter((c) => c.status === "active" || c.status === "voting").length > 0 ? (
+        <section className="container-shell py-10">
+          <SectionHeading
+            eyebrow="Live now"
+            title="Community competitions open for entries."
+            copy="Submit a photo, recipe, or video. The community votes and the best cooks win."
+          />
+          <div className="mt-10 grid gap-6 lg:grid-cols-3">
+            {competitions
+              .filter((c) => c.status === "active" || c.status === "voting")
+              .slice(0, 3)
+              .map((competition) => {
+                const daysLeft = Math.max(
+                  0,
+                  Math.ceil(
+                    (new Date(competition.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+                  )
+                );
+                return (
+                  <Link
+                    key={competition.id}
+                    href={`/competitions/${competition.slug}`}
+                    className="group overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05] transition hover:-translate-y-1 hover:border-white/20"
+                  >
+                    <div className="relative flex h-24 items-center justify-between bg-gradient-to-br from-flame/25 via-ember/15 to-transparent px-6">
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] ${
+                        competition.status === "voting"
+                          ? "bg-amber-400/20 text-amber-200"
+                          : "bg-ember/20 text-ember"
+                      }`}>
+                        {competition.status === "voting" ? "Voting open" : "Entries open"}
+                      </span>
+                      {daysLeft <= 7 ? (
+                        <span className="text-xs font-semibold text-cream/60">
+                          {daysLeft === 0 ? "Last day!" : `${daysLeft}d left`}
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="p-6">
+                      <p className="text-xs uppercase tracking-[0.22em] text-ember">
+                        {competition.theme}
+                      </p>
+                      <h3 className="mt-3 font-display text-3xl text-cream leading-tight">
+                        {competition.title}
+                      </h3>
+                      <p className="mt-3 text-sm leading-7 text-cream/70 line-clamp-2">
+                        {competition.description}
+                      </p>
+                      {competition.prizeDescription ? (
+                        <p className="mt-4 text-xs text-cream/50">
+                          Prize: {competition.prizeDescription}
+                        </p>
+                      ) : null}
+                      <div className="mt-4 flex items-center justify-between gap-4">
+                        <span className="text-xs text-cream/45">
+                          {competition.entries.length} {competition.entries.length === 1 ? "entry" : "entries"}
+                        </span>
+                        <span className="text-sm font-semibold text-cream group-hover:text-white">
+                          {competition.status === "voting" ? "Vote now →" : "Enter now →"}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+          </div>
+          <div className="mt-6">
+            <Link
+              href="/competitions"
+              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            >
+              View all competitions
+            </Link>
+          </div>
+        </section>
+      ) : null}
 
       <section className="container-shell py-16">
         <SectionHeading
