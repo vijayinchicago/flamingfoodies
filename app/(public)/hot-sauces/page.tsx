@@ -43,20 +43,19 @@ export default async function HotSaucesHubPage() {
       />
       <SectionHeading
         eyebrow="Hot sauce hub"
-        title="Find the right bottle by use case, not just by hype."
+        title="Find the right bottle for tacos, eggs, wings, gifts, and more."
         copy="Start with everyday pours, giftable sets, taco-night bottles, and the sauces serious heat lovers keep reaching for."
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="panel p-6 sm:p-8">
-          <p className="eyebrow">What this hub does</p>
+          <p className="eyebrow">Start here</p>
           <h2 className="mt-3 font-display text-3xl text-cream sm:text-4xl">
-            Shortcut the shelf before you waste money on the wrong bottle.
+            Find the bottles that fit how you actually cook.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
-            The best hot sauce pages help people shop by occasion and flavor. Start with the best
-            overall shelf, taco night, giftable sets, or big heat, then drop into the individual
-            reviews once you know what kind of bottle you actually need.
+            Browse everyday favorites, taco-night bottles, gift sets, and bigger-heat picks, then
+            open the full reviews when you want more detail.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
@@ -105,8 +104,8 @@ export default async function HotSaucesHubPage() {
       <div className="mt-12">
         <SectionHeading
           eyebrow="Top picks"
-          title="Start with the strongest bottles on the shelf."
-          copy="These are the easiest recommendations to make when someone asks what to buy first."
+          title="Start with these favorites."
+          copy="These are easy bottles to recommend when someone asks what to buy first."
         />
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           {topPicks.map((review) => (
@@ -119,8 +118,8 @@ export default async function HotSaucesHubPage() {
         <div className="mt-12">
           <SectionHeading
             eyebrow="Read before you buy"
-            title="Editorial guides that make the shelf easier to navigate."
-            copy="These posts support the hot sauce cluster directly, so someone can move from a buying question to the right landing page and then into the exact review."
+            title="Guides that help you choose."
+            copy="These posts answer common buying questions and point you toward the right bottles."
           />
           <div className="mt-8 grid gap-6 lg:grid-cols-3">
             {guidePosts.map((post) => (

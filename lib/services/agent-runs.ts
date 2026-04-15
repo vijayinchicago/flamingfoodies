@@ -140,6 +140,13 @@ const scheduleDefinitions: ScheduleDefinition[] = [
   },
   {
     agentId: "editorial-autopublisher",
+    label: "AI draft reevaluation",
+    note: "Re-checks pending AI drafts and promotes anything that now clears autonomous QA.",
+    hourUtc: 17,
+    minuteUtc: 45
+  },
+  {
+    agentId: "editorial-autopublisher",
     label: "Publish scheduled content",
     note: "Makes due scheduled content live.",
     hourUtc: 18,

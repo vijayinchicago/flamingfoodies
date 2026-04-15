@@ -59,6 +59,54 @@ const cuisinePalettes = {
     garnish: "#86efac",
     sauce: "#dc2626"
   },
+  filipino: {
+    background: "linear-gradient(135deg, #1a100d 0%, #5b2915 42%, #0f766e 100%)",
+    glow: "#fb923c",
+    accent: "#fef08a",
+    surface: "#24140f",
+    garnish: "#99f6e4",
+    sauce: "#f97316"
+  },
+  greek: {
+    background: "linear-gradient(135deg, #0f172a 0%, #1d4ed8 44%, #0f766e 100%)",
+    glow: "#93c5fd",
+    accent: "#e0f2fe",
+    surface: "#132033",
+    garnish: "#bbf7d0",
+    sauce: "#f59e0b"
+  },
+  turkish: {
+    background: "linear-gradient(135deg, #180d0d 0%, #7f1d1d 44%, #b45309 100%)",
+    glow: "#fca5a5",
+    accent: "#fde68a",
+    surface: "#2b1212",
+    garnish: "#fcd34d",
+    sauce: "#ef4444"
+  },
+  brazilian: {
+    background: "linear-gradient(135deg, #102018 0%, #166534 42%, #f59e0b 100%)",
+    glow: "#86efac",
+    accent: "#fef08a",
+    surface: "#143122",
+    garnish: "#fde68a",
+    sauce: "#f97316"
+  },
+  nigerian: {
+    background: "linear-gradient(135deg, #160d0c 0%, #7c2d12 42%, #166534 100%)",
+    glow: "#fb923c",
+    accent: "#fef08a",
+    surface: "#251310",
+    garnish: "#86efac",
+    sauce: "#dc2626"
+  },
+  malaysian: {
+    background: "linear-gradient(135deg, #15120d 0%, #7c2d12 42%, #1d4d35 100%)",
+    glow: "#f59e0b",
+    accent: "#fde68a",
+    surface: "#221712",
+    garnish: "#86efac",
+    sauce: "#ef4444"
+  },
   cajun: {
     background: "linear-gradient(135deg, #17130f 0%, #4a2711 40%, #92400e 100%)",
     glow: "#f59e0b",

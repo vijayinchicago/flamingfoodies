@@ -1,17 +1,39 @@
 import { flags } from "@/lib/env";
 import {
+  getActiveShopSeasonalMoments,
   getAutomatedShopPickEntries,
   type AffiliateCategory,
-  type AffiliateLinkEntry
+  type AffiliateLinkEntry,
+  type ShopSeasonalMoment
 } from "@/lib/affiliates";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import type { MerchAvailability, MerchThemeKey } from "@/lib/types";
+import { expireTimedOutGenerationJobs } from "@/lib/services/generation-jobs";
+import type {
+  CuisineType,
+  HeatLevel,
+  MerchAvailability,
+  MerchProduct,
+  MerchThemeKey
+} from "@/lib/types";
 
 type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
 type ShopAutomationSource = "manual" | "cron";
 type ShopPickUpsertOptions = {
   featured?: boolean;
   sortOrder?: number;
+};
+
+type ShopPickHistoryEntry = {
+  affiliateKey: string;
+  category: AffiliateCategory;
+  createdAt: string;
+};
+
+type ShopPickSelectionSignals = {
+  activeMoments?: ShopSeasonalMoment[];
+  cuisineWeights?: Partial<Record<CuisineType, number>>;
+  heatWeights?: Partial<Record<HeatLevel, number>>;
+  categoryWeights?: Partial<Record<AffiliateCategory, number>>;
 };
 
 function getDailyRotationSeed(date = new Date()) {
@@ -27,6 +49,188 @@ function rotateArray<T>(items: T[], startIndex: number) {
 
   const index = ((startIndex % items.length) + items.length) % items.length;
   return [...items.slice(index), ...items.slice(0, index)];
+}
+
+function deterministicSelectionJitter(seed: string) {
+  let hash = 0;
+
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = (hash * 31 + seed.charCodeAt(index)) % 9973;
+  }
+
+  return hash % 19;
+}
+
+function addWeightedValue<T extends string>(
+  scores: Partial<Record<T, number>>,
+  key: T | null | undefined,
+  amount: number
+) {
+  if (!key) {
+    return;
+  }
+
+  scores[key] = (scores[key] ?? 0) + amount;
+}
+
+function sumWeightedMatches<T extends string>(
+  matches: readonly T[] | undefined,
+  scores: Partial<Record<T, number>> | undefined,
+  scale: number,
+  cap: number
+) {
+  if (!matches?.length || !scores) {
+    return 0;
+  }
+
+  return Math.min(
+    cap,
+    matches.reduce((total, item) => total + (scores[item] ?? 0), 0) * scale
+  );
+}
+
+function buildSeasonalCategoryWeights(activeMoments: ShopSeasonalMoment[]) {
+  const weights: Record<AffiliateCategory, number> = {
+    hot_sauce: 14,
+    ingredient: 12,
+    gear: 11,
+    subscription: 7
+  };
+
+  for (const moment of activeMoments) {
+    switch (moment) {
+      case "weeknight":
+        weights.ingredient += 5;
+        weights.gear += 4;
+        break;
+      case "game_day":
+        weights.hot_sauce += 8;
+        weights.ingredient += 5;
+        weights.subscription += 2;
+        break;
+      case "grill_season":
+        weights.gear += 8;
+        weights.hot_sauce += 7;
+        weights.ingredient += 6;
+        break;
+      case "summer_fresh":
+        weights.hot_sauce += 5;
+        weights.ingredient += 6;
+        break;
+      case "tailgate":
+        weights.hot_sauce += 8;
+        weights.ingredient += 4;
+        weights.gear += 3;
+        break;
+      case "holiday_gifting":
+        weights.subscription += 12;
+        weights.hot_sauce += 4;
+        weights.gear += 3;
+        break;
+      case "cold_weather":
+        weights.ingredient += 6;
+        weights.gear += 5;
+        weights.subscription += 3;
+        break;
+      case "brunch":
+        weights.hot_sauce += 4;
+        weights.ingredient += 3;
+        break;
+      case "seafood_night":
+        weights.hot_sauce += 3;
+        weights.ingredient += 5;
+        break;
+      case "sauce_making":
+        weights.gear += 8;
+        weights.ingredient += 3;
+        break;
+      default:
+        break;
+    }
+  }
+
+  return weights;
+}
+
+function buildCategoryTargets(
+  qty: number,
+  baseWeights: Record<AffiliateCategory, number>
+) {
+  const targets: Record<AffiliateCategory, number> = {
+    hot_sauce: 0,
+    ingredient: 0,
+    gear: 0,
+    subscription: 0
+  };
+
+  const categories = Object.keys(targets) as AffiliateCategory[];
+
+  for (let index = 0; index < qty; index += 1) {
+    const nextCategory = [...categories].sort((left, right) => {
+      const leftScore = baseWeights[left] - targets[left] * 18;
+      const rightScore = baseWeights[right] - targets[right] * 18;
+
+      if (rightScore !== leftScore) {
+        return rightScore - leftScore;
+      }
+
+      return left.localeCompare(right);
+    })[0];
+
+    if (!nextCategory) {
+      break;
+    }
+
+    targets[nextCategory] += 1;
+  }
+
+  return targets;
+}
+
+function computePublishedContentWeight(
+  publishedAt: string | null | undefined,
+  date: Date,
+  boosts: {
+    featured?: boolean | null;
+    views?: number | null;
+    saves?: number | null;
+    rating?: number | null;
+  }
+) {
+  const publishedTime = publishedAt ? new Date(publishedAt).getTime() : null;
+  const ageDays =
+    publishedTime && Number.isFinite(publishedTime)
+      ? Math.max(0, Math.round((date.getTime() - publishedTime) / 86400000))
+      : 30;
+  const recencyWeight = Math.max(3, 20 - ageDays / 3);
+  const viewWeight = Math.min((boosts.views ?? 0) / 35, 12);
+  const saveWeight = Math.min((boosts.saves ?? 0) * 1.4, 10);
+  const ratingWeight = Math.min((boosts.rating ?? 0) * 1.8, 9);
+  const featuredWeight = boosts.featured ? 5 : 0;
+
+  return 1 + recencyWeight + viewWeight + saveWeight + ratingWeight + featuredWeight;
+}
+
+function mapReviewCategoryToAffiliateCategory(category?: string | null) {
+  const normalized = (category ?? "").toLowerCase();
+
+  if (normalized.includes("subscription")) {
+    return "subscription" as const;
+  }
+
+  if (normalized.includes("hot-sauce")) {
+    return "hot_sauce" as const;
+  }
+
+  if (normalized.includes("spice") || normalized.includes("condiment")) {
+    return "ingredient" as const;
+  }
+
+  if (normalized.includes("gear") || normalized.includes("book")) {
+    return "gear" as const;
+  }
+
+  return null;
 }
 
 export function formatShopCategory(category: AffiliateCategory) {
@@ -109,28 +313,318 @@ function buildShopPickPayload(
 export function chooseShopPickEntries(
   existingHrefs: string[],
   qty: number,
-  date = new Date()
+  date = new Date(),
+  recentHistory: ShopPickHistoryEntry[] = [],
+  selectionSignals: ShopPickSelectionSignals = {}
 ) {
   const catalog = getAutomatedShopPickEntries();
   const rotatedCatalog = rotateArray(catalog, getDailyRotationSeed(date));
+  const activeMoments =
+    selectionSignals.activeMoments?.length
+      ? selectionSignals.activeMoments
+      : getActiveShopSeasonalMoments(date);
+  const seasonalCategoryWeights = buildSeasonalCategoryWeights(activeMoments);
+  const combinedCategoryWeights: Record<AffiliateCategory, number> = {
+    hot_sauce:
+      seasonalCategoryWeights.hot_sauce + (selectionSignals.categoryWeights?.hot_sauce ?? 0),
+    gear: seasonalCategoryWeights.gear + (selectionSignals.categoryWeights?.gear ?? 0),
+    ingredient:
+      seasonalCategoryWeights.ingredient + (selectionSignals.categoryWeights?.ingredient ?? 0),
+    subscription:
+      seasonalCategoryWeights.subscription + (selectionSignals.categoryWeights?.subscription ?? 0)
+  };
+  const categoryTargets = buildCategoryTargets(qty, combinedCategoryWeights);
   const existingKeySet = new Set(
     existingHrefs
       .map((href) => href.trim())
       .filter(Boolean)
       .flatMap((href) => (href.startsWith("/go/") ? [href.slice(4)] : []))
   );
+  const planningHistory = [...recentHistory];
+  const usedKeys = new Set<string>();
+  const usedCategoryCounts = new Map<AffiliateCategory, number>();
+  const selected: AffiliateLinkEntry[] = [];
 
-  const unusedEntries = rotatedCatalog.filter((entry) => !existingKeySet.has(entry.key));
-  const selected = unusedEntries.slice(0, qty);
+  for (let index = 0; index < qty; index += 1) {
+    const rotationIndex =
+      rotatedCatalog.length > 0
+        ? (getDailyRotationSeed(date) + index) % rotatedCatalog.length
+        : 0;
+    const rankedCandidates = rotatedCatalog
+      .filter((entry) => !usedKeys.has(entry.key))
+      .map((entry, candidateIndex) => {
+        const historyLastIndex = planningHistory.findIndex(
+          (historyEntry) => historyEntry.affiliateKey === entry.key
+        );
+        const categoryLastIndex = planningHistory.findIndex(
+          (historyEntry) => historyEntry.category === entry.category
+        );
+        const recentCount = planningHistory
+          .slice(0, 12)
+          .filter((historyEntry) => historyEntry.affiliateKey === entry.key).length;
+        const categoryRecentCount = planningHistory
+          .slice(0, 8)
+          .filter((historyEntry) => historyEntry.category === entry.category).length;
+        const seasonalMatchCount =
+          entry.seasonalMoments?.filter((moment) => activeMoments.includes(moment)).length ?? 0;
+        const categoryCount = usedCategoryCounts.get(entry.category) ?? 0;
+        const categoryTarget = categoryTargets[entry.category] ?? 0;
+        const inCatalogBoost = existingKeySet.has(entry.key) ? 0 : 180;
+        const exactAmazonBoost = hasExactAmazonProductLink(entry) ? 12 : 0;
+        const recencyReward =
+          historyLastIndex === -1 ? 150 : Math.min(historyLastIndex, 12) * 18;
+        const categoryReward =
+          categoryLastIndex === -1 ? 45 : Math.min(categoryLastIndex, 8) * 7;
+        const immediateRepeatPenalty =
+          historyLastIndex === 0 ? 420 : historyLastIndex === 1 ? 260 : historyLastIndex === 2 ? 140 : 0;
+        const frequencyPenalty = recentCount * 95 + categoryRecentCount * 35;
+        const batchPenalty = categoryCount * 24;
+        const seasonalBoost = seasonalMatchCount * 32;
+        const cuisineBoost = sumWeightedMatches(
+          entry.cuisines,
+          selectionSignals.cuisineWeights,
+          1.1,
+          90
+        );
+        const heatBoost = sumWeightedMatches(
+          entry.heatLevels,
+          selectionSignals.heatWeights,
+          0.9,
+          52
+        );
+        const categorySignalBoost = Math.min(
+          (combinedCategoryWeights[entry.category] ?? 0) * 3,
+          90
+        );
+        const quotaReward = categoryCount < categoryTarget ? 48 : 0;
+        const quotaPenalty =
+          categoryCount >= Math.max(categoryTarget, 1) + 1
+            ? (categoryCount - Math.max(categoryTarget, 1) + 1) * 34
+            : 0;
+        const calendarRotationBoost = candidateIndex === rotationIndex ? 24 : 0;
+        const jitter = deterministicSelectionJitter(
+          `${date.toISOString().slice(0, 10)}:${index}:${entry.key}`
+        );
 
-  if (selected.length < qty) {
-    const recycledEntries = rotatedCatalog.filter(
-      (entry) => !selected.some((selectedEntry) => selectedEntry.key === entry.key)
-    );
-    selected.push(...recycledEntries.slice(0, qty - selected.length));
+        return {
+          entry,
+          score:
+            40 +
+            inCatalogBoost +
+            exactAmazonBoost +
+            recencyReward +
+            categoryReward +
+            seasonalBoost +
+            cuisineBoost +
+            heatBoost +
+            categorySignalBoost +
+            quotaReward +
+            calendarRotationBoost +
+            jitter -
+            immediateRepeatPenalty -
+            frequencyPenalty -
+            batchPenalty -
+            quotaPenalty
+        };
+      })
+      .sort((left, right) => right.score - left.score || left.entry.key.localeCompare(right.entry.key));
+
+    const nextEntry = rankedCandidates[0]?.entry;
+    if (!nextEntry) {
+      break;
+    }
+
+    selected.push(nextEntry);
+    usedKeys.add(nextEntry.key);
+    usedCategoryCounts.set(nextEntry.category, (usedCategoryCounts.get(nextEntry.category) ?? 0) + 1);
+    planningHistory.unshift({
+      affiliateKey: nextEntry.key,
+      category: nextEntry.category,
+      createdAt: new Date(date.getTime() + index).toISOString()
+    });
   }
 
   return selected;
+}
+
+export function getSeasonalShopSeedProducts(date = new Date()): MerchProduct[] {
+  const activeMoments = getActiveShopSeasonalMoments(date);
+  const categoryWeights = buildSeasonalCategoryWeights(activeMoments);
+  const seededEntries = getAutomatedShopPickEntries()
+    .map((entry, index) => {
+      const seasonalBoost =
+        (entry.seasonalMoments?.filter((moment) => activeMoments.includes(moment)).length ?? 0) *
+        36;
+      const categoryBoost = (categoryWeights[entry.category] ?? 0) * 4;
+      const exactAmazonBoost = hasExactAmazonProductLink(entry) ? 10 : 0;
+      const jitter = deterministicSelectionJitter(`${date.toISOString().slice(0, 10)}:${entry.key}`);
+
+      return {
+        entry,
+        score: seasonalBoost + categoryBoost + exactAmazonBoost + jitter,
+        index
+      };
+    })
+    .sort((left, right) => {
+      if (right.score !== left.score) {
+        return right.score - left.score;
+      }
+
+      return left.index - right.index;
+    });
+
+  return seededEntries.map(({ entry }, index) => {
+    const timestamp = new Date(
+      Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 12, Math.min(index, 59))
+    ).toISOString();
+
+    return {
+      id: 5000 + index,
+      slug: buildShopPickSlug(entry),
+      name: entry.product,
+      category: formatShopCategory(entry.category),
+      badge: entry.badge,
+      description: buildShopPickDescription(entry),
+      priceLabel: entry.priceLabel || "Check Amazon",
+      availability: getShopAvailability(entry.category),
+      themeKey: getShopThemeKey(entry.category),
+      href: buildShopPickHref(entry),
+      ctaLabel: "View on Amazon",
+      imageAlt: `${entry.product} product pick`,
+      featured: index < 6,
+      status: "published",
+      sortOrder: index,
+      createdAt: timestamp,
+      updatedAt: timestamp
+    };
+  });
+}
+
+async function listRecentShopPickHistory(supabase: AdminClient) {
+  const [{ data: jobRows }, { data: featuredRows }] = await Promise.all([
+    supabase
+      .from("content_generation_jobs")
+      .select("parameters, status, created_at")
+      .eq("job_type", "merch_product")
+      .order("created_at", { ascending: false })
+      .limit(36),
+    supabase
+      .from("merch_products")
+      .select("href, category, updated_at, created_at")
+      .like("slug", "shop-pick-%")
+      .eq("featured", true)
+      .order("updated_at", { ascending: false })
+      .limit(6)
+  ]);
+
+  const historyFromJobs = (jobRows ?? [])
+    .flatMap((row) => {
+      if (row.status === "failed") {
+        return [];
+      }
+
+      const parameters =
+        row.parameters && typeof row.parameters === "object"
+          ? (row.parameters as Record<string, unknown>)
+          : {};
+      const affiliateKey =
+        typeof parameters.affiliate_key === "string" ? String(parameters.affiliate_key) : null;
+      const category =
+        typeof parameters.category === "string" ? (parameters.category as AffiliateCategory) : null;
+
+      if (!affiliateKey || !category) {
+        return [];
+      }
+
+      return [
+        {
+          affiliateKey,
+          category,
+          createdAt: row.created_at || new Date(0).toISOString()
+        } satisfies ShopPickHistoryEntry
+      ];
+    });
+
+  const historyFromFeatured = (featuredRows ?? [])
+    .flatMap((row) => {
+      const href = typeof row.href === "string" ? row.href.trim() : "";
+      const affiliateKey = href.startsWith("/go/") ? href.slice(4) : null;
+      const categoryLabel = typeof row.category === "string" ? row.category : "";
+      const category = getAutomatedShopPickEntries().find((entry) => entry.key === affiliateKey)?.category;
+
+      if (!affiliateKey || !category || !categoryLabel) {
+        return [];
+      }
+
+      return [
+        {
+          affiliateKey,
+          category,
+          createdAt: row.updated_at || row.created_at || new Date(0).toISOString()
+        } satisfies ShopPickHistoryEntry
+      ];
+    });
+
+  return [...historyFromJobs, ...historyFromFeatured].sort(
+    (left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
+  );
+}
+
+async function buildShopPickSelectionSignals(
+  supabase: AdminClient,
+  date = new Date()
+): Promise<ShopPickSelectionSignals> {
+  const activeMoments = getActiveShopSeasonalMoments(date);
+  const [{ data: recipeRows }, { data: reviewRows }] = await Promise.all([
+    supabase
+      .from("recipes")
+      .select("cuisine_type, heat_level, featured, published_at, view_count, save_count, rating_avg")
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
+      .limit(24),
+    supabase
+      .from("reviews")
+      .select("cuisine_origin, heat_level, featured, published_at, view_count, rating, category")
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
+      .limit(18)
+  ]);
+
+  const cuisineWeights: Partial<Record<CuisineType, number>> = {};
+  const heatWeights: Partial<Record<HeatLevel, number>> = {};
+  const categoryWeights: Partial<Record<AffiliateCategory, number>> = {};
+
+  for (const row of recipeRows ?? []) {
+    const weight = computePublishedContentWeight(row.published_at, date, {
+      featured: Boolean(row.featured),
+      views: row.view_count ?? 0,
+      saves: row.save_count ?? 0,
+      rating: Number(row.rating_avg ?? 0) || 0
+    });
+
+    addWeightedValue(cuisineWeights, row.cuisine_type as CuisineType | null, weight);
+    addWeightedValue(heatWeights, row.heat_level as HeatLevel | null, weight * 0.75);
+  }
+
+  for (const row of reviewRows ?? []) {
+    const weight = computePublishedContentWeight(row.published_at, date, {
+      featured: Boolean(row.featured),
+      views: row.view_count ?? 0,
+      rating: Number(row.rating ?? 0) || 0
+    });
+    const affiliateCategory = mapReviewCategoryToAffiliateCategory(row.category);
+
+    addWeightedValue(cuisineWeights, row.cuisine_origin as CuisineType | null, weight * 0.6);
+    addWeightedValue(heatWeights, row.heat_level as HeatLevel | null, weight * 0.55);
+    addWeightedValue(categoryWeights, affiliateCategory, weight * 0.35);
+  }
+
+  return {
+    activeMoments,
+    cuisineWeights,
+    heatWeights,
+    categoryWeights
+  };
 }
 
 async function createGenerationJob(supabase: AdminClient, entry: AffiliateLinkEntry) {
@@ -286,12 +780,21 @@ export async function runShopPickAutomation(
     };
   }
 
-  const { data: existingRows } = await supabase
-    .from("merch_products")
-    .select("href");
+  await expireTimedOutGenerationJobs(supabase, {
+    jobTypes: ["merch_product"]
+  });
+
+  const [existingRowsResult, recentHistory, selectionSignals] = await Promise.all([
+    supabase.from("merch_products").select("href"),
+    listRecentShopPickHistory(supabase),
+    buildShopPickSelectionSignals(supabase)
+  ]);
   const selectedEntries = chooseShopPickEntries(
-    (existingRows ?? []).map((row) => row.href).filter(Boolean),
-    effectiveQty
+    (existingRowsResult.data ?? []).map((row) => row.href).filter(Boolean),
+    effectiveQty,
+    new Date(),
+    recentHistory,
+    selectionSignals
   );
   const selectedSlugs = selectedEntries.map((entry) => buildShopPickSlug(entry));
   const createdJobs: Array<Record<string, unknown>> = [];

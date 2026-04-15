@@ -188,7 +188,7 @@ export default async function HomePage() {
           <div className="panel p-8">
             <p className="eyebrow">Affiliate staples</p>
             <h2 className="mt-3 font-display text-4xl text-cream">
-              Products that make the content more actionable.
+              Products that pair naturally with the recipes and reviews.
             </h2>
             <div className="mt-8 space-y-4">
               {resolvedHomeAffiliateLinks.map(({ link, resolved }) => (
@@ -255,8 +255,8 @@ export default async function HomePage() {
       <section className="container-shell py-10">
         <SectionHeading
           eyebrow="Recurring series"
-          title="Three editorial lanes we can keep compounding."
-          copy="These franchises give the blog and newsletter a steadier rhythm: sharper buying advice, more recipe utility, and a clearer shelf-building voice."
+          title="Three recurring series to explore."
+          copy="Browse regular features with helpful buying advice, spicy recipes, and ideas for what to cook next."
         />
         <div className="mt-10 grid gap-6 xl:grid-cols-3">
           {editorialFranchises.map((franchise) => (
@@ -294,7 +294,7 @@ export default async function HomePage() {
             source="homepage"
             tag="homepage-hero"
             heading="Choose the newsletter lane that matches how you use the site."
-            description="Some readers want the full weekly mix. Others mainly want recipes, hot sauce shelf notes, or cook-and-shop ideas. Pick the lane that fits."
+            description="Choose a full weekly roundup, more recipes, or more shopping-focused picks."
             defaultSegments={["weekly-roundup", "recipe-club"]}
           />
         </div>

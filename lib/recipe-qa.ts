@@ -47,7 +47,13 @@ const cuisineSignatures: Partial<Record<CuisineType, string[]>> = {
   mexican: ["tortilla", "consome", "salsa", "cilantro", "lime", "birria"],
   italian: ["rigatoni", "pecorino", "basil", "tomato", "pasta", "vodka"],
   cajun: ["cajun", "rice", "salmon", "honey", "yogurt"],
-  american: ["sandwich", "chicken", "pickle", "bun", "burger", "slaw"]
+  american: ["sandwich", "chicken", "pickle", "bun", "burger", "slaw"],
+  filipino: ["adobo", "calamansi", "suka", "garlic", "sisig", "toyomansi"],
+  greek: ["feta", "oregano", "lemon", "olive", "yogurt", "skewer"],
+  turkish: ["sumac", "kebab", "yogurt", "aleppo", "isot", "pide"],
+  brazilian: ["malagueta", "moqueca", "farofa", "lime", "garlic", "dende"],
+  nigerian: ["suya", "yaji", "jollof", "pepper", "plantain", "tomato"],
+  malaysian: ["sambal", "belacan", "coconut", "lemongrass", "nasi", "lime"]
 };
 
 const preReviewedRecipeSlugs = new Set([

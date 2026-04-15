@@ -188,8 +188,8 @@ export default async function ReviewsIndexPage({
               Start with the bottles we would hand someone first.
             </h2>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
-              These are the strongest entry points into the shelf: a dependable everyday pour, a
-              giftable standout, and at least one bottle that keeps things interesting.
+              Start with an everyday favorite, a giftable pick, and a bottle with a little more heat
+              or personality.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -223,8 +223,8 @@ export default async function ReviewsIndexPage({
                 </p>
                 <p className="mt-2 text-sm leading-7 text-cream/65">
                   {typeof review.priceUsd === "number"
-                    ? `Shelf read: ${review.brand} at $${review.priceUsd.toFixed(2)} is one of the strongest fast-buy options on this page.`
-                    : `Shelf read: ${review.brand} is one of the strongest fast-buy options on this page.`}
+                    ? `Quick take: ${review.brand} at $${review.priceUsd.toFixed(2)} is an easy bottle to start with.`
+                    : `Quick take: ${review.brand} is an easy bottle to start with.`}
                 </p>
               </div>
             </div>
@@ -248,7 +248,7 @@ export default async function ReviewsIndexPage({
             type="search"
             name="q"
             defaultValue={query}
-            placeholder="Search by bottle, brand, flavor, or use case"
+            placeholder="Search by bottle, brand, flavor, or what it is good on"
             className="rounded-2xl border border-charcoal/12 bg-white px-4 py-3 text-sm text-charcoal outline-none transition placeholder:text-charcoal/45 focus:border-ember focus:ring-2 focus:ring-ember/15"
           />
           <select
@@ -311,7 +311,7 @@ export default async function ReviewsIndexPage({
             </Link>
           ) : null}
           <p className="text-sm text-charcoal/60">
-            Search by bottle, browse by use case, or sort for the hottest and highest-rated shelf.
+            Search by bottle, browse by best use, or sort by heat, rating, and newest reviews.
           </p>
         </div>
       </form>
@@ -319,7 +319,7 @@ export default async function ReviewsIndexPage({
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="eyebrow">Browse by intent</p>
-            <h2 className="mt-3 font-display text-4xl text-cream">Filter the shelf like a buyer.</h2>
+            <h2 className="mt-3 font-display text-4xl text-cream">Browse reviews your way.</h2>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
               Showing <span className="font-semibold text-cream">{paginatedReviews.totalResults}</span>{" "}
               results for <span className="font-semibold text-cream">{filterMeta.label}</span>.{" "}
@@ -364,8 +364,8 @@ export default async function ReviewsIndexPage({
           </h2>
           <p className="mt-3 text-sm leading-7 text-cream/70">
             {paginatedReviews.totalResults
-              ? "Tighten the shelf by use case, then sort for the bottles that deserve a closer look."
-              : "Try a broader search, switch the intent lane, or clear one filter to open the shelf back up."}
+              ? "Narrow things down by best use, then sort for the bottles you want to compare."
+              : "Try a broader search, switch the intent tab, or clear a filter to see more bottles."}
           </p>
         </div>
         {paginatedReviews.totalPages > 1 ? (

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { buildBlogQaReport, getBlogQaPublishError } from "@/lib/blog-qa";
+import { CUISINE_TYPES, HEAT_LEVELS } from "@/lib/content-taxonomy";
 import { getBlogHeroFields } from "@/lib/blog-hero";
 import { flags } from "@/lib/env";
 import { merchThemeOptions } from "@/lib/merch";
@@ -41,6 +42,7 @@ import {
   sampleRecipes,
   sampleReviews
 } from "@/lib/sample-data";
+import { getSeasonalShopSeedProducts } from "@/lib/services/shop-automation";
 import { createSocialPostsForContent } from "@/lib/services/social";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -59,28 +61,8 @@ import { calculateReadTime, slugify } from "@/lib/utils";
 
 type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
 
-const heatLevels = ["mild", "medium", "hot", "inferno", "reaper"] as const;
-const cuisineTypes = [
-  "american",
-  "mexican",
-  "thai",
-  "korean",
-  "indian",
-  "chinese",
-  "japanese",
-  "ethiopian",
-  "peruvian",
-  "jamaican",
-  "cajun",
-  "szechuan",
-  "vietnamese",
-  "west_african",
-  "middle_eastern",
-  "caribbean",
-  "italian",
-  "moroccan",
-  "other"
-] as const;
+const heatLevels = HEAT_LEVELS;
+const cuisineTypes = CUISINE_TYPES;
 const difficulties = ["beginner", "intermediate", "advanced"] as const;
 const merchAvailability = ["preview", "waitlist", "live"] as const;
 const editorialStatuses = ["draft", "pending_review", "published"] as const;
@@ -1031,6 +1013,16 @@ function mapSampleMerchForInsert(product: MerchProduct) {
   };
 }
 
+function getCatalogBootstrapMerchProducts(date = new Date()) {
+  const seasonalSeedProducts = getSeasonalShopSeedProducts(date);
+  const brandedSeedProducts = sampleMerchProducts.map((product, index) => ({
+    ...product,
+    sortOrder: seasonalSeedProducts.length + index + 100
+  }));
+
+  return [...seasonalSeedProducts, ...brandedSeedProducts];
+}
+
 export async function createBlogPostAction(formData: FormData) {
   const admin = await requireAdmin();
 
@@ -1757,6 +1749,66 @@ export async function updateRecipeStateAction(formData: FormData) {
   redirect(`${redirectTo}?updated=1`);
 }
 
+export async function deletePendingReviewRecipesAction(formData: FormData) {
+  const admin = await requireAdmin();
+  const redirectTo = getRedirectPath(
+    getOptionalText(formData, "redirectTo"),
+    "/admin/content/recipes"
+  );
+
+  if (!flags.hasSupabaseAdmin) {
+    redirect(`${redirectTo}?clearedReviewQueue=mock`);
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    redirect(`${redirectTo}?error=Supabase%20admin%20is%20not%20configured`);
+  }
+
+  const { data: pendingRows, error: pendingError } = await supabase
+    .from("recipes")
+    .select("id, slug")
+    .eq("status", "pending_review");
+
+  if (pendingError) {
+    redirect(`${redirectTo}?error=${encodeURIComponent(pendingError.message)}`);
+  }
+
+  const pendingIds = (pendingRows ?? []).map((row) => row.id);
+  const deletedCount = pendingIds.length;
+
+  if (pendingIds.length) {
+    const { error: deleteError } = await supabase
+      .from("recipes")
+      .delete()
+      .in("id", pendingIds);
+
+    if (deleteError) {
+      redirect(`${redirectTo}?error=${encodeURIComponent(deleteError.message)}`);
+    }
+  }
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "delete_pending_review_recipes",
+    targetType: "recipe",
+    targetId: "pending_review",
+    metadata: {
+      deletedCount,
+      slugs: (pendingRows ?? []).map((row) => row.slug).slice(0, 25)
+    }
+  });
+
+  revalidatePath("/admin/content/recipes");
+  revalidatePath("/recipes");
+
+  for (const row of pendingRows ?? []) {
+    revalidatePath(`/recipes/${row.slug}`);
+  }
+
+  redirect(`${redirectTo}?clearedReviewQueue=${deletedCount}`);
+}
+
 export async function createReviewAction(formData: FormData) {
   const admin = await requireAdmin();
 
@@ -2451,8 +2503,9 @@ export async function importSampleCatalogAction(formData: FormData) {
   }
 
   if (parsed.data.catalog === "merch" || parsed.data.catalog === "all") {
+    const merchBootstrapProducts = getCatalogBootstrapMerchProducts();
     const { error } = await supabase.from("merch_products").upsert(
-      sampleMerchProducts.map(mapSampleMerchForInsert),
+      merchBootstrapProducts.map(mapSampleMerchForInsert),
       { onConflict: "slug" }
     );
 
@@ -2460,7 +2513,7 @@ export async function importSampleCatalogAction(formData: FormData) {
       redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
     }
 
-    counts.merch = sampleMerchProducts.length;
+    counts.merch = merchBootstrapProducts.length;
   }
 
   await writeAuditLog(supabase, {

@@ -94,7 +94,7 @@ export default async function BestHotSaucesPage() {
         </div>
 
         <div className="panel p-8">
-          <p className="eyebrow">Quick shelf strategy</p>
+          <p className="eyebrow">Starter guide</p>
           <h2 className="mt-3 font-display text-4xl text-cream">
             Build one balanced fridge shelf first.
           </h2>
@@ -111,7 +111,7 @@ export default async function BestHotSaucesPage() {
         <SectionHeading
           eyebrow="The short list"
           title="Start with these first."
-          copy="These are the best overall picks when someone wants one page, one answer, and the fastest route to a smarter shelf."
+          copy="These are the best overall picks when you want one simple place to begin."
         />
         <div className="mt-8 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
           {bestSauces.map((review) => (
@@ -123,7 +123,7 @@ export default async function BestHotSaucesPage() {
       <HotSauceComparisonTable
         eyebrow="Compare the short list"
         title="See the tradeoffs before you buy."
-        copy="This is the quick read: what each bottle is best at, how hard it hits, and why it earns shelf space instead of collecting dust."
+        copy="This is the quick read: what each bottle is best for, how hard it hits, and where it shines."
         rows={comparisonRows}
       />
 
@@ -164,7 +164,7 @@ export default async function BestHotSaucesPage() {
       <HotSauceFaqSection
         eyebrow="FAQ"
         title="What people usually want answered first."
-        copy="These are the buying questions that come up most often when someone is trying to build a smarter sauce shelf."
+        copy="These are the buying questions people usually ask before choosing a bottle."
         faqs={bestHotSaucesFaqs}
       />
     </section>

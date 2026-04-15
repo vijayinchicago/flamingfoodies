@@ -1,11 +1,4 @@
-import {
-  HOT_SAUCE_SPOTLIGHT_KEYS,
-  KITCHEN_GEAR_KEYS,
-  PANTRY_HEAT_KEYS,
-  SUBSCRIPTION_KEYS,
-  getAffiliateLinkEntries,
-  type AffiliateLinkEntry
-} from "@/lib/affiliates";
+import { getAffiliateLinkEntries, type AffiliateLinkEntry } from "@/lib/affiliates";
 import type { MerchProduct } from "@/lib/types";
 
 export interface ShopMerchCollection {
@@ -74,37 +67,37 @@ export function getShopAffiliateCollections(): ShopAffiliateCollection[] {
   return [
     {
       key: "starter-kit",
-      title: "Starter kit for the first serious shelf",
+      title: "Starter kit for the first hot sauce lineup",
       description:
-        "One useful bottle, one pantry builder, and one tool that immediately make the rest of the site more actionable.",
+        "One useful bottle, one pantry staple, and one tool that instantly make weeknight cooking more fun.",
       ctaLabel: "Build the starter kit",
       items: getAffiliateLinkEntries([
-        HOT_SAUCE_SPOTLIGHT_KEYS[1],
-        PANTRY_HEAT_KEYS[0],
-        KITCHEN_GEAR_KEYS[0]
+        "amazon-secret-aardvark-habanero",
+        "amazon-chipotle-in-adobo",
+        "amazon-cast-iron-skillet"
       ])
     },
     {
       key: "taco-night",
       title: "Taco night lane",
       description:
-        "A bright red bottle, an everyday pour, and the tool that makes salsa and sauce work feel more intentional.",
+        "A bright red bottle, an everyday pour, and the tool that makes taco night feel more complete.",
       ctaLabel: "Build taco night",
       items: getAffiliateLinkEntries([
         "heatonist-los-calientes-rojo",
-        "amazon-yellowbird-habanero",
-        "amazon-molcajete"
+        "amazon-el-yucateco-green-habanero",
+        "amazon-tortilla-press"
       ])
     },
     {
       key: "under-15",
-      title: "Under-$15 shelf builders",
+      title: "Under-$15 favorites",
       description:
-        "Three low-friction buys that make the shop useful fast: one bottle, one pantry builder, and one finishing move.",
+        "Three easy buys under $15: one bottle, one pantry staple, and one finishing touch.",
       ctaLabel: "Shop under $15",
       items: getAffiliateLinkEntries([
-        "amazon-yellowbird-habanero",
-        "amazon-gochujang-paste",
+        "amazon-crystal-hot-sauce",
+        "amazon-chipotle-in-adobo",
         "mike-hot-honey-original"
       ])
     },
@@ -112,12 +105,12 @@ export function getShopAffiliateCollections(): ShopAffiliateCollection[] {
       key: "gift-guide",
       title: "Best gifts for spice lovers",
       description:
-        "The safer route when you are buying for someone else and want the set to feel intentional, not random.",
+        "A few easy gift ideas when you want something fun, useful, and simple to choose.",
       ctaLabel: "Shop gift ideas",
       items: getAffiliateLinkEntries([
-        SUBSCRIPTION_KEYS[1],
-        SUBSCRIPTION_KEYS[2],
-        SUBSCRIPTION_KEYS[0]
+        "amazon-hot-sauce-gift-box",
+        "heatonist-gift-set",
+        "amazon-bbq-rub-gift-set"
       ])
     }
   ];

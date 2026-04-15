@@ -3,6 +3,11 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
+import {
+  CUISINE_TYPES,
+  HEAT_LEVELS,
+  formatTaxonomyLabel
+} from "@/lib/content-taxonomy";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import { getRecipeFaqs, getRecipeHeroSummary, getRecipeIngredientSections, getRecipeMethodSteps } from "@/lib/recipes";
 import type { CuisineType, HeatLevel, Recipe, RecipeQaReport } from "@/lib/types";
@@ -326,11 +331,11 @@ export function RecipeEditorForm({
             onChange={(event) => setHeroHeatLevel(event.target.value as HeatLevel)}
             className="rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
           >
-            <option value="medium">medium</option>
-            <option value="mild">mild</option>
-            <option value="hot">hot</option>
-            <option value="inferno">inferno</option>
-            <option value="reaper">reaper</option>
+            {HEAT_LEVELS.map((heatLevel) => (
+              <option key={heatLevel} value={heatLevel}>
+                {heatLevel}
+              </option>
+            ))}
           </select>
           <select
             name="cuisineType"
@@ -338,19 +343,11 @@ export function RecipeEditorForm({
             onChange={(event) => setHeroCuisineType(event.target.value as CuisineType)}
             className="rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
           >
-            <option value="other">other</option>
-            <option value="american">american</option>
-            <option value="mexican">mexican</option>
-            <option value="thai">thai</option>
-            <option value="korean">korean</option>
-            <option value="indian">indian</option>
-            <option value="ethiopian">ethiopian</option>
-            <option value="jamaican">jamaican</option>
-            <option value="west_african">west_african</option>
-            <option value="caribbean">caribbean</option>
-            <option value="italian">italian</option>
-            <option value="moroccan">moroccan</option>
-            <option value="szechuan">szechuan</option>
+            {CUISINE_TYPES.map((cuisineType) => (
+              <option key={cuisineType} value={cuisineType}>
+                {formatTaxonomyLabel(cuisineType)}
+              </option>
+            ))}
           </select>
           <select
             name="difficulty"

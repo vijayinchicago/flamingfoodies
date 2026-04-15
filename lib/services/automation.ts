@@ -2,18 +2,34 @@ import Anthropic from "@anthropic-ai/sdk";
 import { z } from "zod";
 
 import {
+  HOT_SAUCE_SPOTLIGHT_KEYS,
+  buildAmazonSearchUrl,
+  getAffiliateLinkEntries
+} from "@/lib/affiliates";
+import {
   buildBlogHeroImageAlt,
   buildBlogHeroImageUrl,
   isGeneratedBlogHeroImageUrl
 } from "@/lib/blog-hero";
 import { buildBlogQaReport } from "@/lib/blog-qa";
+import {
+  CUISINE_ROTATION,
+  CUISINE_TYPES,
+  HEAT_LEVELS,
+  RECIPE_GENERATION_LANES,
+  formatTaxonomyLabel
+} from "@/lib/content-taxonomy";
 import { env, flags } from "@/lib/env";
 import {
   BLOG_POST_PROMPT,
-  CUISINE_ROTATION,
   RECIPE_PROMPT,
   REVIEW_PROMPT
 } from "@/lib/generation/prompts";
+import {
+  RETRYABLE_RECIPE_GENERATION_ATTEMPTS,
+  expireTimedOutGenerationJobs,
+  shouldRetryGenerationFailure
+} from "@/lib/services/generation-jobs";
 import {
   buildRecipeHeroImageAlt,
   buildRecipeHeroImageUrl,
@@ -44,6 +60,7 @@ import type {
   CuisineType,
   HeatLevel,
   Recipe,
+  RecipeGenerationLane,
   RecipeQaIssue,
   RecipeQaReport,
   Review
@@ -81,6 +98,7 @@ type GenerationContext = {
   profile: GenerationProfile;
   cuisine: CuisineType;
   heatLevel: HeatLevel;
+  recipeLane?: RecipeGenerationLane | null;
   hotSauceFocus?: HotSauceFocus | null;
 };
 
@@ -89,8 +107,12 @@ type GenerationHistoryEntry = {
   cuisine: CuisineType;
   createdAt: string;
   profile: GenerationProfile;
+  heatLevel?: HeatLevel | null;
+  recipeLane?: RecipeGenerationLane | null;
   hotSauceSlug?: string | null;
 };
+
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
 type AutonomousReevaluationItem = {
   id: number;
@@ -109,30 +131,12 @@ const recipeIngredientSchema = z.object({
   notes: z.string().optional()
 });
 
-const heatLevelEnumValues = ["mild", "medium", "hot", "inferno", "reaper"] as const;
-const cuisineEnumValues = [
-  "american",
-  "mexican",
-  "thai",
-  "korean",
-  "indian",
-  "ethiopian",
-  "peruvian",
-  "jamaican",
-  "cajun",
-  "szechuan",
-  "vietnamese",
-  "west_african",
-  "middle_eastern",
-  "caribbean",
-  "moroccan",
-  "japanese",
-  "italian",
-  "chinese",
-  "other"
-] as const;
+const heatLevelEnumValues = HEAT_LEVELS;
+const cuisineEnumValues = CUISINE_TYPES;
+const recipeLaneEnumValues = RECIPE_GENERATION_LANES;
 const heatLevelSet = new Set<string>(heatLevelEnumValues);
 const cuisineSet = new Set<string>(cuisineEnumValues);
+const recipeLaneSet = new Set<string>(recipeLaneEnumValues);
 const cuisineAliasMap: Record<string, CuisineType> = {
   sichuan: "szechuan",
   sichuanese: "szechuan",
@@ -143,7 +147,14 @@ const cuisineAliasMap: Record<string, CuisineType> = {
   middleeastern: "middle_eastern",
   westafrican: "west_african",
   west_africa: "west_african",
-  westafrica: "west_african"
+  westafrica: "west_african",
+  philippine: "filipino",
+  philippines: "filipino",
+  pilipino: "filipino",
+  turkiye: "turkish",
+  brasil: "brazilian",
+  nigeria: "nigerian",
+  malaysia: "malaysian"
 };
 
 const recipeInstructionSchema = z.object({
@@ -492,11 +503,21 @@ function normalizeCuisineValue(value: unknown): CuisineType | undefined {
   return cuisineAliasMap[normalized];
 }
 
+function normalizeRecipeLaneValue(value: unknown): RecipeGenerationLane | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalized = normalizeEnumToken(value);
+  return recipeLaneSet.has(normalized) ? (normalized as RecipeGenerationLane) : undefined;
+}
+
 export function normalizeGeneratedCommonPayload(payload: Record<string, any>) {
   const normalized = { ...payload };
   const normalizedHeatLevel = normalizeHeatLevelValue(payload.heat_level);
   const normalizedCuisineType = normalizeCuisineValue(payload.cuisine_type);
   const normalizedCuisineOrigin = normalizeCuisineValue(payload.cuisine_origin);
+  const normalizedRecipeLane = normalizeRecipeLaneValue(payload.recipe_lane);
 
   if (normalizedHeatLevel) {
     normalized.heat_level = normalizedHeatLevel;
@@ -508,6 +529,10 @@ export function normalizeGeneratedCommonPayload(payload: Record<string, any>) {
 
   if (normalizedCuisineOrigin) {
     normalized.cuisine_origin = normalizedCuisineOrigin;
+  }
+
+  if (normalizedRecipeLane) {
+    normalized.recipe_lane = normalizedRecipeLane;
   }
 
   return normalized;
@@ -1316,8 +1341,7 @@ export function resolveAutonomousPublishAt(input: {
 }
 
 function getHeatLevel(index: number): HeatLevel {
-  const heatLevels: HeatLevel[] = ["mild", "medium", "hot", "inferno", "reaper"];
-  return heatLevels[index % heatLevels.length];
+  return HEAT_LEVELS[index % HEAT_LEVELS.length];
 }
 
 function coerceGenerationType(value?: string | null): GenerationType | null {
@@ -1338,36 +1362,89 @@ function deterministicSelectionJitter(seed: string) {
   return hash % 17;
 }
 
+function pickWeightedCandidate<T>(
+  items: Array<{ candidate: T; score: number }>,
+  rng: () => number = Math.random
+) {
+  if (!items.length) {
+    return null;
+  }
+
+  const ranked = [...items].sort((left, right) => right.score - left.score);
+  const minimumScore = Math.min(...ranked.map((item) => item.score));
+  const weighted = ranked.map((item) => ({
+    ...item,
+    weight: Math.max(1, Math.round(item.score - minimumScore + 8))
+  }));
+  const totalWeight = weighted.reduce((sum, item) => sum + item.weight, 0);
+  let roll = rng() * totalWeight;
+
+  for (const item of weighted) {
+    roll -= item.weight;
+    if (roll <= 0) {
+      return item.candidate;
+    }
+  }
+
+  return weighted[0]?.candidate ?? null;
+}
+
 function scoreCuisineCandidate(input: {
   cuisine: CuisineType;
   type: GenerationType;
   history: GenerationHistoryEntry[];
   index: number;
   date: Date;
+  usedCuisines: Set<CuisineType>;
 }) {
   const sameTypeHistory = input.history.filter((entry) => entry.type === input.type);
+  const recentCoverageWindow = sameTypeHistory.slice(
+    0,
+    Math.max(Math.floor(CUISINE_ROTATION.length * 0.6), 12)
+  );
   const sameTypeLastIndex = sameTypeHistory.findIndex((entry) => entry.cuisine === input.cuisine);
   const globalLastIndex = input.history.findIndex((entry) => entry.cuisine === input.cuisine);
+  const sameTypeCount = sameTypeHistory.filter((entry) => entry.cuisine === input.cuisine).length;
   const sameTypeRecentCount = sameTypeHistory
     .slice(0, 12)
     .filter((entry) => entry.cuisine === input.cuisine).length;
   const globalRecentCount = input.history
     .slice(0, 24)
     .filter((entry) => entry.cuisine === input.cuisine).length;
+  const unseenInCoverageWindow = !recentCoverageWindow.some(
+    (entry) => entry.cuisine === input.cuisine
+  );
+  const rotationIndex = CUISINE_ROTATION.indexOf(input.cuisine);
   const sameTypeCooldownPenalty =
-    sameTypeLastIndex === 0 ? 110 : sameTypeLastIndex === 1 ? 70 : sameTypeLastIndex === 2 ? 35 : 0;
-  const globalCooldownPenalty =
-    globalLastIndex === 0 ? 45 : globalLastIndex === 1 ? 20 : 0;
+    sameTypeLastIndex === 0 ? 280 : sameTypeLastIndex === 1 ? 160 : sameTypeLastIndex === 2 ? 80 : 0;
+  const globalCooldownPenalty = globalLastIndex === 0 ? 60 : globalLastIndex === 1 ? 28 : 0;
   const sameTypeRecencyReward =
-    sameTypeLastIndex === -1 ? 48 : Math.min(sameTypeLastIndex, 12) * 4;
+    sameTypeLastIndex === -1 ? 56 : Math.min(sameTypeLastIndex, 14) * 5;
   const globalRecencyReward =
-    globalLastIndex === -1 ? 22 : Math.min(globalLastIndex, 18);
-  const saturationPenalty = sameTypeRecentCount * 18 + globalRecentCount * 7;
+    globalLastIndex === -1 ? 20 : Math.min(globalLastIndex, 18);
+  const coverageBoost = unseenInCoverageWindow ? 170 : 0;
+  const scarcityBoost = Math.max(0, 4 - sameTypeCount) * 18;
+  const rotationPriorityBoost =
+    rotationIndex === -1 ? 0 : Math.max(CUISINE_ROTATION.length - rotationIndex, 1) * 3;
+  const batchPenalty = input.usedCuisines.has(input.cuisine) ? 220 : 0;
+  const saturationPenalty = sameTypeRecentCount * 40 + globalRecentCount * 12;
   const jitter = deterministicSelectionJitter(
     `${input.date.toISOString().slice(0, 10)}:${input.type}:${input.index}:${input.cuisine}`
   );
 
-  return sameTypeRecencyReward + globalRecencyReward + jitter - saturationPenalty - sameTypeCooldownPenalty - globalCooldownPenalty;
+  return (
+    60 +
+    sameTypeRecencyReward +
+    globalRecencyReward +
+    coverageBoost +
+    scarcityBoost +
+    rotationPriorityBoost +
+    jitter -
+    saturationPenalty -
+    sameTypeCooldownPenalty -
+    globalCooldownPenalty -
+    batchPenalty
+  );
 }
 
 export function planBalancedCuisines(input: {
@@ -1375,32 +1452,220 @@ export function planBalancedCuisines(input: {
   type: GenerationType;
   history: GenerationHistoryEntry[];
   date?: Date;
+  rng?: () => number;
 }) {
   const date = input.date ?? new Date();
   const planningHistory = [...input.history];
   const plan: CuisineType[] = [];
+  const usedCuisines = new Set<CuisineType>();
 
   for (let index = 0; index < input.qty; index += 1) {
-    const rankedCuisines = CUISINE_ROTATION.map((cuisine) => ({
-      cuisine,
-      score: scoreCuisineCandidate({
-        cuisine,
-        type: input.type,
-        history: planningHistory,
-        index,
-        date
-      })
-    })).sort((left, right) => right.score - left.score || left.cuisine.localeCompare(right.cuisine));
-
     const selectedCuisine =
-      rankedCuisines[0]?.cuisine ?? CUISINE_ROTATION[index % CUISINE_ROTATION.length];
+      pickWeightedCandidate(
+        CUISINE_ROTATION.map((cuisine) => ({
+          candidate: cuisine,
+          score: scoreCuisineCandidate({
+            cuisine,
+            type: input.type,
+            history: planningHistory,
+            index,
+            date,
+            usedCuisines
+          })
+        })),
+        input.rng
+      ) ?? CUISINE_ROTATION[index % CUISINE_ROTATION.length];
 
     plan.push(selectedCuisine);
+    usedCuisines.add(selectedCuisine);
     planningHistory.unshift({
       type: input.type,
       cuisine: selectedCuisine,
       createdAt: new Date(date.getTime() + index).toISOString(),
       profile: "default",
+      heatLevel: null,
+      recipeLane: null,
+      hotSauceSlug: null
+    });
+  }
+
+  return plan;
+}
+
+function scoreHeatCandidate(input: {
+  heatLevel: HeatLevel;
+  type: GenerationType;
+  history: GenerationHistoryEntry[];
+  index: number;
+  date: Date;
+  usedHeatLevels: Set<HeatLevel>;
+}) {
+  const sameTypeHistory = input.history.filter((entry) => entry.type === input.type);
+  const recentCoverageWindow = sameTypeHistory.slice(0, Math.max(HEAT_LEVELS.length * 3, 8));
+  const sameTypeLastIndex = sameTypeHistory.findIndex(
+    (entry) => entry.heatLevel === input.heatLevel
+  );
+  const sameTypeCount = sameTypeHistory.filter(
+    (entry) => entry.heatLevel === input.heatLevel
+  ).length;
+  const sameTypeRecentCount = sameTypeHistory
+    .slice(0, 10)
+    .filter((entry) => entry.heatLevel === input.heatLevel).length;
+  const unseenInCoverageWindow = !recentCoverageWindow.some(
+    (entry) => entry.heatLevel === input.heatLevel
+  );
+  const batchPenalty = input.usedHeatLevels.has(input.heatLevel) ? 150 : 0;
+  const immediateRepeatPenalty =
+    sameTypeLastIndex === 0 ? 220 : sameTypeLastIndex === 1 ? 120 : sameTypeLastIndex === 2 ? 60 : 0;
+  const coverageBoost = unseenInCoverageWindow ? 140 : 0;
+  const scarcityBoost = Math.max(0, 3 - sameTypeCount) * 16;
+  const recencyReward =
+    sameTypeLastIndex === -1 ? 48 : Math.min(sameTypeLastIndex, 10) * 7;
+  const heatIndex = HEAT_LEVELS.indexOf(input.heatLevel);
+  const heatSpreadBoost = heatIndex % 2 === input.index % 2 ? 10 : 0;
+  const jitter = deterministicSelectionJitter(
+    `${input.date.toISOString().slice(0, 10)}:${input.type}:heat:${input.index}:${input.heatLevel}`
+  );
+
+  return (
+    48 +
+    coverageBoost +
+    scarcityBoost +
+    recencyReward +
+    heatSpreadBoost +
+    jitter -
+    sameTypeRecentCount * 45 -
+    immediateRepeatPenalty -
+    batchPenalty
+  );
+}
+
+export function planBalancedHeatLevels(input: {
+  qty: number;
+  type: GenerationType;
+  history: GenerationHistoryEntry[];
+  date?: Date;
+  allowedHeatLevels?: readonly HeatLevel[];
+  rng?: () => number;
+}) {
+  const date = input.date ?? new Date();
+  const allowedHeatLevels = input.allowedHeatLevels?.length
+    ? [...input.allowedHeatLevels]
+    : [...HEAT_LEVELS];
+  const planningHistory = [...input.history];
+  const usedHeatLevels = new Set<HeatLevel>();
+  const plan: HeatLevel[] = [];
+
+  for (let index = 0; index < input.qty; index += 1) {
+    const selectedHeatLevel =
+      pickWeightedCandidate(
+        allowedHeatLevels.map((heatLevel) => ({
+          candidate: heatLevel,
+          score: scoreHeatCandidate({
+            heatLevel,
+            type: input.type,
+            history: planningHistory,
+            index,
+            date,
+            usedHeatLevels
+          })
+        })),
+        input.rng
+      ) ?? allowedHeatLevels[index % allowedHeatLevels.length];
+
+    plan.push(selectedHeatLevel);
+    usedHeatLevels.add(selectedHeatLevel);
+    planningHistory.unshift({
+      type: input.type,
+      cuisine: "other",
+      createdAt: new Date(date.getTime() + index).toISOString(),
+      profile: "default",
+      heatLevel: selectedHeatLevel,
+      recipeLane: null,
+      hotSauceSlug: null
+    });
+  }
+
+  return plan;
+}
+
+function scoreRecipeLaneCandidate(input: {
+  lane: RecipeGenerationLane;
+  history: GenerationHistoryEntry[];
+  index: number;
+  date: Date;
+  usedLanes: Set<RecipeGenerationLane>;
+}) {
+  const recipeHistory = input.history.filter((entry) => entry.type === "recipe");
+  const laneLastIndex = recipeHistory.findIndex((entry) => entry.recipeLane === input.lane);
+  const laneCount = recipeHistory.filter((entry) => entry.recipeLane === input.lane).length;
+  const laneRecentCount = recipeHistory
+    .slice(0, 12)
+    .filter((entry) => entry.recipeLane === input.lane).length;
+  const unseenInCoverageWindow = !recipeHistory
+    .slice(0, Math.max(RECIPE_GENERATION_LANES.length * 2, 10))
+    .some((entry) => entry.recipeLane === input.lane);
+  const lanePriorityBoost =
+    Math.max(RECIPE_GENERATION_LANES.length - RECIPE_GENERATION_LANES.indexOf(input.lane), 1) * 4;
+  const batchPenalty = input.usedLanes.has(input.lane) ? 180 : 0;
+  const immediateRepeatPenalty =
+    laneLastIndex === 0 ? 220 : laneLastIndex === 1 ? 120 : laneLastIndex === 2 ? 70 : 0;
+  const recencyReward = laneLastIndex === -1 ? 52 : Math.min(laneLastIndex, 12) * 6;
+  const scarcityBoost = Math.max(0, 3 - laneCount) * 18;
+  const coverageBoost = unseenInCoverageWindow ? 130 : 0;
+  const jitter = deterministicSelectionJitter(
+    `${input.date.toISOString().slice(0, 10)}:recipe:lane:${input.index}:${input.lane}`
+  );
+
+  return (
+    54 +
+    lanePriorityBoost +
+    recencyReward +
+    scarcityBoost +
+    coverageBoost +
+    jitter -
+    laneRecentCount * 42 -
+    immediateRepeatPenalty -
+    batchPenalty
+  );
+}
+
+export function planBalancedRecipeLanes(input: {
+  qty: number;
+  history: GenerationHistoryEntry[];
+  date?: Date;
+  rng?: () => number;
+}) {
+  const date = input.date ?? new Date();
+  const planningHistory = [...input.history];
+  const usedLanes = new Set<RecipeGenerationLane>();
+  const plan: RecipeGenerationLane[] = [];
+
+  for (let index = 0; index < input.qty; index += 1) {
+    const selectedLane =
+      pickWeightedCandidate(
+        RECIPE_GENERATION_LANES.map((lane) => ({
+          candidate: lane,
+          score: scoreRecipeLaneCandidate({
+            lane,
+            history: planningHistory,
+            index,
+            date,
+            usedLanes
+          })
+        })),
+        input.rng
+      ) ?? RECIPE_GENERATION_LANES[index % RECIPE_GENERATION_LANES.length];
+
+    plan.push(selectedLane);
+    usedLanes.add(selectedLane);
+    planningHistory.unshift({
+      type: "recipe",
+      cuisine: "other",
+      createdAt: new Date(date.getTime() + index).toISOString(),
+      profile: "default",
+      heatLevel: null,
+      recipeLane: selectedLane,
       hotSauceSlug: null
     });
   }
@@ -1429,6 +1694,98 @@ function sortHotSauceCandidates<T extends { featured?: boolean; publishedAt?: st
   });
 }
 
+function getCuratedHotSauceCandidates() {
+  const affiliateProductMeta: Record<
+    string,
+    Pick<HotSauceFocus, "brand" | "productName" | "flavorNotes" | "cuisineOrigin" | "heatLevel" | "featured">
+  > = {
+    "heatonist-los-calientes-rojo": {
+      brand: "Heatonist",
+      productName: "Los Calientes Rojo",
+      flavorNotes: ["smoky", "tomato", "savory"],
+      cuisineOrigin: "mexican",
+      heatLevel: "hot",
+      featured: true
+    },
+    "amazon-yellowbird-habanero": {
+      brand: "Yellowbird",
+      productName: "Habanero Hot Sauce",
+      flavorNotes: ["carrot", "citrus", "peppery", "slightly sweet"],
+      cuisineOrigin: "mexican",
+      heatLevel: "hot",
+      featured: true
+    },
+    "amazon-queen-majesty-scotch-bonnet-ginger": {
+      brand: "Queen Majesty",
+      productName: "Scotch Bonnet and Ginger",
+      flavorNotes: ["ginger", "citrus", "fruity", "clean"],
+      cuisineOrigin: "jamaican",
+      heatLevel: "hot",
+      featured: true
+    },
+    "amazon-fly-by-jing-sichuan-gold": {
+      brand: "Fly By Jing",
+      productName: "Sichuan Gold",
+      flavorNotes: ["citrus", "numbing", "savory", "peppercorn"],
+      cuisineOrigin: "szechuan",
+      heatLevel: "medium",
+      featured: false
+    },
+    "amazon-torchbearer-garlic-reaper": {
+      brand: "Torchbearer",
+      productName: "Garlic Reaper",
+      flavorNotes: ["garlic", "dense", "savory", "sharp"],
+      cuisineOrigin: "american",
+      heatLevel: "reaper",
+      featured: true
+    }
+  };
+
+  return getAffiliateLinkEntries(HOT_SAUCE_SPOTLIGHT_KEYS).flatMap((entry) => {
+      const meta = affiliateProductMeta[entry.key];
+      if (!meta) {
+        return [];
+      }
+
+      return [
+        {
+          slug: entry.key,
+          productName: meta.productName,
+          brand: meta.brand,
+          description: entry.description,
+          heatLevel: meta.heatLevel,
+          flavorNotes: meta.flavorNotes,
+          cuisineOrigin: meta.cuisineOrigin,
+          affiliateUrl: entry.url,
+          featured: meta.featured
+        } satisfies HotSauceFocus
+      ];
+    });
+}
+
+function mergeHotSauceCandidates(...groups: HotSauceFocus[][]) {
+  const merged: HotSauceFocus[] = [];
+  const seen = new Set<string>();
+
+  for (const group of groups) {
+    for (const candidate of group) {
+      const dedupeKey = `${candidate.brand} ${candidate.productName}`
+        .toLowerCase()
+        .replace(/hot sauce/g, " ")
+        .replace(/[^a-z0-9]+/g, " ")
+        .trim();
+      if (seen.has(dedupeKey)) {
+        continue;
+      }
+
+      seen.add(dedupeKey);
+      merged.push(candidate);
+    }
+  }
+
+  return merged;
+}
+
 function buildSampleGenerationHistory() {
   return [
     ...sampleRecipes.map((recipe) => ({
@@ -1436,6 +1793,8 @@ function buildSampleGenerationHistory() {
       cuisine: recipe.cuisineType,
       createdAt: recipe.publishedAt || new Date(0).toISOString(),
       profile: "default" as const,
+      heatLevel: recipe.heatLevel,
+      recipeLane: null,
       hotSauceSlug: null
     })),
     ...sampleBlogPosts.map((post) => ({
@@ -1443,6 +1802,8 @@ function buildSampleGenerationHistory() {
       cuisine: post.cuisineType ?? "other",
       createdAt: post.publishedAt || new Date(0).toISOString(),
       profile: "default" as const,
+      heatLevel: post.heatLevel ?? null,
+      recipeLane: null,
       hotSauceSlug: null
     })),
     ...sampleReviews.map((review) => ({
@@ -1450,6 +1811,8 @@ function buildSampleGenerationHistory() {
       cuisine: review.cuisineOrigin ?? "other",
       createdAt: review.publishedAt || new Date(0).toISOString(),
       profile: "default" as const,
+      heatLevel: review.heatLevel ?? null,
+      recipeLane: null,
       hotSauceSlug: null
     }))
   ].sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
@@ -1490,6 +1853,14 @@ async function listRecentGenerationHistory(supabase: AdminClient) {
 
       const rawProfile = typeof parameterRecord.profile === "string" ? parameterRecord.profile : null;
       const profile = normalizeGenerationProfile(type, rawProfile);
+      const heatLevel =
+        typeof normalizedParameters.heat_level === "string"
+          ? (normalizedParameters.heat_level as HeatLevel)
+          : null;
+      const recipeLane =
+        typeof normalizedParameters.recipe_lane === "string"
+          ? (normalizedParameters.recipe_lane as RecipeGenerationLane)
+          : null;
       const hotSauceSlug =
         typeof parameterRecord.hot_sauce_slug === "string"
           ? String(parameterRecord.hot_sauce_slug)
@@ -1501,6 +1872,8 @@ async function listRecentGenerationHistory(supabase: AdminClient) {
           cuisine,
           createdAt: row.created_at || new Date(0).toISOString(),
           profile,
+          heatLevel,
+          recipeLane,
           hotSauceSlug
         } satisfies GenerationHistoryEntry
       ];
@@ -1533,12 +1906,17 @@ async function listPublishedHotSauceCandidates(supabase: AdminClient) {
       publishedAt: row.published_at ?? undefined
     }))
     .filter((row) => row.slug && row.productName && row.brand && row.description);
+  const curatedCandidates = getCuratedHotSauceCandidates();
 
   if (liveCandidates.length) {
-    return sortHotSauceCandidates(liveCandidates).map(({ publishedAt: _publishedAt, ...candidate }) => candidate);
+    return mergeHotSauceCandidates(
+      sortHotSauceCandidates(liveCandidates).map(({ publishedAt: _publishedAt, ...candidate }) => candidate),
+      curatedCandidates
+    );
   }
 
-  return sortHotSauceCandidates(
+  return mergeHotSauceCandidates(
+    sortHotSauceCandidates(
     sampleReviews
       .filter((review) => review.status === "published" && review.category === "hot-sauce")
       .map((review) => ({
@@ -1553,7 +1931,9 @@ async function listPublishedHotSauceCandidates(supabase: AdminClient) {
         featured: review.featured,
         publishedAt: review.publishedAt
       }))
-  ).map(({ publishedAt: _publishedAt, ...candidate }) => candidate);
+  ).map(({ publishedAt: _publishedAt, ...candidate }) => candidate),
+    curatedCandidates
+  );
 }
 
 export function pickBalancedHotSauceFocus(
@@ -1561,53 +1941,94 @@ export function pickBalancedHotSauceFocus(
   history: GenerationHistoryEntry[],
   usedSlugs: Set<string>,
   index: number,
-  date = new Date()
+  date = new Date(),
+  lane: "recipe" | "review" = "recipe"
 ) {
   if (!candidates.length) {
     return null;
   }
 
-  const hotSauceHistory = history.filter(
-    (entry) => entry.type === "recipe" && entry.profile === "hot_sauce_recipe"
+  const hotSauceHistory = history.filter((entry) => entry.hotSauceSlug);
+  const laneHistory = hotSauceHistory.filter((entry) =>
+    lane === "review"
+      ? entry.type === "review"
+      : entry.type === "recipe" && entry.profile === "hot_sauce_recipe"
   );
+  const daySeed = date.toISOString().slice(0, 10);
+  const rotationIndex =
+    candidates.length > 0
+      ? Math.abs(
+          Math.floor(date.getTime() / DAY_IN_MS) + index + (lane === "review" ? 1 : 0)
+        ) % candidates.length
+      : 0;
 
   const rankedCandidates = candidates
     .map((candidate, candidateIndex) => {
-      const slugLastIndex = hotSauceHistory.findIndex(
+      const laneLastIndex = laneHistory.findIndex(
         (entry) => entry.hotSauceSlug === candidate.slug
       );
-      const slugRecentCount = hotSauceHistory
-        .slice(0, 10)
+      const globalLastIndex = hotSauceHistory.findIndex((entry) => entry.hotSauceSlug === candidate.slug);
+      const laneRecentCount = laneHistory
+        .slice(0, 8)
         .filter((entry) => entry.hotSauceSlug === candidate.slug).length;
-      const slugPenalty =
-        usedSlugs.has(candidate.slug)
-          ? 200
-          : slugLastIndex === 0
-            ? 120
-            : slugLastIndex === 1
-              ? 70
-              : slugLastIndex === 2
-                ? 35
-                : 0;
+      const globalRecentCount = hotSauceHistory
+        .slice(0, 16)
+        .filter((entry) => entry.hotSauceSlug === candidate.slug).length;
+      const lastUsedAt = laneHistory.find((entry) => entry.hotSauceSlug === candidate.slug)?.createdAt;
+      const daysSinceLastUse = lastUsedAt
+        ? Math.max(0, Math.floor((date.getTime() - new Date(lastUsedAt).getTime()) / DAY_IN_MS))
+        : 45;
+      const immediateRepeatPenalty = usedSlugs.has(candidate.slug)
+        ? 560
+        : laneLastIndex === 0
+          ? 320
+          : laneLastIndex === 1
+            ? 220
+            : laneLastIndex === 2
+              ? 120
+              : 0;
+      const crossLanePenalty = globalLastIndex === 0 ? 110 : globalLastIndex === 1 ? 60 : 0;
+      const frequencyPenalty = laneRecentCount * 95 + globalRecentCount * 28;
+      const laneRotationBonus = laneLastIndex === -1 ? 220 : Math.min(laneLastIndex, 12) * 22;
+      const globalRotationBonus = globalLastIndex === -1 ? 80 : Math.min(globalLastIndex, 16) * 9;
+      const timeAwayBonus = Math.min(daysSinceLastUse, 45) * 3;
       const cuisineScore =
         candidate.cuisineOrigin && candidate.cuisineOrigin !== "other"
-          ? scoreCuisineCandidate({
-              cuisine: candidate.cuisineOrigin,
-              type: "recipe",
-              history,
-              index,
-              date
-            })
+          ? Math.round(
+              scoreCuisineCandidate({
+                cuisine: candidate.cuisineOrigin,
+                type: "recipe",
+                history,
+                index,
+                date,
+                usedCuisines: new Set<CuisineType>()
+              }) * 0.35
+            )
           : 0;
-      const featuredBoost = candidate.featured ? 10 : 0;
-      const freshnessBoost = Math.max(candidates.length - candidateIndex, 1);
+      const featuredBoost = candidate.featured ? 6 : 0;
+      const catalogBoost = Math.max(candidates.length - candidateIndex, 1);
+      const calendarRotationBoost = candidateIndex === rotationIndex ? 34 : 0;
+      const jitter = deterministicSelectionJitter(
+        `${daySeed}:${lane}:${index}:${candidate.slug}`
+      );
 
       return {
         candidate,
-        score: cuisineScore + featuredBoost + freshnessBoost - slugPenalty - slugRecentCount * 28
+        score:
+          laneRotationBonus +
+          globalRotationBonus +
+          timeAwayBonus +
+          cuisineScore +
+          featuredBoost +
+          catalogBoost +
+          calendarRotationBoost +
+          jitter -
+          immediateRepeatPenalty -
+          crossLanePenalty -
+          frequencyPenalty
       };
     })
-    .sort((left, right) => right.score - left.score);
+    .sort((left, right) => right.score - left.score || left.candidate.slug.localeCompare(right.candidate.slug));
 
   const selected = rankedCandidates[0]?.candidate ?? candidates[0];
   if (selected) {
@@ -1618,12 +2039,12 @@ export function pickBalancedHotSauceFocus(
 }
 
 function buildGenerationContext(
-  index: number,
   cuisine: CuisineType,
+  heatLevel: HeatLevel,
   profile: GenerationProfile,
+  recipeLane?: RecipeGenerationLane | null,
   hotSauceFocus?: HotSauceFocus | null
 ): GenerationContext {
-  const heatLevel = hotSauceFocus?.heatLevel ?? getHeatLevel(index);
   const normalizedCuisine =
     profile === "hot_sauce_recipe" &&
     hotSauceFocus?.cuisineOrigin &&
@@ -1634,7 +2055,8 @@ function buildGenerationContext(
   return {
     profile,
     cuisine: normalizedCuisine,
-    heatLevel,
+    heatLevel: hotSauceFocus?.heatLevel ?? heatLevel,
+    recipeLane,
     hotSauceFocus
   };
 }
@@ -1644,6 +2066,7 @@ function buildPrompt(type: GenerationType, context: GenerationContext, index: nu
     return RECIPE_PROMPT({
       cuisine_type: context.cuisine,
       heat_level: context.heatLevel,
+      recipe_lane: context.recipeLane ?? undefined,
       hot_sauce_focus: context.hotSauceFocus
         ? {
             product_name: context.hotSauceFocus.productName,
@@ -1667,7 +2090,18 @@ function buildPrompt(type: GenerationType, context: GenerationContext, index: nu
   return REVIEW_PROMPT({
     category: "hot-sauce",
     cuisine_origin: context.cuisine,
-    heat_level: context.heatLevel
+    heat_level: context.heatLevel,
+    product_focus: context.hotSauceFocus
+      ? {
+          product_name: context.hotSauceFocus.productName,
+          brand: context.hotSauceFocus.brand,
+          description: context.hotSauceFocus.description,
+          heat_level: context.hotSauceFocus.heatLevel,
+          flavor_notes: context.hotSauceFocus.flavorNotes,
+          cuisine_origin: context.hotSauceFocus.cuisineOrigin,
+          affiliate_url: context.hotSauceFocus.affiliateUrl
+        }
+      : undefined
   });
 }
 
@@ -1951,12 +2385,13 @@ async function resolveBlogHeroAsset(input: {
 async function resolveReviewHeroAsset(input: {
   generated: z.infer<typeof generatedReviewSchema>;
   cuisine: CuisineType;
+  focus?: HotSauceFocus | null;
 }): Promise<ResolvedReviewHeroAsset> {
   const queries = buildReviewPhotoSearchQueries({
-    productName: input.generated.product_name,
-    brand: input.generated.brand,
+    productName: input.focus?.productName || input.generated.product_name,
+    brand: input.focus?.brand || input.generated.brand,
     category: input.generated.category,
-    cuisineOrigin: input.generated.cuisine_origin || input.cuisine,
+    cuisineOrigin: input.focus?.cuisineOrigin || input.generated.cuisine_origin || input.cuisine,
     heroImageQuery: input.generated.hero_image_query
   });
 
@@ -1975,10 +2410,10 @@ async function resolveReviewHeroAsset(input: {
   return {
     imageUrl: buildReviewHeroImageUrl({
       title: input.generated.title,
-      productName: input.generated.product_name,
-      brand: input.generated.brand,
+      productName: input.focus?.productName || input.generated.product_name,
+      brand: input.focus?.brand || input.generated.brand,
       category: input.generated.category,
-      heatLevel: input.generated.heat_level
+      heatLevel: input.focus?.heatLevel || input.generated.heat_level
     }),
     heroSource: "generated",
     searchQuery: null
@@ -2014,16 +2449,20 @@ function buildRecipeDraft(
   cuisine: CuisineType,
   index: number,
   generated?: z.infer<typeof generatedRecipeSchema>,
-  imageUrl?: string
+  imageUrl?: string,
+  plannedHeatLevel?: HeatLevel,
+  recipeLane?: RecipeGenerationLane | null
 ) {
-  const fallbackTitle = `${cuisine.replace(/_/g, " ")} fire recipe ${index + 1}`;
+  const cuisineLabel = formatTaxonomyLabel(cuisine);
+  const laneLabel = recipeLane ? formatTaxonomyLabel(recipeLane).toLowerCase() : "signature dish";
+  const fallbackTitle = `${cuisineLabel} ${laneLabel} recipe ${index + 1}`;
   const title = generated?.title || fallbackTitle;
   const description =
     generated?.description ||
-    `A bold ${cuisine.replace(/_/g, " ")} recipe built for people who want real heat and actual flavor.`;
+    `A bold ${cuisineLabel.toLowerCase()} ${laneLabel} built for people who want real heat and actual flavor.`;
   const intro =
     generated?.intro ||
-    `This draft leans into ${cuisine.replace(/_/g, " ")} heat traditions while keeping the recipe practical for home cooks.`;
+    `This draft leans into ${cuisineLabel.toLowerCase()} heat traditions while keeping the ${laneLabel} practical for home cooks.`;
   const heroSummary = generated?.hero_summary || intro;
 
   return {
@@ -2032,7 +2471,7 @@ function buildRecipeDraft(
     intro,
     hero_summary: heroSummary,
     author_name: "FlamingFoodies Test Kitchen",
-    heat_level: generated?.heat_level || getHeatLevel(index),
+    heat_level: generated?.heat_level || plannedHeatLevel || getHeatLevel(index),
     cuisine_type: generated?.cuisine_type || cuisine,
     prep_time_minutes: Number(generated?.prep_time_minutes ?? 20),
     cook_time_minutes: Number(generated?.cook_time_minutes ?? 25),
@@ -2073,7 +2512,9 @@ function buildRecipeDraft(
     substitutions: generated?.substitutions ?? generated?.variations ?? [],
     faqs: generated?.faqs ?? [],
     equipment: generated?.equipment ?? ["large skillet", "mixing bowl"],
-    tags: generated?.tags ?? [cuisine, "spicy"],
+    tags:
+      generated?.tags ??
+      [cuisine, recipeLane ? recipeLane.replace(/_/g, "-") : "weeknight", "spicy"],
     image_url: imageUrl ?? null,
     image_alt:
       generated?.image_alt ||
@@ -2095,7 +2536,8 @@ function buildBlogDraft(
   cuisine: CuisineType,
   index: number,
   generated?: z.infer<typeof generatedBlogSchema>,
-  imageUrl?: string
+  imageUrl?: string,
+  plannedHeatLevel?: HeatLevel
 ) {
   const title =
     generated?.title ||
@@ -2122,7 +2564,7 @@ function buildBlogDraft(
         category: generated?.category || ["culture", "science", "guides", "gear"][index % 4],
         cuisineType: generated?.cuisine_type || cuisine
       }),
-    heat_level: generated?.heat_level || getHeatLevel(index),
+    heat_level: generated?.heat_level || plannedHeatLevel || getHeatLevel(index),
     cuisine_type: generated?.cuisine_type || cuisine,
     scoville_rating: 7 + (index % 3),
     featured: false,
@@ -2139,13 +2581,24 @@ function buildReviewDraft(
   cuisine: CuisineType,
   index: number,
   generated?: z.infer<typeof generatedReviewSchema>,
-  imageUrl?: string
+  imageUrl?: string,
+  focus?: HotSauceFocus | null,
+  plannedHeatLevel?: HeatLevel
 ) {
   const productName =
-    generated?.product_name || `${cuisine.replace(/_/g, " ")} pepper sauce reserve`;
-  const title = generated?.title || `${productName} review`;
+    focus?.productName || generated?.product_name || `${cuisine.replace(/_/g, " ")} pepper sauce reserve`;
+  const brand = focus?.brand || generated?.brand || "FlamingFoodies Test Kitchen";
+  const title =
+    focus && generated?.title
+      ? [focus.brand, focus.productName].every((token) =>
+          generated.title.toLowerCase().includes(token.toLowerCase())
+        )
+        ? generated.title
+        : `${focus.brand} ${focus.productName} review`
+      : generated?.title || `${brand} ${productName} review`;
   const description =
     generated?.description ||
+    focus?.description ||
     `A tasting-focused review of ${productName}, including heat curve, flavor notes, and who it actually suits.`;
   const content =
     generated?.content ||
@@ -2156,22 +2609,24 @@ function buildReviewDraft(
     description,
     content,
     product_name: productName,
-    brand: generated?.brand || "FlamingFoodies Test Kitchen",
+    brand,
     rating: Number(generated?.rating ?? 4.2),
     price_usd: Number(generated?.price_usd ?? 12.99),
     affiliate_url:
-      generated?.affiliate_url || "https://fuegobox.com/products/monthly-subscription",
+      focus?.affiliateUrl ||
+      generated?.affiliate_url ||
+      buildAmazonSearchUrl(`${brand} ${productName}`),
     image_url: imageUrl ?? null,
-    image_alt: generated?.image_alt || `${productName} bottle product image`,
-    heat_level: generated?.heat_level || getHeatLevel(index),
+    image_alt: generated?.image_alt || `${brand} ${productName} bottle product image`,
+    heat_level: focus?.heatLevel || generated?.heat_level || plannedHeatLevel || getHeatLevel(index),
     scoville_min: Number(generated?.scoville_min ?? 1500),
     scoville_max: Number(generated?.scoville_max ?? 4500),
-    flavor_notes: generated?.flavor_notes ?? ["bright", "smoky", "fruity"],
-    cuisine_origin: generated?.cuisine_origin || cuisine,
+    flavor_notes: generated?.flavor_notes ?? focus?.flavorNotes ?? ["bright", "smoky", "fruity"],
+    cuisine_origin: generated?.cuisine_origin || focus?.cuisineOrigin || cuisine,
     category: generated?.category || "hot-sauce",
     pros: generated?.pros ?? ["Balanced heat", "Useful on multiple foods"],
     cons: generated?.cons ?? ["Needs hands-on tasting before publish"],
-    tags: generated?.tags ?? [cuisine, "review"],
+    tags: generated?.tags ?? [slugify(brand), "review"],
     recommended: Boolean(generated?.recommended ?? true),
     featured: false,
     source: "ai_generated",
@@ -2469,11 +2924,27 @@ async function getGenerationScheduleRow(
 ) {
   const { data } = await supabase
     .from("generation_schedule")
-    .select("id, quantity, is_active, last_run_at")
+    .select("id, quantity, is_active, last_run_at, parameters")
     .eq("job_type", type)
     .maybeSingle();
 
   return data ?? null;
+}
+
+function getScheduleParameterRecord(parameters: unknown) {
+  return parameters && typeof parameters === "object"
+    ? (parameters as Record<string, unknown>)
+    : {};
+}
+
+function getScheduledHeatLevels(parameters: unknown) {
+  const record = getScheduleParameterRecord(parameters);
+  const values = Array.isArray(record.heat_levels) ? record.heat_levels : [];
+  const normalized = values
+    .map((value) => normalizeHeatLevelValue(value))
+    .filter((value): value is HeatLevel => Boolean(value));
+
+  return normalized.length ? normalized : [...HEAT_LEVELS];
 }
 
 async function insertGeneratedContent(
@@ -2483,7 +2954,7 @@ async function insertGeneratedContent(
   index: number,
   settings: Map<string, any>,
   generated: Record<string, any> | null,
-  cuisine: CuisineType
+  context: GenerationContext
 ) {
   const autoPublishSetting = settings.get("auto_publish_ai_content");
   const autoPublish =
@@ -2499,13 +2970,15 @@ async function insertGeneratedContent(
     );
     const heroAsset = await resolveRecipeHeroAsset({
       generated: validatedGenerated,
-      cuisine
+      cuisine: context.cuisine
     });
     const payload = buildRecipeDraft(
-      cuisine,
+      context.cuisine,
       index,
       validatedGenerated,
-      heroAsset.imageUrl
+      heroAsset.imageUrl,
+      context.heatLevel,
+      context.recipeLane
     );
     const slug = await makeUniqueSlug(supabase, "recipes", payload.title);
     const agentReview = await runEditorialQaReview(anthropic, "recipe", {
@@ -2559,13 +3032,14 @@ async function insertGeneratedContent(
     );
     const heroAsset = await resolveBlogHeroAsset({
       generated: validatedGenerated,
-      cuisine
+      cuisine: context.cuisine
     });
     const payload = buildBlogDraft(
-      cuisine,
+      context.cuisine,
       index,
       validatedGenerated,
-      heroAsset.imageUrl
+      heroAsset.imageUrl,
+      context.heatLevel
     );
     const slug = await makeUniqueSlug(supabase, "blog_posts", payload.title);
     const agentReview = await runEditorialQaReview(anthropic, "blog_post", {
@@ -2618,13 +3092,16 @@ async function insertGeneratedContent(
   );
   const heroAsset = await resolveReviewHeroAsset({
     generated: validatedGenerated,
-    cuisine
+    cuisine: context.cuisine,
+    focus: context.hotSauceFocus
   });
   const payload = buildReviewDraft(
-    cuisine,
+    context.cuisine,
     index,
     validatedGenerated,
-    heroAsset.imageUrl
+    heroAsset.imageUrl,
+    context.hotSauceFocus,
+    context.heatLevel
   );
   const slug = await makeUniqueSlug(supabase, "reviews", payload.title);
   const agentReview = await runEditorialQaReview(anthropic, "review", {
@@ -3252,6 +3729,10 @@ export async function runGenerationPipeline(
     };
   }
 
+  await expireTimedOutGenerationJobs(supabase, {
+    jobTypes: ["recipe", "blog_post", "review"]
+  });
+
   if (!flags.hasAnthropic) {
     return {
       mode: "disabled",
@@ -3288,13 +3769,27 @@ export async function runGenerationPipeline(
     type: generationType,
     history: generationHistory
   });
+  const effectiveHeatLevels = planBalancedHeatLevels({
+    qty: effectiveQty,
+    type: generationType,
+    history: generationHistory,
+    allowedHeatLevels:
+      source === "cron" ? getScheduledHeatLevels(scheduleRow?.parameters) : [...HEAT_LEVELS]
+  });
+  const effectiveRecipeLanes =
+    generationType === "recipe"
+      ? planBalancedRecipeLanes({
+          qty: effectiveQty,
+          history: generationHistory
+        })
+      : [];
   const anthropic = flags.hasAnthropic
     ? new Anthropic({
         apiKey: env.ANTHROPIC_API_KEY
       })
     : null;
   const hotSauceCandidates =
-    generationType === "recipe" && profile === "hot_sauce_recipe"
+    (generationType === "recipe" && profile === "hot_sauce_recipe") || generationType === "review"
       ? await listPublishedHotSauceCandidates(supabase)
       : [];
 
@@ -3305,19 +3800,34 @@ export async function runGenerationPipeline(
   for (let index = 0; index < effectiveQty; index += 1) {
     const defaultCuisine =
       effectiveCuisines[index] ?? CUISINE_ROTATION[index % CUISINE_ROTATION.length];
+    const plannedHeatLevel =
+      effectiveHeatLevels[index] ?? getHeatLevel(index);
+    const plannedRecipeLane =
+      generationType === "recipe"
+        ? effectiveRecipeLanes[index] ?? RECIPE_GENERATION_LANES[index % RECIPE_GENERATION_LANES.length]
+        : null;
     const hotSauceFocus =
-      generationType === "recipe" && profile === "hot_sauce_recipe"
+      (generationType === "recipe" && profile === "hot_sauce_recipe") || generationType === "review"
         ? pickBalancedHotSauceFocus(
             hotSauceCandidates,
             planningHistory,
             usedHotSauceSlugs,
-            index
+            index,
+            new Date(),
+            generationType === "review" ? "review" : "recipe"
           )
         : null;
+    const plannedCuisine =
+      generationType === "review" &&
+      hotSauceFocus?.cuisineOrigin &&
+      hotSauceFocus.cuisineOrigin !== "other"
+        ? hotSauceFocus.cuisineOrigin
+        : defaultCuisine;
     const generationContext = buildGenerationContext(
-      index,
-      defaultCuisine,
+      plannedCuisine,
+      plannedHeatLevel,
       profile,
+      plannedRecipeLane,
       hotSauceFocus
     );
     planningHistory.unshift({
@@ -3325,6 +3835,8 @@ export async function runGenerationPipeline(
       cuisine: generationContext.cuisine,
       createdAt: new Date().toISOString(),
       profile,
+      heatLevel: generationContext.heatLevel,
+      recipeLane: generationContext.recipeLane ?? null,
       hotSauceSlug: hotSauceFocus?.slug ?? null
     });
     const { data: job, error: jobError } = await supabase
@@ -3343,6 +3855,7 @@ export async function runGenerationPipeline(
         parameters: {
           cuisine_type: generationContext.cuisine,
           heat_level: generationContext.heatLevel,
+          recipe_lane: generationContext.recipeLane ?? null,
           profile,
           hot_sauce_slug: hotSauceFocus?.slug ?? null,
           hot_sauce_name: hotSauceFocus
@@ -3359,94 +3872,121 @@ export async function runGenerationPipeline(
     }
 
     let lastOutput = "";
-    let lastTokensUsed = 0;
+    let totalTokensUsed = 0;
+    const maxAttempts =
+      generationType === "recipe" ? RETRYABLE_RECIPE_GENERATION_ATTEMPTS : 1;
+    let attemptNumber = job.attempts ?? 0;
+    let completed = false;
 
-    try {
-      await supabase
-        .from("content_generation_jobs")
-        .update({
-          status: "generating",
-          model_used: ANTHROPIC_TEXT_MODEL,
-          started_at: new Date().toISOString(),
-          attempts: (job.attempts ?? 0) + 1
-        })
-        .eq("id", job.id);
+    for (let attemptIndex = 0; attemptIndex < maxAttempts; attemptIndex += 1) {
+      attemptNumber += 1;
 
-      const generated = await generateStructuredDraft(
-        anthropic,
-        generationType,
-        generationContext,
-        index
-      );
-      lastOutput = generated.output;
-      lastTokensUsed = generated.tokensUsed;
+      try {
+        await supabase
+          .from("content_generation_jobs")
+          .update({
+            status: "generating",
+            model_used: ANTHROPIC_TEXT_MODEL,
+            started_at: new Date().toISOString(),
+            completed_at: null,
+            error_message: null,
+            attempts: attemptNumber
+          })
+          .eq("id", job.id);
 
-      if (!generated.payload && generated.stopReason === "max_tokens") {
-        throw new Error(
-          "Draft generation hit the Anthropic max_tokens limit before completing JSON."
+        const generated = await generateStructuredDraft(
+          anthropic,
+          generationType,
+          generationContext,
+          index
         );
+        lastOutput = generated.output;
+        totalTokensUsed += generated.tokensUsed;
+
+        if (!generated.payload && generated.stopReason === "max_tokens") {
+          throw new Error(
+            "Draft generation hit the Anthropic max_tokens limit before completing JSON."
+          );
+        }
+
+        const inserted = await insertGeneratedContent(
+          supabase,
+          anthropic,
+          generationType,
+          index,
+          settings,
+          generated.payload,
+          generationContext
+        );
+
+        await supabase
+          .from("content_generation_jobs")
+          .update({
+            status: "completed",
+            model_used: ANTHROPIC_TEXT_MODEL,
+            result_id: inserted.resultId,
+            result_type: inserted.resultType,
+            tokens_used: totalTokensUsed,
+            completed_at: new Date().toISOString()
+          })
+          .eq("id", job.id);
+
+        createdJobs.push({
+          id: job.id,
+          type: generationType,
+          slug: inserted.slug,
+          title: inserted.title,
+          scheduledCuisine: generationContext.cuisine,
+          scheduledHeatLevel: generationContext.heatLevel,
+          recipeLane: generationContext.recipeLane ?? null,
+          publishAt: inserted.publishAt,
+          profile,
+          featuredSauce: hotSauceFocus
+            ? `${hotSauceFocus.brand} ${hotSauceFocus.productName}`
+            : null
+        });
+        completed = true;
+        break;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Generation failed";
+        const shouldRetry =
+          shouldRetryGenerationFailure(generationType, message) && attemptIndex + 1 < maxAttempts;
+
+        if (shouldRetry) {
+          continue;
+        }
+
+        await supabase
+          .from("content_generation_jobs")
+          .update({
+            status: "failed",
+            model_used: ANTHROPIC_TEXT_MODEL,
+            error_message:
+              typeof lastOutput === "string" && lastOutput.trim()
+                ? `${message} Output excerpt: ${summarizeModelOutput(lastOutput)}`
+                : message,
+            tokens_used: totalTokensUsed,
+            completed_at: new Date().toISOString()
+          })
+          .eq("id", job.id);
+
+        createdJobs.push({
+          id: job.id,
+          type: generationType,
+          scheduledCuisine: generationContext.cuisine,
+          scheduledHeatLevel: generationContext.heatLevel,
+          recipeLane: generationContext.recipeLane ?? null,
+          profile,
+          featuredSauce: hotSauceFocus
+            ? `${hotSauceFocus.brand} ${hotSauceFocus.productName}`
+            : null,
+          error: message
+        });
       }
+    }
 
-      const inserted = await insertGeneratedContent(
-        supabase,
-        anthropic,
-        generationType,
-        index,
-        settings,
-        generated.payload,
-        generationContext.cuisine
-      );
-
-      await supabase
-        .from("content_generation_jobs")
-        .update({
-          status: "completed",
-          model_used: ANTHROPIC_TEXT_MODEL,
-          result_id: inserted.resultId,
-          result_type: inserted.resultType,
-          tokens_used: lastTokensUsed,
-          completed_at: new Date().toISOString()
-        })
-        .eq("id", job.id);
-
-      createdJobs.push({
-        id: job.id,
-        type: generationType,
-        slug: inserted.slug,
-        title: inserted.title,
-        scheduledCuisine: generationContext.cuisine,
-        publishAt: inserted.publishAt,
-        profile,
-        featuredSauce: hotSauceFocus
-          ? `${hotSauceFocus.brand} ${hotSauceFocus.productName}`
-          : null
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Generation failed";
-      await supabase
-        .from("content_generation_jobs")
-        .update({
-          status: "failed",
-          model_used: ANTHROPIC_TEXT_MODEL,
-          error_message:
-            typeof lastOutput === "string" && lastOutput.trim()
-              ? `${message} Output excerpt: ${summarizeModelOutput(lastOutput)}`
-              : message,
-          tokens_used: lastTokensUsed,
-          completed_at: new Date().toISOString()
-        })
-        .eq("id", job.id);
-
-      createdJobs.push({
-        id: job.id,
-        type: generationType,
-        scheduledCuisine: generationContext.cuisine,
-        profile,
-        featuredSauce: hotSauceFocus
-          ? `${hotSauceFocus.brand} ${hotSauceFocus.productName}`
-          : null,
-        error: message
-      });
+    if (completed) {
+      continue;
     }
   }
 

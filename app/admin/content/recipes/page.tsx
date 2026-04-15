@@ -1,21 +1,144 @@
 import Image from "next/image";
 import Link from "next/link";
 
-import { createRecipeAction, updateRecipeStateAction } from "@/lib/actions/admin-content";
+import {
+  createRecipeAction,
+  deletePendingReviewRecipesAction,
+  updateRecipeStateAction
+} from "@/lib/actions/admin-content";
 import { AdminPage } from "@/components/admin/admin-page";
 import { ContentTable } from "@/components/admin/content-table";
 import { RecipeEditorForm } from "@/components/admin/recipe-editor-form";
 import { formatContentSourceLabel } from "@/lib/content-labels";
+import { flags } from "@/lib/env";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import { buildRecipeQaReport, getRecipeQaPublishError } from "@/lib/recipe-qa";
 import { getAdminRecipes } from "@/lib/services/content";
+import { createSupabaseAdminClient } from "@/lib/supabase/server";
+
+const ADMIN_TIME_ZONE = "America/New_York";
+
+type RecipeAuditSummary = {
+  hasHumanTouch: boolean;
+  lastHumanAction?: string;
+  lastHumanActionAt?: string;
+};
+
+async function getRecipeAuditSummaryMap(recipeIds: number[]) {
+  const summaries = new Map<number, RecipeAuditSummary>();
+  if (!recipeIds.length || !flags.hasSupabaseAdmin) {
+    return summaries;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return summaries;
+  }
+
+  const { data } = await supabase
+    .from("admin_audit_log")
+    .select("target_id, action, performed_at")
+    .eq("target_type", "recipe")
+    .in("target_id", recipeIds.map(String))
+    .in("action", ["create_recipe", "edit_recipe", "update_recipe"])
+    .order("performed_at", { ascending: false });
+
+  for (const row of data ?? []) {
+    const recipeId = Number(row.target_id);
+    if (!Number.isFinite(recipeId) || summaries.has(recipeId)) {
+      continue;
+    }
+
+    summaries.set(recipeId, {
+      hasHumanTouch: true,
+      lastHumanAction: row.action ?? undefined,
+      lastHumanActionAt: row.performed_at ?? undefined
+    });
+  }
+
+  return summaries;
+}
+
+function formatRecipeOriginLabel(
+  source?: string,
+  status?: string,
+  auditSummary?: RecipeAuditSummary
+) {
+  if (source === "ai_generated") {
+    if (auditSummary?.hasHumanTouch) {
+      return "Agent + human edit";
+    }
+
+    return status === "published" ? "Agent auto-published" : "Agent draft";
+  }
+
+  if (source === "community") {
+    return "Community";
+  }
+
+  return "Manual";
+}
+
+function formatRecipeWorkflowLabel(
+  source?: string,
+  status?: string,
+  auditSummary?: RecipeAuditSummary
+) {
+  if (source === "community") {
+    return "Community submission";
+  }
+
+  if (source === "editorial") {
+    return "Manual editor";
+  }
+
+  if (auditSummary?.hasHumanTouch) {
+    return "Reviewed by human";
+  }
+
+  return status === "published" ? "Autonomous publish" : "Awaiting review";
+}
+
+function formatRecipeActionLabel(action?: string) {
+  if (action === "create_recipe") {
+    return "Created manually";
+  }
+
+  if (action === "edit_recipe") {
+    return "Edited manually";
+  }
+
+  if (action === "update_recipe") {
+    return "State updated";
+  }
+
+  return "—";
+}
+
+function formatAdminTimestamp(value?: string) {
+  if (!value) {
+    return "—";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: ADMIN_TIME_ZONE
+  }).format(new Date(value));
+}
 
 export default async function AdminRecipesPage({
   searchParams
 }: {
-  searchParams?: { created?: string; updated?: string; error?: string };
+  searchParams?: {
+    created?: string;
+    updated?: string;
+    clearedReviewQueue?: string;
+    error?: string;
+  };
 }) {
   const recipes = await getAdminRecipes();
+  const recipeAuditMap = await getRecipeAuditSummaryMap(recipes.map((recipe) => recipe.id));
   const reviewQueue = recipes.filter(
     (recipe) => (recipe.status === "pending_review" || recipe.source === "ai_generated") && recipe.status !== "published"
   );
@@ -60,6 +183,16 @@ export default async function AdminRecipesPage({
           <p className="mt-2 text-sm leading-7">Recipe state updated successfully.</p>
         </section>
       ) : null}
+      {searchParams?.clearedReviewQueue ? (
+        <section className="rounded-[1.5rem] border border-emerald-200 bg-emerald-50 p-5 text-emerald-900">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+            Review queue cleared
+          </p>
+          <p className="mt-2 text-sm leading-7">
+            Removed {searchParams.clearedReviewQueue === "mock" ? "the pending-review" : searchParams.clearedReviewQueue} recipe(s) from the review queue.
+          </p>
+        </section>
+      ) : null}
       {queueEntries.length ? (
         <section id="review-queue" className="panel-light p-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -74,6 +207,15 @@ export default async function AdminRecipesPage({
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
+              <form action={deletePendingReviewRecipesAction}>
+                <input type="hidden" name="redirectTo" value="/admin/content/recipes" />
+                <button
+                  type="submit"
+                  className="rounded-full border border-rose-200 bg-rose-50 px-5 py-3 text-sm font-semibold text-rose-700"
+                >
+                  Delete pending-review recipes
+                </button>
+              </form>
               <Link
                 href={`/admin/content/recipes/${queueEntries[0].recipe.id}`}
                 className="rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
@@ -191,15 +333,26 @@ export default async function AdminRecipesPage({
       <ContentTable
         title="Recipes"
         filters={["status", "source", "heat_level", "cuisine_type"]}
-        rows={recipes.map((recipe) => ({
-          title: recipe.title,
-          source: formatContentSourceLabel(recipe.source),
-          cuisine: recipe.cuisineType,
-          heat: recipe.heatLevel,
-          saves: recipe.saveCount,
-          rating: recipe.ratingAvg,
-          status: recipe.status
-        }))}
+        rows={displayRecipes.map((recipe) => {
+          const auditSummary = recipeAuditMap.get(recipe.id);
+
+          return {
+            title: recipe.title,
+            origin: formatRecipeOriginLabel(recipe.source, recipe.status, auditSummary),
+            workflow: formatRecipeWorkflowLabel(recipe.source, recipe.status, auditSummary),
+            source: formatContentSourceLabel(recipe.source),
+            created: formatAdminTimestamp(recipe.createdAt),
+            published: formatAdminTimestamp(recipe.publishedAt),
+            lastHumanTouch: formatAdminTimestamp(auditSummary?.lastHumanActionAt),
+            touchType: formatRecipeActionLabel(auditSummary?.lastHumanAction),
+            featured: recipe.featured ? "Yes" : "No",
+            cuisine: recipe.cuisineType,
+            heat: recipe.heatLevel,
+            saves: recipe.saveCount,
+            rating: recipe.ratingAvg !== undefined ? recipe.ratingAvg.toFixed(1) : "—",
+            status: recipe.status
+          };
+        })}
       />
       <div className="panel-light p-6">
         <h2 className="font-display text-4xl text-charcoal">Create a recipe</h2>
@@ -221,55 +374,69 @@ export default async function AdminRecipesPage({
         />
       </div>
       <div className="grid gap-4">
-        {displayRecipes.map((recipe) => (
-          <article key={recipe.id} className="panel-light p-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="eyebrow">
-                  {formatContentSourceLabel(recipe.source)} · {recipe.cuisineType} · {recipe.heatLevel}
-                </p>
-                <h2 className="mt-2 font-display text-4xl text-charcoal">{recipe.title}</h2>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/65">
-                  {recipe.description}
-                </p>
+        {displayRecipes.map((recipe) => {
+          const auditSummary = recipeAuditMap.get(recipe.id);
+
+          return (
+            <article key={recipe.id} className="panel-light p-6">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <p className="eyebrow">
+                    {formatContentSourceLabel(recipe.source)} · {recipe.cuisineType} · {recipe.heatLevel}
+                  </p>
+                  <h2 className="mt-2 font-display text-4xl text-charcoal">{recipe.title}</h2>
+                  <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/65">
+                    {recipe.description}
+                  </p>
+                </div>
+                <div className="rounded-full bg-charcoal/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-charcoal/70">
+                  {recipe.status}
+                </div>
               </div>
-              <div className="rounded-full bg-charcoal/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-charcoal/70">
-                {recipe.status}
+              <div className="mt-4 flex flex-wrap gap-4 text-sm text-charcoal/55">
+                <span>Slug: {recipe.slug}</span>
+                <span>
+                  Origin: {formatRecipeOriginLabel(recipe.source, recipe.status, auditSummary)}
+                </span>
+                <span>
+                  Workflow: {formatRecipeWorkflowLabel(recipe.source, recipe.status, auditSummary)}
+                </span>
+                <span>Created: {formatAdminTimestamp(recipe.createdAt)}</span>
+                <span>Published: {formatAdminTimestamp(recipe.publishedAt)}</span>
+                <span>Last human touch: {formatAdminTimestamp(auditSummary?.lastHumanActionAt)}</span>
+                <span>Touch type: {formatRecipeActionLabel(auditSummary?.lastHumanAction)}</span>
+                <span>Saves: {recipe.saveCount}</span>
+                <span>Featured: {recipe.featured ? "Yes" : "No"}</span>
+                <span>Hero reviewed: {recipe.heroImageReviewed ? "Yes" : "No"}</span>
+                <span>Cuisine QA: {recipe.cuisineQaReviewed ? "Yes" : "No"}</span>
               </div>
-            </div>
-            <div className="mt-4 flex flex-wrap gap-4 text-sm text-charcoal/55">
-              <span>Slug: {recipe.slug}</span>
-              <span>Saves: {recipe.saveCount}</span>
-              <span>Featured: {recipe.featured ? "Yes" : "No"}</span>
-              <span>Hero reviewed: {recipe.heroImageReviewed ? "Yes" : "No"}</span>
-              <span>Cuisine QA: {recipe.cuisineQaReviewed ? "Yes" : "No"}</span>
-            </div>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link
-                href={`/admin/content/recipes/${recipe.id}`}
-                className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal"
-              >
-                Edit recipe
-              </Link>
-              <form action={updateRecipeStateAction} className="flex flex-wrap gap-3">
-                <input type="hidden" name="id" value={recipe.id} />
-                {recipe.status !== "published" ? (
-                  <button name="intent" value="publish" className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
-                    Publish
+              <div className="mt-5 flex flex-wrap gap-3">
+                <Link
+                  href={`/admin/content/recipes/${recipe.id}`}
+                  className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal"
+                >
+                  Edit recipe
+                </Link>
+                <form action={updateRecipeStateAction} className="flex flex-wrap gap-3">
+                  <input type="hidden" name="id" value={recipe.id} />
+                  {recipe.status !== "published" ? (
+                    <button name="intent" value="publish" className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">
+                      Publish
+                    </button>
+                  ) : null}
+                  {recipe.status !== "archived" ? (
+                    <button name="intent" value="archive" className="rounded-full bg-charcoal px-4 py-2 text-sm font-semibold text-white">
+                      Archive
+                    </button>
+                  ) : null}
+                  <button name="intent" value={recipe.featured ? "unfeature" : "feature"} className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal">
+                    {recipe.featured ? "Remove featured" : "Mark featured"}
                   </button>
-                ) : null}
-                {recipe.status !== "archived" ? (
-                  <button name="intent" value="archive" className="rounded-full bg-charcoal px-4 py-2 text-sm font-semibold text-white">
-                    Archive
-                  </button>
-                ) : null}
-                <button name="intent" value={recipe.featured ? "unfeature" : "feature"} className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal">
-                  {recipe.featured ? "Remove featured" : "Mark featured"}
-                </button>
-              </form>
-            </div>
-          </article>
-        ))}
+                </form>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </AdminPage>
   );

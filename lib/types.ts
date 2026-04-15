@@ -1,4 +1,10 @@
-export type HeatLevel = "mild" | "medium" | "hot" | "inferno" | "reaper";
+import type {
+  CUISINE_TYPES,
+  HEAT_LEVELS,
+  RECIPE_GENERATION_LANES
+} from "@/lib/content-taxonomy";
+
+export type HeatLevel = (typeof HEAT_LEVELS)[number];
 export type MerchAvailability = "preview" | "waitlist" | "live";
 export type MerchThemeKey =
   | "flame"
@@ -7,26 +13,8 @@ export type MerchThemeKey =
   | "cream"
   | "smoke"
   | "charcoal";
-export type CuisineType =
-  | "american"
-  | "mexican"
-  | "thai"
-  | "korean"
-  | "indian"
-  | "ethiopian"
-  | "peruvian"
-  | "jamaican"
-  | "cajun"
-  | "szechuan"
-  | "vietnamese"
-  | "west_african"
-  | "middle_eastern"
-  | "caribbean"
-  | "moroccan"
-  | "japanese"
-  | "italian"
-  | "chinese"
-  | "other";
+export type CuisineType = (typeof CUISINE_TYPES)[number];
+export type RecipeGenerationLane = (typeof RECIPE_GENERATION_LANES)[number];
 export type PostStatus = "draft" | "pending_review" | "published" | "archived";
 export type ContentSource = "editorial" | "ai_generated" | "community";
 
@@ -40,6 +28,7 @@ export interface BaseContent {
   featured?: boolean;
   source: ContentSource;
   status: PostStatus;
+  createdAt?: string;
   publishedAt?: string;
   tags: string[];
   viewCount: number;

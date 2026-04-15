@@ -1,4 +1,10 @@
-import type { CuisineType, HeatLevel } from "@/lib/types";
+import {
+  CUISINE_ROTATION,
+  CUISINE_TYPES,
+  RECIPE_LANE_PROMPT_GUIDANCE,
+  formatTaxonomyLabel
+} from "@/lib/content-taxonomy";
+import type { CuisineType, HeatLevel, RecipeGenerationLane } from "@/lib/types";
 
 type HotSaucePromptFocus = {
   product_name: string;
@@ -7,6 +13,7 @@ type HotSaucePromptFocus = {
   heat_level?: HeatLevel;
   flavor_notes?: string[];
   cuisine_origin?: CuisineType;
+  affiliate_url?: string;
 };
 
 const FLAMINGFOODIES_EDITORIAL_VOICE = `
@@ -35,6 +42,7 @@ const HEAT_DESCRIPTIONS: Record<HeatLevel, string> = {
 export const RECIPE_PROMPT = (params: {
   cuisine_type: CuisineType;
   heat_level: HeatLevel;
+  recipe_lane?: RecipeGenerationLane;
   hot_sauce_focus?: HotSaucePromptFocus;
 }) => `
 You are a professional food writer for FlamingFoodies.com, a site celebrating spicy and hot food from around the world.
@@ -44,9 +52,11 @@ ${FLAMINGFOODIES_EDITORIAL_VOICE}
 Generate a complete, authentic recipe. Requirements:
 - Cuisine: ${params.cuisine_type}
 - Heat level: ${params.heat_level} (${HEAT_DESCRIPTIONS[params.heat_level]})
+- Recipe lane: ${params.recipe_lane ? formatTaxonomyLabel(params.recipe_lane) : "choose the most commercially useful lane for this cuisine"}
 - The dish should use chilli heat in the way that cuisine does.
 - Do not invent impossible ingredients, techniques, or plating details.
 - The recipe must feel like a real dish a strong home cook could execute.
+- The finished dish should clearly fit the requested lane without drifting into generic filler.
 - Prefer specificity over fluff. Use actual ingredients, doneness cues, timings, and finishing details.
 - Write with the voice of a sharp, experienced food editor who actually cooks: warm, confident, lightly opinionated, and concrete.
 - Let the intro, hero summary, tips, and FAQs sound human and specific, not templated or salesy.
@@ -59,6 +69,7 @@ Generate a complete, authentic recipe. Requirements:
 - The hero_image_query must describe a plated finished dish photo, not a bottle shot or product shot.
 - The image_alt must describe the finished dish naturally.
 - Do not include any keys beyond the JSON schema below.
+${params.recipe_lane ? `- Lane guidance: ${RECIPE_LANE_PROMPT_GUIDANCE[params.recipe_lane]}` : ""}
 ${params.hot_sauce_focus
   ? `- This is a featured hot sauce recipe. Build the dish around this actual sauce:
   - Sauce: ${params.hot_sauce_focus.brand} ${params.hot_sauce_focus.product_name}
@@ -166,6 +177,7 @@ export const REVIEW_PROMPT = (params: {
   category: string;
   cuisine_origin?: CuisineType;
   heat_level?: HeatLevel;
+  product_focus?: HotSaucePromptFocus;
 }) => `
 You are a product reviewer for FlamingFoodies.com. Write a credible, specific review of a spicy food product.
 
@@ -183,6 +195,16 @@ Requirements:
 - Let the opening and closing paragraphs sound human, generous, and specific.
 - The hero_image_query must describe the exact bottle or product photo, not a generic spicy-food scene.
 - If an affiliate_url is included, the image_alt must clearly describe the exact product image.
+${params.product_focus
+  ? `- Review this exact product, not a substitute:
+  - Product: ${params.product_focus.brand} ${params.product_focus.product_name}
+  - Product description: ${params.product_focus.description}
+  - Product heat: ${params.product_focus.heat_level || "not specified"}
+  - Product flavor notes: ${params.product_focus.flavor_notes?.join(", ") || "not specified"}
+  - Product cuisine or origin: ${params.product_focus.cuisine_origin || "not specified"}
+  - Product affiliate URL: ${params.product_focus.affiliate_url || "not specified"}
+- The product_name and brand must match the named product exactly.`
+  : ""}
 
 Return ONLY valid JSON. Do not include any keys beyond the JSON schema below.
 {
@@ -199,7 +221,7 @@ Return ONLY valid JSON. Do not include any keys beyond the JSON schema below.
   "scoville_min": 0,
   "scoville_max": 0,
   "flavor_notes": ["..."],
-  "cuisine_origin": "american|mexican|thai|korean|indian|chinese|japanese|ethiopian|peruvian|jamaican|cajun|szechuan|vietnamese|west_african|middle_eastern|caribbean|italian|moroccan|other",
+  "cuisine_origin": "${CUISINE_TYPES.join("|")}",
   "pros": ["..."],
   "cons": ["..."],
   "tags": ["..."],
@@ -224,28 +246,6 @@ Brand voice:
 - use "🔥" at most once if heat genuinely matters
 
 Return JSON: { "caption": "...", "hashtags": ["..."] }`;
-
-export const CUISINE_ROTATION: CuisineType[] = [
-  "mexican",
-  "thai",
-  "korean",
-  "indian",
-  "ethiopian",
-  "peruvian",
-  "jamaican",
-  "cajun",
-  "szechuan",
-  "vietnamese",
-  "west_african",
-  "middle_eastern",
-  "caribbean",
-  "moroccan",
-  "japanese",
-  "american",
-  "italian",
-  "chinese",
-  "other"
-];
 
 export function getTodayCuisines(count: number): CuisineType[] {
   const now = new Date();

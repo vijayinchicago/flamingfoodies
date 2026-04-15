@@ -1,3 +1,4 @@
+import { sortRecipesByDiscovery } from "@/lib/recipe-browse";
 import type { Recipe } from "@/lib/types";
 
 export interface RecipeEditorialSection {
@@ -40,22 +41,35 @@ function hasAnyToken(recipe: Recipe, tokens: string[]) {
   return tokens.some((token) => corpus.includes(token));
 }
 
-function sortRecipesForShowcase(recipes: Recipe[]) {
-  return [...recipes].sort((left, right) => {
-    if ((left.featured ?? false) !== (right.featured ?? false)) {
-      return left.featured ? -1 : 1;
-    }
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
 
-    if ((left.saveCount ?? 0) !== (right.saveCount ?? 0)) {
-      return (right.saveCount ?? 0) - (left.saveCount ?? 0);
-    }
+function getRecipePublishedTimestamp(recipe: Recipe) {
+  const raw = recipe.publishedAt ?? recipe.createdAt;
+  if (!raw) {
+    return 0;
+  }
 
-    if ((left.viewCount ?? 0) !== (right.viewCount ?? 0)) {
-      return (right.viewCount ?? 0) - (left.viewCount ?? 0);
-    }
+  const timestamp = new Date(raw).getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
 
-    return (right.publishedAt || "").localeCompare(left.publishedAt || "");
-  });
+function sortRecipesForShowcase(recipes: Recipe[], now = new Date()) {
+  return sortRecipesByDiscovery(recipes, now);
+}
+
+function sortRecipesByNewest(recipes: Recipe[]) {
+  return [...recipes].sort(
+    (left, right) => getRecipePublishedTimestamp(right) - getRecipePublishedTimestamp(left)
+  );
+}
+
+function wasPublishedRecently(recipe: Recipe, now: Date, days = 35) {
+  const publishedAt = getRecipePublishedTimestamp(recipe);
+  if (!publishedAt) {
+    return false;
+  }
+
+  return now.getTime() - publishedAt <= days * DAY_IN_MS;
 }
 
 function takeUniqueRecipes(recipes: Recipe[], usedIds: Set<number>, limit: number) {
@@ -77,9 +91,9 @@ function takeUniqueRecipes(recipes: Recipe[], usedIds: Set<number>, limit: numbe
   return picked;
 }
 
-export function getRecipeEditorialSections(recipes: Recipe[]) {
+export function getRecipeEditorialSections(recipes: Recipe[], now = new Date()) {
   const usedIds = new Set<number>();
-  const sortedRecipes = sortRecipesForShowcase(recipes);
+  const sortedRecipes = sortRecipesForShowcase(recipes, now);
 
   const sectionBlueprints: Array<{
     key: string;
@@ -92,7 +106,8 @@ export function getRecipeEditorialSections(recipes: Recipe[]) {
       key: "big-right-now",
       eyebrow: "Big right now",
       title: "The recipes readers should hit first.",
-      description: "A quick front door for the meals already pulling attention, saves, and repeat clicks.",
+      description:
+        "A front door that mixes proven winners with fresher recipes so the archive does not feel frozen.",
       matcher: () => true
     },
     {
@@ -131,11 +146,35 @@ export function getRecipeEditorialSections(recipes: Recipe[]) {
 
   return sectionBlueprints
     .map((section) => {
-      const pool =
-        section.key === "big-right-now"
-          ? sortedRecipes
-          : sortRecipesForShowcase(sortedRecipes.filter(section.matcher));
-      const items = takeUniqueRecipes(pool, usedIds, section.key === "big-right-now" ? 4 : 3);
+      if (section.key === "big-right-now") {
+        const items = [
+          ...takeUniqueRecipes(sortedRecipes, usedIds, 2),
+          ...takeUniqueRecipes(
+            sortRecipesByNewest(sortedRecipes.filter((recipe) => wasPublishedRecently(recipe, now))),
+            usedIds,
+            2
+          )
+        ];
+
+        if (items.length < 4) {
+          items.push(...takeUniqueRecipes(sortedRecipes, usedIds, 4 - items.length));
+        }
+
+        if (items.length < 2) {
+          return null;
+        }
+
+        return {
+          key: section.key,
+          eyebrow: section.eyebrow,
+          title: section.title,
+          description: section.description,
+          items
+        } satisfies RecipeEditorialSection;
+      }
+
+      const pool = sortRecipesForShowcase(sortedRecipes.filter(section.matcher), now);
+      const items = takeUniqueRecipes(pool, usedIds, 3);
 
       if (items.length < 2) {
         return null;

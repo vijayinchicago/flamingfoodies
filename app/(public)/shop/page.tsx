@@ -10,11 +10,12 @@ import {
   PANTRY_HEAT_KEYS,
   SUBSCRIPTION_KEYS,
   getAffiliateLinkEntries,
-  resolveAffiliateLink
+  resolveAffiliateLink,
+  type AffiliateLinkEntry
 } from "@/lib/affiliates";
 import { getMerchThemeClasses } from "@/lib/merch";
 import { buildMetadata } from "@/lib/seo";
-import { getMerchProducts } from "@/lib/services/content";
+import { getFreshMerchProducts } from "@/lib/services/content";
 import { getShopAffiliateCollections } from "@/lib/shop";
 
 export const metadata = buildMetadata({
@@ -24,275 +25,405 @@ export const metadata = buildMetadata({
   path: "/shop"
 });
 
+type ResolvedShopLink = {
+  link: AffiliateLinkEntry;
+  resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>>;
+};
+
+type ResolvedBundle = {
+  key: "starter-kit" | "taco-night" | "under-15" | "gift-guide";
+  title: string;
+  description: string;
+  ctaLabel: string;
+  items: ResolvedShopLink[];
+};
+
+const SHOP_GUIDE_LINKS: Record<
+  ResolvedBundle["key"],
+  { href: string; label: string }
+> = {
+  "starter-kit": {
+    href: "/hot-sauces/best",
+    label: "Read the best-bottles guide"
+  },
+  "taco-night": {
+    href: "/hot-sauces/best-for-tacos",
+    label: "Open the taco-night guide"
+  },
+  "under-15": {
+    href: "/hot-sauces/under-15",
+    label: "See more under-$15 picks"
+  },
+  "gift-guide": {
+    href: "/hot-sauces/best-gift-sets",
+    label: "Open the gift guide"
+  }
+};
+
+function resolveShopLinks(entries: AffiliateLinkEntry[], position: string) {
+  return entries
+    .map((link) => ({
+      link,
+      resolved: resolveAffiliateLink(link.key, {
+        sourcePage: "/shop",
+        position
+      })
+    }))
+    .filter(
+      (
+        entry
+      ): entry is {
+        link: AffiliateLinkEntry;
+        resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>>;
+      } => Boolean(entry.resolved)
+    );
+}
+
+function buildShopPickHref(href: string, position: string) {
+  return href.startsWith("/go/")
+    ? `${href}?source=/shop&position=${position}`
+    : href;
+}
+
+function BundleLaneCard({ collection }: { collection: ResolvedBundle }) {
+  const guide = SHOP_GUIDE_LINKS[collection.key];
+
+  return (
+    <article className="panel relative overflow-hidden p-6 sm:p-7">
+      <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-ember/60 to-transparent" />
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="eyebrow">Buying Path</p>
+          <h3 className="mt-3 font-display text-4xl text-cream">{collection.ctaLabel}</h3>
+        </div>
+        <span className="rounded-full border border-white/12 bg-white/[0.06] px-3 py-2 text-xs uppercase tracking-[0.22em] text-cream/62">
+          {collection.items.length} picks
+        </span>
+      </div>
+      <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">{collection.description}</p>
+      <div className="mt-6 grid gap-4 md:grid-cols-3">
+        {collection.items.map(({ link, resolved }, index) => (
+          <article
+            key={`${collection.key}-${link.key}`}
+            className="rounded-[1.5rem] border border-white/10 bg-white/[0.05] p-4"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs uppercase tracking-[0.24em] text-ember">
+                Step {index + 1}
+              </p>
+              <span className="text-xs text-cream/55">{link.priceLabel}</span>
+            </div>
+            <p className="mt-3 text-xs uppercase tracking-[0.2em] text-cream/55">
+              {link.badge}
+            </p>
+            <h4 className="mt-2 font-display text-2xl text-cream">{link.product}</h4>
+            <p className="mt-3 text-sm leading-6 text-cream/70">{link.bestFor}</p>
+            <AffiliateLink
+              href={resolved.href}
+              partnerKey={resolved.key}
+              trackingMode={resolved.trackingMode}
+              sourcePage="/shop"
+              position={`${collection.key}-bundle-${index + 1}`}
+              className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
+            >
+              Shop this pick
+            </AffiliateLink>
+          </article>
+        ))}
+      </div>
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5">
+        <p className="text-sm text-cream/58">
+          Shop by craving, budget, or occasion instead of digging through one long list.
+        </p>
+        <Link
+          href={guide.href}
+          className="inline-flex rounded-full border border-white/12 px-4 py-2 text-sm font-semibold text-cream"
+        >
+          {guide.label}
+        </Link>
+      </div>
+    </article>
+  );
+}
+
+function CategorySpotlight({
+  id,
+  eyebrow,
+  title,
+  copy,
+  lead,
+  supporting,
+  guideHref,
+  guideLabel
+}: {
+  id: string;
+  eyebrow: string;
+  title: string;
+  copy: string;
+  lead?: ResolvedShopLink;
+  supporting: ResolvedShopLink[];
+  guideHref: string;
+  guideLabel: string;
+}) {
+  if (!lead) {
+    return null;
+  }
+
+  return (
+    <article id={id} className="panel p-6 sm:p-7">
+      <p className="eyebrow">{eyebrow}</p>
+      <h3 className="mt-3 font-display text-4xl text-cream">{title}</h3>
+      <p className="mt-4 text-sm leading-7 text-cream/72">{copy}</p>
+
+      <div className="mt-6 rounded-[1.8rem] border border-white/12 bg-white/[0.06] p-5">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs uppercase tracking-[0.24em] text-ember">{lead.link.badge}</p>
+          <span className="text-xs text-cream/55">{lead.link.priceLabel}</span>
+        </div>
+        <h4 className="mt-3 font-display text-3xl text-cream">{lead.link.product}</h4>
+        <p className="mt-3 text-sm leading-7 text-cream/72">{lead.link.description}</p>
+        <p className="mt-3 text-sm text-cream/55">
+          Best for {lead.link.bestFor.toLowerCase()}.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <AffiliateLink
+            href={lead.resolved.href}
+            partnerKey={lead.resolved.key}
+            trackingMode={lead.resolved.trackingMode}
+            sourcePage="/shop"
+            position={`${id}-lead`}
+            className="inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
+          >
+            Shop this pick
+          </AffiliateLink>
+          <Link
+            href={guideHref}
+            className="inline-flex rounded-full border border-white/12 px-5 py-3 text-sm font-semibold text-cream"
+          >
+            {guideLabel}
+          </Link>
+        </div>
+      </div>
+
+      {supporting.length ? (
+        <div className="mt-5 space-y-3">
+          {supporting.map(({ link, resolved }, index) => (
+            <div
+              key={`${id}-${link.key}`}
+              className="flex flex-wrap items-center justify-between gap-3 rounded-[1.3rem] border border-white/10 bg-white/[0.04] px-4 py-4"
+            >
+              <div>
+                <p className="text-xs uppercase tracking-[0.22em] text-ember">
+                  Backup Pick {index + 1}
+                </p>
+                <h5 className="mt-1 text-lg font-semibold text-cream">{link.product}</h5>
+                <p className="mt-1 text-sm text-cream/60">{link.bestFor}</p>
+              </div>
+              <AffiliateLink
+                href={resolved.href}
+                partnerKey={resolved.key}
+                trackingMode={resolved.trackingMode}
+                sourcePage="/shop"
+                position={`${id}-backup-${index + 1}`}
+                className="inline-flex rounded-full border border-white/12 px-4 py-2 text-sm font-semibold text-cream"
+              >
+                View
+              </AffiliateLink>
+            </div>
+          ))}
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
 export default async function ShopPage() {
-  const merchProducts = await getMerchProducts();
+  const dailyShopPicks = await getFreshMerchProducts(4);
   const hotSauceLinks = getAffiliateLinkEntries(HOT_SAUCE_SPOTLIGHT_KEYS);
   const gearLinks = getAffiliateLinkEntries(KITCHEN_GEAR_KEYS);
   const pantryLinks = getAffiliateLinkEntries(PANTRY_HEAT_KEYS);
   const subscriptionLinks = getAffiliateLinkEntries(SUBSCRIPTION_KEYS);
-  const resolveLinks = (entries: typeof hotSauceLinks, position: string) =>
-    entries
-      .map((link) => ({
-        link,
-        resolved: resolveAffiliateLink(link.key, {
-          sourcePage: "/shop",
-          position
-        })
-      }))
-      .filter((entry): entry is { link: (typeof hotSauceLinks)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
-  const resolvedGiftSidebarLinks = resolveLinks(subscriptionLinks.slice(0, 2), "gift-sidebar");
-  const resolvedHotSauceLinks = resolveLinks(hotSauceLinks, "hot-sauce-column");
-  const resolvedGearLinks = resolveLinks(gearLinks, "gear-column");
-  const resolvedPantryLinks = resolveLinks(pantryLinks, "pantry-column");
-  const resolvedSubscriptionLinks = resolveLinks(subscriptionLinks, "subscription-grid");
-  const curatedCollections = getShopAffiliateCollections().map((collection) => ({
-    ...collection,
-    items: collection.items
-      .map((link) => ({
-        link,
-        resolved: resolveAffiliateLink(link.key, {
-          sourcePage: "/shop",
-          position: collection.key
-        })
-      }))
-      .filter((entry): entry is { link: (typeof collection.items)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved))
-  }));
-  const dailyShopPicks = merchProducts.slice(0, 4);
-  const buildShopPickHref = (href: string) =>
-    href.startsWith("/go/") ? `${href}?source=/shop&position=daily-shop-picks` : href;
+
+  const resolvedHotSauceLinks = resolveShopLinks(hotSauceLinks, "hot-sauce");
+  const resolvedGearLinks = resolveShopLinks(gearLinks, "gear");
+  const resolvedPantryLinks = resolveShopLinks(pantryLinks, "pantry");
+  const resolvedSubscriptionLinks = resolveShopLinks(subscriptionLinks, "subscription");
+
+  const buyingPaths = getShopAffiliateCollections()
+    .map((collection) => ({
+      ...collection,
+      items: collection.items
+        .map((link, index) => ({
+          link,
+          resolved: resolveAffiliateLink(link.key, {
+            sourcePage: "/shop",
+            position: `${collection.key}-lane-${index + 1}`
+          })
+        }))
+        .filter(
+          (
+            entry
+          ): entry is {
+            link: AffiliateLinkEntry;
+            resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>>;
+          } => Boolean(entry.resolved)
+        )
+    }))
+    .filter((collection): collection is ResolvedBundle => Boolean(collection.items.length));
+
+  const heroBundle =
+    buyingPaths.find((collection) => collection.key === "starter-kit") ?? buyingPaths[0];
+  const giftBundle =
+    buyingPaths.find((collection) => collection.key === "gift-guide") ?? buyingPaths[0];
+
+  const conversionStats = [
+    { label: "Guided paths", value: String(buyingPaths.length || 4) },
+    { label: "Fresh picks", value: String(dailyShopPicks.length || 4) },
+    { label: "Gift-ready lane", value: "Live" },
+    { label: "Budget route", value: "Under $15" }
+  ];
+
+  const quickJumpLinks = [
+    { href: "#hot-right-now", label: "Today’s winners" },
+    { href: "#buying-paths", label: "Buying paths" },
+    { href: "#category-picks", label: "Best picks" },
+    { href: "#gift-mode", label: "Gift mode" }
+  ];
 
   return (
-    <section className="container-shell py-16">
-      <SectionHeading
-        eyebrow="Shop"
-        title="A storefront built around weeknight bottles, gift ideas, and useful gear."
-        copy="Shop by use case first: starter shelves, gift ideas, hot sauces, pantry builders, and kitchen gear that earns its keep."
-      />
-      <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
-      <div className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="panel p-6 sm:p-8">
-          <p className="eyebrow">Shop by intent</p>
-          <h2 className="mt-3 font-display text-4xl text-cream sm:text-5xl">
-            Start with starter kits, gift ideas, or recurring heat.
-          </h2>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
-            The goal here is simple: help people buy the right bottle, the right tool, or the
-            right gift without making the store feel cluttered or overbuilt.
+    <section className="container-shell py-12 sm:py-16">
+      <div className="grid gap-6 xl:grid-cols-[1.18fr_0.82fr]">
+        <div className="relative overflow-hidden rounded-[2.4rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(255,199,79,0.22),transparent_42%),radial-gradient(circle_at_bottom_right,rgba(230,57,70,0.18),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-8 sm:p-10 lg:p-12">
+          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-ember/70 to-transparent" />
+          <p className="eyebrow">Shop Smarter</p>
+          <h1 className="mt-4 max-w-4xl font-display text-5xl leading-[0.92] text-cream sm:text-6xl xl:text-7xl">
+            Buy the bottle, tool, or gift that actually changes dinner.
+          </h1>
+          <p className="mt-6 max-w-3xl text-lg leading-8 text-cream/78">
+            Shop hot sauces, pantry staples, kitchen gear, and gift-ready picks chosen to make
+            cooking easier and more fun. Start with a best seller, an under-$15 favorite, a great
+            gift, or one reliable tool you will use every week.
           </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              href="#starter-kits"
-              className="inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
-            >
-              Shop starter kits
-            </Link>
-            <Link
-              href="#gift-ideas"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
-            >
-              Browse gift ideas
-            </Link>
-            <Link
-              href="#subscription-picks"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
-            >
-              See subscriptions
-            </Link>
-          </div>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-5">
-              <p className="text-xs uppercase tracking-[0.22em] text-ember">Starter shelves</p>
-              <p className="mt-3 font-display text-4xl text-cream">
-                {curatedCollections[0]?.items.length || 0}
-              </p>
-              <p className="mt-2 text-sm leading-7 text-cream/68">
-                Fast-buy bundles for new readers and first-time shoppers.
-              </p>
-            </div>
-            <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-5">
-              <p className="text-xs uppercase tracking-[0.22em] text-ember">Gift routes</p>
-              <p className="mt-3 font-display text-4xl text-cream">{resolvedSubscriptionLinks.length}</p>
-              <p className="mt-2 text-sm leading-7 text-cream/68">
-                Curated subscriptions and gift-ready heat without guesswork.
-              </p>
-            </div>
-            <div className="rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-5">
-              <p className="text-xs uppercase tracking-[0.22em] text-ember">Gear picks</p>
-              <p className="mt-3 font-display text-4xl text-cream">{resolvedGearLinks.length}</p>
-              <p className="mt-2 text-sm leading-7 text-cream/68">
-                Kitchen tools close to the recipes that make them useful.
-              </p>
-            </div>
-          </div>
-        </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
-          <article className="panel p-5 sm:p-6">
-            <p className="text-xs uppercase tracking-[0.24em] text-ember">Best for first-time buyers</p>
-            <h2 className="mt-3 font-display text-2xl text-cream sm:text-3xl">Build a practical starter shelf.</h2>
-            <p className="mt-3 text-sm leading-7 text-cream/72">
-              Start with one everyday bottle, one pantry builder, and one piece of gear that makes the recipes easier to repeat.
-            </p>
+          <div className="mt-8 flex flex-wrap gap-3">
             <Link
-              href="#starter-kits"
-              className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+              href="#buying-paths"
+              className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-charcoal"
             >
-              Open starter kits
+              Start with a buying path
             </Link>
-          </article>
-          <article className="panel p-5 sm:p-6">
-            <p className="text-xs uppercase tracking-[0.24em] text-ember">Best for gifting</p>
-            <h2 className="mt-3 font-display text-2xl text-cream sm:text-3xl">Give heat without overthinking the bottle.</h2>
-            <p className="mt-3 text-sm leading-7 text-cream/72">
-              Use gift sets, subscriptions, and curated guides instead of guessing at one sauce for someone else.
-            </p>
             <Link
-              href="#gift-ideas"
-              className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+              href="#hot-right-now"
+              className="inline-flex rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-cream"
             >
-              Open gift ideas
+              See today&apos;s winners
             </Link>
-          </article>
-        </div>
-      </div>
-
-      <div id="gift-ideas" className="mt-12 grid gap-6 lg:grid-cols-[1.08fr_0.92fr]">
-        <div className="panel p-6 sm:p-8">
-          <p className="eyebrow">Gift ideas</p>
-          <h2 className="mt-3 font-display text-4xl text-cream sm:text-5xl">
-            The easiest “buy for someone else” paths on the site.
-          </h2>
-          <div className="mt-6 space-y-4 text-sm leading-7 text-cream/72">
-            <p>
-              Most gift buyers do not want to guess at one perfect bottle. The better move is a
-              curated set, a subscription, or a short list that already narrows the shelf.
-            </p>
-            <p>
-              This keeps the shop useful for holidays, birthdays, and house gifts without
-              pretending FlamingFoodies needs an owned product line on day one.
-            </p>
           </div>
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            {resolvedGiftSidebarLinks.map(({ link, resolved }) => (
-              <article
-                key={link.key}
-                className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5"
+
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {conversionStats.map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-[1.4rem] border border-white/10 bg-white/[0.06] p-4"
               >
-                <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
-                <h3 className="mt-3 font-display text-3xl text-cream">{link.product}</h3>
-                <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
+                <p className="text-xs uppercase tracking-[0.22em] text-ember">{stat.label}</p>
+                <p className="mt-2 font-display text-3xl text-cream">{stat.value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-3">
+            {quickJumpLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-cream/82"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <aside className="panel relative overflow-hidden p-6 sm:p-8">
+          <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-ember/60 to-transparent" />
+          <p className="eyebrow">Start Here</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">
+            {heroBundle?.ctaLabel || "Build the first serious shelf"}
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-cream/72">
+            {heroBundle?.description ||
+              "One useful bottle, one pantry builder, and one tool upgrade."}
+          </p>
+
+          <div className="mt-6 space-y-3">
+            {(heroBundle?.items ?? []).map(({ link, resolved }, index) => (
+              <div
+                key={`hero-${link.key}`}
+                className="rounded-[1.4rem] border border-white/10 bg-white/[0.05] p-4"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs uppercase tracking-[0.22em] text-ember">
+                    Step {index + 1}
+                  </p>
+                  <span className="text-xs text-cream/55">{link.priceLabel}</span>
+                </div>
+                <h3 className="mt-2 font-display text-2xl text-cream">{link.product}</h3>
+                <p className="mt-2 text-sm text-cream/65">{link.bestFor}</p>
                 <AffiliateLink
                   href={resolved.href}
                   partnerKey={resolved.key}
                   trackingMode={resolved.trackingMode}
                   sourcePage="/shop"
-                  position="gift-sidebar"
-                  className="mt-5 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 text-sm font-semibold text-white"
+                  position={`hero-bundle-${index + 1}`}
+                  className="mt-4 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-4 py-2 text-sm font-semibold text-white"
                 >
-                  View on Amazon
+                  Shop now
                 </AffiliateLink>
-              </article>
+              </div>
             ))}
           </div>
-        </div>
 
-        <div className="panel p-6 sm:p-8">
-          <p className="eyebrow">Gift routes</p>
-          <h2 className="mt-3 font-display text-3xl text-cream sm:text-4xl">
-            The easiest “buy for someone else” paths on the site.
-          </h2>
-          <div className="mt-6 space-y-4 text-sm leading-7 text-cream/72">
-            <p>
-              Most gift buyers do not want to guess at one perfect bottle. The better move is a
-              curated set, a subscription, or a short-list guide that already narrows the field.
-            </p>
-            <p>
-              This keeps the shop useful for holidays, birthdays, and house gifts without turning
-              the whole page into a generic marketplace.
+          <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+            <p className="text-xs uppercase tracking-[0.22em] text-ember">Start Here</p>
+            <p className="mt-3 text-sm leading-7 text-cream/70">
+              Begin with one dependable bottle, one flavor booster, and one useful tool. You will
+              get more out of every recipe without overthinking what to buy first.
             </p>
           </div>
-          <div className="mt-8 grid gap-4">
-            <Link
-              href="/hot-sauces/best-gift-sets"
-              className="inline-flex justify-center rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
-            >
-              See the full gift guide
-            </Link>
-          </div>
-        </div>
+        </aside>
       </div>
 
-      <div id="starter-kits" className="mt-12">
-        <SectionHeading
-          eyebrow="Shop lanes"
-          title="Buy by intent instead of scrolling the whole shelf."
-          copy="These lanes are grouped around real decisions: build a starter shelf, fix taco night, stay under budget, or buy for someone else."
-        />
-        <div className="mt-8 grid gap-6 xl:grid-cols-2">
-          {curatedCollections.map((collection) => (
-            <article id={collection.key} key={collection.key} className="panel p-6">
-              <p className="eyebrow">{collection.title}</p>
-              <h3 className="mt-3 font-display text-4xl text-cream">{collection.ctaLabel}</h3>
-              <p className="mt-3 text-sm leading-7 text-cream/72">{collection.description}</p>
-              <div className="mt-6 space-y-4">
-                {collection.items.map(({ link, resolved }) => (
-                  <div
-                    key={link.key}
-                    className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-xs uppercase tracking-[0.22em] text-ember">{link.badge}</p>
-                      {link.priceLabel ? (
-                        <span className="text-xs text-cream/55">{link.priceLabel}</span>
-                      ) : null}
-                    </div>
-                    <h4 className="mt-3 font-display text-3xl text-cream">{link.product}</h4>
-                    <p className="mt-3 text-sm leading-7 text-cream/72">{link.bestFor}</p>
-                    <AffiliateLink
-                      href={resolved.href}
-                      partnerKey={resolved.key}
-                      trackingMode={resolved.trackingMode}
-                      sourcePage="/shop"
-                      position={collection.key}
-                      className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
-                    >
-                      View on Amazon
-                    </AffiliateLink>
-                  </div>
-                ))}
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
+      <AffiliateDisclosure className="mt-6 max-w-4xl" compact />
 
       {dailyShopPicks.length ? (
-        <div className="mt-12">
+        <div id="hot-right-now" className="mt-14">
           <SectionHeading
-            eyebrow="Fresh shop picks"
-            title="What belongs on the shelf right now."
-            copy="These picks keep the shop feeling current: bottles, gear, pantry builders, and gift-ready subscriptions that fit the FlamingFoodies point of view."
+            eyebrow="Hot Right Now"
+            title="Fresh favorites worth checking first."
+            copy="A rotating mix of hot sauces, pantry picks, gear, and gifts that are easy to buy and easy to use."
           />
           <div className="mt-8 grid gap-6 lg:grid-cols-2 xl:grid-cols-4">
-            {dailyShopPicks.map((item) => (
+            {dailyShopPicks.map((item, index) => (
               <article
                 key={item.slug}
-                className={`panel border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-6`}
+                className={`panel relative overflow-hidden border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-6`}
               >
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
-                  <span className="text-xs text-cream/55">{item.priceLabel}</span>
+                <div className="absolute right-5 top-5 rounded-full border border-white/12 bg-charcoal/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cream/80">
+                  #{index + 1}
                 </div>
+                <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
                 <h2 className="mt-3 font-display text-3xl text-cream">{item.name}</h2>
-                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-cream/55">
-                  {item.category}
-                </p>
-                <p className="mt-3 text-sm leading-7 text-cream/72">{item.description}</p>
+                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-cream/55">
+                  <span>{item.category}</span>
+                  <span>{item.priceLabel}</span>
+                </div>
+                <p className="mt-4 text-sm leading-7 text-cream/74">{item.description}</p>
                 <Link
-                  href={buildShopPickHref(item.href)}
-                  className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
+                  href={buildShopPickHref(item.href, `hot-right-now-${index + 1}`)}
+                  className="mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
                 >
-                  {item.ctaLabel}
+                  Shop this pick
                 </Link>
               </article>
             ))}
@@ -300,133 +431,129 @@ export default async function ShopPage() {
         </div>
       ) : null}
 
-      <div className="mt-12 grid gap-6 xl:grid-cols-4">
-        <div id="hot-sauce-picks" className="panel p-8">
-          <p className="eyebrow">Hot sauce picks</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Everyday bottles and shelf builders.</h2>
-          <div className="mt-6 space-y-4">
-            {resolvedHotSauceLinks.map(({ link, resolved }) => (
-              <article key={link.key} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
-                  {link.priceLabel ? <span className="text-xs text-cream/55">{link.priceLabel}</span> : null}
-                </div>
-                <h3 className="mt-3 font-display text-3xl text-cream">{link.product}</h3>
-                <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
-                <AffiliateLink
-                  href={resolved.href}
-                  partnerKey={resolved.key}
-                  trackingMode={resolved.trackingMode}
-                  sourcePage="/shop"
-                  position="hot-sauce-column"
-                  className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
-                >
-                  View on Amazon
-                </AffiliateLink>
-              </article>
-            ))}
-          </div>
-        </div>
-        <div id="gear-picks" className="panel p-8">
-          <p className="eyebrow">Kitchen gear</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Tools worth keeping near the stove.</h2>
-          <div className="mt-6 space-y-4">
-            {resolvedGearLinks.map(({ link, resolved }) => (
-              <article key={link.key} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
-                  {link.priceLabel ? <span className="text-xs text-cream/55">{link.priceLabel}</span> : null}
-                </div>
-                <h3 className="mt-3 font-display text-3xl text-cream">{link.product}</h3>
-                <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
-                <AffiliateLink
-                  href={resolved.href}
-                  partnerKey={resolved.key}
-                  trackingMode={resolved.trackingMode}
-                  sourcePage="/shop"
-                  position="gear-column"
-                  className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
-                >
-                  View on Amazon
-                </AffiliateLink>
-              </article>
-            ))}
-          </div>
-        </div>
-        <div className="panel p-8">
-          <p className="eyebrow">Pantry heat</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Flavor builders that earn repeat use.</h2>
-          <div className="mt-6 space-y-4">
-            {resolvedPantryLinks.map(({ link, resolved }) => (
-              <article key={link.key} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
-                  {link.priceLabel ? <span className="text-xs text-cream/55">{link.priceLabel}</span> : null}
-                </div>
-                <h3 className="mt-3 font-display text-3xl text-cream">{link.product}</h3>
-                <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
-                <AffiliateLink
-                  href={resolved.href}
-                  partnerKey={resolved.key}
-                  trackingMode={resolved.trackingMode}
-                  sourcePage="/shop"
-                  position="pantry-column"
-                  className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
-                >
-                  View on Amazon
-                </AffiliateLink>
-              </article>
-            ))}
-          </div>
-        </div>
-        <div id="subscription-picks" className="panel p-8">
-          <p className="eyebrow">Subscriptions and gift plays</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Recurring heat and better gifts.</h2>
-          <div className="mt-6 space-y-4">
-          {resolvedSubscriptionLinks.map(({ link, resolved }) => (
-            <article key={link.key} className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5">
-              <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
-              <h3 className="mt-3 font-display text-3xl text-cream">{link.product}</h3>
-              <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
-              <AffiliateLink
-                href={resolved.href}
-                partnerKey={resolved.key}
-                trackingMode={resolved.trackingMode}
-                sourcePage="/shop"
-                position="subscription-grid"
-                className="mt-5 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-4 py-2 text-sm font-semibold text-white"
-              >
-                View on Amazon
-              </AffiliateLink>
-            </article>
+      <div id="buying-paths" className="mt-14">
+        <SectionHeading
+          eyebrow="Buying Paths"
+          title="Shop by what you need right now."
+          copy="Choose a starter kit, budget favorite, gift idea, or dinner-night lane and jump straight to the right picks."
+        />
+        <div className="mt-8 grid gap-6 xl:grid-cols-2">
+          {buyingPaths.map((collection) => (
+            <BundleLaneCard key={collection.key} collection={collection} />
           ))}
-          </div>
         </div>
       </div>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-[0.9fr,1.1fr]">
-        <div className="panel p-8">
-          <p className="eyebrow">Email</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
-            Get the best bottle, gift, and gear picks by email.
-          </h2>
-          <p className="mt-4 text-sm leading-7 text-cream/75">
-            Get the strongest bottle, gear, and gift picks in one place so you can keep up with
-            the shelf without checking the shop every day.
-          </p>
+      <div id="category-picks" className="mt-14">
+        <SectionHeading
+          eyebrow="Best Picks"
+          title="Our favorite picks in each category."
+          copy="Each section starts with a standout option, then gives you a few solid alternatives."
+        />
+        <div className="mt-8 grid gap-6 xl:grid-cols-2">
+          <CategorySpotlight
+            id="best-bottle"
+            eyebrow="Best Bottle"
+            title="Start with a bottle you will actually finish."
+            copy="Start with a versatile bottle first, then try brighter or hotter options if you want something more specific."
+            lead={resolvedHotSauceLinks[0]}
+            supporting={resolvedHotSauceLinks.slice(1, 3)}
+            guideHref="/hot-sauces/best"
+            guideLabel="See all bottle picks"
+          />
+          <CategorySpotlight
+            id="best-gear"
+            eyebrow="Best Gear"
+            title="Upgrade the tool that improves the most meals."
+            copy="Choose the tool you will reach for often, not something that will sit in a drawer."
+            lead={resolvedGearLinks[0]}
+            supporting={resolvedGearLinks.slice(1, 3)}
+            guideHref="#buying-paths"
+            guideLabel="Back to buying paths"
+          />
+          <CategorySpotlight
+            id="best-pantry"
+            eyebrow="Best Pantry Move"
+            title="Add one flavor builder that keeps paying off."
+            copy="A good pantry pick makes eggs, noodles, tacos, bowls, and leftovers taste better in minutes."
+            lead={resolvedPantryLinks[0]}
+            supporting={resolvedPantryLinks.slice(1, 3)}
+            guideHref="/hot-sauces/under-15"
+            guideLabel="See more affordable favorites"
+          />
+          <CategorySpotlight
+            id="best-gift"
+            eyebrow="Best Gift"
+            title="Buying for someone else? Skip one-bottle roulette."
+            copy="Curated sets and subscriptions make easy gifts when you want something fun, useful, and easy to enjoy."
+            lead={resolvedSubscriptionLinks[0]}
+            supporting={resolvedSubscriptionLinks.slice(1, 3)}
+            guideHref="/hot-sauces/best-gift-sets"
+            guideLabel="Open the gift guide"
+          />
         </div>
-        <div>
-          <div className="mt-1">
-            <EmailCapture
-              source="shop"
-              tag="shop-interest"
-              heading="Get the shop lanes with the strongest buying intent."
-              description="Choose whether you mainly want bottle picks, shopping-minded recipe tie-ins, or the broader weekly roundup."
-              buttonLabel="Join the shop list"
-              defaultSegments={["cook-shop", "hot-sauce-shelf"]}
-            />
+      </div>
+
+      <div id="gift-mode" className="mt-14 grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+        <div className="panel relative overflow-hidden p-8">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,199,79,0.12),transparent_42%),radial-gradient(circle_at_bottom_right,rgba(230,57,70,0.14),transparent_32%)]" />
+          <div className="relative">
+            <p className="eyebrow">Gift Mode</p>
+            <h2 className="mt-3 font-display text-5xl text-cream">
+              Make the gift feel smart, not random.
+            </h2>
+            <p className="mt-4 text-sm leading-7 text-cream/74">
+              If you are shopping for someone else, the highest-confidence path is still a curated
+              set or a recurring discovery box.
+            </p>
+
+            <div className="mt-6 space-y-3">
+              {(giftBundle?.items ?? resolvedSubscriptionLinks.slice(0, 2)).slice(0, 2).map(
+                ({ link, resolved }, index) => (
+                  <div
+                    key={`gift-${link.key}`}
+                    className="rounded-[1.4rem] border border-white/10 bg-white/[0.05] p-4"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs uppercase tracking-[0.22em] text-ember">
+                        Gift pick {index + 1}
+                      </p>
+                      <span className="text-xs text-cream/55">{link.priceLabel}</span>
+                    </div>
+                    <h3 className="mt-2 font-display text-2xl text-cream">{link.product}</h3>
+                    <p className="mt-2 text-sm text-cream/65">{link.bestFor}</p>
+                    <AffiliateLink
+                      href={resolved.href}
+                      partnerKey={resolved.key}
+                      trackingMode={resolved.trackingMode}
+                      sourcePage="/shop"
+                      position={`gift-mode-${index + 1}`}
+                      className="mt-4 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
+                    >
+                      Shop gift pick
+                    </AffiliateLink>
+                  </div>
+                )
+              )}
+            </div>
+
+            <Link
+              href="/hot-sauces/best-gift-sets"
+              className="mt-6 inline-flex rounded-full border border-white/12 px-5 py-3 text-sm font-semibold text-cream"
+            >
+              See the full gift guide
+            </Link>
           </div>
         </div>
+
+        <EmailCapture
+          source="shop"
+          tag="shop-interest"
+          heading="Get our favorite shop picks in your inbox."
+          description="We send useful bottles, gear, and gift ideas so you can find something good quickly."
+          buttonLabel="Join the shop list"
+          defaultSegments={["cook-shop", "hot-sauce-shelf"]}
+        />
       </div>
     </section>
   );

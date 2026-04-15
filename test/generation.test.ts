@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   BLOG_POST_PROMPT,
@@ -7,6 +7,12 @@ import {
   getTodayCuisines
 } from "@/lib/generation/prompts";
 import { getQuizResult } from "@/lib/quiz";
+import {
+  GENERATION_JOB_TIMEOUT_MINUTES,
+  buildTimedOutGenerationJobMessage,
+  expireTimedOutGenerationJobs,
+  shouldRetryGenerationFailure
+} from "@/lib/services/generation-jobs";
 import {
   buildBlogPhotoSearchQueries,
   buildReviewPhotoSearchQueries,
@@ -17,6 +23,8 @@ import {
   normalizeGeneratedRecipePayload,
   pickBalancedHotSauceFocus,
   planBalancedCuisines,
+  planBalancedHeatLevels,
+  planBalancedRecipeLanes,
   resolveAutonomousPublishAt,
   shouldAutonomousPublish
 } from "@/lib/services/automation";
@@ -29,6 +37,18 @@ describe("generation prompts", () => {
     expect(prompt).toContain("\"hero_image_query\"");
     expect(prompt).toContain("Write with the voice of a sharp, experienced food editor");
     expect(prompt).toContain("family-table oriented");
+  });
+
+  it("adds recipe lane guidance when requested", () => {
+    const prompt = RECIPE_PROMPT({
+      cuisine_type: "american",
+      heat_level: "hot",
+      recipe_lane: "burger_sandwich"
+    });
+
+    expect(prompt).toContain("Recipe lane: Burger Sandwich");
+    expect(prompt).toContain("Lane guidance:");
+    expect(prompt).toContain("handheld, sandwich, burger");
   });
 
   it("creates a hot sauce recipe prompt with featured sauce context", () => {
@@ -67,6 +87,27 @@ describe("generation prompts", () => {
     expect(prompt).toContain("what the bottle tastes like");
     expect(prompt).toContain("Avoid macho heat language");
     expect(prompt).toContain("\"hero_image_query\"");
+  });
+
+  it("locks a review prompt to a specific hot sauce when one is selected", () => {
+    const prompt = REVIEW_PROMPT({
+      category: "hot-sauce",
+      cuisine_origin: "mexican",
+      heat_level: "hot",
+      product_focus: {
+        product_name: "Los Calientes Rojo",
+        brand: "Heatonist",
+        description: "A smoky tomato-rich red with repeat-use appeal.",
+        heat_level: "hot",
+        flavor_notes: ["smoky", "tomato", "savory"],
+        cuisine_origin: "mexican",
+        affiliate_url: "https://heatonist.com/products/los-calientes-rojo"
+      }
+    });
+
+    expect(prompt).toContain("Review this exact product");
+    expect(prompt).toContain("Heatonist Los Calientes Rojo");
+    expect(prompt).toContain("product_name and brand must match the named product exactly");
   });
 
   it("returns requested cuisine count", () => {
@@ -114,12 +155,42 @@ describe("generation prompts", () => {
           hotSauceSlug: null
         }
       ],
-      date: new Date("2026-04-11T12:00:00Z")
+      date: new Date("2026-04-11T12:00:00Z"),
+      rng: () => 0
     });
 
     expect(plan).toHaveLength(3);
     expect(new Set(plan).size).toBe(3);
     expect(plan[0]).not.toBe("jamaican");
+  });
+
+  it("rotates through the full heat ladder instead of locking to the first three slots", () => {
+    const plan = planBalancedHeatLevels({
+      qty: 5,
+      type: "recipe",
+      history: [],
+      date: new Date("2026-04-14T12:00:00Z"),
+      rng: () => 0
+    });
+
+    expect(plan).toHaveLength(5);
+    expect(new Set(plan).size).toBe(5);
+    expect(plan).toContain("inferno");
+    expect(plan).toContain("reaper");
+  });
+
+  it("mixes recipe lanes so generation does not keep landing in one format", () => {
+    const plan = planBalancedRecipeLanes({
+      qty: 4,
+      history: [],
+      date: new Date("2026-04-14T12:00:00Z"),
+      rng: () => 0
+    });
+
+    expect(plan).toHaveLength(4);
+    expect(new Set(plan).size).toBe(4);
+    expect(plan).toContain("burger_sandwich");
+    expect(plan).toContain("weeknight");
   });
 
   it("avoids reusing the same hot sauce too aggressively when alternatives exist", () => {
@@ -168,6 +239,48 @@ describe("generation prompts", () => {
     );
 
     expect(pick?.slug).toBe("queen-majesty-scotch-bonnet-ginger");
+  });
+
+  it("rotates review generation away from the last hot sauce that was already used", () => {
+    const pick = pickBalancedHotSauceFocus(
+      [
+        {
+          slug: "yellowbird-habanero",
+          productName: "Habanero Hot Sauce",
+          brand: "Yellowbird",
+          description: "Bright carrot-forward heat.",
+          heatLevel: "hot",
+          flavorNotes: ["carrot", "citrus"],
+          cuisineOrigin: "mexican",
+          featured: true
+        },
+        {
+          slug: "los-calientes-rojo",
+          productName: "Los Calientes Rojo",
+          brand: "Heatonist",
+          description: "Smoky tomato-rich heat.",
+          heatLevel: "hot",
+          flavorNotes: ["smoky", "tomato"],
+          cuisineOrigin: "mexican",
+          featured: true
+        }
+      ],
+      [
+        {
+          type: "review",
+          cuisine: "mexican",
+          createdAt: "2026-04-13T12:00:00Z",
+          profile: "default",
+          hotSauceSlug: "yellowbird-habanero"
+        }
+      ],
+      new Set<string>(),
+      0,
+      new Date("2026-04-14T12:00:00Z"),
+      "review"
+    );
+
+    expect(pick?.slug).toBe("los-calientes-rojo");
   });
 
   it("treats revise verdicts as automation-pass guidance instead of hard failure", () => {
@@ -270,6 +383,71 @@ describe("generation prompts", () => {
     });
 
     expect(publishAt).toBe("2026-04-14T13:30:00.000Z");
+  });
+
+  it("retries malformed recipe payload failures once but not unrelated errors", () => {
+    expect(
+      shouldRetryGenerationFailure(
+        "recipe",
+        "Draft generation returned an invalid recipe payload: Required"
+      )
+    ).toBe(true);
+    expect(
+      shouldRetryGenerationFailure("recipe", "Draft generation returned an empty recipe payload.")
+    ).toBe(true);
+    expect(
+      shouldRetryGenerationFailure("recipe", "Draft generation hit the Anthropic max_tokens limit before completing JSON.")
+    ).toBe(false);
+    expect(
+      shouldRetryGenerationFailure("blog_post", "Draft generation returned an invalid blog_post payload: Required")
+    ).toBe(false);
+  });
+
+  it("marks stale generating jobs as failed with a timeout message", async () => {
+    const select = vi.fn().mockResolvedValue({
+      data: [{ id: 12 }, { id: 13 }],
+      error: null
+    });
+    const query = {
+      eq: vi.fn(),
+      not: vi.fn(),
+      lt: vi.fn(),
+      in: vi.fn(),
+      select
+    } as Record<string, ReturnType<typeof vi.fn>>;
+    query.eq.mockReturnValue(query);
+    query.not.mockReturnValue(query);
+    query.lt.mockReturnValue(query);
+    query.in.mockReturnValue(query);
+
+    const update = vi.fn().mockReturnValue(query);
+    const supabase = {
+      from: vi.fn().mockReturnValue({
+        update
+      })
+    } as any;
+    const now = new Date("2026-04-15T12:00:00Z");
+
+    const result = await expireTimedOutGenerationJobs(supabase, {
+      jobTypes: ["recipe"],
+      now
+    });
+
+    expect(update).toHaveBeenCalledWith({
+      status: "failed",
+      error_message: buildTimedOutGenerationJobMessage(GENERATION_JOB_TIMEOUT_MINUTES),
+      completed_at: now.toISOString()
+    });
+    expect(query.eq).toHaveBeenCalledWith("status", "generating");
+    expect(query.not).toHaveBeenCalledWith("started_at", "is", null);
+    expect(query.lt).toHaveBeenCalledWith("started_at", "2026-04-15T11:15:00.000Z");
+    expect(query.in).toHaveBeenCalledWith("job_type", ["recipe"]);
+    expect(select).toHaveBeenCalledWith("id");
+    expect(result).toEqual({
+      count: 2,
+      timeoutMinutes: GENERATION_JOB_TIMEOUT_MINUTES,
+      cutoffIso: "2026-04-15T11:15:00.000Z"
+    });
   });
 
   it("scores quiz answers into a persona", () => {
@@ -450,6 +628,16 @@ describe("generation prompts", () => {
     expect(payload.cuisine_type).toBe("ethiopian");
     expect(payload.cuisine_origin).toBe("middle_eastern");
     expect(payload.heat_level).toBe("hot");
+  });
+
+  it("maps newer cuisine aliases into the supported taxonomy", () => {
+    const payload = normalizeGeneratedCommonPayload({
+      cuisine_type: "Philippine",
+      cuisine_origin: "Malaysia"
+    });
+
+    expect(payload.cuisine_type).toBe("filipino");
+    expect(payload.cuisine_origin).toBe("malaysian");
   });
 
   it("maps common cuisine aliases like Sichuan to the supported enum", () => {

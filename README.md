@@ -61,6 +61,7 @@ BUFFER_PROFILE_IDS=instagram:abc123,pinterest:def456,facebook:ghi789
    - admin content publish
    - community submission
    - newsletter signup
+   - `/api/admin/reevaluate-ai-drafts`
    - `/api/admin/publish-scheduled`
    - `/api/admin/social-scheduler`
    - `/api/admin/newsletter-digest`

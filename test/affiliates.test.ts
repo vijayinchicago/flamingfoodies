@@ -18,7 +18,7 @@ describe("affiliate registry", () => {
   });
 
   it("has a deeper catalog for commerce pages", () => {
-    expect(Object.keys(AFFILIATE_LINKS).length).toBeGreaterThanOrEqual(15);
+    expect(Object.keys(AFFILIATE_LINKS).length).toBeGreaterThanOrEqual(35);
     expect(sampleMerchProducts.length).toBeGreaterThanOrEqual(6);
   });
 

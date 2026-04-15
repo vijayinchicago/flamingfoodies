@@ -82,6 +82,7 @@ On the current Vercel Hobby plan, cron jobs are limited to daily schedules.
 
 That means:
 - content generation can still run on its normal daily schedule
+- stuck AI drafts get a daily reevaluation pass before scheduled publishing
 - scheduled publishing runs once per day
 - social queueing and Pinterest distribution run once per day
 

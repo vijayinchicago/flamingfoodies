@@ -52,6 +52,8 @@ export default async function AdminDashboardPage({
         <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/65">
           This seeds the real CMS tables for blog posts, recipes, reviews, and merch so the public
           site can stop depending on static fallback arrays once your Supabase project is wired.
+          Merch import now bootstraps the expanded seasonal commerce catalog plus the branded
+          waitlist items.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
           {[

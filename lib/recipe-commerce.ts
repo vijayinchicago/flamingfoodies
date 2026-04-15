@@ -53,7 +53,13 @@ const cuisineSignals: Partial<Record<CuisineType, string[]>> = {
   chinese: ["dumpling", "noodle", "chili crisp", "soy"],
   italian: ["calabrian", "vodka", "rigatoni", "pasta"],
   cajun: ["cajun", "blackened", "smash", "hot honey"],
-  american: ["burger", "wings", "sandwich", "fried chicken"]
+  american: ["burger", "wings", "sandwich", "fried chicken"],
+  filipino: ["adobo", "sisig", "calamansi", "suka", "garlic"],
+  greek: ["feta", "oregano", "lemon", "olive", "gyro"],
+  turkish: ["kebab", "sumac", "yogurt", "aleppo", "doner"],
+  brazilian: ["malagueta", "moqueca", "farofa", "feijoada", "lime"],
+  nigerian: ["suya", "jollof", "yaji", "pepper soup", "plantain"],
+  malaysian: ["sambal", "laksa", "belacan", "nasi", "coconut"]
 };
 
 const affiliateSignals: Record<string, string[]> = {

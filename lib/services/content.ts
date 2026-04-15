@@ -16,9 +16,16 @@ import {
   sanitizeAutomationQaNotes,
   sanitizeAutomationTags
 } from "@/lib/content-labels";
+import type { AffiliateLinkEntry } from "@/lib/affiliates";
 import { getBlogHeroFields } from "@/lib/blog-hero";
 import { flags } from "@/lib/env";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
+import {
+  buildShopPickSlug,
+  chooseShopPickEntries,
+  formatShopCategory,
+  getShopThemeKey
+} from "@/lib/services/shop-automation";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type {
   BlogPost,
@@ -140,6 +147,7 @@ function mapBlogRow(row: any): BlogPost {
     readTimeMinutes: row.read_time_minutes ?? undefined,
     viewCount: row.view_count ?? 0,
     likeCount: row.like_count ?? 0,
+    createdAt: row.created_at ?? undefined,
     publishedAt: row.published_at ?? undefined
   };
 }
@@ -202,6 +210,7 @@ function mapRecipeRow(row: any): Recipe {
     saveCount: row.save_count ?? 0,
     ratingAvg: Number(row.rating_avg ?? 0) || undefined,
     ratingCount: row.rating_count ?? 0,
+    createdAt: row.created_at ?? undefined,
     publishedAt: row.published_at ?? undefined
   };
 }
@@ -222,6 +231,7 @@ function mapReviewRow(row: any): Review {
     imageAlt: row.image_alt ?? undefined,
     source: row.source,
     status: row.status,
+    createdAt: row.created_at ?? undefined,
     publishedAt: row.published_at ?? undefined,
     tags: sanitizeAutomationTags(row.tags ?? []),
     viewCount: row.view_count ?? 0,
@@ -264,6 +274,27 @@ function mapMerchRow(row: any): MerchProduct {
     sortOrder: row.sort_order ?? 0,
     createdAt: row.created_at ?? undefined,
     updatedAt: row.updated_at ?? undefined
+  };
+}
+
+function buildFreshShopPickFallback(entry: AffiliateLinkEntry): MerchProduct {
+  return {
+    id: 0,
+    slug: buildShopPickSlug(entry),
+    name: entry.product,
+    category: formatShopCategory(entry.category),
+    badge: entry.badge,
+    description: `${entry.description} Best for ${entry.bestFor.toLowerCase()}.`,
+    priceLabel: entry.priceLabel || "Check Amazon",
+    availability: "live",
+    themeKey: getShopThemeKey(entry.category),
+    href: `/go/${entry.key}`,
+    ctaLabel: "View on Amazon",
+    imageUrl: undefined,
+    imageAlt: `${entry.product} product pick`,
+    featured: true,
+    status: "published",
+    sortOrder: 0
   };
 }
 
@@ -627,6 +658,29 @@ export async function getMerchProducts() {
 export async function getFeaturedMerchProducts(limit = 3) {
   const products = await getMerchProducts();
   return products.filter((product) => product.featured).slice(0, limit);
+}
+
+export async function getFreshMerchProducts(limit = 4, date = new Date()) {
+  const qty = Math.min(Math.max(limit, 1), 12);
+  const products = await getMerchProducts();
+  const productBySlug = new Map(products.map((product) => [product.slug, product]));
+  const productByHref = new Map(products.map((product) => [product.href, product]));
+  const selectedEntries = chooseShopPickEntries(
+    products.map((product) => product.href).filter(Boolean),
+    qty,
+    date
+  );
+
+  return selectedEntries.map((entry) => {
+    const href = `/go/${entry.key}`;
+    const slug = buildShopPickSlug(entry);
+
+    return (
+      productBySlug.get(slug) ??
+      productByHref.get(href) ??
+      buildFreshShopPickFallback(entry)
+    );
+  });
 }
 
 export async function getAdminMerchProducts() {

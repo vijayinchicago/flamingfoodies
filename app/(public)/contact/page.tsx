@@ -18,7 +18,7 @@ export default function ContactPage() {
     <TrustPageShell
       eyebrow="Contact"
       title="Reach FlamingFoodies without guessing where the message should go."
-      description="Questions, corrections, partnership notes, and reader feedback are all welcome. The fastest route right now is email."
+      description="Questions, corrections, partnership notes, and reader feedback are all welcome. Email is the best way to reach us."
       lastUpdated={LAST_UPDATED}
     >
       <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">

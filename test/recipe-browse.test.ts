@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { getRecipeEditorialSections } from "@/lib/recipe-editorial-sections";
 import {
   filterRecipes,
   getRecipeBrowseOptions,
@@ -130,6 +131,91 @@ describe("recipe browse helpers", () => {
 
     expect(sorted[0]?.slug).toBe("naga-chicken-curry");
     expect(sorted[2]?.slug).toBe("thai-red-curry");
+  });
+
+  it("keeps featured sorting fresh by favoring newer featured recipes", () => {
+    const now = new Date("2026-04-14T12:00:00.000Z");
+    const sorted = sortRecipes(
+      [
+        {
+          ...recipes[0],
+          id: 4,
+          slug: "older-featured-classic",
+          title: "Older Featured Classic",
+          saveCount: 2,
+          viewCount: 200,
+          publishedAt: "2026-01-10T12:00:00.000Z"
+        },
+        {
+          ...recipes[0],
+          id: 5,
+          slug: "new-featured-arrival",
+          title: "New Featured Arrival",
+          saveCount: 0,
+          viewCount: 20,
+          publishedAt: "2026-04-13T12:00:00.000Z"
+        }
+      ],
+      "featured",
+      now
+    );
+
+    expect(sorted[0]?.slug).toBe("new-featured-arrival");
+  });
+
+  it("mixes fresh recipes into the editorial front door", () => {
+    const now = new Date("2026-04-14T12:00:00.000Z");
+    const archive: Recipe[] = [
+      {
+        ...recipes[0],
+        id: 6,
+        slug: "evergreen-curry-winner",
+        title: "Evergreen Curry Winner",
+        saveCount: 22,
+        viewCount: 1800,
+        publishedAt: "2026-02-01T12:00:00.000Z"
+      },
+      {
+        ...recipes[1],
+        id: 7,
+        slug: "classic-noodle-hit",
+        title: "Classic Noodle Hit",
+        cuisineType: "korean",
+        tags: ["noodles", "weeknight"],
+        ingredients: [{ amount: "8", unit: "oz", item: "ramen noodles" }],
+        saveCount: 18,
+        viewCount: 1500,
+        publishedAt: "2026-02-04T12:00:00.000Z"
+      },
+      {
+        ...recipes[2],
+        id: 8,
+        slug: "fresh-chili-crisp-noodles",
+        title: "Fresh Chili Crisp Noodles",
+        saveCount: 1,
+        viewCount: 45,
+        publishedAt: "2026-04-13T12:00:00.000Z"
+      },
+      {
+        ...recipes[2],
+        id: 9,
+        slug: "fresh-taco-skillet",
+        title: "Fresh Taco Skillet",
+        cuisineType: "mexican",
+        tags: ["taco", "skillet"],
+        ingredients: [{ amount: "1", unit: "lb", item: "ground beef" }],
+        instructions: [{ step: 1, text: "Cook the taco filling." }],
+        saveCount: 0,
+        viewCount: 20,
+        publishedAt: "2026-04-12T12:00:00.000Z"
+      }
+    ];
+
+    const sections = getRecipeEditorialSections(archive, now);
+    const frontDoorSlugs = sections[0]?.items.map((recipe) => recipe.slug) ?? [];
+
+    expect(frontDoorSlugs).toContain("fresh-chili-crisp-noodles");
+    expect(frontDoorSlugs).toContain("fresh-taco-skillet");
   });
 
   it("paginates the archive safely", () => {

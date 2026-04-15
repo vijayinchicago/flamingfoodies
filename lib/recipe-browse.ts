@@ -3,7 +3,7 @@ import type { CuisineType, HeatLevel, Recipe } from "@/lib/types";
 export type RecipeSortKey = "featured" | "newest" | "quickest" | "hottest";
 
 export const RECIPE_SORT_OPTIONS: Array<{ key: RecipeSortKey; label: string }> = [
-  { key: "featured", label: "Featured first" },
+  { key: "featured", label: "Featured + fresh" },
   { key: "newest", label: "Newest first" },
   { key: "quickest", label: "Quickest first" },
   { key: "hottest", label: "Hottest first" }
@@ -42,8 +42,83 @@ const DIFFICULTY_ORDER: Record<RecipeDifficulty, number> = {
   advanced: 3
 };
 
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
 function normalizeText(value?: string | null) {
   return (value ?? "").trim().toLowerCase();
+}
+
+function getRecipePublishedTimestamp(recipe: Recipe) {
+  const raw = recipe.publishedAt ?? recipe.createdAt;
+  if (!raw) {
+    return 0;
+  }
+
+  const timestamp = new Date(raw).getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function getRecipeAgeDays(recipe: Recipe, now: Date) {
+  const publishedAt = getRecipePublishedTimestamp(recipe);
+  if (!publishedAt) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  return Math.max(0, (now.getTime() - publishedAt) / DAY_IN_MS);
+}
+
+function getRecipeFreshnessBoost(recipe: Recipe, now: Date) {
+  const ageDays = getRecipeAgeDays(recipe, now);
+  if (!Number.isFinite(ageDays)) {
+    return 0;
+  }
+
+  if (ageDays <= 7) {
+    return 260 - ageDays * 12;
+  }
+
+  if (ageDays <= 21) {
+    return 176 - (ageDays - 7) * 6;
+  }
+
+  if (ageDays <= 45) {
+    return 92 - (ageDays - 21) * 2.5;
+  }
+
+  if (ageDays <= 90) {
+    return Math.max(0, 32 - (ageDays - 45) * 0.7);
+  }
+
+  return 0;
+}
+
+export function getRecipeDiscoveryScore(recipe: Recipe, now = new Date()) {
+  const saves = recipe.saveCount ?? 0;
+  const likes = recipe.likeCount ?? 0;
+  const views = recipe.viewCount ?? 0;
+  const ratingAvg = recipe.ratingAvg ?? 0;
+  const ratingCount = recipe.ratingCount ?? 0;
+
+  return (
+    (recipe.featured ? 80 : 0) +
+    saves * 18 +
+    likes * 6 +
+    views * 0.08 +
+    ratingAvg * 18 +
+    Math.min(ratingCount, 20) * 3 +
+    getRecipeFreshnessBoost(recipe, now)
+  );
+}
+
+export function sortRecipesByDiscovery(recipes: Recipe[], now = new Date()) {
+  return [...recipes].sort((left, right) => {
+    const scoreDelta = getRecipeDiscoveryScore(right, now) - getRecipeDiscoveryScore(left, now);
+    if (scoreDelta !== 0) {
+      return scoreDelta;
+    }
+
+    return getRecipePublishedTimestamp(right) - getRecipePublishedTimestamp(left);
+  });
 }
 
 function getRecipeSearchCorpus(recipe: Recipe) {
@@ -111,7 +186,7 @@ export function filterRecipes(recipes: Recipe[], filters: RecipeBrowseFilters) {
   });
 }
 
-export function sortRecipes(recipes: Recipe[], sort: RecipeSortKey = "featured") {
+export function sortRecipes(recipes: Recipe[], sort: RecipeSortKey = "featured", now = new Date()) {
   const sorted = [...recipes];
 
   sorted.sort((left, right) => {
@@ -127,14 +202,19 @@ export function sortRecipes(recipes: Recipe[], sort: RecipeSortKey = "featured")
     }
 
     if (sort === "newest") {
-      return (right.publishedAt || "").localeCompare(left.publishedAt || "");
+      return getRecipePublishedTimestamp(right) - getRecipePublishedTimestamp(left);
     }
 
     if (left.featured !== right.featured) {
       return left.featured ? -1 : 1;
     }
 
-    return (right.publishedAt || "").localeCompare(left.publishedAt || "");
+    const scoreDelta = getRecipeDiscoveryScore(right, now) - getRecipeDiscoveryScore(left, now);
+    if (scoreDelta !== 0) {
+      return scoreDelta;
+    }
+
+    return getRecipePublishedTimestamp(right) - getRecipePublishedTimestamp(left);
   });
 
   return sorted;

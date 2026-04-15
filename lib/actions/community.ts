@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { flags } from "@/lib/env";
+import { CUISINE_TYPES, HEAT_LEVELS } from "@/lib/content-taxonomy";
 import {
   parseLineList,
   parseRecipeIngredients,
@@ -15,27 +16,7 @@ import { requireUser } from "@/lib/supabase/auth";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ANALYTICS_EVENTS } from "@/lib/telemetry-events";
 
-const cuisineTypeSchema = z.enum([
-  "american",
-  "mexican",
-  "thai",
-  "korean",
-  "indian",
-  "chinese",
-  "japanese",
-  "ethiopian",
-  "peruvian",
-  "jamaican",
-  "cajun",
-  "szechuan",
-  "vietnamese",
-  "west_african",
-  "middle_eastern",
-  "caribbean",
-  "italian",
-  "moroccan",
-  "other"
-]);
+const cuisineTypeSchema = z.enum(CUISINE_TYPES);
 
 function parseOptionalInt(value: FormDataEntryValue | null) {
   const normalized = String(value || "").trim();
@@ -52,7 +33,7 @@ const submitSchema = z
     title: z.string().max(120).optional(),
     caption: z.string().min(10).max(500),
     type: z.enum(["photo", "recipe", "video_url"]),
-    heatLevel: z.enum(["mild", "medium", "hot", "inferno", "reaper"]).optional(),
+    heatLevel: z.enum(HEAT_LEVELS).optional(),
     cuisineType: cuisineTypeSchema.optional(),
   mediaUrl: z
     .string()

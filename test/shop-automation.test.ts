@@ -4,6 +4,7 @@ import {
   buildShopPickSlug,
   chooseShopPickEntries,
   formatShopCategory,
+  getSeasonalShopSeedProducts,
   getShopThemeKey,
   rankShopPickEntries
 } from "@/lib/services/shop-automation";
@@ -27,6 +28,71 @@ describe("shop automation", () => {
     expect(picks).toHaveLength(3);
     expect(picks.some((pick) => pick.key === "heatonist-los-calientes-rojo")).toBe(false);
     expect(picks.some((pick) => pick.key === "amazon-yellowbird-habanero")).toBe(false);
+  });
+
+  it("still rotates picks after the full automated catalog already exists", () => {
+    const existingHrefs = getAutomatedShopPickEntries().map((entry) => `/go/${entry.key}`);
+    const dayOne = chooseShopPickEntries(existingHrefs, 4, new Date("2026-04-10T12:00:00Z"));
+    const dayTwo = chooseShopPickEntries(existingHrefs, 4, new Date("2026-04-11T12:00:00Z"));
+
+    expect(dayOne).toHaveLength(4);
+    expect(dayTwo).toHaveLength(4);
+    expect(dayOne.map((pick) => pick.key)).not.toEqual(dayTwo.map((pick) => pick.key));
+  });
+
+  it("avoids repeating the same shop pick on same-day reruns when recent history exists", () => {
+    const existingHrefs = getAutomatedShopPickEntries().map((entry) => `/go/${entry.key}`);
+    const picks = chooseShopPickEntries(existingHrefs, 1, new Date("2026-04-14T12:00:00Z"), [
+      {
+        affiliateKey: "amazon-yellowbird-habanero",
+        category: "hot_sauce",
+        createdAt: "2026-04-14T11:00:00Z"
+      }
+    ]);
+
+    expect(picks).toHaveLength(1);
+    expect(picks[0]?.key).not.toBe("amazon-yellowbird-habanero");
+  });
+
+  it("leans into seasonal cuisine signals instead of defaulting to the same bottle", () => {
+    const existingHrefs = getAutomatedShopPickEntries().map((entry) => `/go/${entry.key}`);
+    const [pick] = chooseShopPickEntries(
+      existingHrefs,
+      1,
+      new Date("2026-07-12T12:00:00Z"),
+      [],
+      {
+        activeMoments: ["grill_season", "summer_fresh"],
+        cuisineWeights: {
+          jamaican: 40,
+          caribbean: 36
+        },
+        heatWeights: {
+          hot: 20,
+          inferno: 12
+        },
+        categoryWeights: {
+          hot_sauce: 24
+        }
+      }
+    );
+
+    expect(pick?.category).toBe("hot_sauce");
+    expect(
+      pick?.cuisines?.some((cuisine) => cuisine === "jamaican" || cuisine === "caribbean")
+    ).toBe(true);
+  });
+
+  it("builds a one-time seasonal seed from the full automated catalog", () => {
+    const seededProducts = getSeasonalShopSeedProducts(new Date("2026-12-05T12:00:00Z"));
+
+    expect(seededProducts).toHaveLength(getAutomatedShopPickEntries().length);
+    expect(seededProducts.some((product) => product.slug === "shop-pick-amazon-hot-sauce-gift-box")).toBe(
+      true
+    );
+    expect(seededProducts.slice(0, 6).some((product) => product.category === "Subscriptions")).toBe(
+      true
+    );
   });
 
   it("builds stable shop-pick slugs from affiliate keys", () => {

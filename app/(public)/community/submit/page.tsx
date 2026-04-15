@@ -1,5 +1,6 @@
 import { submitCommunityPostAction } from "@/lib/actions/community";
 import { SimpleFormShell } from "@/components/forms/simple-form-shell";
+import { CUISINE_TYPES, HEAT_LEVELS, formatTaxonomyLabel } from "@/lib/content-taxonomy";
 import { buildMetadata } from "@/lib/seo";
 import { requireUser } from "@/lib/supabase/auth";
 
@@ -48,11 +49,11 @@ export default async function CommunitySubmitPage({
             className="rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
           >
             <option value="">Select heat level</option>
-            <option value="mild">mild</option>
-            <option value="medium">medium</option>
-            <option value="hot">hot</option>
-            <option value="inferno">inferno</option>
-            <option value="reaper">reaper</option>
+            {HEAT_LEVELS.map((heatLevel) => (
+              <option key={heatLevel} value={heatLevel}>
+                {heatLevel}
+              </option>
+            ))}
           </select>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
@@ -61,14 +62,11 @@ export default async function CommunitySubmitPage({
             className="rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
           >
             <option value="">Cuisine type</option>
-            <option value="american">american</option>
-            <option value="mexican">mexican</option>
-            <option value="thai">thai</option>
-            <option value="korean">korean</option>
-            <option value="indian">indian</option>
-            <option value="ethiopian">ethiopian</option>
-            <option value="jamaican">jamaican</option>
-            <option value="other">other</option>
+            {CUISINE_TYPES.map((cuisineType) => (
+              <option key={cuisineType} value={cuisineType}>
+                {formatTaxonomyLabel(cuisineType)}
+              </option>
+            ))}
           </select>
           <input
             name="tags"

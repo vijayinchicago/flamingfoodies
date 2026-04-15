@@ -5,6 +5,7 @@ import { createReviewAction, updateReviewStateAction } from "@/lib/actions/admin
 import { AdminPage } from "@/components/admin/admin-page";
 import { ContentTable } from "@/components/admin/content-table";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
+import { CUISINE_TYPES, HEAT_LEVELS, formatTaxonomyLabel } from "@/lib/content-taxonomy";
 import { formatContentSourceLabel } from "@/lib/content-labels";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildReviewQaReport, getReviewQaPublishError } from "@/lib/review-qa";
@@ -219,19 +220,19 @@ export default async function AdminReviewsPage({
             <input name="priceUsd" type="number" min="0" step="0.01" placeholder="Price USD" className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember" />
             <select name="heatLevel" className="rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember">
               <option value="">Heat level</option>
-              <option value="mild">mild</option>
-              <option value="medium">medium</option>
-              <option value="hot">hot</option>
-              <option value="inferno">inferno</option>
-              <option value="reaper">reaper</option>
+              {HEAT_LEVELS.map((heatLevel) => (
+                <option key={heatLevel} value={heatLevel}>
+                  {heatLevel}
+                </option>
+              ))}
             </select>
             <select name="cuisineOrigin" className="rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember">
               <option value="">Cuisine origin</option>
-              <option value="mexican">mexican</option>
-              <option value="korean">korean</option>
-              <option value="thai">thai</option>
-              <option value="caribbean">caribbean</option>
-              <option value="other">other</option>
+              {CUISINE_TYPES.map((cuisineType) => (
+                <option key={cuisineType} value={cuisineType}>
+                  {formatTaxonomyLabel(cuisineType)}
+                </option>
+              ))}
             </select>
           </div>
           <div className="grid gap-4 md:grid-cols-2">

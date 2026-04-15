@@ -124,8 +124,8 @@ export default async function BestHotSaucesForSeafoodPage() {
         <div className="mt-12">
           <SectionHeading
             eyebrow="Cook with them"
-            title="Recipes that make the seafood lane actionable."
-            copy="These are the fastest next steps if someone lands here from search and wants to use a bottle tonight."
+            title="Recipes to try with these bottles."
+            copy="If you want to put one of these sauces to work tonight, start with these seafood-friendly recipes."
           />
           <div className="mt-8 grid gap-6 lg:grid-cols-3">
             {seafoodRecipes.map((recipe) => (
