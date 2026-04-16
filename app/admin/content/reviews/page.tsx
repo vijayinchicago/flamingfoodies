@@ -7,9 +7,98 @@ import { ContentTable } from "@/components/admin/content-table";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { CUISINE_TYPES, HEAT_LEVELS, formatTaxonomyLabel } from "@/lib/content-taxonomy";
 import { formatContentSourceLabel } from "@/lib/content-labels";
+import { flags } from "@/lib/env";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildReviewQaReport, getReviewQaPublishError } from "@/lib/review-qa";
 import { getAdminReviews } from "@/lib/services/content";
+import { createSupabaseAdminClient } from "@/lib/supabase/server";
+
+const ADMIN_TIME_ZONE = "America/New_York";
+
+type ReviewAuditSummary = {
+  hasHumanTouch: boolean;
+  lastHumanAction?: string;
+  lastHumanActionAt?: string;
+};
+
+async function getReviewAuditSummaryMap(reviewIds: number[]) {
+  const summaries = new Map<number, ReviewAuditSummary>();
+  if (!reviewIds.length || !flags.hasSupabaseAdmin) {
+    return summaries;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return summaries;
+  }
+
+  const { data } = await supabase
+    .from("admin_audit_log")
+    .select("target_id, action, performed_at")
+    .eq("target_type", "review")
+    .in("target_id", reviewIds.map(String))
+    .in("action", ["create_review", "edit_review", "update_review"])
+    .order("performed_at", { ascending: false });
+
+  for (const row of data ?? []) {
+    const reviewId = Number(row.target_id);
+    if (!Number.isFinite(reviewId) || summaries.has(reviewId)) {
+      continue;
+    }
+
+    summaries.set(reviewId, {
+      hasHumanTouch: true,
+      lastHumanAction: row.action ?? undefined,
+      lastHumanActionAt: row.performed_at ?? undefined
+    });
+  }
+
+  return summaries;
+}
+
+function formatReviewOriginLabel(
+  source?: string,
+  status?: string,
+  auditSummary?: ReviewAuditSummary
+) {
+  if (source === "ai_generated") {
+    if (auditSummary?.hasHumanTouch) {
+      return "Agent + human edit";
+    }
+    return status === "published" ? "Agent auto-published" : "Agent draft";
+  }
+  return "Manual";
+}
+
+function formatReviewWorkflowLabel(
+  source?: string,
+  status?: string,
+  auditSummary?: ReviewAuditSummary
+) {
+  if (source === "editorial") {
+    return "Manual editor";
+  }
+  if (auditSummary?.hasHumanTouch) {
+    return "Reviewed by human";
+  }
+  return status === "published" ? "Autonomous publish" : "Awaiting review";
+}
+
+function formatReviewActionLabel(action?: string) {
+  if (action === "create_review") return "Created manually";
+  if (action === "edit_review") return "Edited manually";
+  if (action === "update_review") return "State updated";
+  return "—";
+}
+
+function formatAdminTimestamp(value?: string) {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: ADMIN_TIME_ZONE
+  }).format(new Date(value));
+}
 
 export default async function AdminReviewsPage({
   searchParams
@@ -17,6 +106,7 @@ export default async function AdminReviewsPage({
   searchParams?: { created?: string; updated?: string; error?: string };
 }) {
   const reviews = await getAdminReviews();
+  const reviewAuditMap = await getReviewAuditSummaryMap(reviews.map((r) => r.id));
   const reviewQueue = reviews.filter(
     (review) => (review.status === "pending_review" || review.source === "ai_generated") && review.status !== "published"
   );
@@ -191,15 +281,27 @@ export default async function AdminReviewsPage({
       <ContentTable
         title="Reviews"
         filters={["status", "source", "category", "recommended"]}
-        rows={reviews.map((review) => ({
-          title: review.title,
-          brand: review.brand,
-          source: formatContentSourceLabel(review.source),
-          category: review.category,
-          rating: review.rating,
-          recommended: review.recommended,
-          status: review.status
-        }))}
+        rows={displayReviews.map((review) => {
+          const auditSummary = reviewAuditMap.get(review.id);
+
+          return {
+            title: review.title,
+            origin: formatReviewOriginLabel(review.source, review.status, auditSummary),
+            workflow: formatReviewWorkflowLabel(review.source, review.status, auditSummary),
+            source: formatContentSourceLabel(review.source),
+            created: formatAdminTimestamp(review.createdAt),
+            published: formatAdminTimestamp(review.publishedAt),
+            lastHumanTouch: formatAdminTimestamp(auditSummary?.lastHumanActionAt),
+            touchType: formatReviewActionLabel(auditSummary?.lastHumanAction),
+            featured: review.featured ? "Yes" : "No",
+            brand: review.brand,
+            heat: review.heatLevel ?? "—",
+            category: review.category,
+            rating: review.rating,
+            recommended: review.recommended,
+            status: review.status
+          };
+        })}
       />
       <div className="panel-light p-6">
         <h2 className="font-display text-4xl text-charcoal">Create a review</h2>
@@ -320,6 +422,7 @@ export default async function AdminReviewsPage({
       <div className="grid gap-4">
         {displayReviews.map((review) => {
           const qaReport = buildReviewQaReport(review);
+          const auditSummary = reviewAuditMap.get(review.id);
 
           return (
             <article key={review.id} className="panel-light p-6">
@@ -338,7 +441,14 @@ export default async function AdminReviewsPage({
                 </div>
               </div>
               <div className="mt-4 flex flex-wrap gap-4 text-sm text-charcoal/55">
+                <span>Origin: {formatReviewOriginLabel(review.source, review.status, auditSummary)}</span>
+                <span>Workflow: {formatReviewWorkflowLabel(review.source, review.status, auditSummary)}</span>
+                <span>Created: {formatAdminTimestamp(review.createdAt)}</span>
+                <span>Published: {formatAdminTimestamp(review.publishedAt)}</span>
+                <span>Last human touch: {formatAdminTimestamp(auditSummary?.lastHumanActionAt)}</span>
+                <span>Touch type: {formatReviewActionLabel(auditSummary?.lastHumanAction)}</span>
                 <span>Rating: {review.rating}</span>
+                <span>Heat: {review.heatLevel ?? "—"}</span>
                 <span>Recommended: {review.recommended ? "Yes" : "No"}</span>
                 <span>Featured: {review.featured ? "Yes" : "No"}</span>
                 <span>Image reviewed: {review.imageReviewed ? "Yes" : "No"}</span>

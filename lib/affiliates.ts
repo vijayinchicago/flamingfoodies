@@ -35,6 +35,12 @@ export interface AffiliateLinkDefinition {
   cuisines?: CuisineType[];
   heatLevels?: HeatLevel[];
   seasonalMoments?: ShopSeasonalMoment[];
+  /**
+   * Text patterns used to detect this product in prose content for inline
+   * affiliate link injection.  Sorted longest-first at build time.
+   * If omitted, patterns are derived from the catalog key and product name.
+   */
+  searchTerms?: string[];
 }
 
 export interface AffiliateLinkEntry extends AffiliateLinkDefinition {
@@ -177,7 +183,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Weeknight proteins and pan sauces",
     cuisines: ["american", "mexican", "cajun"],
     heatLevels: ["medium", "hot", "inferno"],
-    seasonalMoments: ["weeknight", "game_day", "tailgate", "cold_weather"]
+    seasonalMoments: ["weeknight", "game_day", "tailgate", "cold_weather"],
+    searchTerms: ["cast iron skillet", "cast iron pan", "cast iron"]
   },
   "amazon-carbon-steel-wok": {
     partner: "amazon",
@@ -203,7 +210,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Fresh salsa and chunky chili pastes",
     cuisines: ["mexican", "peruvian", "american"],
     heatLevels: ["medium", "hot", "inferno", "reaper"],
-    seasonalMoments: ["game_day", "tailgate", "summer_fresh", "sauce_making"]
+    seasonalMoments: ["game_day", "tailgate", "summer_fresh", "sauce_making"],
+    searchTerms: ["molcajete mortar and pestle", "molcajete", "mortar and pestle", "mortar & pestle", "stone mortar"]
   },
   "amazon-fermentation-jar-kit": {
     partner: "amazon",
@@ -294,7 +302,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Soups, sauces, and marinades",
     cuisines: ["american", "italian", "moroccan", "middle_eastern"],
     heatLevels: ["mild", "medium", "hot"],
-    seasonalMoments: ["weeknight", "cold_weather", "sauce_making"]
+    seasonalMoments: ["weeknight", "cold_weather", "sauce_making"],
+    searchTerms: ["immersion blender", "stick blender", "hand blender", "hand blender"]
   },
   "amazon-gochujang-paste": {
     partner: "amazon",
@@ -307,7 +316,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Layered heat with umami",
     cuisines: ["korean"],
     heatLevels: ["medium", "hot"],
-    seasonalMoments: ["weeknight", "game_day", "cold_weather"]
+    seasonalMoments: ["weeknight", "game_day", "cold_weather"],
+    searchTerms: ["gochujang paste", "gochujang", "korean chili paste", "doenjang gochujang"]
   },
   "amazon-calabrian-chili-paste": {
     partner: "amazon",
@@ -320,7 +330,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Pasta, sandwiches, and finishing sauces",
     cuisines: ["italian"],
     heatLevels: ["medium", "hot"],
-    seasonalMoments: ["weeknight", "cold_weather", "game_day"]
+    seasonalMoments: ["weeknight", "cold_weather", "game_day"],
+    searchTerms: ["calabrian chili paste", "calabrian chili", "calabrian pepper paste"]
   },
   "amazon-berbere-blend": {
     partner: "amazon",
@@ -333,7 +344,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Sheet pan dinners and stews",
     cuisines: ["ethiopian", "west_african", "moroccan"],
     heatLevels: ["mild", "medium", "hot"],
-    seasonalMoments: ["weeknight", "cold_weather"]
+    seasonalMoments: ["weeknight", "cold_weather"],
+    searchTerms: ["berbere spice blend", "berbere spice", "berbere"]
   },
   "amazon-chili-crisp": {
     partner: "amazon",
@@ -346,7 +358,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Finishing bowls and dumplings",
     cuisines: ["szechuan", "chinese", "thai"],
     heatLevels: ["medium", "hot", "inferno"],
-    seasonalMoments: ["weeknight", "brunch", "summer_fresh"]
+    seasonalMoments: ["weeknight", "brunch", "summer_fresh"],
+    searchTerms: ["chili crisp", "chile crisp", "crispy chili oil", "chili oil crunch"]
   },
   "amazon-harissa-paste": {
     partner: "amazon",
@@ -359,7 +372,36 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Roasts, braises, and yogurt sauces",
     cuisines: ["moroccan", "middle_eastern", "turkish"],
     heatLevels: ["medium", "hot", "inferno"],
-    seasonalMoments: ["weeknight", "cold_weather", "holiday_gifting"]
+    seasonalMoments: ["weeknight", "cold_weather", "holiday_gifting"],
+    searchTerms: ["harissa paste", "harissa sauce", "harissa"]
+  },
+  "amazon-ras-el-hanout": {
+    partner: "amazon",
+    product: "Ras el Hanout Spice Blend",
+    url: buildAmazonSearchUrl("ras el hanout spice blend"),
+    category: "ingredient",
+    badge: "North African depth",
+    description: "The complex Moroccan spice blend — warm, aromatic, and layered — for tagines, roast lamb, couscous, and spiced grain bowls.",
+    priceLabel: "$8-$14",
+    bestFor: "Tagines, roast meats, couscous",
+    cuisines: ["moroccan", "middle_eastern"],
+    heatLevels: ["mild", "medium"],
+    seasonalMoments: ["weeknight", "cold_weather", "holiday_gifting"],
+    searchTerms: ["ras el hanout", "ras-el-hanout"]
+  },
+  "amazon-chermoula-paste": {
+    partner: "amazon",
+    product: "Chermoula Marinade Paste",
+    url: buildAmazonSearchUrl("chermoula marinade paste moroccan"),
+    category: "ingredient",
+    badge: "Herb-citrus punch",
+    description: "Morocco's go-to herb marinade — bright with cilantro, cumin, lemon, and garlic. Exceptional on fish, chicken, and roasted vegetables.",
+    priceLabel: "$7-$13",
+    bestFor: "Fish, grilled chicken, roasted veg",
+    cuisines: ["moroccan", "middle_eastern"],
+    heatLevels: ["mild", "medium"],
+    seasonalMoments: ["weeknight", "summer_fresh"],
+    searchTerms: ["chermoula marinade paste", "chermoula marinade", "chermoula sauce", "chermoula"]
   },
   "amazon-jerk-seasoning": {
     partner: "amazon",
@@ -372,7 +414,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Chicken, shrimp, and grilling marinades",
     cuisines: ["jamaican", "caribbean"],
     heatLevels: ["medium", "hot", "inferno"],
-    seasonalMoments: ["grill_season", "summer_fresh", "tailgate"]
+    seasonalMoments: ["grill_season", "summer_fresh", "tailgate"],
+    searchTerms: ["jerk seasoning", "jerk marinade", "jamaican jerk seasoning", "jamaican jerk"]
   },
   "amazon-chipotle-in-adobo": {
     partner: "amazon",
@@ -385,7 +428,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Burger sauce, chili, and taco fillings",
     cuisines: ["mexican", "american"],
     heatLevels: ["medium", "hot", "inferno"],
-    seasonalMoments: ["game_day", "tailgate", "grill_season", "cold_weather"]
+    seasonalMoments: ["game_day", "tailgate", "grill_season", "cold_weather"],
+    searchTerms: ["chipotle peppers in adobo", "chipotle in adobo", "chipotles in adobo", "adobo sauce"]
   },
   "amazon-cajun-seasoning": {
     partner: "amazon",
@@ -398,7 +442,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Salmon, fries, wings, and roasted vegetables",
     cuisines: ["cajun", "american"],
     heatLevels: ["medium", "hot"],
-    seasonalMoments: ["weeknight", "game_day", "tailgate"]
+    seasonalMoments: ["weeknight", "game_day", "tailgate"],
+    searchTerms: ["cajun seasoning blend", "cajun seasoning", "cajun spice", "cajun blend"]
   },
   "amazon-peri-peri-sauce": {
     partner: "amazon",
@@ -411,7 +456,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Chicken, skewers, and grilled vegetables",
     cuisines: ["west_african", "nigerian", "brazilian", "american"],
     heatLevels: ["hot", "inferno"],
-    seasonalMoments: ["grill_season", "weeknight", "summer_fresh"]
+    seasonalMoments: ["grill_season", "weeknight", "summer_fresh"],
+    searchTerms: ["peri-peri sauce", "peri peri sauce", "piri piri sauce", "piri piri marinade"]
   },
   "amazon-sambal-oelek": {
     partner: "amazon",
@@ -424,7 +470,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Fried rice, noodles, and spicy sauces",
     cuisines: ["malaysian", "thai", "vietnamese", "filipino"],
     heatLevels: ["medium", "hot", "inferno"],
-    seasonalMoments: ["weeknight", "summer_fresh", "brunch"]
+    seasonalMoments: ["weeknight", "summer_fresh", "brunch"],
+    searchTerms: ["sambal oelek", "sambal ulek", "sambal"]
   },
   "amazon-tajin-clasico": {
     partner: "amazon",
@@ -437,7 +484,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Fruit, corn, snacks, and margarita nights",
     cuisines: ["mexican", "american", "peruvian"],
     heatLevels: ["mild", "medium", "hot"],
-    seasonalMoments: ["summer_fresh", "brunch", "seafood_night"]
+    seasonalMoments: ["summer_fresh", "brunch", "seafood_night"],
+    searchTerms: ["tajin clasico", "tajin seasoning", "tajin", "tajín"]
   },
   "amazon-kewpie-mayo": {
     partner: "amazon",
@@ -450,8 +498,132 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Spicy mayo, sandwiches, and bowl sauces",
     cuisines: ["japanese", "korean", "filipino", "american"],
     heatLevels: ["mild", "medium"],
-    seasonalMoments: ["weeknight", "brunch", "game_day"]
+    seasonalMoments: ["weeknight", "brunch", "game_day"],
+    searchTerms: ["kewpie mayonnaise", "kewpie mayo", "kewpie", "japanese mayo"]
   },
+  // ── Classic American & Louisiana vinegar-style ────────────────────────────
+  "amazon-tabasco-original": {
+    partner: "amazon",
+    product: "Tabasco Original Red Pepper Sauce",
+    url: buildAmazonSearchUrl("Tabasco original red pepper sauce"),
+    category: "hot_sauce",
+    badge: "The original",
+    description: "The Avery Island classic that started the modern hot sauce shelf — thin, vinegary, and sharp. Correct on oysters, gumbo, Bloody Marys, and anywhere acid does the work.",
+    priceLabel: "$4-$8",
+    bestFor: "Oysters, Bloody Marys, eggs, and everyday splashing",
+    cuisines: ["american", "cajun"],
+    heatLevels: ["mild", "medium"],
+    seasonalMoments: ["weeknight", "brunch", "game_day", "seafood_night"],
+    searchTerms: ["tabasco original red pepper sauce", "tabasco original", "tabasco"]
+  },
+  "amazon-franks-redhot": {
+    partner: "amazon",
+    product: "Frank's RedHot Original Cayenne Sauce",
+    url: buildAmazonSearchUrl("Franks RedHot Original cayenne sauce"),
+    category: "hot_sauce",
+    badge: "Wing sauce classic",
+    description: "The cayenne workhorse behind most restaurant wing sauces. Pairs with butter straight out of the bottle. Also useful on eggs, pizza, and anything that wants vinegar heat.",
+    priceLabel: "$4-$8",
+    bestFor: "Wings, eggs, pizza, and classic buffalo dishes",
+    cuisines: ["american", "cajun"],
+    heatLevels: ["mild", "medium"],
+    seasonalMoments: ["game_day", "tailgate", "weeknight", "brunch"],
+    searchTerms: ["frank's redhot original", "frank's redhot", "franks redhot", "frank's red hot", "franks red hot"]
+  },
+  "amazon-franks-buffalo-wing": {
+    partner: "amazon",
+    product: "Frank's RedHot Buffalo Wings Sauce",
+    url: buildAmazonSearchUrl("Franks RedHot Buffalo Wings Sauce"),
+    category: "hot_sauce",
+    badge: "Ready-to-toss",
+    description: "The butter-blended version that skips the mixing step. Toss it straight on baked or fried wings for classic game-day buffalo without measuring anything.",
+    priceLabel: "$5-$9",
+    bestFor: "Wings, sliders, and dipping sauce bases",
+    cuisines: ["american"],
+    heatLevels: ["medium"],
+    seasonalMoments: ["game_day", "tailgate", "weeknight"]
+  },
+  "amazon-texas-pete": {
+    partner: "amazon",
+    product: "Texas Pete Original Hot Sauce",
+    url: buildAmazonSearchUrl("Texas Pete original hot sauce"),
+    category: "hot_sauce",
+    badge: "Southern staple",
+    description: "A vinegar-forward Southern table sauce with more body than Tabasco and more heat than Crystal. A natural fit for BBQ, collard greens, fried chicken, and cornbread.",
+    priceLabel: "$4-$7",
+    bestFor: "Fried chicken, greens, BBQ, and Southern cooking",
+    cuisines: ["american", "cajun"],
+    heatLevels: ["medium"],
+    seasonalMoments: ["weeknight", "game_day", "grill_season", "tailgate"]
+  },
+  // ── Mexican table sauces ──────────────────────────────────────────────────
+  "amazon-cholula-original": {
+    partner: "amazon",
+    product: "Cholula Original Hot Sauce",
+    url: buildAmazonSearchUrl("Cholula original hot sauce"),
+    category: "hot_sauce",
+    badge: "Most-poured bottle",
+    description: "The best-selling Mexican hot sauce in the US — mild enough for any table, bright enough for eggs, tacos, pizza, and cocktails. The bottle most people already trust.",
+    priceLabel: "$5-$9",
+    bestFor: "Tacos, eggs, pizza, and first-time buyers",
+    cuisines: ["mexican", "american"],
+    heatLevels: ["mild", "medium"],
+    seasonalMoments: ["weeknight", "brunch", "game_day", "summer_fresh"],
+    searchTerms: ["cholula original hot sauce", "cholula original", "cholula"]
+  },
+  "amazon-cholula-green-tomatillo": {
+    partner: "amazon",
+    product: "Cholula Green Tomatillo Hot Sauce",
+    url: buildAmazonSearchUrl("Cholula green tomatillo hot sauce"),
+    category: "hot_sauce",
+    badge: "Fresh verde",
+    description: "Tangy tomatillo base with a brighter, greener heat than the red. A natural pour on fish tacos, avocado toast, huevos rancheros, and grilled corn.",
+    priceLabel: "$5-$9",
+    bestFor: "Fish tacos, grilled corn, and verde dishes",
+    cuisines: ["mexican", "american"],
+    heatLevels: ["mild", "medium"],
+    seasonalMoments: ["brunch", "summer_fresh", "weeknight", "seafood_night"]
+  },
+  "amazon-cholula-chili-garlic": {
+    partner: "amazon",
+    product: "Cholula Chili Garlic Hot Sauce",
+    url: buildAmazonSearchUrl("Cholula chili garlic hot sauce"),
+    category: "hot_sauce",
+    badge: "Garlic depth",
+    description: "More savory than the original — chunky garlic and dried chili with a roasted edge. Useful wherever garlic and heat belong: steak, shrimp, fried rice, pasta.",
+    priceLabel: "$5-$9",
+    bestFor: "Steak, shrimp, pasta, and garlic-forward dishes",
+    cuisines: ["mexican", "american", "italian"],
+    heatLevels: ["medium", "hot"],
+    seasonalMoments: ["weeknight", "grill_season", "game_day"]
+  },
+  "amazon-tapatio": {
+    partner: "amazon",
+    product: "Tapatío Hot Sauce",
+    url: buildAmazonSearchUrl("Tapatio hot sauce"),
+    category: "hot_sauce",
+    badge: "Taqueria classic",
+    description: "The thick, richly flavored Mexican table sauce that shows up at taquerias and diners across the Southwest. Excellent on carne asada, chips, scrambled eggs, and carnitas.",
+    priceLabel: "$4-$8",
+    bestFor: "Carne asada, chips, eggs, and Mexican street food",
+    cuisines: ["mexican", "american"],
+    heatLevels: ["medium"],
+    seasonalMoments: ["weeknight", "brunch", "game_day", "tailgate"]
+  },
+  "amazon-valentina-red-label": {
+    partner: "amazon",
+    product: "Valentina Original Red Label",
+    url: buildAmazonSearchUrl("Valentina original red label hot sauce"),
+    category: "hot_sauce",
+    badge: "Crowd favorite",
+    description: "The milder sibling to the black label — same bold dried-chili flavor, friendlier heat level. The bottle that disappears fastest at Mexican restaurants and taco nights.",
+    priceLabel: "$3-$6",
+    bestFor: "Taco nights, snacks, and feeding a crowd",
+    cuisines: ["mexican", "american"],
+    heatLevels: ["mild", "medium"],
+    seasonalMoments: ["weeknight", "game_day", "brunch", "summer_fresh"]
+  },
+  // ── Everyday bottle depth ─────────────────────────────────────────────────
   "amazon-yellowbird-habanero": {
     partner: "amazon",
     product: "Yellowbird Habanero Hot Sauce",
@@ -464,6 +636,217 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     cuisines: ["mexican", "american"],
     heatLevels: ["medium", "hot"],
     seasonalMoments: ["weeknight", "brunch", "summer_fresh"]
+  },
+  "amazon-yellowbird-serrano": {
+    partner: "amazon",
+    product: "Yellowbird Serrano Hot Sauce",
+    url: buildAmazonSearchUrl("Yellowbird serrano hot sauce"),
+    category: "hot_sauce",
+    badge: "Milder entry",
+    description: "Same Yellowbird quality at a gentler heat level — serrano and tangerine with a cleaner, brighter profile. The right pick for people who find habanero too sharp.",
+    priceLabel: "$7-$12",
+    bestFor: "Everyday pour for mild-heat eaters",
+    cuisines: ["american", "mexican"],
+    heatLevels: ["mild", "medium"],
+    seasonalMoments: ["weeknight", "brunch", "summer_fresh"]
+  },
+  "amazon-huy-fong-sriracha": {
+    partner: "amazon",
+    product: "Huy Fong Sriracha Hot Chili Sauce",
+    url: buildAmazonSearchUrl("Huy Fong sriracha hot chili sauce"),
+    category: "hot_sauce",
+    badge: "The rooster bottle",
+    description: "The garlic-forward sriracha that became a pantry staple. Rich, thick, and sweet-spicy — great on pho, noodles, burgers, rice, and spicy mayo.",
+    priceLabel: "$5-$10",
+    bestFor: "Pho, noodles, burgers, and spicy mayo",
+    cuisines: ["thai", "vietnamese", "american"],
+    heatLevels: ["medium", "hot"],
+    seasonalMoments: ["weeknight", "brunch", "game_day", "cold_weather"],
+    searchTerms: ["huy fong sriracha hot chili sauce", "huy fong sriracha", "sriracha sauce", "sriracha"]
+  },
+  "amazon-truff-original": {
+    partner: "amazon",
+    product: "TRUFF Original Black Truffle Hot Sauce",
+    url: buildAmazonSearchUrl("TRUFF original black truffle hot sauce"),
+    category: "hot_sauce",
+    badge: "Premium shelf piece",
+    description: "Black truffle oil, agave nectar, and ripe chili blend — a genuinely luxurious bottle that earns its price on pasta, pizza, eggs, and steak. The most giftable hot sauce on the market.",
+    priceLabel: "$18-$25",
+    bestFor: "Pasta, pizza, steak, and impressive gifting",
+    cuisines: ["italian", "american"],
+    heatLevels: ["mild", "medium"],
+    seasonalMoments: ["weeknight", "holiday_gifting", "brunch"],
+    searchTerms: ["truff original black truffle hot sauce", "truff hot sauce", "truff"]
+  },
+  "amazon-daves-ghost-pepper": {
+    partner: "amazon",
+    product: "Dave's Gourmet Ghost Pepper Hot Sauce",
+    url: buildAmazonSearchUrl("Dave's Gourmet ghost pepper hot sauce"),
+    category: "hot_sauce",
+    badge: "Ghost heat",
+    description: "Clean ghost pepper heat without novelty gimmicks — a usable bottle for people who've outgrown habanero and want the next serious step up.",
+    priceLabel: "$9-$14",
+    bestFor: "Wings, chili, ramen, and seasoned cooks pushing heat",
+    cuisines: ["american"],
+    heatLevels: ["inferno"],
+    seasonalMoments: ["game_day", "cold_weather", "holiday_gifting"]
+  },
+  "amazon-mad-dog-357": {
+    partner: "amazon",
+    product: "Mad Dog 357 Ghost Pepper Hot Sauce",
+    url: buildAmazonSearchUrl("Mad Dog 357 ghost pepper hot sauce"),
+    category: "hot_sauce",
+    badge: "357k Scoville",
+    description: "A cult-status ghost pepper sauce with serious collector appeal. Use it in drops for chili, soups, or challenge situations — not as a table pour.",
+    priceLabel: "$11-$16",
+    bestFor: "Dashes in chili, soups, and collector shelves",
+    cuisines: ["american"],
+    heatLevels: ["inferno", "reaper"],
+    seasonalMoments: ["game_day", "holiday_gifting", "cold_weather"]
+  },
+  "amazon-el-yucateco-red-habanero": {
+    partner: "amazon",
+    product: "El Yucateco Red Habanero Sauce",
+    url: buildAmazonSearchUrl("El Yucateco red habanero sauce"),
+    category: "hot_sauce",
+    badge: "Red vs green",
+    description: "The sweeter, deeper-flavored counterpart to the green — more tomato and roasted chili, less brightness. Better on red meats, enchiladas, and anything going toward the oven.",
+    priceLabel: "$4-$8",
+    bestFor: "Enchiladas, red meat, and roasted dishes",
+    cuisines: ["mexican", "american"],
+    heatLevels: ["hot", "inferno"],
+    seasonalMoments: ["weeknight", "grill_season", "cold_weather"]
+  },
+  "amazon-mango-habanero-sauce": {
+    partner: "amazon",
+    product: "Mango Habanero Hot Sauce",
+    url: buildAmazonSearchUrl("mango habanero hot sauce"),
+    category: "hot_sauce",
+    badge: "Tropical heat",
+    description: "Sweet mango and fiery habanero in a bottle — the bright, fruity dimension that pairs with grilled chicken, shrimp skewers, and anything headed to the grill in summer.",
+    priceLabel: "$8-$14",
+    bestFor: "Grilled shrimp, chicken, and summer cookouts",
+    cuisines: ["caribbean", "american", "jamaican"],
+    heatLevels: ["medium", "hot"],
+    seasonalMoments: ["grill_season", "summer_fresh", "tailgate", "seafood_night"]
+  },
+  "amazon-walkerswood-scotch-bonnet": {
+    partner: "amazon",
+    product: "Walkerswood Scotch Bonnet Pepper Sauce",
+    url: buildAmazonSearchUrl("Walkerswood scotch bonnet pepper sauce"),
+    category: "hot_sauce",
+    badge: "Jamaican original",
+    description: "Authentic scotch bonnet sauce from Jamaica — fruity, bright, and deeply aromatic. The right bottle for jerk chicken, oxtail, rice and peas, and anything Caribbean.",
+    priceLabel: "$7-$12",
+    bestFor: "Jerk chicken, oxtail, rice dishes, and Caribbean cooking",
+    cuisines: ["jamaican", "caribbean"],
+    heatLevels: ["hot", "inferno"],
+    seasonalMoments: ["grill_season", "summer_fresh", "weeknight"],
+    searchTerms: ["walkerswood scotch bonnet pepper sauce", "walkerswood scotch bonnet", "walkerswood"]
+  },
+  "amazon-encona-original": {
+    partner: "amazon",
+    product: "Encona Original Hot Pepper Sauce",
+    url: buildAmazonSearchUrl("Encona original hot pepper sauce"),
+    category: "hot_sauce",
+    badge: "Caribbean pour",
+    description: "A fruity, mild-to-medium Caribbean sauce with a tropical edge — approachable enough for everyday use, interesting enough to stand out at a BBQ or seafood dinner.",
+    priceLabel: "$7-$12",
+    bestFor: "Seafood, rice, grilled fish, and Caribbean spreads",
+    cuisines: ["caribbean", "jamaican", "west_african"],
+    heatLevels: ["mild", "medium"],
+    seasonalMoments: ["grill_season", "summer_fresh", "seafood_night", "brunch"]
+  },
+  "amazon-nandos-peri-peri-hot": {
+    partner: "amazon",
+    product: "Nando's Peri-Peri Hot Sauce",
+    url: buildAmazonSearchUrl("Nando's peri peri hot sauce"),
+    category: "hot_sauce",
+    badge: "Restaurant bottle",
+    description: "The famous Nando's African bird's eye chili sauce — lemon, garlic, and real peri-peri heat. Easy to use anywhere you'd use any hot sauce but with more dimension.",
+    priceLabel: "$8-$14",
+    bestFor: "Chicken, seafood, and restaurant-style finishing",
+    cuisines: ["west_african", "nigerian", "american"],
+    heatLevels: ["hot"],
+    seasonalMoments: ["weeknight", "grill_season", "tailgate"]
+  },
+  "amazon-yellowbird-ghost-pepper": {
+    partner: "amazon",
+    product: "Yellowbird Ghost Pepper Hot Sauce",
+    url: buildAmazonSearchUrl("Yellowbird ghost pepper hot sauce"),
+    category: "hot_sauce",
+    badge: "Clean ghost heat",
+    description: "Yellowbird's entry into ghost pepper territory — same clean label and fruit-forward approach, real ghost heat. The ghost sauce that tastes like food, not a contest.",
+    priceLabel: "$8-$14",
+    bestFor: "Wings, ramen, and heat chasers who want flavor too",
+    cuisines: ["american"],
+    heatLevels: ["inferno"],
+    seasonalMoments: ["game_day", "cold_weather", "tailgate"]
+  },
+  "amazon-tabasco-green": {
+    partner: "amazon",
+    product: "Tabasco Green Jalapeño Sauce",
+    url: buildAmazonSearchUrl("Tabasco green jalapeno sauce"),
+    category: "hot_sauce",
+    badge: "Jalapeño brightness",
+    description: "Milder than the red, brighter and more herbaceous — great on Mexican food, omelets, grilled fish, and anyone who wants acid with a green, vegetal edge.",
+    priceLabel: "$4-$8",
+    bestFor: "Omelets, Mexican dishes, grilled fish, and mild-heat crowds",
+    cuisines: ["american", "mexican"],
+    heatLevels: ["mild"],
+    seasonalMoments: ["brunch", "weeknight", "summer_fresh", "seafood_night"]
+  },
+  "amazon-cholula-sweet-habanero": {
+    partner: "amazon",
+    product: "Cholula Sweet Habanero Hot Sauce",
+    url: buildAmazonSearchUrl("Cholula sweet habanero hot sauce"),
+    category: "hot_sauce",
+    badge: "Sweet heat balance",
+    description: "Warm honey-habanero sweetness before the heat kicks in — the right bottle when you want both dimensions at once. Works as a glaze or a drizzle.",
+    priceLabel: "$5-$9",
+    bestFor: "Glazes, dipping sauce, pizza, and sweet-spicy dishes",
+    cuisines: ["american", "mexican"],
+    heatLevels: ["medium"],
+    seasonalMoments: ["weeknight", "brunch", "grill_season"]
+  },
+  "amazon-pain-is-good-louisiana": {
+    partner: "amazon",
+    product: "Pain is Good Louisiana Style Hot Sauce",
+    url: buildAmazonSearchUrl("Pain is Good Louisiana style hot sauce"),
+    category: "hot_sauce",
+    badge: "Louisiana upgrade",
+    description: "A more complex, slightly sweeter Louisiana-style with better body than the commodity brands. Good for gumbo, fried seafood, and people who want something beyond Crystal.",
+    priceLabel: "$7-$12",
+    bestFor: "Gumbo, fried seafood, and Louisiana-style meals",
+    cuisines: ["cajun", "american"],
+    heatLevels: ["medium", "hot"],
+    seasonalMoments: ["weeknight", "game_day", "seafood_night"]
+  },
+  "amazon-siete-jalapeño-sauce": {
+    partner: "amazon",
+    product: "Siete Jalapeño Hot Sauce",
+    url: buildAmazonSearchUrl("Siete jalapeno hot sauce"),
+    category: "hot_sauce",
+    badge: "Clean label",
+    description: "A grain-free, clean-ingredient jalapeño sauce with real brightness. Hits for people who want the heat without vinegar overload or industrial fermentation.",
+    priceLabel: "$7-$12",
+    bestFor: "Tacos, bowls, eggs, and clean-eating cooks",
+    cuisines: ["mexican", "american"],
+    heatLevels: ["medium"],
+    seasonalMoments: ["weeknight", "brunch", "summer_fresh"]
+  },
+  "amazon-gringo-bandito": {
+    partner: "amazon",
+    product: "Gringo Bandito Hot Sauce",
+    url: buildAmazonSearchUrl("Gringo Bandito hot sauce"),
+    category: "hot_sauce",
+    badge: "Cult brand",
+    description: "Dexter Holland's (Offspring) California hot sauce — habanero-forward, thick-textured, and genuinely good. The personality pick that tastes like an actual recommendation.",
+    priceLabel: "$8-$14",
+    bestFor: "Tacos, nachos, and people who like a story with their sauce",
+    cuisines: ["mexican", "american"],
+    heatLevels: ["medium", "hot"],
+    seasonalMoments: ["game_day", "tailgate", "weeknight"]
   },
   "amazon-torchbearer-garlic-reaper": {
     partner: "amazon",
@@ -489,7 +872,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Dumplings, noodles, and fried eggs",
     cuisines: ["szechuan", "chinese"],
     heatLevels: ["medium", "hot"],
-    seasonalMoments: ["weeknight", "brunch", "holiday_gifting"]
+    seasonalMoments: ["weeknight", "brunch", "holiday_gifting"],
+    searchTerms: ["fly by jing sichuan gold", "fly by jing", "sichuan gold"]
   },
   "amazon-queen-majesty-scotch-bonnet-ginger": {
     partner: "amazon",
@@ -607,7 +991,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     bestFor: "Finishing sweet-spicy dishes",
     cuisines: ["american", "italian"],
     heatLevels: ["mild", "medium", "hot"],
-    seasonalMoments: ["weeknight", "game_day", "holiday_gifting", "brunch"]
+    seasonalMoments: ["weeknight", "game_day", "holiday_gifting", "brunch"],
+    searchTerms: ["mike's hot honey", "mikes hot honey", "hot honey", "spicy honey"]
   },
   "heatonist-los-calientes-rojo": {
     partner: "heatonist",
@@ -722,20 +1107,103 @@ export const HOME_FEATURED_AFFILIATE_KEYS = [
   "amazon-hot-sauce-gift-box"
 ] as const;
 
+// All hot sauce SKUs surfaced across the site
 export const HOT_SAUCE_SPOTLIGHT_KEYS = [
-  "heatonist-los-calientes-rojo",
-  "amazon-yellowbird-habanero",
-  "amazon-secret-aardvark-habanero",
-  "amazon-valentina-black-label",
-  "amazon-queen-majesty-scotch-bonnet-ginger",
-  "amazon-fly-by-jing-sichuan-gold",
-  "amazon-marie-sharps-belizean-heat",
-  "amazon-tabasco-chipotle",
+  // Everyday classics — every household staple
+  "amazon-tabasco-original",
+  "amazon-franks-redhot",
+  "amazon-cholula-original",
+  "amazon-tapatio",
   "amazon-crystal-hot-sauce",
+  "amazon-texas-pete",
+  "amazon-valentina-red-label",
+  // Mid-range crowd pleasers
+  "amazon-yellowbird-habanero",
+  "amazon-yellowbird-serrano",
+  "amazon-secret-aardvark-habanero",
+  "heatonist-los-calientes-rojo",
+  "amazon-huy-fong-sriracha",
   "amazon-el-yucateco-green-habanero",
+  "amazon-el-yucateco-red-habanero",
+  "amazon-siete-jalapeño-sauce",
+  "amazon-cholula-green-tomatillo",
+  "amazon-cholula-chili-garlic",
+  "amazon-cholula-sweet-habanero",
+  "amazon-tabasco-green",
+  "amazon-tabasco-chipotle",
+  "amazon-gringo-bandito",
+  // Wing-specific
+  "amazon-franks-buffalo-wing",
+  // Caribbean & global
+  "amazon-queen-majesty-scotch-bonnet-ginger",
+  "amazon-marie-sharps-belizean-heat",
+  "amazon-walkerswood-scotch-bonnet",
+  "amazon-encona-original",
+  "amazon-nandos-peri-peri-hot",
+  "amazon-mango-habanero-sauce",
+  // Asian origin
+  "amazon-fly-by-jing-sichuan-gold",
+  // Premium shelf
+  "amazon-truff-original",
+  "amazon-valentina-black-label",
+  // Serious heat tier
+  "amazon-daves-ghost-pepper",
+  "amazon-yellowbird-ghost-pepper",
+  "amazon-mad-dog-357",
   "amazon-bravado-black-garlic-reaper",
   "amazon-torchbearer-garlic-reaper",
+  // Louisiana upgrade
+  "amazon-pain-is-good-louisiana",
+  // Collections / bundles
   "heatonist-hot-ones-season-22"
+] as const;
+
+// Wing night picks
+export const WING_SAUCE_KEYS = [
+  "amazon-franks-redhot",
+  "amazon-franks-buffalo-wing",
+  "amazon-crystal-hot-sauce",
+  "amazon-tabasco-original",
+  "amazon-texas-pete",
+  "amazon-yellowbird-habanero",
+  "amazon-daves-ghost-pepper"
+] as const;
+
+// Premium / gifting tier
+export const PREMIUM_HOT_SAUCE_KEYS = [
+  "amazon-truff-original",
+  "amazon-bravado-black-garlic-reaper",
+  "amazon-fly-by-jing-sichuan-gold",
+  "amazon-marie-sharps-belizean-heat",
+  "amazon-yellowbird-ghost-pepper",
+  "heatonist-los-calientes-rojo"
+] as const;
+
+// Budget-friendly (under ~$10)
+export const BUDGET_HOT_SAUCE_KEYS = [
+  "amazon-valentina-red-label",
+  "amazon-valentina-black-label",
+  "amazon-cholula-original",
+  "amazon-tapatio",
+  "amazon-crystal-hot-sauce",
+  "amazon-tabasco-original",
+  "amazon-texas-pete",
+  "amazon-el-yucateco-green-habanero",
+  "amazon-el-yucateco-red-habanero",
+  "amazon-tabasco-green",
+  "amazon-tabasco-chipotle"
+] as const;
+
+// Heat ladder — ordered mild → reaper
+export const HEAT_LADDER_KEYS = [
+  "amazon-cholula-original",
+  "amazon-yellowbird-serrano",
+  "amazon-yellowbird-habanero",
+  "amazon-el-yucateco-green-habanero",
+  "amazon-daves-ghost-pepper",
+  "amazon-yellowbird-ghost-pepper",
+  "amazon-mad-dog-357",
+  "amazon-torchbearer-garlic-reaper"
 ] as const;
 
 export const KITCHEN_GEAR_KEYS = [
@@ -757,6 +1225,8 @@ export const PANTRY_HEAT_KEYS = [
   "amazon-berbere-blend",
   "amazon-chili-crisp",
   "amazon-harissa-paste",
+  "amazon-ras-el-hanout",
+  "amazon-chermoula-paste",
   "amazon-jerk-seasoning",
   "amazon-chipotle-in-adobo",
   "amazon-cajun-seasoning",
@@ -780,11 +1250,82 @@ export const SUBSCRIPTION_KEYS = [
 export const AUTOMATED_SHOP_PICK_KEYS = Array.from(
   new Set([
     ...HOT_SAUCE_SPOTLIGHT_KEYS,
+    ...WING_SAUCE_KEYS,
+    ...PREMIUM_HOT_SAUCE_KEYS,
+    ...BUDGET_HOT_SAUCE_KEYS,
+    ...HEAT_LADDER_KEYS,
     ...KITCHEN_GEAR_KEYS,
     ...PANTRY_HEAT_KEYS,
     ...SUBSCRIPTION_KEYS
   ])
 );
+
+// ---------------------------------------------------------------------------
+// Catalog-derived inline term list
+// ---------------------------------------------------------------------------
+
+export type InlineCatalogTerm = {
+  pattern: string;
+  key: string;
+};
+
+/**
+ * Derives the set of text patterns that should trigger inline affiliate links
+ * directly from the AFFILIATE_LINKS catalog.
+ *
+ * Rules, applied in order:
+ *  1. If the entry has explicit `searchTerms`, use exactly those.
+ *  2. Otherwise derive from the catalog key (strip common prefixes, hyphens→spaces)
+ *     and from the product name (lowercased).
+ *
+ * The returned list is sorted longest-pattern-first so the regex engine matches
+ * the most specific phrase before falling back to shorter sub-phrases.
+ *
+ * Dynamic catalog entries (auto-grown from gap terms) can be merged in by
+ * callers: [...buildInlineTermsFromCatalog(), ...dynamicTerms]
+ */
+export function buildInlineTermsFromCatalog(
+  extraEntries?: Record<string, Pick<AffiliateLinkDefinition, "product" | "searchTerms">>
+): InlineCatalogTerm[] {
+  const terms: InlineCatalogTerm[] = [];
+  const seen = new Set<string>(); // deduplicate pattern+key pairs
+
+  const allEntries: Array<[string, Pick<AffiliateLinkDefinition, "product" | "searchTerms">]> = [
+    ...Object.entries(AFFILIATE_LINKS),
+    ...Object.entries(extraEntries ?? {})
+  ];
+
+  for (const [key, entry] of allEntries) {
+    const patterns: string[] = [];
+
+    if (entry.searchTerms?.length) {
+      patterns.push(...entry.searchTerms);
+    } else {
+      // Derive from key: strip common affiliate prefixes, replace hyphens with spaces
+      const fromKey = key
+        .replace(/^(amazon|heatonist|fuego-box|pepper-joe|mike)-/, "")
+        .replace(/-/g, " ")
+        .toLowerCase()
+        .trim();
+      if (fromKey) patterns.push(fromKey);
+
+      // Also add product name lowercased (may differ from key-derived form)
+      const fromProduct = entry.product.toLowerCase().trim();
+      if (fromProduct && fromProduct !== fromKey) patterns.push(fromProduct);
+    }
+
+    for (const pattern of patterns) {
+      const dedupeKey = `${key}::${pattern}`;
+      if (!seen.has(dedupeKey) && pattern.length >= 4) {
+        seen.add(dedupeKey);
+        terms.push({ pattern, key });
+      }
+    }
+  }
+
+  // Sort longest pattern first so multi-word phrases match before sub-words
+  return terms.sort((a, b) => b.pattern.length - a.pattern.length);
+}
 
 export function getAffiliateLinkEntries(
   keys: readonly string[]

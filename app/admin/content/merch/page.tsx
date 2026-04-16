@@ -6,8 +6,69 @@ import {
 } from "@/lib/actions/admin-content";
 import { AdminPage } from "@/components/admin/admin-page";
 import { ContentTable } from "@/components/admin/content-table";
+import { flags } from "@/lib/env";
 import { merchThemeOptions } from "@/lib/merch";
 import { getAdminMerchProducts } from "@/lib/services/content";
+import { createSupabaseAdminClient } from "@/lib/supabase/server";
+
+const ADMIN_TIME_ZONE = "America/New_York";
+
+type MerchAuditSummary = {
+  hasHumanTouch: boolean;
+  lastHumanAction?: string;
+  lastHumanActionAt?: string;
+};
+
+async function getMerchAuditSummaryMap(productIds: number[]) {
+  const summaries = new Map<number, MerchAuditSummary>();
+  if (!productIds.length || !flags.hasSupabaseAdmin) {
+    return summaries;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return summaries;
+  }
+
+  const { data } = await supabase
+    .from("admin_audit_log")
+    .select("target_id, action, performed_at")
+    .eq("target_type", "merch_product")
+    .in("target_id", productIds.map(String))
+    .in("action", ["create_merch_product", "edit_merch_product", "update_merch_product"])
+    .order("performed_at", { ascending: false });
+
+  for (const row of data ?? []) {
+    const productId = Number(row.target_id);
+    if (!Number.isFinite(productId) || summaries.has(productId)) {
+      continue;
+    }
+
+    summaries.set(productId, {
+      hasHumanTouch: true,
+      lastHumanAction: row.action ?? undefined,
+      lastHumanActionAt: row.performed_at ?? undefined
+    });
+  }
+
+  return summaries;
+}
+
+function formatMerchActionLabel(action?: string) {
+  if (action === "create_merch_product") return "Created manually";
+  if (action === "edit_merch_product") return "Edited manually";
+  if (action === "update_merch_product") return "State updated";
+  return "—";
+}
+
+function formatAdminTimestamp(value?: string) {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: ADMIN_TIME_ZONE
+  }).format(new Date(value));
+}
 
 export default async function AdminMerchPage({
   searchParams
@@ -15,6 +76,7 @@ export default async function AdminMerchPage({
   searchParams?: { created?: string; updated?: string; error?: string };
 }) {
   const products = await getAdminMerchProducts();
+  const merchAuditMap = await getMerchAuditSummaryMap(products.map((p) => p.id));
 
   return (
     <AdminPage
@@ -24,14 +86,22 @@ export default async function AdminMerchPage({
       <ContentTable
         title="Shop picks"
         filters={["status", "availability", "featured", "category"]}
-        rows={products.map((product) => ({
-          name: product.name,
-          category: product.category,
-          availability: product.availability,
-          price: product.priceLabel,
-          featured: product.featured,
-          status: product.status
-        }))}
+        rows={products.map((product) => {
+          const auditSummary = merchAuditMap.get(product.id);
+
+          return {
+            name: product.name,
+            created: formatAdminTimestamp(product.createdAt),
+            lastHumanTouch: formatAdminTimestamp(auditSummary?.lastHumanActionAt),
+            touchType: formatMerchActionLabel(auditSummary?.lastHumanAction),
+            category: product.category,
+            availability: product.availability,
+            price: product.priceLabel,
+            featured: product.featured ? "Yes" : "No",
+            sortOrder: product.sortOrder,
+            status: product.status
+          };
+        })}
       />
       <div className="panel-light p-6">
         <h2 className="font-display text-4xl text-charcoal">Create a shop pick</h2>
@@ -147,7 +217,10 @@ export default async function AdminMerchPage({
         </form>
       </div>
       <div className="grid gap-4">
-        {products.map((product) => (
+        {products.map((product) => {
+          const auditSummary = merchAuditMap.get(product.id);
+
+          return (
           <article key={product.id} className="panel-light p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
@@ -164,6 +237,9 @@ export default async function AdminMerchPage({
               </div>
             </div>
             <div className="mt-4 flex flex-wrap gap-4 text-sm text-charcoal/55">
+              <span>Created: {formatAdminTimestamp(product.createdAt)}</span>
+              <span>Last human touch: {formatAdminTimestamp(auditSummary?.lastHumanActionAt)}</span>
+              <span>Touch type: {formatMerchActionLabel(auditSummary?.lastHumanAction)}</span>
               <span>Price: {product.priceLabel}</span>
               <span>Featured: {product.featured ? "Yes" : "No"}</span>
               <span>Sort order: {product.sortOrder}</span>
@@ -205,7 +281,8 @@ export default async function AdminMerchPage({
               </form>
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
     </AdminPage>
   );

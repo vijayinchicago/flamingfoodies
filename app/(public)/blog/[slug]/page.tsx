@@ -3,12 +3,15 @@ import { notFound } from "next/navigation";
 
 import { AdSlot } from "@/components/ads/ad-slot";
 import { CommentSection } from "@/components/community/comment-section";
+import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { PinterestSaveButton } from "@/components/content/pinterest-save-button";
 import { ShareBar } from "@/components/content/share-bar";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { ArticleSchema } from "@/components/schema/article-schema";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { getAdRuntimeConfig } from "@/lib/ads";
+import { injectInlineAffiliateLinks } from "@/lib/inline-affiliate-links";
+import { getDynamicInlineTerms } from "@/lib/services/catalog-auto-grow";
 import { buildMetadata } from "@/lib/seo";
 import { absoluteUrl, formatDate, markdownToHtml } from "@/lib/utils";
 import { getBlogPost, getBlogPosts } from "@/lib/services/content";
@@ -49,8 +52,12 @@ export default async function BlogPostPage({
 
   if (!post) notFound();
 
-  const html = await markdownToHtml(post.content);
-  const ads = await getAdRuntimeConfig();
+  const [rawHtml, dynamicTerms, ads] = await Promise.all([
+    markdownToHtml(post.content),
+    getDynamicInlineTerms(),
+    getAdRuntimeConfig()
+  ]);
+  const html = injectInlineAffiliateLinks(rawHtml, `/blog/${post.slug}`, dynamicTerms);
 
   return (
     <article className="container-shell py-16">
@@ -78,6 +85,9 @@ export default async function BlogPostPage({
         <span>{post.authorName}</span>
         <span>{formatDate(post.publishedAt)}</span>
         <span>{post.readTimeMinutes || 4} min read</span>
+      </div>
+      <div className="mt-5 max-w-3xl">
+        <AffiliateDisclosure compact />
       </div>
       {post.imageUrl ? (
         <div className="relative mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05]">
@@ -131,6 +141,20 @@ export default async function BlogPostPage({
         className="prose-guide mt-12"
         dangerouslySetInnerHTML={{ __html: html }}
       />
+      {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.blogInArticle ? (
+        <div className="mt-10 max-w-4xl">
+          <AdSlot
+            clientId={ads.clientId}
+            slotId={ads.slotIds.blogInArticle}
+            slotName="blog_post_in_article"
+            placement="blog_post_body"
+            format="in-article"
+            contentType="blog_post"
+            contentId={post.id}
+            contentSlug={post.slug}
+          />
+        </div>
+      ) : null}
       <div className="mt-12">
         <CommentSection
           contentType="blog_post"

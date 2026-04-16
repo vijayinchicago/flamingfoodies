@@ -7,7 +7,96 @@ import { AdminPage } from "@/components/admin/admin-page";
 import { ContentTable } from "@/components/admin/content-table";
 import { RichTextEditor } from "@/components/admin/rich-text-editor";
 import { formatContentSourceLabel } from "@/lib/content-labels";
+import { flags } from "@/lib/env";
 import { getAdminBlogPosts } from "@/lib/services/content";
+import { createSupabaseAdminClient } from "@/lib/supabase/server";
+
+const ADMIN_TIME_ZONE = "America/New_York";
+
+type BlogAuditSummary = {
+  hasHumanTouch: boolean;
+  lastHumanAction?: string;
+  lastHumanActionAt?: string;
+};
+
+async function getBlogAuditSummaryMap(postIds: number[]) {
+  const summaries = new Map<number, BlogAuditSummary>();
+  if (!postIds.length || !flags.hasSupabaseAdmin) {
+    return summaries;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return summaries;
+  }
+
+  const { data } = await supabase
+    .from("admin_audit_log")
+    .select("target_id, action, performed_at")
+    .eq("target_type", "blog_post")
+    .in("target_id", postIds.map(String))
+    .in("action", ["create_blog_post", "edit_blog_post", "update_blog_post"])
+    .order("performed_at", { ascending: false });
+
+  for (const row of data ?? []) {
+    const postId = Number(row.target_id);
+    if (!Number.isFinite(postId) || summaries.has(postId)) {
+      continue;
+    }
+
+    summaries.set(postId, {
+      hasHumanTouch: true,
+      lastHumanAction: row.action ?? undefined,
+      lastHumanActionAt: row.performed_at ?? undefined
+    });
+  }
+
+  return summaries;
+}
+
+function formatBlogOriginLabel(
+  source?: string,
+  status?: string,
+  auditSummary?: BlogAuditSummary
+) {
+  if (source === "ai_generated") {
+    if (auditSummary?.hasHumanTouch) {
+      return "Agent + human edit";
+    }
+    return status === "published" ? "Agent auto-published" : "Agent draft";
+  }
+  return "Manual";
+}
+
+function formatBlogWorkflowLabel(
+  source?: string,
+  status?: string,
+  auditSummary?: BlogAuditSummary
+) {
+  if (source === "editorial") {
+    return "Manual editor";
+  }
+  if (auditSummary?.hasHumanTouch) {
+    return "Reviewed by human";
+  }
+  return status === "published" ? "Autonomous publish" : "Awaiting review";
+}
+
+function formatBlogActionLabel(action?: string) {
+  if (action === "create_blog_post") return "Created manually";
+  if (action === "edit_blog_post") return "Edited manually";
+  if (action === "update_blog_post") return "State updated";
+  return "—";
+}
+
+function formatAdminTimestamp(value?: string) {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: ADMIN_TIME_ZONE
+  }).format(new Date(value));
+}
 
 export default async function AdminBlogPage({
   searchParams
@@ -15,6 +104,7 @@ export default async function AdminBlogPage({
   searchParams?: { created?: string; updated?: string; error?: string };
 }) {
   const posts = await getAdminBlogPosts();
+  const blogAuditMap = await getBlogAuditSummaryMap(posts.map((p) => p.id));
   const reviewQueue = posts.filter(
     (post) => (post.status === "pending_review" || post.source === "ai_generated") && post.status !== "published"
   );
@@ -193,14 +283,24 @@ export default async function AdminBlogPage({
       <ContentTable
         title="Blog posts"
         filters={["status", "source", "category"]}
-        rows={posts.map((post) => ({
-          title: post.title,
-          category: post.category,
-          source: formatContentSourceLabel(post.source),
-          status: post.status,
-          featured: post.featured,
-          views: post.viewCount
-        }))}
+        rows={displayPosts.map((post) => {
+          const auditSummary = blogAuditMap.get(post.id);
+
+          return {
+            title: post.title,
+            origin: formatBlogOriginLabel(post.source, post.status, auditSummary),
+            workflow: formatBlogWorkflowLabel(post.source, post.status, auditSummary),
+            source: formatContentSourceLabel(post.source),
+            created: formatAdminTimestamp(post.createdAt),
+            published: formatAdminTimestamp(post.publishedAt),
+            lastHumanTouch: formatAdminTimestamp(auditSummary?.lastHumanActionAt),
+            touchType: formatBlogActionLabel(auditSummary?.lastHumanAction),
+            featured: post.featured ? "Yes" : "No",
+            category: post.category,
+            views: post.viewCount,
+            status: post.status
+          };
+        })}
       />
       <div className="panel-light p-6">
         <h2 className="font-display text-4xl text-charcoal">Create a blog post</h2>
@@ -283,6 +383,7 @@ export default async function AdminBlogPage({
       <div className="grid gap-4">
         {displayPosts.map((post) => {
           const qaReport = buildBlogQaReport(post);
+          const auditSummary = blogAuditMap.get(post.id);
 
           return (
             <article key={post.id} className="panel-light p-6">
@@ -302,10 +403,15 @@ export default async function AdminBlogPage({
               </div>
               <div className="mt-4 flex flex-wrap gap-4 text-sm text-charcoal/55">
                 <span>Slug: {post.slug}</span>
+                <span>Origin: {formatBlogOriginLabel(post.source, post.status, auditSummary)}</span>
+                <span>Workflow: {formatBlogWorkflowLabel(post.source, post.status, auditSummary)}</span>
+                <span>Created: {formatAdminTimestamp(post.createdAt)}</span>
+                <span>Published: {formatAdminTimestamp(post.publishedAt)}</span>
+                <span>Last human touch: {formatAdminTimestamp(auditSummary?.lastHumanActionAt)}</span>
+                <span>Touch type: {formatBlogActionLabel(auditSummary?.lastHumanAction)}</span>
                 <span>Views: {post.viewCount}</span>
                 <span>Featured: {post.featured ? "Yes" : "No"}</span>
                 <span>QA: {qaReport.status}</span>
-                <span>Source: {formatContentSourceLabel(post.source)}</span>
               </div>
               {qaReport.blockers.length ? (
                 <div className="mt-4 rounded-[1.5rem] border border-rose-200 bg-rose-50/80 p-4 text-sm text-rose-700">

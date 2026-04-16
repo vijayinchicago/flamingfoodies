@@ -43,6 +43,7 @@ import {
   sampleReviews
 } from "@/lib/sample-data";
 import { getSeasonalShopSeedProducts } from "@/lib/services/shop-automation";
+import { triggerContentShopSync } from "@/lib/services/content-shop-signals";
 import { createSocialPostsForContent } from "@/lib/services/social";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -1303,6 +1304,10 @@ export async function updateBlogPostStateAction(formData: FormData) {
     }
   });
 
+  if (parsed.data.intent === "publish") {
+    void triggerContentShopSync(data.id, "blog_post");
+  }
+
   revalidateBlogPaths(data.slug);
   redirect(`${redirectTo}?updated=1`);
 }
@@ -1745,6 +1750,10 @@ export async function updateRecipeStateAction(formData: FormData) {
     metadata: { intent: parsed.data.intent }
   });
 
+  if (parsed.data.intent === "publish") {
+    void triggerContentShopSync(data.id, "recipe");
+  }
+
   revalidateRecipePaths(data.slug);
   redirect(`${redirectTo}?updated=1`);
 }
@@ -2184,6 +2193,10 @@ export async function updateReviewStateAction(formData: FormData) {
     targetId: String(data.id),
     metadata: { intent: parsed.data.intent }
   });
+
+  if (parsed.data.intent === "publish") {
+    void triggerContentShopSync(data.id, "review");
+  }
 
   revalidateReviewPaths(data.slug);
   redirect(`${redirectTo}?updated=1`);

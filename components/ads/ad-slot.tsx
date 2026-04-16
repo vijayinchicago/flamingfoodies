@@ -17,6 +17,7 @@ export function AdSlot({
   slotId,
   slotName,
   placement,
+  format = "auto",
   className,
   contentType,
   contentId,
@@ -26,6 +27,7 @@ export function AdSlot({
   slotId?: string;
   slotName: string;
   placement: string;
+  format?: "auto" | "in-article";
   className?: string;
   contentType?: string;
   contentId?: number;
@@ -63,6 +65,24 @@ export function AdSlot({
 
   if (!slotId || !clientId) {
     return null;
+  }
+
+  if (format === "in-article") {
+    return (
+      <div className={cn("not-prose print:hidden my-2", className)}>
+        <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-[0.24em] text-cream/40">
+          Sponsored
+        </p>
+        <ins
+          className="adsbygoogle block w-full"
+          style={{ display: "block", textAlign: "center" }}
+          data-ad-layout="in-article"
+          data-ad-format="fluid"
+          data-ad-client={clientId}
+          data-ad-slot={slotId}
+        />
+      </div>
+    );
   }
 
   return (

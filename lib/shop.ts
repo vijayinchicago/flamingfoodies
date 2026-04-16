@@ -9,7 +9,7 @@ export interface ShopMerchCollection {
 }
 
 export interface ShopAffiliateCollection {
-  key: "starter-kit" | "taco-night" | "under-15" | "gift-guide";
+  key: "starter-kit" | "taco-night" | "under-15" | "gift-guide" | "wing-night" | "heat-ladder" | "world-tour" | "premium-flex";
   title: string;
   description: string;
   ctaLabel: string;
@@ -69,7 +69,7 @@ export function getShopAffiliateCollections(): ShopAffiliateCollection[] {
       key: "starter-kit",
       title: "Starter kit for the first hot sauce lineup",
       description:
-        "One useful bottle, one pantry staple, and one tool that instantly make weeknight cooking more fun.",
+        "One useful bottle that works everywhere, one pantry staple that elevates any weeknight, and one tool upgrade that pays for itself fast.",
       ctaLabel: "Build the starter kit",
       items: getAffiliateLinkEntries([
         "amazon-secret-aardvark-habanero",
@@ -81,34 +81,82 @@ export function getShopAffiliateCollections(): ShopAffiliateCollection[] {
       key: "taco-night",
       title: "Taco night lane",
       description:
-        "A bright red bottle, an everyday pour, and the tool that makes taco night feel more complete.",
+        "Three bottles that together cover every taco spread: an everyday red pour, a bright green option, and a garlic-forward finisher for the carne asada.",
       ctaLabel: "Build taco night",
       items: getAffiliateLinkEntries([
-        "heatonist-los-calientes-rojo",
-        "amazon-el-yucateco-green-habanero",
-        "amazon-tortilla-press"
+        "amazon-tapatio",
+        "amazon-cholula-green-tomatillo",
+        "amazon-cholula-chili-garlic"
+      ])
+    },
+    {
+      key: "wing-night",
+      title: "Wing night essentials",
+      description:
+        "The three bottles every wing spread needs: the classic cayenne base, the ready-to-toss buffalo sauce, and a bright habanero for people who want real heat.",
+      ctaLabel: "Set up wing night",
+      items: getAffiliateLinkEntries([
+        "amazon-franks-redhot",
+        "amazon-franks-buffalo-wing",
+        "amazon-yellowbird-habanero"
       ])
     },
     {
       key: "under-15",
       title: "Under-$15 favorites",
       description:
-        "Three easy buys under $15: one bottle, one pantry staple, and one finishing touch.",
+        "The best bottles money can buy without spending much — a Mexican classic, a Louisiana vinegar staple, and a pantry-friendly finishing drizzle.",
       ctaLabel: "Shop under $15",
       items: getAffiliateLinkEntries([
+        "amazon-cholula-original",
         "amazon-crystal-hot-sauce",
-        "amazon-chipotle-in-adobo",
         "mike-hot-honey-original"
+      ])
+    },
+    {
+      key: "heat-ladder",
+      title: "The heat ladder",
+      description:
+        "Start mild and work your way up: jalapeño brightness to serrano medium to habanero to ghost pepper. One bottle at each level so you know exactly where your ceiling is.",
+      ctaLabel: "Climb the heat ladder",
+      items: getAffiliateLinkEntries([
+        "amazon-yellowbird-serrano",
+        "amazon-yellowbird-habanero",
+        "amazon-daves-ghost-pepper"
+      ])
+    },
+    {
+      key: "world-tour",
+      title: "Around-the-world bottle set",
+      description:
+        "One bottle from four different hot sauce traditions: a Jamaican scotch bonnet, a Sichuan oil-and-pepper, an African peri-peri, and a Thai garlic sriracha.",
+      ctaLabel: "Shop the world tour",
+      items: getAffiliateLinkEntries([
+        "amazon-walkerswood-scotch-bonnet",
+        "amazon-fly-by-jing-sichuan-gold",
+        "amazon-nandos-peri-peri-hot"
+      ])
+    },
+    {
+      key: "premium-flex",
+      title: "Premium shelf picks",
+      description:
+        "When you want bottles that feel like a recommendation, not a grocery run. TRUFF is the one non-hot-heads-can-still-gift it, Bravado is the serious flex, Fly By Jing is the conversation piece.",
+      ctaLabel: "Upgrade the shelf",
+      items: getAffiliateLinkEntries([
+        "amazon-truff-original",
+        "amazon-bravado-black-garlic-reaper",
+        "amazon-fly-by-jing-sichuan-gold"
       ])
     },
     {
       key: "gift-guide",
       title: "Best gifts for spice lovers",
       description:
-        "A few easy gift ideas when you want something fun, useful, and simple to choose.",
+        "A premium truffle bottle that impresses even non-heat-seekers, a curated gift set, and a BBQ rub set for the backyard crowd.",
       ctaLabel: "Shop gift ideas",
       items: getAffiliateLinkEntries([
-        "amazon-hot-sauce-gift-box",
+        "amazon-truff-original",
         "heatonist-gift-set",
         "amazon-bbq-rub-gift-set"
       ])

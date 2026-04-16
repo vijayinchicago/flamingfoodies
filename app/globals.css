@@ -64,6 +64,15 @@ a {
   @apply prose prose-invert prose-headings:font-display prose-headings:text-cream prose-p:text-cream/85 prose-li:text-cream/80 prose-strong:text-cream max-w-none;
 }
 
+/* Inline affiliate product links injected into prose content */
+.prose-guide .affiliate-inline,
+.prose-guide .affiliate-inline:visited {
+  @apply text-ember no-underline border-b border-dotted border-ember/50;
+}
+.prose-guide .affiliate-inline:hover {
+  @apply border-ember/90;
+}
+
 .admin-grid {
   @apply grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)];
 }

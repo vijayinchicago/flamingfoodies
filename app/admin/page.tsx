@@ -2,6 +2,8 @@ import { importSampleCatalogAction } from "@/lib/actions/admin-content";
 import { AdminPage } from "@/components/admin/admin-page";
 import { KPICard } from "@/components/admin/kpi-card";
 import { getAdminDashboard } from "@/lib/services/admin";
+import { getShopGapLog, summariseGapLog } from "@/lib/services/content-shop-signals";
+import { getDynamicCatalogEntries } from "@/lib/services/catalog-auto-grow";
 
 export default async function AdminDashboardPage({
   searchParams
@@ -16,6 +18,11 @@ export default async function AdminDashboardPage({
   };
 }) {
   const dashboard = await getAdminDashboard();
+  const [gapLog, dynamicCatalog] = await Promise.all([
+    getShopGapLog(),
+    getDynamicCatalogEntries()
+  ]);
+  const gapSummary = summariseGapLog(gapLog).slice(0, 15);
 
   return (
     <AdminPage
@@ -44,6 +51,87 @@ export default async function AdminDashboardPage({
           </ul>
         </div>
       </div>
+      {dynamicCatalog.length > 0 ? (
+        <div className="panel-light p-6">
+          <p className="eyebrow">Auto-cataloged products</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
+            Items Claude added to the affiliate catalog from content signals
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-charcoal/65">
+            These entries were auto-created when gap terms crossed the frequency threshold. They are
+            live in inline links immediately — no deploy needed.
+          </p>
+          <div className="mt-6 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-charcoal/10 text-left text-xs uppercase tracking-widest text-charcoal/45">
+                  <th className="pb-2 pr-6">Product</th>
+                  <th className="pb-2 pr-6">Category</th>
+                  <th className="pb-2 pr-6">Triggered by</th>
+                  <th className="pb-2">Added</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-charcoal/5">
+                {dynamicCatalog.map((entry) => (
+                  <tr key={entry.key}>
+                    <td className="py-2 pr-6">
+                      <p className="font-medium text-charcoal">{entry.product}</p>
+                      <p className="text-charcoal/45">{entry.badge}</p>
+                    </td>
+                    <td className="py-2 pr-6 text-charcoal/60">{entry.category}</td>
+                    <td className="py-2 pr-6 text-charcoal/50">&ldquo;{entry.createdFromTerm}&rdquo;</td>
+                    <td className="py-2 text-charcoal/50">
+                      {new Date(entry.createdAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric"
+                      })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
+      {gapSummary.length > 0 ? (
+        <div className="panel-light p-6">
+          <p className="eyebrow">Shop gaps</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
+            Product terms in content with no affiliate link yet
+          </h2>
+          <p className="mt-4 text-sm leading-7 text-charcoal/65">
+            These terms appeared in published recipes, reviews, or blog posts but don&apos;t match
+            any entry in the affiliate catalog. Add SKUs to close the gaps.
+          </p>
+          <div className="mt-6 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-charcoal/10 text-left text-xs uppercase tracking-widest text-charcoal/45">
+                  <th className="pb-2 pr-6">Term</th>
+                  <th className="pb-2 pr-6">Mentions</th>
+                  <th className="pb-2 pr-6">Last seen</th>
+                  <th className="pb-2">In content</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-charcoal/5">
+                {gapSummary.map((gap) => (
+                  <tr key={gap.term}>
+                    <td className="py-2 pr-6 font-medium text-charcoal">{gap.term}</td>
+                    <td className="py-2 pr-6 text-charcoal/60">{gap.count}</td>
+                    <td className="py-2 pr-6 text-charcoal/50">
+                      {new Date(gap.lastSeen).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric"
+                      })}
+                    </td>
+                    <td className="py-2 text-charcoal/50">{gap.examples.join(", ")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : null}
       <div className="panel-light p-6">
         <p className="eyebrow">Catalog bootstrap</p>
         <h2 className="mt-3 font-display text-4xl text-charcoal">

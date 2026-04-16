@@ -4,8 +4,10 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 export type AdSlotConfig = {
   blogInline?: string;
   blogArchive?: string;
+  blogInArticle?: string;
   reviewInline?: string;
   reviewArchive?: string;
+  reviewInArticle?: string;
 };
 
 export function normalizeAdsensePublisherId(publisherId?: string | null) {
@@ -56,8 +58,10 @@ export async function getAdRuntimeConfig() {
   const slotIds: AdSlotConfig = {
     blogInline: env.NEXT_PUBLIC_ADSENSE_BLOG_INLINE_SLOT,
     blogArchive: env.NEXT_PUBLIC_ADSENSE_BLOG_ARCHIVE_SLOT,
+    blogInArticle: env.NEXT_PUBLIC_ADSENSE_BLOG_IN_ARTICLE_SLOT,
     reviewInline: env.NEXT_PUBLIC_ADSENSE_REVIEW_INLINE_SLOT,
-    reviewArchive: env.NEXT_PUBLIC_ADSENSE_REVIEW_ARCHIVE_SLOT
+    reviewArchive: env.NEXT_PUBLIC_ADSENSE_REVIEW_ARCHIVE_SLOT,
+    reviewInArticle: env.NEXT_PUBLIC_ADSENSE_REVIEW_IN_ARTICLE_SLOT
   };
   const enabledByEnv = flags.hasAdsense;
   const hasManualSlots = Object.values(slotIds).some(Boolean);

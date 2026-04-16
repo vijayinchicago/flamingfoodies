@@ -7,6 +7,8 @@ import { EmailCapture } from "@/components/forms/email-capture";
 import { SectionHeading } from "@/components/layout/section-heading";
 import {
   HOT_SAUCE_SPOTLIGHT_KEYS,
+  WING_SAUCE_KEYS,
+  PREMIUM_HOT_SAUCE_KEYS,
   KITCHEN_GEAR_KEYS,
   PANTRY_HEAT_KEYS,
   SUBSCRIPTION_KEYS,
@@ -32,7 +34,7 @@ type ResolvedShopLink = {
 };
 
 type ResolvedBundle = {
-  key: "starter-kit" | "taco-night" | "under-15" | "gift-guide";
+  key: "starter-kit" | "taco-night" | "under-15" | "gift-guide" | "wing-night" | "heat-ladder" | "world-tour" | "premium-flex";
   title: string;
   description: string;
   ctaLabel: string;
@@ -51,9 +53,25 @@ const SHOP_GUIDE_LINKS: Record<
     href: "/hot-sauces/best-for-tacos",
     label: "Open the taco-night guide"
   },
+  "wing-night": {
+    href: "/hot-sauces/best-for-wings",
+    label: "See more wing sauce picks"
+  },
   "under-15": {
     href: "/hot-sauces/under-15",
     label: "See more under-$15 picks"
+  },
+  "heat-ladder": {
+    href: "/hot-sauces/best",
+    label: "Explore all heat levels"
+  },
+  "world-tour": {
+    href: "/hot-sauces/best",
+    label: "Browse global sauces"
+  },
+  "premium-flex": {
+    href: "/hot-sauces/best-gift-sets",
+    label: "See more premium picks"
   },
   "gift-guide": {
     href: "/hot-sauces/best-gift-sets",
@@ -241,11 +259,15 @@ function CategorySpotlight({
 export default async function ShopPage() {
   const dailyShopPicks = await getFreshMerchProducts(4);
   const hotSauceLinks = getAffiliateLinkEntries(HOT_SAUCE_SPOTLIGHT_KEYS);
+  const wingLinks = getAffiliateLinkEntries(WING_SAUCE_KEYS);
+  const premiumLinks = getAffiliateLinkEntries(PREMIUM_HOT_SAUCE_KEYS);
   const gearLinks = getAffiliateLinkEntries(KITCHEN_GEAR_KEYS);
   const pantryLinks = getAffiliateLinkEntries(PANTRY_HEAT_KEYS);
   const subscriptionLinks = getAffiliateLinkEntries(SUBSCRIPTION_KEYS);
 
   const resolvedHotSauceLinks = resolveShopLinks(hotSauceLinks, "hot-sauce");
+  const resolvedWingLinks = resolveShopLinks(wingLinks, "wing");
+  const resolvedPremiumLinks = resolveShopLinks(premiumLinks, "premium");
   const resolvedGearLinks = resolveShopLinks(gearLinks, "gear");
   const resolvedPantryLinks = resolveShopLinks(pantryLinks, "pantry");
   const resolvedSubscriptionLinks = resolveShopLinks(subscriptionLinks, "subscription");
@@ -278,8 +300,8 @@ export default async function ShopPage() {
     buyingPaths.find((collection) => collection.key === "gift-guide") ?? buyingPaths[0];
 
   const conversionStats = [
-    { label: "Guided paths", value: String(buyingPaths.length || 4) },
-    { label: "Fresh picks", value: String(dailyShopPicks.length || 4) },
+    { label: "Buying paths", value: String(buyingPaths.length || 8) },
+    { label: "Hot sauce SKUs", value: "37+" },
     { label: "Gift-ready lane", value: "Live" },
     { label: "Budget route", value: "Under $15" }
   ];
@@ -459,7 +481,7 @@ export default async function ShopPage() {
           title="Shop by what you need right now."
           copy="Choose a starter kit, budget favorite, gift idea, or dinner-night lane and jump straight to the right picks."
         />
-        <div className="mt-8 grid gap-6 xl:grid-cols-2">
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
           {buyingPaths.map((collection) => (
             <BundleLaneCard key={collection.key} collection={collection} />
           ))}
@@ -475,13 +497,33 @@ export default async function ShopPage() {
         <div className="mt-8 grid gap-6 xl:grid-cols-2">
           <CategorySpotlight
             id="best-bottle"
-            eyebrow="Best Bottle"
+            eyebrow="Best Everyday Bottle"
             title="Start with a bottle you will actually finish."
             copy="Start with a versatile bottle first, then try brighter or hotter options if you want something more specific."
             lead={resolvedHotSauceLinks[0]}
             supporting={resolvedHotSauceLinks.slice(1, 3)}
             guideHref="/hot-sauces/best"
             guideLabel="See all bottle picks"
+          />
+          <CategorySpotlight
+            id="best-wing-sauce"
+            eyebrow="Best Wing Sauce"
+            title="The bottles that make wing night worth doing."
+            copy="Classic cayenne base, a ready-to-toss buffalo sauce, and a habanero option for people who want real heat — covers every palate at the table."
+            lead={resolvedWingLinks[0]}
+            supporting={resolvedWingLinks.slice(1, 3)}
+            guideHref="/hot-sauces/best-for-wings"
+            guideLabel="See more wing picks"
+          />
+          <CategorySpotlight
+            id="best-premium"
+            eyebrow="Premium Shelf"
+            title="Bottles worth spending more on."
+            copy="These are the picks that start conversations — the truffle sauce non-heat-lovers can enjoy, the superhot with actual flavor, and the Sichuan oil sauce that changes how you cook."
+            lead={resolvedPremiumLinks[0]}
+            supporting={resolvedPremiumLinks.slice(1, 3)}
+            guideHref="/hot-sauces/best-gift-sets"
+            guideLabel="See gift-worthy picks"
           />
           <CategorySpotlight
             id="best-gear"

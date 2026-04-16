@@ -17,6 +17,8 @@ import {
   resolveAffiliateLink
 } from "@/lib/affiliates";
 import { getAdRuntimeConfig } from "@/lib/ads";
+import { injectInlineAffiliateLinks } from "@/lib/inline-affiliate-links";
+import { getDynamicInlineTerms } from "@/lib/services/catalog-auto-grow";
 import {
   getHotSauceBestForCopy,
   getHotSauceSkipIfCopy,
@@ -62,7 +64,11 @@ export default async function ReviewPage({
   if (!review) notFound();
   const hero = getReviewHeroFields(review);
 
-  const html = await markdownToHtml(review.content);
+  const [rawHtml, dynamicTerms] = await Promise.all([
+    markdownToHtml(review.content),
+    getDynamicInlineTerms()
+  ]);
+  const html = injectInlineAffiliateLinks(rawHtml, `/reviews/${review.slug}`, dynamicTerms);
   const primaryOffer = findAffiliateLinkByUrl(review.affiliateUrl);
   const relatedOffers = getReviewAffiliateRecommendations({
     category: review.category,
@@ -270,8 +276,22 @@ export default async function ReviewPage({
           </div>
         </aside>
       </div>
-      {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.reviewInline ? (
+      {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.reviewInArticle ? (
         <div className="mt-10 max-w-4xl">
+          <AdSlot
+            clientId={ads.clientId}
+            slotId={ads.slotIds.reviewInArticle}
+            slotName="review_detail_in_article"
+            placement="review_detail_body"
+            format="in-article"
+            contentType="review"
+            contentId={review.id}
+            contentSlug={review.slug}
+          />
+        </div>
+      ) : null}
+      {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.reviewInline ? (
+        <div className="mt-6 max-w-4xl">
           <AdSlot
             clientId={ads.clientId}
             slotId={ads.slotIds.reviewInline}
