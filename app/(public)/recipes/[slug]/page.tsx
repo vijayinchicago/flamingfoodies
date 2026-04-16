@@ -22,9 +22,12 @@ import {
 } from "@/lib/actions/engagement";
 import {
   buildAmazonSearchUrl,
+  buildInlineTermsFromCatalog,
   findAffiliateLinkByUrl,
-  resolveAffiliateLink
+  resolveAffiliateLink,
+  type InlineCatalogTerm
 } from "@/lib/affiliates";
+import { getDynamicInlineTerms } from "@/lib/services/catalog-auto-grow";
 import { getHotSauceIntentLabel } from "@/lib/hot-sauces";
 import { getMerchThemeClasses } from "@/lib/merch";
 import { getRecipeBrowseOptions } from "@/lib/recipe-browse";
@@ -237,12 +240,25 @@ export default async function RecipePage({
   }
 
   const profile = await getCurrentProfile();
-  const [userState, merchPreview, reviews, recipes] = await Promise.all([
+  const [userState, merchPreview, reviews, recipes, dynamicTerms] = await Promise.all([
     getRecipeUserState(recipe.id, profile?.id),
     getFeaturedMerchProducts(2),
     getReviews(),
-    getRecipes()
+    getRecipes(),
+    getDynamicInlineTerms()
   ]);
+
+  // Build equipment affiliate map once — used to turn gear chips into links
+  const allInlineTerms: InlineCatalogTerm[] = [...buildInlineTermsFromCatalog(), ...dynamicTerms];
+  function findEquipmentAffiliate(item: string): string | null {
+    const normalised = item.toLowerCase();
+    for (const term of allInlineTerms) {
+      if (normalised.includes(term.pattern) || term.pattern.includes(normalised)) {
+        return term.key;
+      }
+    }
+    return null;
+  }
   const ingredientSections = getRecipeIngredientSections(recipe);
   const methodSteps = getRecipeMethodSteps(recipe);
   const browseOptions = getRecipeBrowseOptions(recipes);
@@ -590,14 +606,30 @@ export default async function RecipePage({
               <p className="eyebrow">Planning tools</p>
               <h2 className="mt-3 font-display text-4xl text-cream">Equipment and setup</h2>
               <div className="mt-6 flex flex-wrap gap-3">
-                {recipe.equipment.map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-full border border-white/12 bg-white/[0.05] px-4 py-2 text-sm text-cream/72"
-                  >
-                    {item}
-                  </span>
-                ))}
+                {recipe.equipment.map((item) => {
+                  const affiliateKey = findEquipmentAffiliate(item);
+                  if (affiliateKey) {
+                    return (
+                      <a
+                        key={item}
+                        href={`/go/${encodeURIComponent(affiliateKey)}?source=/recipes/${recipe.slug}&position=equipment`}
+                        rel="sponsored noopener"
+                        target="_blank"
+                        className="rounded-full border border-ember/40 bg-white/[0.05] px-4 py-2 text-sm text-ember/90 transition hover:border-ember/70 hover:text-ember"
+                      >
+                        {item} ↗
+                      </a>
+                    );
+                  }
+                  return (
+                    <span
+                      key={item}
+                      className="rounded-full border border-white/12 bg-white/[0.05] px-4 py-2 text-sm text-cream/72"
+                    >
+                      {item}
+                    </span>
+                  );
+                })}
               </div>
               {recipe.makeAheadNotes ? (
                 <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">

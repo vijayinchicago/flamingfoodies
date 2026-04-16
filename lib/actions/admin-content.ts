@@ -1305,7 +1305,7 @@ export async function updateBlogPostStateAction(formData: FormData) {
   });
 
   if (parsed.data.intent === "publish") {
-    void triggerContentShopSync(data.id, "blog_post");
+    await triggerContentShopSync(data.id, "blog_post");
   }
 
   revalidateBlogPaths(data.slug);
@@ -1751,7 +1751,7 @@ export async function updateRecipeStateAction(formData: FormData) {
   });
 
   if (parsed.data.intent === "publish") {
-    void triggerContentShopSync(data.id, "recipe");
+    await triggerContentShopSync(data.id, "recipe");
   }
 
   revalidateRecipePaths(data.slug);
@@ -2195,7 +2195,7 @@ export async function updateReviewStateAction(formData: FormData) {
   });
 
   if (parsed.data.intent === "publish") {
-    void triggerContentShopSync(data.id, "review");
+    await triggerContentShopSync(data.id, "review");
   }
 
   revalidateReviewPaths(data.slug);

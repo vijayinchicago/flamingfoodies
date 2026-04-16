@@ -292,15 +292,35 @@ async function fetchContentText(
   if (contentType === "recipe") {
     const { data } = await supabase
       .from("recipes")
-      .select("title, description, cuisine_type, heat_level, tags, ingredients")
+      .select("title, description, cuisine_type, heat_level, tags, ingredients, ingredient_sections, equipment, method_steps")
       .eq("id", contentId)
       .single();
 
     if (!data) return null;
 
-    const ingredientText = Array.isArray(data.ingredients)
+    // Flatten all ingredient items across flat list and section-grouped list
+    const flatIngredients = Array.isArray(data.ingredients)
       ? (data.ingredients as Array<{ item?: string; notes?: string }>)
           .map((i) => [i.item, i.notes].filter(Boolean).join(" "))
+          .join(" ")
+      : "";
+
+    const sectionIngredients = Array.isArray(data.ingredient_sections)
+      ? (data.ingredient_sections as Array<{ items?: Array<{ item?: string; notes?: string }> }>)
+          .flatMap((s) => s.items ?? [])
+          .map((i) => [i.item, i.notes].filter(Boolean).join(" "))
+          .join(" ")
+      : "";
+
+    // Equipment items are product names — high signal for catalog matching
+    const equipmentText = Array.isArray(data.equipment)
+      ? (data.equipment as string[]).join(" ")
+      : "";
+
+    // Method step ingredient refs
+    const methodText = Array.isArray(data.method_steps)
+      ? (data.method_steps as Array<{ ingredient_refs?: string[] }>)
+          .flatMap((s) => s.ingredient_refs ?? [])
           .join(" ")
       : "";
 
@@ -308,9 +328,10 @@ async function fetchContentText(
 
     return {
       title: data.title ?? "",
-      text: [data.title, data.description, data.cuisine_type, data.heat_level, tags, ingredientText]
-        .filter(Boolean)
-        .join(" ")
+      text: [
+        data.title, data.description, data.cuisine_type, data.heat_level,
+        tags, flatIngredients, sectionIngredients, equipmentText, methodText
+      ].filter(Boolean).join(" ")
     };
   }
 
