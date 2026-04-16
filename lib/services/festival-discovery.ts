@@ -146,8 +146,8 @@ export async function runFestivalDiscovery(): Promise<FestivalDiscoveryResult> {
       max_tokens: 4096,
       system: DISCOVERY_SYSTEM,
       // web_search_20250305 is a built-in tool; cast needed until SDK types catch up
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      tools: [{ type: "web_search_20250305", name: "web_search" }] as any,
+      // @ts-ignore
+      tools: [{ type: "web_search_20250305", name: "web_search" }],
       messages: [
         {
           role: "user",
