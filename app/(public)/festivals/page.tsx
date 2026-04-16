@@ -3,12 +3,10 @@ import Link from "next/link";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { buildMetadata } from "@/lib/seo";
 import {
-  FESTIVALS,
-  getFestivalsByMonth,
-  getCurrentAndUpcomingFestivals,
-  getFeaturedFestivals,
+  getFestivalsFromDb,
   getMonthName,
-  getRegionLabel
+  getRegionLabel,
+  type Festival
 } from "@/lib/festivals";
 
 export const metadata = buildMetadata({
@@ -27,12 +25,22 @@ const REGION_COLORS: Record<string, string> = {
   west: "text-violet-400"
 };
 
-export default function FestivalsPage() {
+export default async function FestivalsPage() {
+  const festivals = await getFestivalsFromDb();
+
   const now = new Date();
   const currentMonth = now.getMonth() + 1; // 1-indexed
-  const upcoming = getCurrentAndUpcomingFestivals(currentMonth);
-  const featured = getFeaturedFestivals();
-  const byMonth = getFestivalsByMonth();
+  const upcoming = festivals.filter(
+    (f) => f.month >= currentMonth && f.month <= currentMonth + 2
+  );
+  const featured = festivals.filter((f) => f.featured);
+
+  const byMonth = new Map<number, Festival[]>();
+  for (const f of festivals) {
+    const bucket = byMonth.get(f.month) ?? [];
+    bucket.push(f);
+    byMonth.set(f.month, bucket);
+  }
   const sortedMonths = Array.from(byMonth.keys()).sort((a, b) => a - b);
 
   return (
@@ -174,12 +182,12 @@ export default function FestivalsPage() {
       {/* Stats strip */}
       <div className="mt-16 grid gap-4 rounded-[2rem] border border-white/10 bg-white/[0.03] p-8 sm:grid-cols-3">
         <div>
-          <p className="font-display text-5xl text-cream">{FESTIVALS.length}</p>
+          <p className="font-display text-5xl text-cream">{festivals.length}</p>
           <p className="mt-2 text-sm text-cream/60">Festivals tracked</p>
         </div>
         <div>
           <p className="font-display text-5xl text-cream">
-            {new Set(FESTIVALS.map((f) => f.stateCode)).size}
+            {new Set(festivals.map((f) => f.stateCode)).size}
           </p>
           <p className="mt-2 text-sm text-cream/60">States represented</p>
         </div>

@@ -14,6 +14,7 @@
     { "path": "/api/admin/growth-loop", "schedule": "30 18 * * *" },
     { "path": "/api/admin/social-scheduler", "schedule": "15 19 * * *" },
     { "path": "/api/admin/newsletter-digest", "schedule": "0 10 * * 0" },
-    { "path": "/api/admin/content-shop-sync", "schedule": "0 12 * * *" }
+    { "path": "/api/admin/content-shop-sync", "schedule": "0 12 * * *" },
+    { "path": "/api/admin/festival-discovery", "schedule": "0 2 * * *" }
   ]
 }

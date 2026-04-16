@@ -13,17 +13,24 @@ import { getReviews, getRecipes } from "@/lib/services/content";
 import { absoluteUrl } from "@/lib/utils";
 import {
   FESTIVALS,
-  getFestivalBySlug,
+  getFestivalsFromDb,
+  getFestivalFromDb,
   getMonthName,
   getRegionLabel
 } from "@/lib/festivals";
 
 export async function generateStaticParams() {
-  return FESTIVALS.map((f) => ({ slug: f.slug }));
+  // Pre-render all published festivals at build time
+  try {
+    const festivals = await getFestivalsFromDb();
+    return festivals.map((f) => ({ slug: f.slug }));
+  } catch {
+    return FESTIVALS.map((f) => ({ slug: f.slug }));
+  }
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const festival = getFestivalBySlug(params.slug);
+  const festival = await getFestivalFromDb(params.slug);
   if (!festival) {
     return buildMetadata({ title: "Festival | FlamingFoodies", description: "" });
   }
@@ -44,7 +51,7 @@ const REGION_BADGE: Record<string, string> = {
 };
 
 export default async function FestivalPage({ params }: { params: { slug: string } }) {
-  const festival = getFestivalBySlug(params.slug);
+  const festival = await getFestivalFromDb(params.slug);
   if (!festival) notFound();
 
   const sourcePage = `/festivals/${festival.slug}`;
@@ -67,8 +74,12 @@ export default async function FestivalPage({ params }: { params: { slug: string 
       } => item !== null
     );
 
-  // Pull related reviews and recipes
-  const [allReviews, allRecipes] = await Promise.all([getReviews(), getRecipes()]);
+  // Pull related reviews, recipes, and sibling festivals
+  const [allReviews, allRecipes, allFestivals] = await Promise.all([
+    getReviews(),
+    getRecipes(),
+    getFestivalsFromDb()
+  ]);
 
   const relatedReviews = allReviews
     .filter((r) => {
@@ -88,10 +99,12 @@ export default async function FestivalPage({ params }: { params: { slug: string 
 
   const displayRecipes = relatedRecipes.length >= 2 ? relatedRecipes : allRecipes.slice(0, 3);
 
-  // Other festivals — same region or ±2 months
-  const otherFestivals = FESTIVALS.filter(
-    (f) => f.slug !== festival.slug && (f.region === festival.region || Math.abs(f.month - festival.month) <= 2)
-  ).slice(0, 5);
+  // Other festivals — same region or ±2 months (from live DB data)
+  const otherFestivals = allFestivals
+    .filter(
+      (f) => f.slug !== festival.slug && (f.region === festival.region || Math.abs(f.month - festival.month) <= 2)
+    )
+    .slice(0, 5);
 
   const regionBadgeClass = REGION_BADGE[festival.region] ?? REGION_BADGE.south;
 

@@ -673,3 +673,128 @@ export function getRegionLabel(region: FestivalRegion): string {
   };
   return labels[region];
 }
+
+// ---------------------------------------------------------------------------
+// DB layer — reads from Supabase, falls back to static FESTIVALS array
+// ---------------------------------------------------------------------------
+
+// Shape returned by Supabase (snake_case)
+type FestivalRow = {
+  slug: string;
+  name: string;
+  short_name: string;
+  city: string;
+  state: string;
+  state_code: string;
+  region: string;
+  month: number;
+  date_range: string;
+  annual: boolean;
+  website: string;
+  description: string;
+  tagline: string;
+  editorial_note: string;
+  what_to_expect: string[];
+  best_for: string;
+  pack_intro: string;
+  pack_affiliate: string[];
+  cuisine_tags: string[];
+  tags: string[];
+  featured: boolean;
+};
+
+function rowToFestival(row: FestivalRow): Festival {
+  return {
+    slug: row.slug,
+    name: row.name,
+    shortName: row.short_name || row.name,
+    city: row.city,
+    state: row.state,
+    stateCode: row.state_code,
+    region: (row.region as FestivalRegion) || "south",
+    month: row.month,
+    dateRange: row.date_range,
+    annual: row.annual,
+    website: row.website,
+    description: row.description,
+    tagline: row.tagline,
+    editorialNote: row.editorial_note,
+    whatToExpect: row.what_to_expect ?? [],
+    bestFor: row.best_for,
+    packIntro: row.pack_intro,
+    packAffiliate: row.pack_affiliate ?? [],
+    cuisineTags: row.cuisine_tags ?? [],
+    tags: row.tags ?? [],
+    featured: row.featured
+  };
+}
+
+/**
+ * Load all published festivals from DB, falling back to the static array
+ * if Supabase is unavailable or the table doesn't exist yet.
+ */
+export async function getFestivalsFromDb(): Promise<Festival[]> {
+  try {
+    const { createSupabaseServerClient } = await import("@/lib/supabase/server");
+    const supabase = createSupabaseServerClient();
+    if (!supabase) return FESTIVALS;
+
+    const { data, error } = await supabase
+      .from("festivals")
+      .select("*")
+      .eq("status", "published")
+      .order("month", { ascending: true });
+
+    if (error || !data || data.length === 0) return FESTIVALS;
+
+    return (data as FestivalRow[]).map(rowToFestival);
+  } catch {
+    return FESTIVALS;
+  }
+}
+
+/**
+ * Load a single festival by slug from DB, falling back to static data.
+ */
+export async function getFestivalFromDb(slug: string): Promise<Festival | undefined> {
+  try {
+    const { createSupabaseServerClient } = await import("@/lib/supabase/server");
+    const supabase = createSupabaseServerClient();
+    if (!supabase) return getFestivalBySlug(slug);
+
+    const { data, error } = await supabase
+      .from("festivals")
+      .select("*")
+      .eq("slug", slug)
+      .eq("status", "published")
+      .single();
+
+    if (error || !data) return getFestivalBySlug(slug);
+
+    return rowToFestival(data as FestivalRow);
+  } catch {
+    return getFestivalBySlug(slug);
+  }
+}
+
+/**
+ * Count AI-discovered festivals awaiting admin review.
+ * Used by the admin dashboard.
+ */
+export async function getDraftFestivalCount(): Promise<number> {
+  try {
+    const { createSupabaseAdminClient } = await import("@/lib/supabase/server");
+    const supabase = createSupabaseAdminClient();
+    if (!supabase) return 0;
+
+    const { count } = await supabase
+      .from("festivals")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "draft")
+      .eq("source", "ai_discovered");
+
+    return count ?? 0;
+  } catch {
+    return 0;
+  }
+}
