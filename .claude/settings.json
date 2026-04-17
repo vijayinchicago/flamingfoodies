@@ -9,7 +9,8 @@
       "Bash(vercel --prod)",
       "Bash(git tag *)",
       "WebSearch",
-      "Bash(git commit -m 'Fix ESLint comment for web_search tool cast *)"
+      "Bash(git commit -m 'Fix ESLint comment for web_search tool cast *)",
+      "Bash(npx supabase *)"
     ],
     "additionalDirectories": [
       "/Users/vijaysingh/apps/flamingfoodies/app/(public)/seasonal",
