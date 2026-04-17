@@ -18,7 +18,11 @@ export function Footer() {
           <div className="mt-4 flex flex-col gap-3 text-sm text-cream/75">
             <Link href="/recipes">Recipes</Link>
             <Link href="/hot-sauces">Hot Sauces</Link>
+            <Link href="/peppers">Pepper Encyclopedia</Link>
+            <Link href="/brands">Brand Directory</Link>
             <Link href="/festivals">Festivals</Link>
+            <Link href="/how-to">How-To Guides</Link>
+            <Link href="/new-releases">New Releases</Link>
             <Link href="/community">Community Feed</Link>
             <Link href="/guides">Guides</Link>
           </div>

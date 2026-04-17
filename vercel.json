@@ -15,6 +15,9 @@
     { "path": "/api/admin/social-scheduler", "schedule": "15 19 * * *" },
     { "path": "/api/admin/newsletter-digest", "schedule": "0 10 * * 0" },
     { "path": "/api/admin/content-shop-sync", "schedule": "0 12 * * *" },
-    { "path": "/api/admin/festival-discovery", "schedule": "0 2 * * *" }
+    { "path": "/api/admin/festival-discovery",  "schedule": "0 2 * * *" },
+    { "path": "/api/admin/pepper-discovery",    "schedule": "0 3 * * 1" },
+    { "path": "/api/admin/brand-monitor",       "schedule": "0 4 * * 1" },
+    { "path": "/api/admin/tutorial-generate",   "schedule": "0 5 * * 3" }
   ]
 }

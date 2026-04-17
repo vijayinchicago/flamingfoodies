@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import json,sys; p=json.load\\(sys.stdin\\); print\\('name:', p.get\\('name'\\)\\); print\\('build:', p.get\\('scripts',{}\\).get\\('build'\\)\\); print\\('node:', p.get\\('engines',{}\\).get\\('node','not set'\\)\\)\")",
+      "Bash(npx vercel *)",
+      "Bash(vercel whoami *)",
+      "Bash(vercel ls *)",
+      "Bash(git commit -m ' *)",
+      "Bash(vercel --prod)",
+      "Bash(git tag *)",
+      "WebSearch",
+      "Bash(git commit -m 'Fix ESLint comment for web_search tool cast *)"
+    ],
+    "additionalDirectories": [
+      "/Users/vijaysingh/apps/flamingfoodies/app/(public)/seasonal",
+      "/Users/vijaysingh/apps/flamingfoodies/app/(public)/festivals",
+      "/Users/vijaysingh/apps/flamingfoodies/app/(public)/peppers"
+    ]
+  }
+}
