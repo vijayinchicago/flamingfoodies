@@ -39,7 +39,7 @@ These are the meaningful autonomous or cron-driven lanes already in the repo.
 | `pinterest-distributor` / social scheduler | daily cron | `social_posts`, Buffer publish | platform queue only, provider failure handling | `external_send` |
 | `growth-loop-promoter` | daily cron | `social_posts` queue | max 2 candidates + 7-day dedupe | `bounded_live` |
 | `shop-shelf-curator` | daily pick + nightly refresh | `merch_products`, generation jobs | bounded catalog writes, featured-slot logic | `bounded_live` |
-| `newsletter-digest-agent` | weekly digest cron + hourly due-send cron | `newsletter_campaigns`, automation approvals, ConvertKit broadcast sync | digest drafting is autonomous, but sending is approval-gated and only approved due campaigns can go out | `external_send` |
+| `newsletter-digest-agent` | weekly digest cron + daily due-send cron | `newsletter_campaigns`, automation approvals, ConvertKit broadcast sync | digest drafting is autonomous, but sending is approval-gated and only approved due campaigns can go out | `external_send` |
 | `search-insights-analyst` | weekly cron | `search_insight_runs`, `search_recommendations` | read-only Search Console sync + queue only | `draft_only` |
 | `search-recommendation-executor` | daily cron | `search_recommendations`, `site_settings.search_runtime_optimizations` | approved-only bounded overlay registry | `bounded_live` |
 | `search-performance-evaluator` | daily cron | `automation_evaluations` | delayed verdicts on prior executor runs, no automatic rollback | `internal_support` |

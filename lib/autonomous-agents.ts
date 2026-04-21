@@ -113,7 +113,7 @@ export function getAutonomousAgents(input: {
       id: "newsletter-digest-agent",
       name: "Newsletter digest agent",
       status: input.hasConvertKit ? "live" : "needs_config",
-      cadence: "Weekly digest + hourly approved-send checks",
+      cadence: "Weekly digest + daily approved-send checks",
       purpose:
         "Builds digest campaigns from published content, queues send proposals for approval, and only delivers approved campaigns when their send window opens.",
       outcome:

@@ -132,7 +132,7 @@ The deployed automation stack is no longer just a daily batch.
 
 That means:
 - newsletter digest drafting runs weekly
-- newsletter due-send checks run hourly
+- newsletter due-send checks run daily
 - Search Console analyst sync runs weekly
 - Search recommendation execution runs daily
 - Search evaluation runs daily
