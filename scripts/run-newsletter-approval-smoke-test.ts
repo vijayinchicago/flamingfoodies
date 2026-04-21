@@ -95,6 +95,7 @@ async function main() {
       preview_text: "Smoke test for approval-gated due-send processing.",
       html_content: "<p>Smoke test newsletter approval gate.</p>",
       text_content: "Smoke test newsletter approval gate.",
+      audience_tags: [],
       status: "scheduled",
       send_at: sendAt,
       recipient_count: 0,
@@ -126,7 +127,7 @@ async function main() {
       await Promise.all([
         supabase
           .from("newsletter_campaigns")
-          .select("id, subject, status, send_at, sent_at")
+          .select("id, subject, status, audience_tags, send_at, sent_at")
           .eq("id", campaignId)
           .single(),
         supabase
