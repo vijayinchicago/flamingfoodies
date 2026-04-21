@@ -53,9 +53,13 @@ describe("autonomous agents", () => {
     expect(agents.find((agent) => agent.id === "festival-discovery")?.status).toBe(
       "needs_config"
     );
-    expect(agents.find((agent) => agent.id === "brand-monitor")?.autonomyMode).toBe(
+    expect(agents.find((agent) => agent.id === "brand-discovery")?.autonomyMode).toBe(
+      "draft_only"
+    );
+    expect(agents.find((agent) => agent.id === "release-monitor")?.autonomyMode).toBe(
       "approval_required"
     );
+    expect(agents.some((agent) => agent.id === "brand-monitor")).toBe(false);
     expect(agents.find((agent) => agent.id === "content-shop-sync")?.isSupport).toBe(true);
   });
 });

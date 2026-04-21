@@ -2,10 +2,12 @@ import Link from "next/link";
 
 import {
   pauseAutomationAgentAction,
+  runBrandDiscoveryAction,
   runReevaluatePendingAiDraftsAction,
   runDueNewsletterSendsAction,
   runNewsletterDigestAction,
   runPublishScheduledAction,
+  runReleaseMonitorAction,
   runSearchInsightsExecutorAction,
   runSearchInsightsSyncAction,
   resumeAutomationAgentAction,
@@ -371,6 +373,52 @@ export default async function AdminTriggerPage({
               Connect Search Console
             </Link>
           )}
+        </div>
+        <div className="panel-light p-6">
+          <p className="eyebrow">Discovery</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Brand discovery</h2>
+          <p className="mt-3 text-sm text-charcoal/65">
+            Research under-covered hot sauce brands and add only draft brand rows so discovery can
+            keep running without publishing live pages.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <form action={runBrandDiscoveryAction}>
+              <AdminSubmitButton
+                idleLabel="Run brand discovery"
+                pendingLabel="Researching..."
+                className="rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
+              />
+            </form>
+            <Link
+              href="/brands"
+              className="inline-flex rounded-full border border-charcoal/10 px-5 py-3 text-sm font-semibold text-charcoal transition hover:bg-charcoal/5"
+            >
+              Open brand directory
+            </Link>
+          </div>
+        </div>
+        <div className="panel-light p-6">
+          <p className="eyebrow">Approvals</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Release monitor</h2>
+          <p className="mt-3 text-sm text-charcoal/65">
+            Scan for launch and restock signals, then stop those proposals in the approval queue
+            instead of auto-publishing them to the public releases page.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <form action={runReleaseMonitorAction}>
+              <AdminSubmitButton
+                idleLabel="Run release monitor"
+                pendingLabel="Scanning..."
+                className="rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
+              />
+            </form>
+            <Link
+              href="/admin/automation/approvals"
+              className="inline-flex rounded-full border border-charcoal/10 px-5 py-3 text-sm font-semibold text-charcoal transition hover:bg-charcoal/5"
+            >
+              Open approvals
+            </Link>
+          </div>
         </div>
         <form action={runShopCatalogRefreshAction} className="panel-light p-6">
           <p className="eyebrow">Refresh</p>

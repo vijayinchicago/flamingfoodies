@@ -19,7 +19,8 @@
     { "path": "/api/admin/content-shop-sync", "schedule": "0 12 * * *" },
     { "path": "/api/admin/festival-discovery",  "schedule": "0 2 * * *" },
     { "path": "/api/admin/pepper-discovery",    "schedule": "0 3 * * 1" },
-    { "path": "/api/admin/brand-monitor",       "schedule": "0 4 * * 1" },
+    { "path": "/api/admin/brand-discovery",     "schedule": "0 4 * * 1" },
+    { "path": "/api/admin/release-monitor",     "schedule": "15 4 * * 1" },
     { "path": "/api/admin/tutorial-generate",   "schedule": "0 5 * * 3" }
   ]
 }

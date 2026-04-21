@@ -1,6 +1,7 @@
 import { getAutonomousAgents, type AutonomousAgent } from "@/lib/autonomous-agents";
 import { flags } from "@/lib/env";
 import {
+  getAutomationApprovalSummary,
   listAutomationAgents,
   listAutomationRuns,
   type AutomationAgentRecord,
@@ -233,11 +234,19 @@ const scheduleDefinitions: ScheduleDefinition[] = [
     weekdays: [1]
   },
   {
-    agentId: "brand-monitor",
-    label: "Brand monitor",
-    note: "Weekly scan for new brands and release signals.",
+    agentId: "brand-discovery",
+    label: "Brand discovery",
+    note: "Weekly draft-only scan for new hot sauce brands.",
     hourUtc: 4,
     minuteUtc: 0,
+    weekdays: [1]
+  },
+  {
+    agentId: "release-monitor",
+    label: "Release monitor",
+    note: "Weekly approval-queue scan for new release signals.",
+    hourUtc: 4,
+    minuteUtc: 15,
     weekdays: [1]
   },
   {
@@ -504,9 +513,18 @@ function buildAgentLinks(agentId: AutonomousAgent["id"]): AgentRunLink[] {
     ];
   }
 
-  if (agentId === "brand-monitor") {
+  if (agentId === "brand-discovery") {
     return [
       { label: "Trigger", href: "/admin/automation/trigger" },
+      { label: "Approvals", href: "/admin/automation/approvals" },
+      { label: "Public brands", href: "/brands" }
+    ];
+  }
+
+  if (agentId === "release-monitor") {
+    return [
+      { label: "Trigger", href: "/admin/automation/trigger" },
+      { label: "Approvals", href: "/admin/automation/approvals" },
       { label: "New releases", href: "/new-releases" }
     ];
   }
@@ -752,7 +770,8 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
     growthReport,
     latestSearchInsightRun,
     searchQueueSummary,
-    searchRuntime
+    searchRuntime,
+    approvalSummary
   ] = await Promise.all([
     listAutomationAgents(),
     listAutomationRuns({ since: daysAgoIso(30), limit: 1000 }),
@@ -794,7 +813,8 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
     getGrowthLoopReport(30),
     getLatestSearchInsightRunSummary(),
     getSearchRecommendationQueueSummary(),
-    getSearchRuntimeOptimizations()
+    getSearchRuntimeOptimizations(),
+    getAutomationApprovalSummary()
   ]);
 
   const controlPlaneAvailable = controlAgents.length > 0;
@@ -871,6 +891,14 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
     Object.keys(searchRuntime?.pages ?? {}).length +
     Object.keys(searchRuntime?.blog ?? {}).length +
     Object.keys(searchRuntime?.recipes ?? {}).length;
+  const releaseApprovalSummary = approvalSummary.byAgent["release-monitor"] ?? {
+    total: 0,
+    pendingCount: 0,
+    approvedCount: 0,
+    rejectedCount: 0,
+    expiredCount: 0,
+    appliedCount: 0
+  };
 
   const waitingReviewBreakdown = {
     recipe: recipeRows.filter((row) => row.status === "pending_review").length,
@@ -1114,21 +1142,46 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
       };
     }
 
-    if (agent.id === "brand-monitor") {
+    if (agent.id === "brand-discovery") {
       return {
         ...sharedFields,
         summary: withPausePrefix(
           sharedFields,
           ledger.runsLast7Days > 0
-            ? `This mixed-risk lane ran ${ledger.runsLast7Days} time(s) in the last 7 days, but its target governance model is still approval-required before high-risk release output goes live.`
+            ? `This draft-only lane ran ${ledger.runsLast7Days} time(s) in the last 7 days and keeps new brand research inside the backlog instead of the public site.`
             : agent.status === "live"
-              ? "This lane is configured, but its live-output path should remain approval-required."
+              ? "This draft-only lane is configured and waiting for its next scheduled brand scan."
               : agent.dependencyNote
         ),
         stats: [
           { label: "Runs in 7d", value: compactNumber(ledger.runsLast7Days) },
           { label: "Succeeded in 7d", value: compactNumber(ledger.successfulRunsLast7Days) },
           { label: "Failed in 7d", value: compactNumber(ledger.failedRunsLast7Days) }
+        ]
+      };
+    }
+
+    if (agent.id === "release-monitor") {
+      return {
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          releaseApprovalSummary.pendingCount > 0 || releaseApprovalSummary.approvedCount > 0
+            ? `The release monitor currently has ${releaseApprovalSummary.pendingCount} pending approval(s), ${releaseApprovalSummary.approvedCount} approved item(s) waiting to publish, and ${releaseApprovalSummary.appliedCount} applied release decision(s) in the queue.`
+            : ledger.runsLast7Days > 0
+              ? `The release monitor ran ${ledger.runsLast7Days} time(s) in the last 7 days and is now routing release output into approvals instead of direct publishing.`
+              : agent.status === "live"
+                ? "This lane is configured and will queue release proposals for approval instead of auto-publishing them."
+                : agent.dependencyNote
+        ),
+        stats: [
+          { label: "Pending approvals", value: compactNumber(releaseApprovalSummary.pendingCount) },
+          {
+            label: "Approved waiting",
+            value: compactNumber(releaseApprovalSummary.approvedCount)
+          },
+          { label: "Applied releases", value: compactNumber(releaseApprovalSummary.appliedCount) },
+          { label: "Runs in 7d", value: compactNumber(ledger.runsLast7Days) }
         ]
       };
     }
@@ -1256,6 +1309,17 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
         { label: "Blog queue", href: "/admin/content/blog" },
         { label: "Reviews queue", href: "/admin/content/reviews" }
       ]
+    },
+    {
+      label: "Pending approvals",
+      value: compactNumber(approvalSummary.pendingCount + approvalSummary.approvedCount),
+      note:
+        approvalSummary.pendingCount + approvalSummary.approvedCount > 0
+          ? `${approvalSummary.pendingCount} pending approval item(s) and ${approvalSummary.approvedCount} approved item(s) are waiting in the automation approval queue.`
+          : "No approval-gated automation items are waiting right now.",
+      tone:
+        approvalSummary.pendingCount + approvalSummary.approvedCount > 0 ? "warning" : "good",
+      links: [{ label: "Open approvals", href: "/admin/automation/approvals" }]
     }
   ];
 

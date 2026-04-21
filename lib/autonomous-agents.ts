@@ -200,17 +200,35 @@ export function getAutonomousAgents(input: {
       isSupport: false
     },
     {
-      id: "brand-monitor",
-      name: "Brand monitor",
+      id: "brand-discovery",
+      name: "Brand discovery",
       status: aiResearchReady ? "live" : "needs_config",
-      cadence: "Weekly brand and release scan",
+      cadence: "Weekly brand discovery scan",
       purpose:
-        "Tracks emerging hot sauce brands and release signals so the team can decide what belongs in draft research versus approval-gated live publishing.",
+        "Researches under-covered hot sauce brands and writes only draft brand rows so the backlog grows without publishing brand pages directly.",
       outcome:
-        "Keeps brand awareness current while flagging the part of the lane that should not silently auto-publish.",
+        "Keeps the brand inventory expanding while preserving a clean draft-only editorial review step.",
       dependencyNote: aiResearchReady
-        ? "The research stack is configured, but this lane should still be treated as approval-required for high-risk live output."
-        : "Anthropic and Supabase admin access are required before the monitor can scan new brands and launches.",
+        ? "AI research and database access are configured, so new brand rows can land safely as drafts."
+        : "Anthropic and Supabase admin access are required before brand discovery can run.",
+      riskClass: "draft_only",
+      autonomyMode: "draft_only",
+      writesLiveState: false,
+      writesExternalState: false,
+      isSupport: false
+    },
+    {
+      id: "release-monitor",
+      name: "Release monitor",
+      status: aiResearchReady ? "live" : "needs_config",
+      cadence: "Weekly release-signal scan",
+      purpose:
+        "Scans for new product launches, limited editions, and brand news, then writes approval proposals instead of publishing releases live.",
+      outcome:
+        "Keeps launch coverage current while forcing a human decision before anything becomes visible on the public releases page.",
+      dependencyNote: aiResearchReady
+        ? "AI research and database access are configured, but release proposals now stop in the approval queue until an admin reviews them."
+        : "Anthropic and Supabase admin access are required before release monitoring can queue approval proposals.",
       riskClass: "approval_required",
       autonomyMode: "approval_required",
       writesLiveState: true,

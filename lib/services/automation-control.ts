@@ -13,6 +13,8 @@ export type AutomationAgentId =
   | "search-recommendation-executor"
   | "festival-discovery"
   | "pepper-discovery"
+  | "brand-discovery"
+  | "release-monitor"
   | "brand-monitor"
   | "tutorial-generator"
   | "content-shop-sync";
@@ -171,6 +173,71 @@ export type AutomationRunRecord = {
   createdAt: string | null;
 };
 
+type AutomationApprovalRow = {
+  id: number;
+  agent_id: string;
+  subject_type: string;
+  subject_key: string;
+  proposed_action: string;
+  payload: unknown;
+  status: string;
+  source_run_id: number | null;
+  approved_by_admin_id: string | null;
+  rejected_by_admin_id: string | null;
+  decision_reason: string | null;
+  approved_at: string | null;
+  rejected_at: string | null;
+  expires_at: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
+export type AutomationApprovalStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "expired"
+  | "applied";
+
+export type AutomationApprovalRecord = {
+  id: number;
+  agentId: AutomationAgentId;
+  subjectType: string;
+  subjectKey: string;
+  proposedAction: string;
+  payload: Record<string, unknown>;
+  status: AutomationApprovalStatus;
+  sourceRunId: number | null;
+  approvedByAdminId: string | null;
+  rejectedByAdminId: string | null;
+  decisionReason: string | null;
+  approvedAt: string | null;
+  rejectedAt: string | null;
+  expiresAt: string | null;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+export type AutomationApprovalSummary = {
+  total: number;
+  pendingCount: number;
+  approvedCount: number;
+  rejectedCount: number;
+  expiredCount: number;
+  appliedCount: number;
+  byAgent: Record<
+    string,
+    {
+      total: number;
+      pendingCount: number;
+      approvedCount: number;
+      rejectedCount: number;
+      expiredCount: number;
+      appliedCount: number;
+    }
+  >;
+};
+
 type AutomationRunHandle = {
   id: number;
   agentId: AutomationAgentId;
@@ -195,6 +262,9 @@ type AutomationPolicyBlock = {
   errorCode: AutomationExecutionBlockCode;
   errorMessage: string;
 };
+
+const AUTOMATION_APPROVAL_SELECT =
+  "id, agent_id, subject_type, subject_key, proposed_action, payload, status, source_run_id, approved_by_admin_id, rejected_by_admin_id, decision_reason, approved_at, rejected_at, expires_at, created_at, updated_at";
 
 type CronAutomationTaskOptions<TResult> = {
   request: Request;
@@ -338,6 +408,7 @@ function isMissingAutomationControlRelationError(error: unknown) {
     || message.includes("automation_runs")
     || message.includes("automation_run_events")
     || message.includes("automation_state_snapshots")
+    || message.includes("automation_approvals")
   ) && (message.includes("does not exist") || message.includes("not found"));
 }
 
@@ -639,6 +710,87 @@ function parseAutomationRun(row: AutomationRunRow | null): AutomationRunRecord |
   };
 }
 
+function parseAutomationApproval(row: AutomationApprovalRow | null): AutomationApprovalRecord | null {
+  if (
+    !row
+    || typeof row.id !== "number"
+    || !row.agent_id
+    || !row.subject_type
+    || !row.subject_key
+    || !row.proposed_action
+    || !row.status
+  ) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    agentId: row.agent_id as AutomationAgentId,
+    subjectType: row.subject_type,
+    subjectKey: row.subject_key,
+    proposedAction: row.proposed_action,
+    payload: toRecord(row.payload),
+    status: row.status as AutomationApprovalStatus,
+    sourceRunId: typeof row.source_run_id === "number" ? row.source_run_id : null,
+    approvedByAdminId: row.approved_by_admin_id ?? null,
+    rejectedByAdminId: row.rejected_by_admin_id ?? null,
+    decisionReason: row.decision_reason ?? null,
+    approvedAt: row.approved_at ?? null,
+    rejectedAt: row.rejected_at ?? null,
+    expiresAt: row.expires_at ?? null,
+    createdAt: row.created_at ?? null,
+    updatedAt: row.updated_at ?? null
+  };
+}
+
+export function summarizeAutomationApprovals(
+  approvals: AutomationApprovalRecord[]
+): AutomationApprovalSummary {
+  return approvals.reduce<AutomationApprovalSummary>(
+    (summary, approval) => {
+      summary.total += 1;
+      const byAgent = (summary.byAgent[approval.agentId] ??= {
+        total: 0,
+        pendingCount: 0,
+        approvedCount: 0,
+        rejectedCount: 0,
+        expiredCount: 0,
+        appliedCount: 0
+      });
+
+      byAgent.total += 1;
+
+      if (approval.status === "pending") {
+        summary.pendingCount += 1;
+        byAgent.pendingCount += 1;
+      } else if (approval.status === "approved") {
+        summary.approvedCount += 1;
+        byAgent.approvedCount += 1;
+      } else if (approval.status === "rejected") {
+        summary.rejectedCount += 1;
+        byAgent.rejectedCount += 1;
+      } else if (approval.status === "expired") {
+        summary.expiredCount += 1;
+        byAgent.expiredCount += 1;
+      } else if (approval.status === "applied") {
+        summary.appliedCount += 1;
+        byAgent.appliedCount += 1;
+      }
+
+      return summary;
+    },
+    {
+      total: 0,
+      pendingCount: 0,
+      approvedCount: 0,
+      rejectedCount: 0,
+      expiredCount: 0,
+      appliedCount: 0,
+      byAgent: {}
+    }
+  );
+}
+
 async function readAutomationAgent(agentId: AutomationAgentId) {
   if (!flags.hasSupabaseAdmin) {
     return null;
@@ -666,6 +818,33 @@ async function readAutomationAgent(agentId: AutomationAgentId) {
   }
 
   return parseAutomationAgent((data ?? null) as AutomationAgentRow | null);
+}
+
+async function readAutomationApprovalById(approvalId: number) {
+  if (!flags.hasSupabaseAdmin) {
+    return null;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("automation_approvals")
+    .select(AUTOMATION_APPROVAL_SELECT)
+    .eq("id", approvalId)
+    .maybeSingle();
+
+  if (error) {
+    if (isMissingAutomationControlRelationError(error)) {
+      return null;
+    }
+
+    throw new Error(`Failed to read automation approval ${approvalId}: ${error.message}`);
+  }
+
+  return parseAutomationApproval((data ?? null) as AutomationApprovalRow | null);
 }
 
 async function readAutomationRunsForPolicy(agentId: AutomationAgentId) {
@@ -1141,6 +1320,232 @@ export async function listAutomationRuns(options?: {
         .map((row) => parseAutomationRun(row as AutomationRunRow))
         .filter((row): row is AutomationRunRecord => Boolean(row))
     : [];
+}
+
+export async function getAutomationApproval(approvalId: number) {
+  return readAutomationApprovalById(approvalId);
+}
+
+export async function listAutomationApprovals(options?: {
+  limit?: number;
+  status?: AutomationApprovalStatus;
+  agentId?: AutomationAgentId;
+}) {
+  if (!flags.hasSupabaseAdmin) {
+    return [] as AutomationApprovalRecord[];
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return [] as AutomationApprovalRecord[];
+  }
+
+  let query = supabase
+    .from("automation_approvals")
+    .select(AUTOMATION_APPROVAL_SELECT)
+    .order("created_at", { ascending: false })
+    .limit(options?.limit ?? 200);
+
+  if (options?.status) {
+    query = query.eq("status", options.status);
+  }
+
+  if (options?.agentId) {
+    query = query.eq("agent_id", options.agentId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    if (isMissingAutomationControlRelationError(error)) {
+      return [] as AutomationApprovalRecord[];
+    }
+
+    throw new Error(`Failed to list automation approvals: ${error.message}`);
+  }
+
+  return Array.isArray(data)
+    ? data
+        .map((row) => parseAutomationApproval(row as AutomationApprovalRow))
+        .filter((row): row is AutomationApprovalRecord => Boolean(row))
+    : [];
+}
+
+export async function getAutomationApprovalSummary(options?: {
+  agentId?: AutomationAgentId;
+}) {
+  const approvals = await listAutomationApprovals({
+    limit: 400,
+    agentId: options?.agentId
+  });
+
+  return summarizeAutomationApprovals(approvals);
+}
+
+export async function createAutomationApproval(input: {
+  agentId: AutomationAgentId;
+  subjectType: string;
+  subjectKey: string;
+  proposedAction: string;
+  payload?: Record<string, unknown>;
+  sourceRunId?: number | null;
+  expiresAt?: string | null;
+  status?: AutomationApprovalStatus;
+}) {
+  if (!flags.hasSupabaseAdmin) {
+    throw new Error("Supabase admin access is not configured.");
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    throw new Error("Automation approvals are not available in this environment.");
+  }
+
+  const { data: existingData, error: existingError } = await supabase
+    .from("automation_approvals")
+    .select(AUTOMATION_APPROVAL_SELECT)
+    .eq("agent_id", input.agentId)
+    .eq("subject_type", input.subjectType)
+    .eq("subject_key", input.subjectKey)
+    .eq("proposed_action", input.proposedAction)
+    .maybeSingle();
+
+  if (existingError && !isMissingAutomationControlRelationError(existingError)) {
+    throw new Error(`Failed to read existing automation approval: ${existingError.message}`);
+  }
+
+  if (isMissingAutomationControlRelationError(existingError)) {
+    throw new Error("Automation approvals table is not available yet. Apply the migration first.");
+  }
+
+  const existing = parseAutomationApproval((existingData ?? null) as AutomationApprovalRow | null);
+  const now = new Date().toISOString();
+
+  if (existing) {
+    const { data, error } = await supabase
+      .from("automation_approvals")
+      .update({
+        payload: toJsonValue(input.payload ?? {}),
+        source_run_id: input.sourceRunId ?? existing.sourceRunId,
+        expires_at: input.expiresAt ?? existing.expiresAt,
+        updated_at: now
+      })
+      .eq("id", existing.id)
+      .select(AUTOMATION_APPROVAL_SELECT)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Failed to update automation approval ${existing.id}: ${error.message}`);
+    }
+
+    const approval = parseAutomationApproval((data ?? null) as AutomationApprovalRow | null);
+    if (!approval) {
+      throw new Error(`Automation approval ${existing.id} could not be parsed after update.`);
+    }
+
+    return {
+      action: "updated" as const,
+      approval
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("automation_approvals")
+    .insert({
+      agent_id: input.agentId,
+      subject_type: input.subjectType,
+      subject_key: input.subjectKey,
+      proposed_action: input.proposedAction,
+      payload: toJsonValue(input.payload ?? {}),
+      status: input.status ?? "pending",
+      source_run_id: input.sourceRunId ?? null,
+      expires_at: input.expiresAt ?? null
+    })
+    .select(AUTOMATION_APPROVAL_SELECT)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`Failed to create automation approval for ${input.agentId}: ${error.message}`);
+  }
+
+  const approval = parseAutomationApproval((data ?? null) as AutomationApprovalRow | null);
+  if (!approval) {
+    throw new Error(`Automation approval for ${input.agentId} could not be parsed after insert.`);
+  }
+
+  return {
+    action: "created" as const,
+    approval
+  };
+}
+
+export async function updateAutomationApproval(input: {
+  approvalId: number;
+  status: AutomationApprovalStatus;
+  decisionReason?: string | null;
+  approvedByAdminId?: string | null;
+  rejectedByAdminId?: string | null;
+}) {
+  if (!flags.hasSupabaseAdmin) {
+    throw new Error("Supabase admin access is not configured.");
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    throw new Error("Automation approvals are not available in this environment.");
+  }
+
+  const now = new Date().toISOString();
+  const update: Record<string, unknown> = {
+    status: input.status,
+    updated_at: now
+  };
+
+  if (input.decisionReason !== undefined) {
+    update.decision_reason = input.decisionReason;
+  }
+
+  if (input.status === "approved") {
+    update.approved_by_admin_id = input.approvedByAdminId ?? null;
+    update.approved_at = now;
+    update.rejected_by_admin_id = null;
+    update.rejected_at = null;
+  } else if (input.status === "rejected") {
+    update.approved_by_admin_id = null;
+    update.approved_at = null;
+    update.rejected_by_admin_id = input.rejectedByAdminId ?? null;
+    update.rejected_at = now;
+  } else if (input.status === "pending" || input.status === "expired") {
+    update.approved_by_admin_id = null;
+    update.approved_at = null;
+    update.rejected_by_admin_id = null;
+    update.rejected_at = null;
+  } else if (input.status === "applied") {
+    update.rejected_by_admin_id = null;
+    update.rejected_at = null;
+  }
+
+  const { data, error } = await supabase
+    .from("automation_approvals")
+    .update(update)
+    .eq("id", input.approvalId)
+    .select(AUTOMATION_APPROVAL_SELECT)
+    .maybeSingle();
+
+  if (error) {
+    if (isMissingAutomationControlRelationError(error)) {
+      throw new Error("Automation approvals table is not available yet. Apply the migration first.");
+    }
+
+    throw new Error(`Failed to update automation approval ${input.approvalId}: ${error.message}`);
+  }
+
+  const approval = parseAutomationApproval((data ?? null) as AutomationApprovalRow | null);
+  if (!approval) {
+    throw new Error(`Automation approval ${input.approvalId} could not be parsed after update.`);
+  }
+
+  return approval;
 }
 
 export async function setAutomationAgentEnabled(

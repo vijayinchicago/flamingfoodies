@@ -13,10 +13,16 @@ import {
 } from "@/lib/services/automation";
 import {
   recordAutomationSnapshot,
+  updateAutomationApproval,
   pauseAutomationAgent,
   resumeAutomationAgent,
   runManualAutomationTask
 } from "@/lib/services/automation-control";
+import {
+  applyReleaseApproval,
+  runBrandDiscovery,
+  runReleaseMonitor
+} from "@/lib/services/brand-monitor";
 import { processScheduledNewsletterCampaigns } from "@/lib/services/newsletter";
 import {
   getSearchRuntimeOptimizationSnapshot,
@@ -48,6 +54,10 @@ const recommendationActionSchema = z.object({
   recommendationKey: z.string().min(1)
 });
 
+const automationApprovalActionSchema = z.object({
+  approvalId: z.coerce.number().int().positive()
+});
+
 const automationAgentActionSchema = z.object({
   agentId: z.enum([
     "editorial-autopublisher",
@@ -59,7 +69,8 @@ const automationAgentActionSchema = z.object({
     "search-recommendation-executor",
     "festival-discovery",
     "pepper-discovery",
-    "brand-monitor",
+    "brand-discovery",
+    "release-monitor",
     "tutorial-generator",
     "content-shop-sync"
   ]),
@@ -69,6 +80,7 @@ const automationAgentActionSchema = z.object({
 const SEARCH_CONSOLE_DASHBOARD_PATH = "/admin/analytics/search-console";
 const AUTOMATION_AGENTS_PATH = "/admin/automation/agents";
 const AUTOMATION_TRIGGER_PATH = "/admin/automation/trigger";
+const AUTOMATION_APPROVALS_PATH = "/admin/automation/approvals";
 
 async function writeAuditLog(
   supabase: ReturnType<typeof createSupabaseAdminClient>,
@@ -101,6 +113,10 @@ function parseParameters(raw: string | undefined) {
 
 function redirectTriggerError(message: string): never {
   redirect(`${AUTOMATION_TRIGGER_PATH}?error=${encodeURIComponent(message)}`);
+}
+
+function redirectApprovalsError(message: string): never {
+  redirect(`${AUTOMATION_APPROVALS_PATH}?error=${encodeURIComponent(message)}`);
 }
 
 function getSafeReturnTo(raw: string | undefined, fallback = AUTOMATION_AGENTS_PATH) {
@@ -502,6 +518,81 @@ export async function runShopCatalogRefreshAction() {
   );
 }
 
+export async function runBrandDiscoveryAction() {
+  const admin = await requireAdmin();
+  const task = await runManualAutomationTask({
+    agentId: "brand-discovery",
+    adminId: admin.id,
+    triggerReference: "server_action:brand_discovery",
+    execute: runBrandDiscovery,
+    onSuccess: () => {
+      revalidatePath(AUTOMATION_AGENTS_PATH);
+      revalidatePath(AUTOMATION_TRIGGER_PATH);
+    },
+    summarize: (result) => ({
+      summary: `Inserted ${result.brandsInserted} discovered brand draft(s).`,
+      rowsCreated: result.brandsInserted
+    })
+  });
+
+  const result = task.ok ? task.result : redirectTriggerError(task.errorMessage);
+  const supabase = createSupabaseAdminClient();
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "run_brand_discovery",
+    targetType: "brand_discovery",
+    targetId: "manual_run",
+    metadata: result
+  });
+
+  redirect(
+    `${AUTOMATION_TRIGGER_PATH}?notice=${encodeURIComponent(
+      `Brand discovery finished with ${result.brandsInserted} new draft brand(s).`
+    )}`
+  );
+}
+
+export async function runReleaseMonitorAction() {
+  const admin = await requireAdmin();
+  const task = await runManualAutomationTask({
+    agentId: "release-monitor",
+    adminId: admin.id,
+    triggerReference: "server_action:release_monitor",
+    execute: (context) =>
+      runReleaseMonitor({
+        sourceRunId: context?.run?.id ?? null
+      }),
+    onSuccess: () => {
+      revalidatePath(AUTOMATION_APPROVALS_PATH);
+      revalidatePath(AUTOMATION_AGENTS_PATH);
+      revalidatePath(AUTOMATION_TRIGGER_PATH);
+    },
+    summarize: (result) => ({
+      summary: `Queued ${result.approvalsCreated} release approval(s) and refreshed ${result.approvalsUpdated}.`,
+      rowsCreated: result.approvalsCreated,
+      rowsUpdated: result.approvalsUpdated
+    })
+  });
+
+  const result = task.ok ? task.result : redirectTriggerError(task.errorMessage);
+  const supabase = createSupabaseAdminClient();
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "run_release_monitor",
+    targetType: "release_monitor",
+    targetId: "manual_run",
+    metadata: result
+  });
+
+  redirect(
+    `${AUTOMATION_TRIGGER_PATH}?notice=${encodeURIComponent(
+      `Release monitor queued ${result.approvalsCreated} approval(s) and refreshed ${result.approvalsUpdated}.`
+    )}`
+  );
+}
+
 export async function runSearchInsightsSyncAction() {
   const admin = await requireAdmin();
   const task = await runManualAutomationTask({
@@ -668,6 +759,118 @@ export async function markSearchRecommendationManualAction(formData: FormData) {
   });
 }
 
+async function updateAutomationApprovalStatusAction(input: {
+  formData: FormData;
+  status: "approved" | "rejected";
+  auditAction: string;
+  decisionReason: string;
+  notice: string;
+}) {
+  const admin = await requireAdmin();
+  const parsed = automationApprovalActionSchema.safeParse({
+    approvalId: input.formData.get("approvalId")
+  });
+
+  if (!parsed.success) {
+    redirectApprovalsError("Invalid automation approval request");
+  }
+
+  const approval = await updateAutomationApproval({
+    approvalId: parsed.data.approvalId,
+    status: input.status,
+    decisionReason: input.decisionReason,
+    approvedByAdminId: input.status === "approved" ? admin.id : undefined,
+    rejectedByAdminId: input.status === "rejected" ? admin.id : undefined
+  });
+
+  const supabase = createSupabaseAdminClient();
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: input.auditAction,
+    targetType: "automation_approval",
+    targetId: String(approval.id),
+    metadata: {
+      status: approval.status,
+      agentId: approval.agentId,
+      subjectType: approval.subjectType,
+      subjectKey: approval.subjectKey
+    }
+  });
+
+  revalidatePath(AUTOMATION_APPROVALS_PATH);
+  revalidatePath(AUTOMATION_AGENTS_PATH);
+  revalidatePath(AUTOMATION_TRIGGER_PATH);
+  redirect(`${AUTOMATION_APPROVALS_PATH}?notice=${encodeURIComponent(input.notice)}`);
+}
+
+export async function approveAutomationApprovalAction(formData: FormData) {
+  return updateAutomationApprovalStatusAction({
+    formData,
+    status: "approved",
+    auditAction: "approve_automation_approval",
+    decisionReason: "Approved by admin.",
+    notice: "Automation approval approved. Apply it when you are ready."
+  });
+}
+
+export async function rejectAutomationApprovalAction(formData: FormData) {
+  return updateAutomationApprovalStatusAction({
+    formData,
+    status: "rejected",
+    auditAction: "reject_automation_approval",
+    decisionReason: "Rejected by admin.",
+    notice: "Automation approval rejected."
+  });
+}
+
+export async function applyAutomationApprovalAction(formData: FormData) {
+  const admin = await requireAdmin();
+  const parsed = automationApprovalActionSchema.safeParse({
+    approvalId: formData.get("approvalId")
+  });
+
+  if (!parsed.success) {
+    redirectApprovalsError("Invalid automation approval request");
+  }
+
+  const task = await runManualAutomationTask({
+    agentId: "release-monitor",
+    adminId: admin.id,
+    triggerReference: "server_action:apply_automation_approval",
+    inputPayload: {
+      approvalId: parsed.data.approvalId
+    },
+    execute: async () => applyReleaseApproval(parsed.data.approvalId),
+    onSuccess: () => {
+      revalidatePath(AUTOMATION_APPROVALS_PATH);
+      revalidatePath(AUTOMATION_AGENTS_PATH);
+      revalidatePath(AUTOMATION_TRIGGER_PATH);
+      revalidatePath("/new-releases");
+    },
+    summarize: (result) => ({
+      summary: `Applied automation approval ${result.approvalId} as release ${result.releaseSlug}.`,
+      rowsPublished: 1
+    })
+  });
+
+  const result = task.ok ? task.result : redirectApprovalsError(task.errorMessage);
+  const supabase = createSupabaseAdminClient();
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "apply_automation_approval",
+    targetType: "automation_approval",
+    targetId: String(result.approvalId),
+    metadata: result
+  });
+
+  redirect(
+    `${AUTOMATION_APPROVALS_PATH}?notice=${encodeURIComponent(
+      `Automation approval applied${result.existed ? ` using existing release ${result.releaseSlug}` : ` and published as ${result.releaseSlug}`}.`
+    )}`
+  );
+}
+
 async function updateAutomationAgentEnabledAction(formData: FormData, isEnabled: boolean) {
   const admin = await requireAdmin();
   const parsed = automationAgentActionSchema.safeParse({
@@ -704,6 +907,7 @@ async function updateAutomationAgentEnabledAction(formData: FormData, isEnabled:
   revalidatePath(AUTOMATION_AGENTS_PATH);
   revalidatePath(AUTOMATION_TRIGGER_PATH);
   revalidatePath(SEARCH_CONSOLE_DASHBOARD_PATH);
+  revalidatePath(AUTOMATION_APPROVALS_PATH);
   redirect(
     `${destination}?notice=${encodeURIComponent(
       `${result.agent.name} ${isEnabled ? "resumed" : "paused"}.`
