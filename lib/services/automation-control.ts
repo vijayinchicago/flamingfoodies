@@ -47,12 +47,25 @@ export type AutomationRollbackStrategy =
 type AutomationExecutionBlockCode =
   | "paused"
   | "disabled"
+  | "global_pause"
+  | "external_send_pause"
+  | "draft_creation_pause"
+  | "quiet_hours"
   | "run_cap"
   | "mutation_cap"
   | "external_send_cap"
   | "failure_threshold";
 
 export type AutomationManualTaskErrorCode = AutomationExecutionBlockCode | "failed";
+
+export type AutomationPolicyState = {
+  globalPause: boolean;
+  externalSendPause: boolean;
+  draftCreationPause: boolean;
+  defaultQuietHoursStartEt: number | null;
+  defaultQuietHoursEndEt: number | null;
+  source: "site_settings" | "fallback";
+};
 
 type AutomationAgentRow = {
   agent_id: string;
@@ -178,6 +191,11 @@ type AutomationExecutionContext = {
   run: AutomationRunHandle | null;
 };
 
+type AutomationPolicyBlock = {
+  errorCode: AutomationExecutionBlockCode;
+  errorMessage: string;
+};
+
 type CronAutomationTaskOptions<TResult> = {
   request: Request;
   agentId: AutomationAgentId;
@@ -274,6 +292,17 @@ function getEtDayBounds(now = new Date()) {
   };
 }
 
+function getEtHour(now = new Date()) {
+  const formatted = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    hour: "numeric",
+    hourCycle: "h23"
+  }).format(now);
+
+  const value = Number(formatted);
+  return Number.isFinite(value) ? value : 0;
+}
+
 function getErrorCode(error: unknown) {
   if (!error || typeof error !== "object" || !("code" in error)) {
     return null;
@@ -355,6 +384,183 @@ function toRecord(value: unknown) {
   }
 
   return value as Record<string, unknown>;
+}
+
+function parseBooleanSetting(value: unknown, fallback = false) {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  if (typeof value === "number") {
+    return value !== 0;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on") {
+      return true;
+    }
+
+    if (
+      normalized === "false"
+      || normalized === "0"
+      || normalized === "no"
+      || normalized === "off"
+    ) {
+      return false;
+    }
+  }
+
+  return fallback;
+}
+
+function parseQuietHourSetting(value: unknown) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  const parsed =
+    typeof value === "number"
+      ? value
+      : typeof value === "string" && value.trim().length
+        ? Number(value)
+        : Number.NaN;
+
+  if (!Number.isFinite(parsed)) {
+    return null;
+  }
+
+  const normalized = Math.trunc(parsed);
+  return normalized >= 0 && normalized <= 23 ? normalized : null;
+}
+
+export function isEtHourInQuietHours(
+  hourEt: number,
+  quietHoursStartEt: number | null,
+  quietHoursEndEt: number | null
+) {
+  if (
+    quietHoursStartEt === null
+    || quietHoursEndEt === null
+    || quietHoursStartEt === quietHoursEndEt
+  ) {
+    return false;
+  }
+
+  if (quietHoursStartEt < quietHoursEndEt) {
+    return hourEt >= quietHoursStartEt && hourEt < quietHoursEndEt;
+  }
+
+  return hourEt >= quietHoursStartEt || hourEt < quietHoursEndEt;
+}
+
+async function readAutomationPolicyState(): Promise<AutomationPolicyState> {
+  const fallback: AutomationPolicyState = {
+    globalPause: false,
+    externalSendPause: false,
+    draftCreationPause: false,
+    defaultQuietHoursStartEt: null,
+    defaultQuietHoursEndEt: null,
+    source: "fallback"
+  };
+
+  if (!flags.hasSupabaseAdmin) {
+    return fallback;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return fallback;
+  }
+
+  const { data, error } = await supabase
+    .from("site_settings")
+    .select("key, value")
+    .in("key", [
+      "automation_global_pause",
+      "automation_external_send_pause",
+      "automation_draft_creation_pause",
+      "automation_default_quiet_hours_start_et",
+      "automation_default_quiet_hours_end_et"
+    ]);
+
+  if (error) {
+    return fallback;
+  }
+
+  const values = new Map(
+    (data ?? []).map((row) => [String(row.key), (row as { value?: unknown }).value])
+  );
+
+  return {
+    globalPause: parseBooleanSetting(values.get("automation_global_pause"), false),
+    externalSendPause: parseBooleanSetting(values.get("automation_external_send_pause"), false),
+    draftCreationPause: parseBooleanSetting(values.get("automation_draft_creation_pause"), false),
+    defaultQuietHoursStartEt: parseQuietHourSetting(
+      values.get("automation_default_quiet_hours_start_et")
+    ),
+    defaultQuietHoursEndEt: parseQuietHourSetting(
+      values.get("automation_default_quiet_hours_end_et")
+    ),
+    source: "site_settings"
+  };
+}
+
+export async function getAutomationPolicyState() {
+  return readAutomationPolicyState();
+}
+
+export function getAutomationPolicyBlock(input: {
+  agent: Pick<
+    AutomationAgentRecord,
+    "name" | "riskClass" | "autonomyMode" | "quietHoursStartEt" | "quietHoursEndEt"
+  >;
+  triggerSource: AutomationTriggerSource;
+  policyState: AutomationPolicyState;
+  now?: Date;
+}): AutomationPolicyBlock | null {
+  const { agent, triggerSource, policyState } = input;
+
+  if (policyState.globalPause) {
+    return {
+      errorCode: "global_pause",
+      errorMessage: "Automation is paused site-wide by policy."
+    };
+  }
+
+  if (
+    policyState.externalSendPause
+    && (agent.riskClass === "external_send" || agent.autonomyMode === "external_send")
+  ) {
+    return {
+      errorCode: "external_send_pause",
+      errorMessage: `${agent.name} is blocked because external-send automation is paused site-wide.`
+    };
+  }
+
+  if (policyState.draftCreationPause && agent.riskClass === "draft_only") {
+    return {
+      errorCode: "draft_creation_pause",
+      errorMessage: `${agent.name} is blocked because draft-creation automation is paused site-wide.`
+    };
+  }
+
+  const quietHoursStartEt = agent.quietHoursStartEt ?? policyState.defaultQuietHoursStartEt;
+  const quietHoursEndEt = agent.quietHoursEndEt ?? policyState.defaultQuietHoursEndEt;
+  const shouldEnforceQuietHours =
+    triggerSource === "cron" || triggerSource === "system" || triggerSource === "callback";
+
+  if (
+    shouldEnforceQuietHours
+    && isEtHourInQuietHours(getEtHour(input.now), quietHoursStartEt, quietHoursEndEt)
+  ) {
+    return {
+      errorCode: "quiet_hours",
+      errorMessage: `${agent.name} is inside its ET quiet-hours window and will resume when quiet hours end.`
+    };
+  }
+
+  return null;
 }
 
 function parseAutomationAgent(row: AutomationAgentRow | null): AutomationAgentRecord | null {
@@ -534,6 +740,22 @@ function buildAutomationBlockMessage(
     return `${agent.name} is disabled by autonomy policy.`;
   }
 
+  if (errorCode === "global_pause") {
+    return "Automation is paused site-wide by policy.";
+  }
+
+  if (errorCode === "external_send_pause") {
+    return `${agent.name} is blocked because external-send automation is paused site-wide.`;
+  }
+
+  if (errorCode === "draft_creation_pause") {
+    return `${agent.name} is blocked because draft-creation automation is paused site-wide.`;
+  }
+
+  if (errorCode === "quiet_hours") {
+    return `${agent.name} is inside its ET quiet-hours window and will resume when quiet hours end.`;
+  }
+
   if (errorCode === "run_cap") {
     return `${agent.name} hit its daily run cap and is blocked until tomorrow ET.`;
   }
@@ -554,9 +776,13 @@ function buildAutomationBlockResponse(
   errorMessage: string
 ) {
   const status =
-    errorCode === "paused" || errorCode === "disabled"
+    errorCode === "paused"
+      || errorCode === "disabled"
+      || errorCode === "global_pause"
+      || errorCode === "external_send_pause"
+      || errorCode === "draft_creation_pause"
       ? 423
-      : errorCode === "failure_threshold"
+    : errorCode === "failure_threshold"
         ? 409
         : 429;
 
@@ -575,7 +801,7 @@ export async function getAutomationAgent(agentId: AutomationAgentId) {
 
 export async function assertAgentExecutionAllowed(
   agentId: AutomationAgentId,
-  _triggerSource: AutomationTriggerSource
+  triggerSource: AutomationTriggerSource
 ) {
   const agent = await readAutomationAgent(agentId);
   if (!agent) {
@@ -599,6 +825,21 @@ export async function assertAgentExecutionAllowed(
       ok: false as const,
       errorCode: "disabled" as const,
       errorMessage: `${agent.name} is disabled by autonomy policy.`,
+      agent
+    };
+  }
+
+  const policyState = await readAutomationPolicyState();
+  const policyBlock = getAutomationPolicyBlock({
+    agent,
+    triggerSource,
+    policyState
+  });
+  if (policyBlock) {
+    return {
+      ok: false as const,
+      errorCode: policyBlock.errorCode,
+      errorMessage: policyBlock.errorMessage,
       agent
     };
   }

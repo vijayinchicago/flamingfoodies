@@ -3233,6 +3233,27 @@ export const sampleNewsletterCampaigns: NewsletterCampaign[] = [
 
 export const sampleSettings: SiteSetting[] = [
   { key: "show_ads", value: false, updatedAt: "2026-04-01T12:00:00.000Z" },
+  { key: "automation_global_pause", value: false, updatedAt: "2026-04-01T12:00:00.000Z" },
+  {
+    key: "automation_external_send_pause",
+    value: false,
+    updatedAt: "2026-04-01T12:00:00.000Z"
+  },
+  {
+    key: "automation_draft_creation_pause",
+    value: false,
+    updatedAt: "2026-04-01T12:00:00.000Z"
+  },
+  {
+    key: "automation_default_quiet_hours_start_et",
+    value: null,
+    updatedAt: "2026-04-01T12:00:00.000Z"
+  },
+  {
+    key: "automation_default_quiet_hours_end_et",
+    value: null,
+    updatedAt: "2026-04-01T12:00:00.000Z"
+  },
   {
     key: "auto_publish_ai_content",
     value: true,

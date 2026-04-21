@@ -6,6 +6,7 @@ import {
   pauseAutomationAgentAction,
   resumeAutomationAgentAction
 } from "@/lib/actions/admin-automation";
+import { getAutomationPolicyState } from "@/lib/services/automation-control";
 import { getAgentRunsReport } from "@/lib/services/agent-runs";
 
 function summaryToneClasses(tone: "neutral" | "good" | "warning") {
@@ -36,6 +37,22 @@ function formatLabel(value: string) {
   return value.replace(/_/g, " ");
 }
 
+function formatQuietHoursLabel(start: number | null, end: number | null) {
+  if (start === null || end === null || start === end) {
+    return "Not set";
+  }
+
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    hour12: true,
+    timeZone: "America/New_York"
+  });
+  const formatHour = (hour: number) =>
+    formatter.format(new Date(Date.UTC(2026, 0, 1, hour, 0, 0)));
+
+  return `${formatHour(start)} to ${formatHour(end)} ET`;
+}
+
 export default async function AdminAutomationAgentsPage({
   searchParams
 }: {
@@ -44,7 +61,10 @@ export default async function AdminAutomationAgentsPage({
     error?: string;
   };
 }) {
-  const report = await getAgentRunsReport();
+  const [report, policyState] = await Promise.all([
+    getAgentRunsReport(),
+    getAutomationPolicyState()
+  ]);
 
   return (
     <AdminPage
@@ -62,6 +82,79 @@ export default async function AdminAutomationAgentsPage({
             {searchParams.notice}
           </p>
         ) : null}
+
+        <section className="panel-light p-6">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="eyebrow">Safety Switches</p>
+              <h2 className="mt-3 font-display text-4xl text-charcoal">Site-wide automation policy</h2>
+              <p className="mt-4 text-sm leading-7 text-charcoal/70">
+                These controls sit above individual agent toggles. Global and class-based pauses
+                are enforced by the automation control plane, while ET quiet hours now gate cron,
+                callback, and system-triggered runs.
+              </p>
+            </div>
+            <Link
+              href="/admin/settings/general"
+              className="rounded-full border border-charcoal/10 px-4 py-2 text-sm font-semibold text-charcoal transition hover:bg-charcoal/5"
+            >
+              Manage settings
+            </Link>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <article className="rounded-[1.5rem] border border-charcoal/10 px-5 py-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                Global pause
+              </p>
+              <p className="mt-3 font-display text-3xl text-charcoal">
+                {policyState.globalPause ? "On" : "Off"}
+              </p>
+              <p className="mt-3 text-sm leading-6 text-charcoal/70">
+                Blocks every automation lane, including manual admin-triggered runs, until it is
+                switched off.
+              </p>
+            </article>
+            <article className="rounded-[1.5rem] border border-charcoal/10 px-5 py-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                External-send pause
+              </p>
+              <p className="mt-3 font-display text-3xl text-charcoal">
+                {policyState.externalSendPause ? "On" : "Off"}
+              </p>
+              <p className="mt-3 text-sm leading-6 text-charcoal/70">
+                Freezes lanes that send to third-party audiences, like newsletter and social
+                distribution.
+              </p>
+            </article>
+            <article className="rounded-[1.5rem] border border-charcoal/10 px-5 py-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                Draft-creation pause
+              </p>
+              <p className="mt-3 font-display text-3xl text-charcoal">
+                {policyState.draftCreationPause ? "On" : "Off"}
+              </p>
+              <p className="mt-3 text-sm leading-6 text-charcoal/70">
+                Stops draft-only discovery and research lanes from creating fresh backlog items
+                until you reopen the intake.
+              </p>
+            </article>
+            <article className="rounded-[1.5rem] border border-charcoal/10 px-5 py-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                Default quiet hours
+              </p>
+              <p className="mt-3 font-display text-3xl text-charcoal">
+                {formatQuietHoursLabel(
+                  policyState.defaultQuietHoursStartEt,
+                  policyState.defaultQuietHoursEndEt
+                )}
+              </p>
+              <p className="mt-3 text-sm leading-6 text-charcoal/70">
+                Used when an individual lane does not define its own ET quiet-hours window.
+              </p>
+            </article>
+          </div>
+        </section>
 
         <section className="panel-light p-6">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
