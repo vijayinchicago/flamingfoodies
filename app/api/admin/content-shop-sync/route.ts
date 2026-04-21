@@ -1,22 +1,32 @@
-import { requireCronAuthorization } from "@/lib/cron";
 import { runContentShopSyncBatch } from "@/lib/services/content-shop-signals";
+import { runCronAutomationTask } from "@/lib/services/automation-control";
 import { jsonResponse } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 async function handleRequest(request: Request) {
-  const unauthorized = requireCronAuthorization(request);
-  if (unauthorized) {
-    return unauthorized;
-  }
-
-  const { searchParams } = new URL(request.url);
+  const { pathname, searchParams } = new URL(request.url);
   const windowDaysParam = searchParams.get("windowDays");
   const windowDays = windowDaysParam ? Number(windowDaysParam) : undefined;
+  const task = await runCronAutomationTask({
+    request,
+    agentId: "content-shop-sync",
+    triggerReference: pathname,
+    inputPayload: {
+      windowDays: windowDays ?? null
+    },
+    execute: () => runContentShopSyncBatch(windowDays),
+    summarize: (result) => ({
+      summary: `Processed ${result.processed} content item(s), finding ${result.totalMatches} matches and ${result.totalGaps} gaps.`,
+      rowsUpdated: result.processed
+    })
+  });
 
-  const result = await runContentShopSyncBatch(windowDays);
+  if (!task.ok) {
+    return task.response;
+  }
 
-  return jsonResponse({ ok: true, ...result });
+  return jsonResponse({ ok: true, ...task.result });
 }
 
 export async function GET(request: Request) {

@@ -36,6 +36,23 @@ type ShopPickSelectionSignals = {
   categoryWeights?: Partial<Record<AffiliateCategory, number>>;
 };
 
+export type ShopShelfSnapshot = {
+  capturedAt: string;
+  publishedCount: number;
+  featuredCount: number;
+  featuredSlugs: string[];
+  featuredEntries: Array<{
+    id: number;
+    slug: string;
+    name: string;
+    category: string;
+    href: string;
+    featured: boolean;
+    sortOrder: number;
+    updatedAt: string | null;
+  }>;
+};
+
 function getDailyRotationSeed(date = new Date()) {
   return Math.floor(
     Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) / 86400000
@@ -246,6 +263,50 @@ export function formatShopCategory(category: AffiliateCategory) {
     default:
       return "Shop picks";
   }
+}
+
+export async function getShopShelfSnapshot(): Promise<ShopShelfSnapshot | null> {
+  if (!flags.hasSupabaseAdmin) {
+    return null;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("merch_products")
+    .select("id, slug, name, category, href, featured, sort_order, updated_at")
+    .like("slug", "shop-pick-%")
+    .eq("status", "published")
+    .order("featured", { ascending: false })
+    .order("sort_order", { ascending: true })
+    .limit(24);
+
+  if (error) {
+    throw new Error(`Failed to read shop shelf snapshot: ${error.message}`);
+  }
+
+  const entries = (data ?? []).map((row) => ({
+    id: Number(row.id),
+    slug: String(row.slug),
+    name: String(row.name),
+    category: String(row.category),
+    href: String(row.href),
+    featured: Boolean(row.featured),
+    sortOrder: typeof row.sort_order === "number" ? row.sort_order : 0,
+    updatedAt: typeof row.updated_at === "string" ? row.updated_at : null
+  }));
+  const featuredEntries = entries.filter((entry) => entry.featured);
+
+  return {
+    capturedAt: new Date().toISOString(),
+    publishedCount: entries.length,
+    featuredCount: featuredEntries.length,
+    featuredSlugs: featuredEntries.map((entry) => entry.slug),
+    featuredEntries
+  };
 }
 
 export function getShopThemeKey(category: AffiliateCategory): MerchThemeKey {

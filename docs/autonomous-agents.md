@@ -2,6 +2,10 @@
 
 FlamingFoodies can run as a small coordinated set of autonomous agents instead of a manual editorial queue.
 
+Implementation follow-up:
+
+- For the concrete control-plane, approvals, run-ledger, and rollout plan, see [docs/autonomous-system-governance-plan.md](/Users/vijaysingh/apps/flamingfoodies/docs/autonomous-system-governance-plan.md).
+
 ## 1. Editorial Autopublisher
 
 What it does:
@@ -76,6 +80,21 @@ Why it matters:
 Dependencies:
 - ConvertKit configuration for live sends
 
+## 6. Search Insights Analyst
+
+What it does:
+- reads Search Console exports or API snapshots
+- clusters rising queries and underperforming page intents
+- turns those signals into structured recommendations for page upgrades or new supporting pages
+
+Why it matters:
+- keeps the site aligned with the exact searches Google is already testing us on
+- turns early impressions into a repeatable SEO backlog instead of one-off guesswork
+
+Dependencies:
+- Search Console data feed or a weekly CSV export drop
+- a bounded implementation agent that only applies approved recommendation types
+
 ## Current cadence note
 
 On the current Vercel Hobby plan, cron jobs are limited to daily schedules.
@@ -97,6 +116,7 @@ For a lean launch, the best autonomous stack is:
 3. Growth Loop Promoter
 4. Shop Shelf Curator
 5. Newsletter Digest Agent
+6. Search Insights Analyst
 
 That gives FlamingFoodies a closed loop:
 
@@ -105,4 +125,5 @@ That gives FlamingFoodies a closed loop:
 3. Push it to Pinterest and social.
 4. Watch what wins.
 5. Re-promote winners.
-6. Feed the strongest traffic and affiliate signals back into the next content cycle.
+6. Read search demand and capture rising topics or weak search matches.
+7. Feed the strongest traffic and search signals back into the next content cycle.

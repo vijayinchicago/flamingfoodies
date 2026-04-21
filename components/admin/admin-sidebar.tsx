@@ -41,6 +41,7 @@ const navSections = [
       { href: "/admin/analytics/pirate", label: "Pirate metrics" },
       { href: "/admin/analytics/growth-loop", label: "Growth loop" },
       { href: "/admin/analytics/shares", label: "Share analytics" },
+      { href: "/admin/analytics/search-console", label: "Search Console" },
       { href: "/admin/analytics/search", label: "Search analytics" },
       { href: "/admin/analytics/ads", label: "Ads analytics" },
       { href: "/admin/analytics/traffic", label: "Traffic" },

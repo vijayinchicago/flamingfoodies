@@ -1,7 +1,9 @@
 import Link from "next/link";
 
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
+import { AffiliateLink } from "@/components/content/affiliate-link";
 import { ContentCard } from "@/components/cards/content-card";
+import { EmailCapture } from "@/components/forms/email-capture";
 import { ReviewCard } from "@/components/cards/review-card";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
@@ -77,6 +79,12 @@ export default async function HotSaucesHubPage() {
               Best bottles under $15
             </Link>
             <Link
+              href="/hot-sauces/best-for-fried-chicken"
+              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            >
+              Fried-chicken picks
+            </Link>
+            <Link
               href="/hot-sauces/gifts-under-50"
               className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
             >
@@ -115,7 +123,21 @@ export default async function HotSaucesHubPage() {
         />
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           {topPicks.map((review) => (
-            <ReviewCard key={review.id} review={review} />
+            <div key={review.id}>
+              <ReviewCard review={review} />
+              <div className="mt-3 pl-1">
+                <AffiliateLink
+                  href={review.affiliateUrl}
+                  partnerName={review.brand}
+                  productName={review.productName}
+                  sourcePage="/hot-sauces"
+                  position="hub-top-picks"
+                  className="inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                >
+                  Check price on Amazon
+                </AffiliateLink>
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -178,6 +200,15 @@ export default async function HotSaucesHubPage() {
             ))}
           </div>
         </div>
+      </div>
+
+      <div className="mt-14 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-8">
+        <EmailCapture
+          source="hot-sauce-hub"
+          defaultSegments={["hot-sauce-shelf"]}
+          heading="Weekly sauce picks, reviews, and bottle guides."
+          description="New hot sauces reviewed every week. Join the shelf."
+        />
       </div>
     </section>
   );

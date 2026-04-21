@@ -1,33 +1,48 @@
 import { runGenerationPipeline } from "@/lib/services/automation";
 import { runShopPickAutomation } from "@/lib/services/shop-automation";
-import { requireCronAuthorization } from "@/lib/cron";
+import { runCronAutomationTask } from "@/lib/services/automation-control";
 import { jsonResponse } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 async function handleRequest(request: Request) {
-  const unauthorized = requireCronAuthorization(request);
-  if (unauthorized) {
-    return unauthorized;
-  }
-
-  const { searchParams } = new URL(request.url);
+  const { pathname, searchParams } = new URL(request.url);
   const type = searchParams.get("type") || "recipe";
   const qtyParam = searchParams.get("qty");
   const profileParam = searchParams.get("profile");
   const qty = qtyParam ? Number(qtyParam) : undefined;
   const profile = profileParam === "hot_sauce_recipe" ? "hot_sauce_recipe" : undefined;
+  const inputPayload = {
+    type,
+    qty: qty ?? null,
+    profile: profile ?? null
+  };
 
-  const result =
-    type === "merch_product"
-      ? await runShopPickAutomation(qty, {
-          source: "cron"
-        })
-      : await runGenerationPipeline(type, qty, {
-          source: "cron",
-          profile
-        });
-  return jsonResponse({ ok: true, ...result });
+  const task = await runCronAutomationTask({
+    request,
+    agentId: type === "merch_product" ? "shop-shelf-curator" : "editorial-autopublisher",
+    triggerReference: pathname,
+    inputPayload,
+    execute: () =>
+      type === "merch_product"
+        ? runShopPickAutomation(qty, {
+            source: "cron"
+          })
+        : runGenerationPipeline(type, qty, {
+            source: "cron",
+            profile
+          }),
+    summarize: (result) => ({
+      summary: `Queued ${Array.isArray(result.createdJobs) ? result.createdJobs.length : 0} ${type} job(s).`,
+      rowsCreated: Array.isArray(result.createdJobs) ? result.createdJobs.length : 0
+    })
+  });
+
+  if (!task.ok) {
+    return task.response;
+  }
+
+  return jsonResponse({ ok: true, ...task.result });
 }
 
 export async function GET(request: Request) {

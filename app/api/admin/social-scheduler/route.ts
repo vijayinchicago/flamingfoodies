@@ -1,17 +1,28 @@
-import { requireCronAuthorization } from "@/lib/cron";
 import { queueSocialScheduler } from "@/lib/services/automation";
+import { runCronAutomationTask } from "@/lib/services/automation-control";
 import { jsonResponse } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 async function handleRequest(request: Request) {
-  const unauthorized = requireCronAuthorization(request);
-  if (unauthorized) {
-    return unauthorized;
+  const { pathname } = new URL(request.url);
+  const task = await runCronAutomationTask({
+    request,
+    agentId: "pinterest-distributor",
+    triggerReference: pathname,
+    execute: queueSocialScheduler,
+    summarize: (result) => ({
+      summary: `Queued ${result.queued} social post(s) and published ${result.published}.`,
+      rowsUpdated: result.queued,
+      rowsPublished: result.published
+    })
+  });
+
+  if (!task.ok) {
+    return task.response;
   }
 
-  const result = await queueSocialScheduler();
-  return jsonResponse({ ok: true, ...result });
+  return jsonResponse({ ok: true, ...task.result });
 }
 
 export async function GET(request: Request) {

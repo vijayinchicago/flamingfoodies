@@ -1,25 +1,37 @@
 import { revalidatePath } from "next/cache";
 
-import { requireCronAuthorization } from "@/lib/cron";
 import { runFestivalDiscovery } from "@/lib/services/festival-discovery";
+import { runCronAutomationTask } from "@/lib/services/automation-control";
 import { jsonResponse } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 async function handleRequest(request: Request) {
-  const unauthorized = requireCronAuthorization(request);
-  if (unauthorized) return unauthorized;
+  const { pathname } = new URL(request.url);
+  const task = await runCronAutomationTask({
+    request,
+    agentId: "festival-discovery",
+    triggerReference: pathname,
+    execute: runFestivalDiscovery,
+    onSuccess: (result) => {
+      // If new festivals were discovered, revalidate the hub page so the
+      // draft count is visible in the admin dashboard.
+      if (result.inserted > 0) {
+        revalidatePath("/festivals");
+      }
+    },
+    summarize: (result) => ({
+      summary: `Discovered ${result.inserted} new festival draft(s) from ${result.found} candidate(s).`,
+      rowsCreated: result.inserted
+    })
+  });
 
-  const result = await runFestivalDiscovery();
-
-  // If new festivals were discovered, revalidate the hub page so the
-  // draft count is visible in the admin dashboard.
-  if (result.inserted > 0) {
-    revalidatePath("/festivals");
+  if (!task.ok) {
+    return task.response;
   }
 
-  return jsonResponse({ ok: true, ...result });
+  return jsonResponse({ ok: true, ...task.result });
 }
 
 export async function GET(request: Request) {

@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 
 import { RecipeCard } from "@/components/cards/recipe-card";
 import { CommentSection } from "@/components/community/comment-section";
+import { AdSlot } from "@/components/ads/ad-slot";
+import { EmailCapture } from "@/components/forms/email-capture";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { AffiliateLink } from "@/components/content/affiliate-link";
 import { PinterestSaveButton } from "@/components/content/pinterest-save-button";
@@ -46,7 +48,10 @@ import {
   getRecipeMethodSteps,
   getRecipeSupportList
 } from "@/lib/recipes";
+import { getRecipeSearchInsightBlocks } from "@/lib/search-content-optimizations";
+import { getAdRuntimeConfig } from "@/lib/ads";
 import { buildMetadata } from "@/lib/seo";
+import { getRuntimeRecipeSearchOptimization } from "@/lib/services/search-insights";
 import { getCurrentProfile } from "@/lib/supabase/auth";
 import {
   getFeaturedMerchProducts,
@@ -240,12 +245,13 @@ export default async function RecipePage({
   }
 
   const profile = await getCurrentProfile();
-  const [userState, merchPreview, reviews, recipes, dynamicTerms] = await Promise.all([
+  const [userState, merchPreview, reviews, recipes, dynamicTerms, ads] = await Promise.all([
     getRecipeUserState(recipe.id, profile?.id),
     getFeaturedMerchProducts(2),
     getReviews(),
     getRecipes(),
-    getDynamicInlineTerms()
+    getDynamicInlineTerms(),
+    getAdRuntimeConfig()
   ]);
 
   // Build equipment affiliate map once — used to turn gear chips into links
@@ -309,6 +315,8 @@ export default async function RecipePage({
   const projectCard = getProjectCard(recipe);
   const occasionCard = getOccasionCard(recipe);
   const printNoteBlocks = getPrintNoteBlocks(recipe, substitutions, servingSuggestions);
+  const runtimeRecipeOptimization = await getRuntimeRecipeSearchOptimization(recipe.slug);
+  const searchInsightBlocks = getRecipeSearchInsightBlocks(recipe, runtimeRecipeOptimization);
   const planningStats = [
     { label: "Prep", value: formatCookTime(recipe.prepTimeMinutes) },
     { label: "Cook", value: formatCookTime(recipe.cookTimeMinutes) },
@@ -490,7 +498,7 @@ export default async function RecipePage({
               </div>
 
               <div className="mt-8 flex flex-wrap gap-3 text-sm text-cream/65">
-                <span>{recipe.authorName}</span>
+                <span>By {recipe.authorName}</span>
                 <span>{recipe.ratingAvg?.toFixed(1) || "New"} average rating</span>
                 <span>{recipe.ratingCount} ratings</span>
                 <span>{recipe.saveCount} saves</span>
@@ -596,6 +604,20 @@ export default async function RecipePage({
         ) : null}
         {searchParams?.error ? (
           <p className="text-sm text-rose-300">{searchParams.error}</p>
+        ) : null}
+
+        {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.recipeInline ? (
+          <div className="mt-8 max-w-4xl">
+            <AdSlot
+              clientId={ads.clientId}
+              slotId={ads.slotIds.recipeInline}
+              slotName="recipe_detail_above_content"
+              placement="above-content"
+              contentType="recipe"
+              contentId={recipe.id}
+              contentSlug={recipe.slug}
+            />
+          </div>
         ) : null}
 
         <div className="recipe-print-layout grid gap-8 xl:grid-cols-[380px_minmax(0,1fr)]">
@@ -721,7 +743,35 @@ export default async function RecipePage({
               </div>
             </section>
 
+            {searchInsightBlocks.length ? (
+              <section className="grid gap-6 lg:grid-cols-2">
+                {searchInsightBlocks.map((block) => (
+                  <article
+                    key={`${recipe.slug}-${block.title}`}
+                    className="recipe-print-section recipe-core-panel panel p-6 sm:p-7"
+                  >
+                    <p className="eyebrow">{block.eyebrow}</p>
+                    <h3 className="mt-3 font-display text-4xl text-cream">{block.title}</h3>
+                    <p className="mt-4 text-sm leading-7 text-cream/72">{block.copy}</p>
+                  </article>
+                ))}
+              </section>
+            ) : null}
+
             <RecipeMethodSection steps={methodSteps} ingredientSections={ingredientSections} />
+
+            {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.recipeInArticle ? (
+              <AdSlot
+                clientId={ads.clientId}
+                slotId={ads.slotIds.recipeInArticle}
+                slotName="recipe_detail_after_method"
+                placement="after-method"
+                format="in-article"
+                contentType="recipe"
+                contentId={recipe.id}
+                contentSlug={recipe.slug}
+              />
+            ) : null}
 
             <section className="grid gap-6 lg:grid-cols-2">
               {recipe.tips.length ? (
@@ -831,12 +881,36 @@ export default async function RecipePage({
               </section>
             ) : null}
 
+            {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.recipeInline ? (
+              <div className="max-w-4xl">
+                <AdSlot
+                  clientId={ads.clientId}
+                  slotId={ads.slotIds.recipeInline}
+                  slotName="recipe_detail_before_comments"
+                  placement="before-comments"
+                  contentType="recipe"
+                  contentId={recipe.id}
+                  contentSlug={recipe.slug}
+                />
+              </div>
+            ) : null}
+
             <section className="recipe-core-panel print-hidden">
               <CommentSection
                 contentType="recipe"
                 contentId={recipe.id}
                 contentPath={`/recipes/${recipe.slug}`}
                 title="Community notes"
+              />
+            </section>
+
+            <section className="recipe-core-panel print-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-7">
+              <EmailCapture
+                source="recipe-page"
+                tag={recipe.cuisineType}
+                defaultSegments={["recipe-club"]}
+                heading="Get more recipes like this."
+                description="Weekly spicy picks matched to how you cook."
               />
             </section>
           </div>
@@ -929,7 +1003,7 @@ export default async function RecipePage({
                                 contentSlug={recipe.slug}
                                 className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
                               >
-                                View on Amazon
+                                Check price on Amazon
                               </AffiliateLink>
                             </div>
                           </div>
@@ -987,7 +1061,7 @@ export default async function RecipePage({
                               contentSlug={recipe.slug}
                               className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                             >
-                              View on Amazon
+                              Check price on Amazon
                             </AffiliateLink>
                           </article>
                         ))}
@@ -1032,7 +1106,7 @@ export default async function RecipePage({
                               contentSlug={recipe.slug}
                               className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                             >
-                              View on Amazon
+                              Check price on Amazon
                             </AffiliateLink>
                           </article>
                         ))}

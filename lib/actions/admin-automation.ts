@@ -11,8 +11,23 @@ import {
   queueSocialScheduler,
   runGenerationPipeline
 } from "@/lib/services/automation";
+import {
+  recordAutomationSnapshot,
+  pauseAutomationAgent,
+  resumeAutomationAgent,
+  runManualAutomationTask
+} from "@/lib/services/automation-control";
 import { processScheduledNewsletterCampaigns } from "@/lib/services/newsletter";
-import { runShopCatalogRefresh } from "@/lib/services/shop-automation";
+import {
+  getSearchRuntimeOptimizationSnapshot,
+  runSearchInsightsAutomation,
+  runSearchRecommendationExecutor,
+  updateSearchRecommendationStatus
+} from "@/lib/services/search-insights";
+import {
+  getShopShelfSnapshot,
+  runShopCatalogRefresh
+} from "@/lib/services/shop-automation";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
@@ -28,6 +43,32 @@ const scheduleSchema = z.object({
   parameters: z.string().optional(),
   isActive: z.boolean().optional()
 });
+
+const recommendationActionSchema = z.object({
+  recommendationKey: z.string().min(1)
+});
+
+const automationAgentActionSchema = z.object({
+  agentId: z.enum([
+    "editorial-autopublisher",
+    "pinterest-distributor",
+    "growth-loop-promoter",
+    "shop-shelf-curator",
+    "newsletter-digest-agent",
+    "search-insights-analyst",
+    "search-recommendation-executor",
+    "festival-discovery",
+    "pepper-discovery",
+    "brand-monitor",
+    "tutorial-generator",
+    "content-shop-sync"
+  ]),
+  returnTo: z.string().optional()
+});
+
+const SEARCH_CONSOLE_DASHBOARD_PATH = "/admin/analytics/search-console";
+const AUTOMATION_AGENTS_PATH = "/admin/automation/agents";
+const AUTOMATION_TRIGGER_PATH = "/admin/automation/trigger";
 
 async function writeAuditLog(
   supabase: ReturnType<typeof createSupabaseAdminClient>,
@@ -58,6 +99,32 @@ function parseParameters(raw: string | undefined) {
   }
 }
 
+function redirectTriggerError(message: string): never {
+  redirect(`${AUTOMATION_TRIGGER_PATH}?error=${encodeURIComponent(message)}`);
+}
+
+function getSafeReturnTo(raw: string | undefined, fallback = AUTOMATION_AGENTS_PATH) {
+  if (!raw?.startsWith("/admin/")) {
+    return fallback;
+  }
+
+  return raw;
+}
+
+function revalidateSearchInsightSurfaces() {
+  revalidatePath("/admin/automation/agents");
+  revalidatePath("/admin/automation/trigger");
+  revalidatePath("/admin/analytics/search-console");
+  revalidatePath("/blog");
+  revalidatePath("/recipes");
+  revalidatePath("/hot-sauces");
+  revalidatePath("/hot-sauces/best-for-wings");
+  revalidatePath("/hot-sauces/best-for-seafood");
+  revalidatePath("/hot-sauces/best-for-fried-chicken");
+  revalidatePath("/blog/how-to-choose-a-hot-sauce-for-seafood");
+  revalidatePath("/recipes/nashville-hot-chicken-sandwiches");
+}
+
 export async function triggerGenerationAction(formData: FormData) {
   const admin = await requireAdmin();
 
@@ -70,10 +137,29 @@ export async function triggerGenerationAction(formData: FormData) {
     redirect("/admin/automation/trigger?error=Invalid%20generation%20request");
   }
 
-  const result = await runGenerationPipeline(parsed.data.type, parsed.data.qty);
-  if ("skippedReason" in result && result.skippedReason) {
-    redirect(`/admin/automation/trigger?error=${encodeURIComponent(result.skippedReason)}`);
-  }
+  const task = await runManualAutomationTask({
+    agentId: "editorial-autopublisher",
+    adminId: admin.id,
+    triggerReference: "server_action:trigger_generation",
+    inputPayload: {
+      type: parsed.data.type,
+      qty: parsed.data.qty
+    },
+    execute: async () => {
+      const result = await runGenerationPipeline(parsed.data.type, parsed.data.qty);
+      if ("skippedReason" in result && result.skippedReason) {
+        throw new Error(result.skippedReason);
+      }
+
+      return result;
+    },
+    summarize: (result) => ({
+      summary: `Queued ${result.createdJobs.length} ${parsed.data.type} job(s).`,
+      rowsCreated: result.createdJobs.length
+    })
+  });
+
+  const result = task.ok ? task.result : redirectTriggerError(task.errorMessage);
   const supabase = createSupabaseAdminClient();
 
   await writeAuditLog(supabase, {
@@ -89,9 +175,9 @@ export async function triggerGenerationAction(formData: FormData) {
   });
 
   revalidatePath("/admin/automation/jobs");
-  revalidatePath("/admin/automation/trigger");
+  revalidatePath(AUTOMATION_TRIGGER_PATH);
   revalidatePath("/admin");
-  redirect(`/admin/automation/trigger?created=${result.createdJobs.length}`);
+  redirect(`${AUTOMATION_TRIGGER_PATH}?created=${result.createdJobs.length}`);
 }
 
 export async function updateGenerationScheduleAction(formData: FormData) {
@@ -157,7 +243,30 @@ export async function updateGenerationScheduleAction(formData: FormData) {
 
 export async function runPublishScheduledAction() {
   const admin = await requireAdmin();
-  const result = await publishScheduledContent();
+  const task = await runManualAutomationTask({
+    agentId: "editorial-autopublisher",
+    adminId: admin.id,
+    triggerReference: "server_action:publish_scheduled",
+    execute: publishScheduledContent,
+    onSuccess: (result) => {
+      revalidatePath("/admin/automation/jobs");
+      revalidatePath("/blog");
+      revalidatePath("/recipes");
+      revalidatePath("/reviews");
+
+      for (const item of result.published) {
+        if (item.type === "blog_post") revalidatePath(`/blog/${item.slug}`);
+        if (item.type === "recipe") revalidatePath(`/recipes/${item.slug}`);
+        if (item.type === "review") revalidatePath(`/reviews/${item.slug}`);
+      }
+    },
+    summarize: (result) => ({
+      summary: `Published ${result.published.length} scheduled item(s).`,
+      rowsPublished: result.published.length
+    })
+  });
+
+  const result = task.ok ? task.result : redirectTriggerError(task.errorMessage);
   const supabase = createSupabaseAdminClient();
 
   await writeAuditLog(supabase, {
@@ -170,25 +279,54 @@ export async function runPublishScheduledAction() {
     }
   });
 
-  revalidatePath("/admin/automation/jobs");
-  revalidatePath("/blog");
-  revalidatePath("/recipes");
-  revalidatePath("/reviews");
-
-  for (const item of result.published) {
-    if (item.type === "blog_post") revalidatePath(`/blog/${item.slug}`);
-    if (item.type === "recipe") revalidatePath(`/recipes/${item.slug}`);
-    if (item.type === "review") revalidatePath(`/reviews/${item.slug}`);
-  }
-
-  redirect(`/admin/automation/trigger?published=${result.published.length}`);
+  redirect(`${AUTOMATION_TRIGGER_PATH}?published=${result.published.length}`);
 }
 
 export async function runReevaluatePendingAiDraftsAction() {
   const admin = await requireAdmin();
-  const result = await reevaluatePendingAiDraftsForAutopublish({
-    publishDueAfterReevaluation: true
+  const task = await runManualAutomationTask({
+    agentId: "editorial-autopublisher",
+    adminId: admin.id,
+    triggerReference: "server_action:reevaluate_ai_drafts",
+    inputPayload: {
+      publishDueAfterReevaluation: true
+    },
+    execute: async () => {
+      const result = await reevaluatePendingAiDraftsForAutopublish({
+        publishDueAfterReevaluation: true
+      });
+
+      if ("skippedReason" in result && result.skippedReason) {
+        throw new Error(result.skippedReason);
+      }
+
+      return result;
+    },
+    onSuccess: (result) => {
+      revalidatePath("/admin/automation/jobs");
+      revalidatePath(AUTOMATION_TRIGGER_PATH);
+      revalidatePath("/admin/automation/agents");
+      revalidatePath("/admin/content/recipes");
+      revalidatePath("/admin/content/blog");
+      revalidatePath("/admin/content/reviews");
+      revalidatePath("/blog");
+      revalidatePath("/recipes");
+      revalidatePath("/reviews");
+
+      for (const item of result.items) {
+        if (item.type === "blog_post") revalidatePath(`/blog/${item.slug}`);
+        if (item.type === "recipe") revalidatePath(`/recipes/${item.slug}`);
+        if (item.type === "review") revalidatePath(`/reviews/${item.slug}`);
+      }
+    },
+    summarize: (result) => ({
+      summary: `Reevaluated ${result.reviewed} AI draft(s), promoting ${result.promoted} and publishing ${result.published}.`,
+      rowsUpdated: result.reviewed,
+      rowsPublished: result.published
+    })
   });
+
+  const result = task.ok ? task.result : redirectTriggerError(task.errorMessage);
   const supabase = createSupabaseAdminClient();
 
   await writeAuditLog(supabase, {
@@ -199,34 +337,32 @@ export async function runReevaluatePendingAiDraftsAction() {
     metadata: result
   });
 
-  revalidatePath("/admin/automation/jobs");
-  revalidatePath("/admin/automation/trigger");
-  revalidatePath("/admin/automation/agents");
-  revalidatePath("/admin/content/recipes");
-  revalidatePath("/admin/content/blog");
-  revalidatePath("/admin/content/reviews");
-  revalidatePath("/blog");
-  revalidatePath("/recipes");
-  revalidatePath("/reviews");
-
-  for (const item of result.items) {
-    if (item.type === "blog_post") revalidatePath(`/blog/${item.slug}`);
-    if (item.type === "recipe") revalidatePath(`/recipes/${item.slug}`);
-    if (item.type === "review") revalidatePath(`/reviews/${item.slug}`);
-  }
-
-  if ("skippedReason" in result && result.skippedReason) {
-    redirect(`/admin/automation/trigger?error=${encodeURIComponent(result.skippedReason)}`);
-  }
-
   redirect(
-    `/admin/automation/trigger?reevaluated=${result.reviewed}&promoted=${result.promoted}&backfillPublished=${result.published}`
+    `${AUTOMATION_TRIGGER_PATH}?reevaluated=${result.reviewed}&promoted=${result.promoted}&backfillPublished=${result.published}`
   );
 }
 
 export async function runSocialSchedulerAction() {
   const admin = await requireAdmin();
-  const result = await queueSocialScheduler();
+  const task = await runManualAutomationTask({
+    agentId: "pinterest-distributor",
+    adminId: admin.id,
+    triggerReference: "server_action:social_scheduler",
+    execute: queueSocialScheduler,
+    onSuccess: () => {
+      revalidatePath("/admin/social/queue");
+      revalidatePath("/admin/social/history");
+      revalidatePath(AUTOMATION_TRIGGER_PATH);
+      revalidatePath("/admin/automation/agents");
+    },
+    summarize: (result) => ({
+      summary: `Queued ${result.queued} social post(s) and published ${result.published}.`,
+      rowsUpdated: result.queued,
+      rowsPublished: result.published
+    })
+  });
+
+  const result = task.ok ? task.result : redirectTriggerError(task.errorMessage);
   const supabase = createSupabaseAdminClient();
 
   await writeAuditLog(supabase, {
@@ -237,16 +373,31 @@ export async function runSocialSchedulerAction() {
     metadata: result
   });
 
-  revalidatePath("/admin/social/queue");
-  revalidatePath("/admin/social/history");
   redirect(
-    `/admin/automation/trigger?queued=${result.queued}&publishedSocial=${result.published ?? 0}`
+    `${AUTOMATION_TRIGGER_PATH}?queued=${result.queued}&publishedSocial=${result.published ?? 0}`
   );
 }
 
 export async function runNewsletterDigestAction() {
   const admin = await requireAdmin();
-  const result = await createWeeklyDigest();
+  const task = await runManualAutomationTask({
+    agentId: "newsletter-digest-agent",
+    adminId: admin.id,
+    triggerReference: "server_action:newsletter_digest",
+    execute: createWeeklyDigest,
+    onSuccess: () => {
+      revalidatePath("/admin/newsletter/campaigns");
+      revalidatePath("/admin/newsletter/new");
+      revalidatePath(AUTOMATION_TRIGGER_PATH);
+      revalidatePath("/admin/automation/agents");
+    },
+    summarize: (result) => ({
+      summary: `Drafted ${result.draftCount} newsletter digest(s).`,
+      rowsCreated: result.draftCount
+    })
+  });
+
+  const result = task.ok ? task.result : redirectTriggerError(task.errorMessage);
   const supabase = createSupabaseAdminClient();
 
   await writeAuditLog(supabase, {
@@ -257,14 +408,32 @@ export async function runNewsletterDigestAction() {
     metadata: result
   });
 
-  revalidatePath("/admin/newsletter/campaigns");
-  revalidatePath("/admin/newsletter/new");
-  redirect(`/admin/automation/trigger?digest=${encodeURIComponent(result.subject)}`);
+  redirect(`${AUTOMATION_TRIGGER_PATH}?digest=${encodeURIComponent(result.subject)}`);
 }
 
 export async function runDueNewsletterSendsAction() {
   const admin = await requireAdmin();
-  const result = await processScheduledNewsletterCampaigns();
+  const task = await runManualAutomationTask({
+    agentId: "newsletter-digest-agent",
+    adminId: admin.id,
+    triggerReference: "server_action:newsletter_send_due",
+    inputPayload: {
+      mode: "send_due"
+    },
+    execute: processScheduledNewsletterCampaigns,
+    onSuccess: () => {
+      revalidatePath("/admin/newsletter/campaigns");
+      revalidatePath(AUTOMATION_TRIGGER_PATH);
+      revalidatePath("/admin/automation/agents");
+    },
+    summarize: (result) => ({
+      summary: `Processed ${result.processed} due newsletter campaign(s) and sent ${result.sent}.`,
+      rowsUpdated: result.processed,
+      rowsSent: result.sent
+    })
+  });
+
+  const result = task.ok ? task.result : redirectTriggerError(task.errorMessage);
   const supabase = createSupabaseAdminClient();
 
   await writeAuditLog(supabase, {
@@ -275,18 +444,49 @@ export async function runDueNewsletterSendsAction() {
     metadata: result
   });
 
-  revalidatePath("/admin/newsletter/campaigns");
-  revalidatePath("/admin/automation/trigger");
   redirect(
-    `/admin/automation/trigger?processedNewsletters=${result.processed}&sentNewsletters=${result.sent}&failedNewsletters=${result.failures}`
+    `${AUTOMATION_TRIGGER_PATH}?processedNewsletters=${result.processed}&sentNewsletters=${result.sent}&failedNewsletters=${result.failures}`
   );
 }
 
 export async function runShopCatalogRefreshAction() {
   const admin = await requireAdmin();
-  const result = await runShopCatalogRefresh({
-    source: "manual"
+  let beforeShelfSnapshot: Awaited<ReturnType<typeof getShopShelfSnapshot>> | null = null;
+  const task = await runManualAutomationTask({
+    agentId: "shop-shelf-curator",
+    adminId: admin.id,
+    triggerReference: "server_action:shop_catalog_refresh",
+    inputPayload: {
+      source: "manual"
+    },
+    execute: async () => {
+      beforeShelfSnapshot = await getShopShelfSnapshot();
+      return runShopCatalogRefresh({
+        source: "manual"
+      });
+    },
+    onSuccess: async (_result, context) => {
+      const afterShelfSnapshot = await getShopShelfSnapshot();
+      await recordAutomationSnapshot(context?.run ?? null, {
+        scope: "merch_products.shop_shelf",
+        subjectKey: "shop-picks",
+        beforePayload: beforeShelfSnapshot,
+        afterPayload: afterShelfSnapshot
+      });
+
+      revalidatePath("/admin/content/merch");
+      revalidatePath(AUTOMATION_TRIGGER_PATH);
+      revalidatePath("/admin/automation/agents");
+      revalidatePath("/shop");
+    },
+    summarize: (result) => ({
+      summary: `Refreshed ${result.reviewed} shop pick(s), creating ${result.created} and updating ${result.updated}.`,
+      rowsCreated: result.created,
+      rowsUpdated: result.updated
+    })
   });
+
+  const result = task.ok ? task.result : redirectTriggerError(task.errorMessage);
   const supabase = createSupabaseAdminClient();
 
   await writeAuditLog(supabase, {
@@ -297,10 +497,224 @@ export async function runShopCatalogRefreshAction() {
     metadata: result
   });
 
-  revalidatePath("/admin/content/merch");
-  revalidatePath("/admin/automation/trigger");
-  revalidatePath("/shop");
   redirect(
-    `/admin/automation/trigger?shopRefreshReviewed=${result.reviewed}&shopRefreshCreated=${result.created}&shopRefreshUpdated=${result.updated}`
+    `${AUTOMATION_TRIGGER_PATH}?shopRefreshReviewed=${result.reviewed}&shopRefreshCreated=${result.created}&shopRefreshUpdated=${result.updated}`
   );
+}
+
+export async function runSearchInsightsSyncAction() {
+  const admin = await requireAdmin();
+  const task = await runManualAutomationTask({
+    agentId: "search-insights-analyst",
+    adminId: admin.id,
+    triggerReference: "server_action:search_insights_sync",
+    execute: async () => {
+      const result = await runSearchInsightsAutomation();
+      if (!result.ok) {
+        throw new Error(result.skippedReason);
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      revalidateSearchInsightSurfaces();
+      revalidatePath(AUTOMATION_AGENTS_PATH);
+      revalidatePath(AUTOMATION_TRIGGER_PATH);
+    },
+    summarize: (result) => ({
+      summary: `Synced Search Console recommendations for ${result.property}.`,
+      rowsCreated: result.newRecommendationCount
+    })
+  });
+
+  const result = task.ok
+    ? task.result
+    : redirect(`${SEARCH_CONSOLE_DASHBOARD_PATH}?error=${encodeURIComponent(task.errorMessage)}`);
+  const supabase = createSupabaseAdminClient();
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "run_search_insights_sync",
+    targetType: "search_console",
+    targetId: "manual_sync",
+    metadata: result
+  });
+
+  redirect(
+    `${SEARCH_CONSOLE_DASHBOARD_PATH}?synced=1&recommendations=${result.recommendationIds.length}&new=${result.newRecommendationCount}&approved=${result.approvedRecommendationCount}&applied=${result.appliedRecommendationCount}&latest=${result.window.latestAvailableDate}`
+  );
+}
+
+export async function runSearchInsightsExecutorAction() {
+  const admin = await requireAdmin();
+  let beforeRuntimeSnapshot: Awaited<ReturnType<typeof getSearchRuntimeOptimizationSnapshot>> | null =
+    null;
+  const task = await runManualAutomationTask({
+    agentId: "search-recommendation-executor",
+    adminId: admin.id,
+    triggerReference: "server_action:search_insights_executor",
+    execute: async () => {
+      beforeRuntimeSnapshot = await getSearchRuntimeOptimizationSnapshot();
+      const result = await runSearchRecommendationExecutor();
+      if (!result.ok) {
+        throw new Error(result.skippedReason);
+      }
+
+      return result;
+    },
+    onSuccess: async (result, context) => {
+      const afterRuntimeSnapshot = await getSearchRuntimeOptimizationSnapshot();
+      await recordAutomationSnapshot(context?.run ?? null, {
+        scope: "site_settings.search_runtime_optimizations",
+        subjectKey: result.property,
+        beforePayload: beforeRuntimeSnapshot,
+        afterPayload: afterRuntimeSnapshot
+      });
+
+      revalidateSearchInsightSurfaces();
+      revalidatePath(AUTOMATION_AGENTS_PATH);
+      revalidatePath(AUTOMATION_TRIGGER_PATH);
+    },
+    summarize: (result) => ({
+      summary: `Applied ${result.appliedRecommendationCount} approved search recommendation(s).`,
+      rowsPublished: result.appliedRecommendationCount,
+      rowsUpdated: result.manualReviewRecommendationKeys.length
+    })
+  });
+
+  const result = task.ok
+    ? task.result
+    : redirect(`${SEARCH_CONSOLE_DASHBOARD_PATH}?error=${encodeURIComponent(task.errorMessage)}`);
+  const supabase = createSupabaseAdminClient();
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "run_search_recommendation_executor",
+    targetType: "search_console",
+    targetId: "manual_executor",
+    metadata: result
+  });
+
+  redirect(
+    `${SEARCH_CONSOLE_DASHBOARD_PATH}?executed=1&executorApplied=${result.appliedRecommendationKeys.length}&executorManual=${result.manualReviewRecommendationKeys.length}&runtimeTargets=${result.runtimeTargetCount}`
+  );
+}
+
+async function updateSearchRecommendationStatusAction(input: {
+  formData: FormData;
+  status: "approved" | "dismissed" | "manual_review";
+  auditAction: string;
+  decisionReason: string | null;
+  notice: string;
+}) {
+  const admin = await requireAdmin();
+  const parsed = recommendationActionSchema.safeParse({
+    recommendationKey: input.formData.get("recommendationKey")
+  });
+
+  if (!parsed.success) {
+    redirect(`${SEARCH_CONSOLE_DASHBOARD_PATH}?error=Invalid%20search%20recommendation%20request`);
+  }
+
+  await updateSearchRecommendationStatus({
+    recommendationKey: parsed.data.recommendationKey,
+    status: input.status,
+    decisionReason: input.decisionReason
+  });
+
+  const supabase = createSupabaseAdminClient();
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: input.auditAction,
+    targetType: "search_recommendation",
+    targetId: parsed.data.recommendationKey,
+    metadata: {
+      status: input.status,
+      decisionReason: input.decisionReason
+    }
+  });
+
+  revalidateSearchInsightSurfaces();
+  redirect(`${SEARCH_CONSOLE_DASHBOARD_PATH}?updated=1&notice=${encodeURIComponent(input.notice)}`);
+}
+
+export async function approveSearchRecommendationAction(formData: FormData) {
+  return updateSearchRecommendationStatusAction({
+    formData,
+    status: "approved",
+    auditAction: "approve_search_recommendation",
+    decisionReason: "Approved by admin for executor review.",
+    notice: "Search recommendation approved. Run the executor to rebuild live overlays."
+  });
+}
+
+export async function dismissSearchRecommendationAction(formData: FormData) {
+  return updateSearchRecommendationStatusAction({
+    formData,
+    status: "dismissed",
+    auditAction: "dismiss_search_recommendation",
+    decisionReason: "Dismissed by admin.",
+    notice: "Search recommendation dismissed."
+  });
+}
+
+export async function markSearchRecommendationManualAction(formData: FormData) {
+  return updateSearchRecommendationStatusAction({
+    formData,
+    status: "manual_review",
+    auditAction: "mark_search_recommendation_manual",
+    decisionReason: "Marked for manual review by admin.",
+    notice: "Search recommendation moved to manual review."
+  });
+}
+
+async function updateAutomationAgentEnabledAction(formData: FormData, isEnabled: boolean) {
+  const admin = await requireAdmin();
+  const parsed = automationAgentActionSchema.safeParse({
+    agentId: formData.get("agentId"),
+    returnTo: formData.get("returnTo")
+  });
+
+  if (!parsed.success) {
+    redirect(`${AUTOMATION_AGENTS_PATH}?error=Invalid%20automation%20agent%20request`);
+  }
+
+  const destination = getSafeReturnTo(parsed.data.returnTo);
+  const result = isEnabled
+    ? await resumeAutomationAgent(parsed.data.agentId)
+    : await pauseAutomationAgent(parsed.data.agentId);
+
+  if (!result.ok) {
+    redirect(`${destination}?error=${encodeURIComponent(result.errorMessage)}`);
+  }
+
+  const supabase = createSupabaseAdminClient();
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: isEnabled ? "resume_automation_agent" : "pause_automation_agent",
+    targetType: "automation_agent",
+    targetId: parsed.data.agentId,
+    metadata: {
+      isEnabled,
+      riskClass: result.agent.riskClass,
+      autonomyMode: result.agent.autonomyMode
+    }
+  });
+
+  revalidatePath(AUTOMATION_AGENTS_PATH);
+  revalidatePath(AUTOMATION_TRIGGER_PATH);
+  revalidatePath(SEARCH_CONSOLE_DASHBOARD_PATH);
+  redirect(
+    `${destination}?notice=${encodeURIComponent(
+      `${result.agent.name} ${isEnabled ? "resumed" : "paused"}.`
+    )}`
+  );
+}
+
+export async function pauseAutomationAgentAction(formData: FormData) {
+  return updateAutomationAgentEnabledAction(formData, false);
+}
+
+export async function resumeAutomationAgentAction(formData: FormData) {
+  return updateAutomationAgentEnabledAction(formData, true);
 }

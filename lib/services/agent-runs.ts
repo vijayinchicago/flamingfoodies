@@ -1,36 +1,33 @@
 import { getAutonomousAgents, type AutonomousAgent } from "@/lib/autonomous-agents";
 import { flags } from "@/lib/env";
+import {
+  listAutomationAgents,
+  listAutomationRuns,
+  type AutomationAgentRecord,
+  type AutomationRunRecord
+} from "@/lib/services/automation-control";
 import { getGrowthLoopReport } from "@/lib/services/growth-loop";
+import {
+  getLatestSearchInsightRunSummary,
+  getSearchRecommendationQueueSummary,
+  getSearchRuntimeOptimizations,
+  hasSearchConsoleConnection
+} from "@/lib/services/search-insights";
 import { parseBufferProfileIds } from "@/lib/services/social";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 const ET_TIME_ZONE = "America/New_York";
-const PUBLISH_ACTIONS = new Set(["update_recipe", "update_blog_post", "update_review"]);
 
-type AgentRunStat = {
-  label: string;
-  value: string;
-};
+type SummaryTone = "neutral" | "good" | "warning";
 
 type AgentRunLink = {
   label: string;
   href: string;
 };
 
-type SummaryTone = "neutral" | "good" | "warning";
-
-export type AgentRunSummaryCard = {
+type AgentRunStat = {
   label: string;
   value: string;
-  note: string;
-  tone: SummaryTone;
-  links: AgentRunLink[];
-};
-
-export type AgentRunScheduleWindow = {
-  label: string;
-  at: string;
-  note: string;
 };
 
 type ScheduleDefinition = {
@@ -40,15 +37,6 @@ type ScheduleDefinition = {
   hourUtc: number;
   minuteUtc: number;
   weekdays?: number[];
-};
-
-type GenerationJobRow = {
-  job_type: string;
-  status: string;
-  queued_at: string | null;
-  completed_at: string | null;
-  error_message?: string | null;
-  parameters?: Record<string, unknown> | null;
 };
 
 type SocialPostRow = {
@@ -65,16 +53,7 @@ type NewsletterCampaignRow = {
   created_at: string;
   send_at: string | null;
   sent_at: string | null;
-  recipient_count: number | null;
   click_count: number | null;
-};
-
-type AuditRow = {
-  action: string;
-  target_type: string | null;
-  target_id: string | null;
-  performed_at: string;
-  metadata?: Record<string, unknown> | null;
 };
 
 type AiContentRow = {
@@ -92,19 +71,69 @@ type MerchRow = {
   updated_at: string | null;
 };
 
+type AgentRunLedger = {
+  lastRunAt?: string;
+  lastSuccessfulRunAt?: string;
+  lastFailedRunAt?: string;
+  consecutiveFailures: number;
+  runsToday: number;
+  successfulRunsToday: number;
+  failedRunsToday: number;
+  blockedRunsToday: number;
+  runsLast7Days: number;
+  successfulRunsLast7Days: number;
+  failedRunsLast7Days: number;
+  mutationUsageToday: number;
+  externalUsageToday: number;
+};
+
+export type AgentRunSummaryCard = {
+  label: string;
+  value: string;
+  note: string;
+  tone: SummaryTone;
+  links: AgentRunLink[];
+};
+
+export type AgentRunScheduleWindow = {
+  label: string;
+  at: string;
+  note: string;
+};
+
 export type AgentRunReportItem = AutonomousAgent & {
   summary: string;
+  isEnabled: boolean;
+  requiresManualApproval: boolean;
+  controlStatus: "enabled" | "paused";
   lastObservedAt?: string;
+  lastSuccessfulRunAt?: string;
+  lastFailedRunAt?: string;
   nextScheduledAt?: string;
   nextScheduledLabel?: string;
+  consecutiveFailures: number;
+  runsToday: number;
+  successfulRunsToday: number;
+  failedRunsToday: number;
+  blockedRunsToday: number;
+  capUsage: AgentRunStat[];
   stats: AgentRunStat[];
   links: AgentRunLink[];
 };
 
+export type AgentRunsSection = {
+  key: string;
+  label: string;
+  description: string;
+  agents: AgentRunReportItem[];
+};
+
 export type AgentRunsReport = {
+  controlPlaneAvailable: boolean;
   todaySummary: AgentRunSummaryCard[];
   nextRuns: AgentRunScheduleWindow[];
   agents: AgentRunReportItem[];
+  sections: AgentRunsSection[];
 };
 
 const scheduleDefinitions: ScheduleDefinition[] = [
@@ -114,6 +143,14 @@ const scheduleDefinitions: ScheduleDefinition[] = [
     note: "Daily batch of 3 recipes.",
     hourUtc: 6,
     minuteUtc: 0
+  },
+  {
+    agentId: "editorial-autopublisher",
+    label: "Hot sauce recipe generation",
+    note: "Weekly featured-sauce recipe on Mondays.",
+    hourUtc: 9,
+    minuteUtc: 0,
+    weekdays: [1]
   },
   {
     agentId: "editorial-autopublisher",
@@ -132,14 +169,6 @@ const scheduleDefinitions: ScheduleDefinition[] = [
   },
   {
     agentId: "editorial-autopublisher",
-    label: "Hot sauce recipe generation",
-    note: "Weekly featured-sauce recipe on Mondays.",
-    hourUtc: 9,
-    minuteUtc: 0,
-    weekdays: [1]
-  },
-  {
-    agentId: "editorial-autopublisher",
     label: "AI draft reevaluation",
     note: "Re-checks pending AI drafts and promotes anything that now clears autonomous QA.",
     hourUtc: 17,
@@ -151,6 +180,73 @@ const scheduleDefinitions: ScheduleDefinition[] = [
     note: "Makes due scheduled content live.",
     hourUtc: 18,
     minuteUtc: 0
+  },
+  {
+    agentId: "shop-shelf-curator",
+    label: "Shop pick generation",
+    note: "Adds a fresh shop pick daily.",
+    hourUtc: 11,
+    minuteUtc: 0
+  },
+  {
+    agentId: "content-shop-sync",
+    label: "Content-shop sync",
+    note: "Refreshes internal shop matching and gap signals.",
+    hourUtc: 12,
+    minuteUtc: 0
+  },
+  {
+    agentId: "search-insights-analyst",
+    label: "Search insights sync",
+    note: "Pulls Search Console performance data and refreshes the approval queue.",
+    hourUtc: 12,
+    minuteUtc: 30,
+    weekdays: [1]
+  },
+  {
+    agentId: "search-recommendation-executor",
+    label: "Search recommendation executor",
+    note: "Rebuilds runtime overlays from approved Search Console recommendations.",
+    hourUtc: 13,
+    minuteUtc: 0
+  },
+  {
+    agentId: "shop-shelf-curator",
+    label: "Shop catalog refresh",
+    note: "Nightly shelf re-rank using click data.",
+    hourUtc: 23,
+    minuteUtc: 30
+  },
+  {
+    agentId: "festival-discovery",
+    label: "Festival discovery",
+    note: "Nightly draft-only scan for new festival entities.",
+    hourUtc: 2,
+    minuteUtc: 0
+  },
+  {
+    agentId: "pepper-discovery",
+    label: "Pepper discovery",
+    note: "Weekly draft-only scan for new pepper entities.",
+    hourUtc: 3,
+    minuteUtc: 0,
+    weekdays: [1]
+  },
+  {
+    agentId: "brand-monitor",
+    label: "Brand monitor",
+    note: "Weekly scan for new brands and release signals.",
+    hourUtc: 4,
+    minuteUtc: 0,
+    weekdays: [1]
+  },
+  {
+    agentId: "tutorial-generator",
+    label: "Tutorial generator",
+    note: "Weekly draft-only tutorial generation pass.",
+    hourUtc: 5,
+    minuteUtc: 0,
+    weekdays: [3]
   },
   {
     agentId: "growth-loop-promoter",
@@ -165,20 +261,6 @@ const scheduleDefinitions: ScheduleDefinition[] = [
     note: "Queues and publishes social posts, including Pinterest when configured.",
     hourUtc: 19,
     minuteUtc: 15
-  },
-  {
-    agentId: "shop-shelf-curator",
-    label: "Shop pick generation",
-    note: "Adds a fresh shop pick daily.",
-    hourUtc: 11,
-    minuteUtc: 0
-  },
-  {
-    agentId: "shop-shelf-curator",
-    label: "Shop catalog refresh",
-    note: "Nightly shelf re-rank using click data.",
-    hourUtc: 23,
-    minuteUtc: 30
   },
   {
     agentId: "newsletter-digest-agent",
@@ -200,12 +282,31 @@ function daysAgoIso(days: number) {
 
 function latestIso(values: Array<string | null | undefined>) {
   const filtered = values.filter(Boolean) as string[];
+  return filtered.length ? filtered.sort((left, right) => right.localeCompare(left))[0] : undefined;
+}
 
-  if (!filtered.length) {
-    return undefined;
-  }
+function pluralize(label: string, count: number) {
+  return `${count} ${label}${count === 1 ? "" : "s"}`;
+}
 
-  return filtered.sort((left, right) => right.localeCompare(left))[0];
+function formatCountBreakdown(
+  counts: Record<string, number>,
+  labelMap: Record<string, string>,
+  fallback: string
+) {
+  const parts = Object.entries(labelMap)
+    .map(([key, label]) => ({ label, count: counts[key] ?? 0 }))
+    .filter((entry) => entry.count > 0)
+    .map((entry) => pluralize(entry.label, entry.count));
+
+  return parts.length ? parts.join(", ") : fallback;
+}
+
+function countByType<T extends string>(entries: T[]) {
+  return entries.reduce<Record<T, number>>((counts, entry) => {
+    counts[entry] = (counts[entry] ?? 0) + 1;
+    return counts;
+  }, {} as Record<T, number>);
 }
 
 function isDigestSubject(subject?: string | null) {
@@ -217,10 +318,6 @@ function isDigestSubject(subject?: string | null) {
     normalized.includes("this week’s hottest recipes and sauce finds") ||
     normalized.includes("this week's hottest recipes and sauce finds")
   );
-}
-
-function pluralize(label: string, count: number) {
-  return `${count} ${label}${count === 1 ? "" : "s"}`;
 }
 
 function formatEtDateTime(value: string | Date) {
@@ -299,29 +396,11 @@ function getEtDayBounds(now = new Date()) {
 }
 
 function isBetween(value: string | null | undefined, start: Date, end: Date) {
-  if (!value) return false;
+  if (!value) {
+    return false;
+  }
 
   return value >= start.toISOString() && value < end.toISOString();
-}
-
-function countByType<T extends string>(entries: T[]) {
-  return entries.reduce<Record<T, number>>((counts, entry) => {
-    counts[entry] = (counts[entry] ?? 0) + 1;
-    return counts;
-  }, {} as Record<T, number>);
-}
-
-function formatCountBreakdown(
-  counts: Record<string, number>,
-  labelMap: Record<string, string>,
-  fallback: string
-) {
-  const parts = Object.entries(labelMap)
-    .map(([key, label]) => ({ label, count: counts[key] ?? 0 }))
-    .filter((entry) => entry.count > 0)
-    .map((entry) => pluralize(entry.label, entry.count));
-
-  return parts.length ? parts.join(", ") : fallback;
 }
 
 function getNextOccurrence(schedule: ScheduleDefinition, now = new Date()) {
@@ -395,10 +474,54 @@ function buildAgentLinks(agentId: AutonomousAgent["id"]): AgentRunLink[] {
     ];
   }
 
+  if (agentId === "newsletter-digest-agent") {
+    return [
+      { label: "Campaigns", href: "/admin/newsletter/campaigns" },
+      { label: "Subscribers", href: "/admin/newsletter/subscribers" },
+      { label: "Compose", href: "/admin/newsletter/new" }
+    ];
+  }
+
+  if (agentId === "search-insights-analyst" || agentId === "search-recommendation-executor") {
+    return [
+      { label: "Search Console", href: "/admin/analytics/search-console" },
+      { label: "Trigger", href: "/admin/automation/trigger" },
+      { label: "Agent runs", href: "/admin/automation/agents" }
+    ];
+  }
+
+  if (agentId === "festival-discovery") {
+    return [
+      { label: "Trigger", href: "/admin/automation/trigger" },
+      { label: "Public festivals", href: "/festivals" }
+    ];
+  }
+
+  if (agentId === "pepper-discovery") {
+    return [
+      { label: "Trigger", href: "/admin/automation/trigger" },
+      { label: "Public peppers", href: "/peppers" }
+    ];
+  }
+
+  if (agentId === "brand-monitor") {
+    return [
+      { label: "Trigger", href: "/admin/automation/trigger" },
+      { label: "New releases", href: "/new-releases" }
+    ];
+  }
+
+  if (agentId === "tutorial-generator") {
+    return [
+      { label: "Trigger", href: "/admin/automation/trigger" },
+      { label: "How-to guides", href: "/how-to" }
+    ];
+  }
+
   return [
-    { label: "Campaigns", href: "/admin/newsletter/campaigns" },
-    { label: "Subscribers", href: "/admin/newsletter/subscribers" },
-    { label: "Compose", href: "/admin/newsletter/new" }
+    { label: "Trigger", href: "/admin/automation/trigger" },
+    { label: "Shop picks CMS", href: "/admin/content/merch" },
+    { label: "Public shop", href: "/shop" }
   ];
 }
 
@@ -409,74 +532,231 @@ function buildFallbackReport(baseAgents: AutonomousAgent[], now = new Date()): A
     note: entry.note
   }));
 
+  const agents: AgentRunReportItem[] = baseAgents.map((agent) => {
+    const nextWindow = buildNextRuns(now).find((entry) => entry.agentId === agent.id);
+
+    return {
+      ...agent,
+      summary:
+        agent.status === "live"
+          ? "This agent is configured in code, but the automation control plane is not available in this environment yet."
+          : agent.dependencyNote,
+      isEnabled: true,
+      requiresManualApproval: agent.autonomyMode === "approval_required",
+      controlStatus: "enabled",
+      lastObservedAt: undefined,
+      lastSuccessfulRunAt: undefined,
+      lastFailedRunAt: undefined,
+      nextScheduledAt: nextWindow?.nextOccurrence.toISOString(),
+      nextScheduledLabel: nextWindow?.label,
+      consecutiveFailures: 0,
+      runsToday: 0,
+      successfulRunsToday: 0,
+      failedRunsToday: 0,
+      blockedRunsToday: 0,
+      capUsage: [],
+      stats: [],
+      links: buildAgentLinks(agent.id)
+    };
+  });
+
   return {
+    controlPlaneAvailable: false,
     todaySummary: [
       {
-        label: "Live data",
+        label: "Control plane",
         value: "Unavailable",
-        note: "Supabase admin access is not configured in this environment, so run counts cannot be read.",
+        note: "Apply the automation control migration so agent state, pauses, and run ledgers can be read live.",
         tone: "warning",
         links: [{ label: "Automation trigger", href: "/admin/automation/trigger" }]
       }
     ],
     nextRuns,
-    agents: baseAgents.map((agent) => {
-      const nextWindow = buildNextRuns(now).find((entry) => entry.agentId === agent.id);
-
-      return {
-        ...agent,
-        summary:
-          agent.status === "live"
-            ? "This agent is configured in code, but live run data is not available in this environment."
-            : agent.dependencyNote,
-        lastObservedAt: undefined,
-        nextScheduledAt: nextWindow ? nextWindow.nextOccurrence.toISOString() : undefined,
-        nextScheduledLabel: nextWindow?.label,
-        stats: [],
-        links: buildAgentLinks(agent.id)
-      };
-    })
+    agents,
+    sections: buildSections(agents)
   };
+}
+
+function buildSections(agents: AgentRunReportItem[]): AgentRunsSection[] {
+  return [
+    {
+      key: "bounded_live",
+      label: "Live bounded agents",
+      description: "These lanes can mutate live state, but only inside pre-modeled surfaces with caps and rollback expectations.",
+      agents: agents.filter((agent) => !agent.isSupport && agent.riskClass === "bounded_live")
+    },
+    {
+      key: "external_send",
+      label: "External send agents",
+      description: "These lanes touch audience-facing delivery channels such as social or email, so send controls matter more than simple draft creation.",
+      agents: agents.filter((agent) => !agent.isSupport && agent.riskClass === "external_send")
+    },
+    {
+      key: "approval_required",
+      label: "Approval-required agents",
+      description: "These lanes can research or prepare output, but the target policy is to stop short of unsupervised high-risk publication.",
+      agents: agents.filter(
+        (agent) => !agent.isSupport && agent.riskClass === "approval_required"
+      )
+    },
+    {
+      key: "draft_only",
+      label: "Draft-only agents",
+      description: "These lanes create research or draft records without publishing live user-facing output on their own.",
+      agents: agents.filter((agent) => !agent.isSupport && agent.riskClass === "draft_only")
+    },
+    {
+      key: "support",
+      label: "Support jobs",
+      description: "These jobs matter operationally, but they are not public-facing autonomous lanes.",
+      agents: agents.filter((agent) => agent.isSupport)
+    }
+  ].filter((section) => section.agents.length > 0);
+}
+
+function buildLedgerByAgent(
+  agents: AutonomousAgent[],
+  controls: Map<AutonomousAgent["id"], AutomationAgentRecord>,
+  runs: AutomationRunRecord[],
+  etDayBounds: { start: Date; end: Date }
+) {
+  const cutoff7 = daysAgoIso(7);
+  const runsByAgent = new Map<AutonomousAgent["id"], AutomationRunRecord[]>();
+
+  for (const agent of agents) {
+    runsByAgent.set(
+      agent.id,
+      runs
+        .filter((run) => run.agentId === agent.id)
+        .sort((left, right) => right.startedAt.localeCompare(left.startedAt))
+    );
+  }
+
+  const ledgerByAgent = new Map<AutonomousAgent["id"], AgentRunLedger>();
+
+  for (const agent of agents) {
+    const agentRuns = runsByAgent.get(agent.id) ?? [];
+    const todayRuns = agentRuns.filter((run) => isBetween(run.startedAt, etDayBounds.start, etDayBounds.end));
+    const runsLast7Days = agentRuns.filter((run) => run.startedAt >= cutoff7);
+
+    let consecutiveFailures = 0;
+    for (const run of agentRuns) {
+      if (run.status !== "failed") {
+        break;
+      }
+      consecutiveFailures += 1;
+    }
+
+    ledgerByAgent.set(agent.id, {
+      lastRunAt: agentRuns[0]?.startedAt,
+      lastSuccessfulRunAt: agentRuns.find((run) => run.status === "succeeded")?.startedAt,
+      lastFailedRunAt: agentRuns.find((run) => run.status === "failed")?.startedAt,
+      consecutiveFailures,
+      runsToday: todayRuns.length,
+      successfulRunsToday: todayRuns.filter((run) => run.status === "succeeded").length,
+      failedRunsToday: todayRuns.filter((run) => run.status === "failed").length,
+      blockedRunsToday: todayRuns.filter((run) => run.status === "blocked").length,
+      runsLast7Days: runsLast7Days.length,
+      successfulRunsLast7Days: runsLast7Days.filter((run) => run.status === "succeeded").length,
+      failedRunsLast7Days: runsLast7Days.filter((run) => run.status === "failed").length,
+      mutationUsageToday: todayRuns.reduce(
+        (sum, run) => sum + run.rowsCreated + run.rowsUpdated + run.rowsPublished,
+        0
+      ),
+      externalUsageToday: todayRuns.reduce(
+        (sum, run) => sum + Math.max(run.rowsSent, run.externalActionsCount),
+        0
+      )
+    });
+
+    const control = controls.get(agent.id);
+    if (!control) {
+      continue;
+    }
+  }
+
+  return ledgerByAgent;
+}
+
+function buildCapUsage(control: AutomationAgentRecord | undefined, ledger: AgentRunLedger) {
+  if (!control) {
+    return [] as AgentRunStat[];
+  }
+
+  const usage: AgentRunStat[] = [];
+
+  if (typeof control.dailyRunCap === "number") {
+    usage.push({
+      label: "Run cap",
+      value: `${ledger.runsToday}/${control.dailyRunCap} today`
+    });
+  }
+
+  if (typeof control.dailyMutationCap === "number") {
+    usage.push({
+      label: "Mutation cap",
+      value: `${ledger.mutationUsageToday}/${control.dailyMutationCap} today`
+    });
+  }
+
+  if (typeof control.dailyExternalSendCap === "number") {
+    usage.push({
+      label: "Send cap",
+      value: `${ledger.externalUsageToday}/${control.dailyExternalSendCap} today`
+    });
+  }
+
+  return usage;
+}
+
+function withPausePrefix(agent: { isEnabled: boolean }, message: string) {
+  return agent.isEnabled ? message : `Currently paused. ${message}`;
 }
 
 export async function getAgentRunsReport(): Promise<AgentRunsReport> {
   const bufferProfiles = parseBufferProfileIds();
-  const supabase = createSupabaseAdminClient();
-  const autoPublishEnabledDefault = true;
   const now = new Date();
+  const searchConsoleReady =
+    flags.hasSearchConsoleAuth || (flags.hasSupabaseAdmin ? await hasSearchConsoleConnection() : false);
   const baseAgents = getAutonomousAgents({
-    autoPublishEnabled: autoPublishEnabledDefault,
+    autoPublishEnabled: true,
     hasBuffer: flags.hasBuffer,
     hasPinterestProfile: bufferProfiles.has("pinterest") || bufferProfiles.has("all"),
-    hasConvertKit: flags.hasConvertKit
+    hasConvertKit: flags.hasConvertKit,
+    hasSearchConsole: searchConsoleReady,
+    hasAnthropic: flags.hasAnthropic,
+    hasSupabaseAdmin: flags.hasSupabaseAdmin
   });
 
-  if (!flags.hasSupabaseAdmin || !supabase) {
+  if (!flags.hasSupabaseAdmin) {
     return buildFallbackReport(baseAgents, now);
   }
 
-  const cutoff7 = daysAgoIso(7);
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return buildFallbackReport(baseAgents, now);
+  }
+
   const etDayBounds = getEtDayBounds(now);
 
   const [
+    controlAgents,
+    controlRuns,
     { data: settingsRows },
-    { data: generationJobs },
     { data: pinterestPosts },
     { data: newsletterCampaigns },
-    { data: auditRows },
     { data: aiRecipeRows },
     { data: aiBlogRows },
     { data: aiReviewRows },
     { data: merchRows },
-    growthReport
+    growthReport,
+    latestSearchInsightRun,
+    searchQueueSummary,
+    searchRuntime
   ] = await Promise.all([
+    listAutomationAgents(),
+    listAutomationRuns({ since: daysAgoIso(30), limit: 1000 }),
     supabase.from("site_settings").select("key, value"),
-    supabase
-      .from("content_generation_jobs")
-      .select("job_type, status, queued_at, completed_at, error_message, parameters")
-      .in("job_type", ["recipe", "blog_post", "review", "merch_product"])
-      .order("queued_at", { ascending: false })
-      .limit(200),
     supabase
       .from("social_posts")
       .select("platform, status, created_at, scheduled_at, published_at")
@@ -485,25 +765,9 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
       .limit(200),
     supabase
       .from("newsletter_campaigns")
-      .select("subject, status, created_at, send_at, sent_at, recipient_count, click_count")
+      .select("subject, status, created_at, send_at, sent_at, click_count")
       .order("created_at", { ascending: false })
       .limit(100),
-    supabase
-      .from("admin_audit_log")
-      .select("action, target_type, target_id, performed_at, metadata")
-      .in("action", [
-        "queue_growth_loop_promotions",
-        "refresh_shop_catalog",
-        "generate_newsletter_digest",
-        "send_due_newsletters",
-        "publish_scheduled_content",
-        "queue_social_posts",
-        "update_recipe",
-        "update_blog_post",
-        "update_review"
-      ])
-      .order("performed_at", { ascending: false })
-      .limit(200),
     supabase
       .from("recipes")
       .select("id, status, published_at, created_at, source")
@@ -527,81 +791,65 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
       .select("status, featured, created_at, updated_at")
       .order("updated_at", { ascending: false })
       .limit(200),
-    getGrowthLoopReport(30)
+    getGrowthLoopReport(30),
+    getLatestSearchInsightRunSummary(),
+    getSearchRecommendationQueueSummary(),
+    getSearchRuntimeOptimizations()
   ]);
+
+  const controlPlaneAvailable = controlAgents.length > 0;
+  if (!controlPlaneAvailable) {
+    return buildFallbackReport(baseAgents, now);
+  }
 
   const settingsMap = new Map((settingsRows ?? []).map((row) => [row.key, row.value]));
   const autoPublishEnabled =
     settingsMap.get("auto_publish_ai_content") === undefined
-      ? autoPublishEnabledDefault
+      ? true
       : Boolean(settingsMap.get("auto_publish_ai_content"));
 
   const agents = getAutonomousAgents({
     autoPublishEnabled,
     hasBuffer: flags.hasBuffer,
     hasPinterestProfile: bufferProfiles.has("pinterest") || bufferProfiles.has("all"),
-    hasConvertKit: flags.hasConvertKit
+    hasConvertKit: flags.hasConvertKit,
+    hasSearchConsole: searchConsoleReady,
+    hasAnthropic: flags.hasAnthropic,
+    hasSupabaseAdmin: flags.hasSupabaseAdmin
   });
+
+  const controlsById = new Map(controlAgents.map((agent) => [agent.agentId, agent]));
+  const ledgerByAgent = buildLedgerByAgent(agents, controlsById, controlRuns, etDayBounds);
+  const nextRunEntries = buildNextRuns(now);
 
   const recipeRows = (aiRecipeRows ?? []) as AiContentRow[];
   const blogRows = (aiBlogRows ?? []) as AiContentRow[];
   const reviewRows = (aiReviewRows ?? []) as AiContentRow[];
   const editorialRows = [...recipeRows, ...blogRows, ...reviewRows];
-  const editorialJobs = ((generationJobs ?? []) as GenerationJobRow[]).filter((job) =>
-    ["recipe", "blog_post", "review"].includes(job.job_type)
-  );
-  const merchGenerationJobs = ((generationJobs ?? []) as GenerationJobRow[]).filter(
-    (job) => job.job_type === "merch_product"
-  );
-  const auditLogRows = (auditRows ?? []) as AuditRow[];
   const pinterestRows = (pinterestPosts ?? []) as SocialPostRow[];
   const digestCampaigns = ((newsletterCampaigns ?? []) as NewsletterCampaignRow[]).filter((campaign) =>
     isDigestSubject(campaign.subject)
   );
   const merchProductRows = (merchRows ?? []) as MerchRow[];
 
-  const manualPublishRows = auditLogRows.filter(
-    (row) =>
-      PUBLISH_ACTIONS.has(row.action) &&
-      row.metadata &&
-      String(row.metadata.intent ?? "") === "publish"
-  );
-  const manualPublishKeys = new Set(
-    manualPublishRows
-      .filter((row) => row.target_type && row.target_id)
-      .map((row) => `${row.target_type}:${row.target_id}`)
-  );
-
+  const cutoff7 = daysAgoIso(7);
   const editorialPublishedLast7 = editorialRows.filter(
     (row) => row.status === "published" && row.published_at && row.published_at >= cutoff7
   ).length;
   const editorialScheduled = editorialRows.filter((row) => row.status === "draft").length;
   const editorialPending = editorialRows.filter((row) => row.status === "pending_review").length;
-  const editorialFailedJobs = editorialJobs.filter((job) => job.status === "failed").length;
-  const editorialLastObservedAt = latestIso([
-    ...editorialRows.map((row) => row.published_at ?? row.created_at),
-    ...editorialJobs.map((job) => job.completed_at ?? job.queued_at)
-  ]);
 
   const pinterestPublishedLast7 = pinterestRows.filter(
     (row) => row.status === "published" && row.published_at && row.published_at >= cutoff7
   ).length;
   const pinterestScheduled = pinterestRows.filter((row) => row.status === "scheduled").length;
   const pinterestFailed = pinterestRows.filter((row) => row.status === "failed").length;
-  const pinterestLastObservedAt = latestIso(
-    pinterestRows.map((row) => row.published_at ?? row.scheduled_at ?? row.created_at)
-  );
 
   const winnerCount =
     growthReport.winners.acquisition.length +
     growthReport.winners.activation.length +
     growthReport.winners.referral.length +
     growthReport.winners.revenue.length;
-  const growthLastObservedAt = latestIso(
-    auditLogRows
-      .filter((row) => row.action === "queue_growth_loop_promotions")
-      .map((row) => row.performed_at)
-  );
 
   const merchPublished = merchProductRows.filter((row) => row.status === "published").length;
   const merchFeatured = merchProductRows.filter(
@@ -610,11 +858,6 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
   const merchCreatedLast7 = merchProductRows.filter(
     (row) => row.created_at && row.created_at >= cutoff7
   ).length;
-  const merchFailedJobs = merchGenerationJobs.filter((job) => job.status === "failed").length;
-  const merchLastObservedAt = latestIso([
-    ...merchProductRows.map((row) => row.updated_at ?? row.created_at),
-    ...merchGenerationJobs.map((job) => job.completed_at ?? job.queued_at)
-  ]);
 
   const digestDrafts = digestCampaigns.filter((campaign) => campaign.status === "draft").length;
   const digestScheduled = digestCampaigns.filter((campaign) => campaign.status === "scheduled").length;
@@ -623,52 +866,11 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
     (sum, campaign) => sum + Number(campaign.click_count ?? 0),
     0
   );
-  const newsletterLastObservedAt = latestIso(
-    digestCampaigns.map((campaign) => campaign.sent_at ?? campaign.send_at ?? campaign.created_at)
-  );
 
-  const completedJobsToday = [...editorialJobs, ...merchGenerationJobs].filter(
-    (job) => job.status === "completed" && isBetween(job.completed_at ?? job.queued_at, etDayBounds.start, etDayBounds.end)
-  );
-  const completedTodayBreakdown = countByType(
-    completedJobsToday.map((job) => job.job_type as "recipe" | "blog_post" | "review" | "merch_product")
-  );
-
-  const failedJobsToday = [...editorialJobs, ...merchGenerationJobs].filter(
-    (job) => job.status === "failed" && isBetween(job.completed_at ?? job.queued_at, etDayBounds.start, etDayBounds.end)
-  );
-  const failedTodayBreakdown = countByType(
-    failedJobsToday.map((job) => job.job_type as "recipe" | "blog_post" | "review" | "merch_product")
-  );
-
-  const publishedRecipesToday = recipeRows.filter((row) =>
-    isBetween(row.published_at, etDayBounds.start, etDayBounds.end)
-  );
-  const publishedBlogsToday = blogRows.filter((row) =>
-    isBetween(row.published_at, etDayBounds.start, etDayBounds.end)
-  );
-  const publishedReviewsToday = reviewRows.filter((row) =>
-    isBetween(row.published_at, etDayBounds.start, etDayBounds.end)
-  );
-  const publishedTodayRows = [
-    ...publishedRecipesToday.map((row) => ({ row, type: "recipe" })),
-    ...publishedBlogsToday.map((row) => ({ row, type: "blog_post" })),
-    ...publishedReviewsToday.map((row) => ({ row, type: "review" }))
-  ];
-
-  const manualPublishedTodayRows = publishedTodayRows.filter(({ row, type }) =>
-    manualPublishKeys.has(`${type === "blog_post" ? "blog_post" : type}:${row.id}`)
-  );
-  const autoPublishedTodayRows = publishedTodayRows.filter(
-    ({ row, type }) => !manualPublishKeys.has(`${type === "blog_post" ? "blog_post" : type}:${row.id}`)
-  );
-
-  const manualPublishedTodayBreakdown = countByType(
-    manualPublishedTodayRows.map((entry) => entry.type)
-  );
-  const autoPublishedTodayBreakdown = countByType(
-    autoPublishedTodayRows.map((entry) => entry.type)
-  );
+  const searchRuntimeTargetCount =
+    Object.keys(searchRuntime?.pages ?? {}).length +
+    Object.keys(searchRuntime?.blog ?? {}).length +
+    Object.keys(searchRuntime?.recipes ?? {}).length;
 
   const waitingReviewBreakdown = {
     recipe: recipeRows.filter((row) => row.status === "pending_review").length,
@@ -676,258 +878,392 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
     review: reviewRows.filter((row) => row.status === "pending_review").length
   };
 
-  const nextRunEntries = buildNextRuns(now);
+  const todayRuns = controlRuns.filter((run) => isBetween(run.startedAt, etDayBounds.start, etDayBounds.end));
+  const todayStatusBreakdown = countByType(
+    todayRuns.map((run) => run.status as "succeeded" | "failed" | "started" | "blocked" | "cancelled" | "rolled_back")
+  );
+  const pausedAgents = controlAgents.filter((agent) => !agent.isEnabled).length;
+  const agentsNeedingAttention = agents.filter((agent) => {
+    const ledger = ledgerByAgent.get(agent.id);
+    return (ledger?.consecutiveFailures ?? 0) > 0 || !controlsById.get(agent.id)?.isEnabled;
+  }).length;
+
   const nextRuns = nextRunEntries.slice(0, 6).map((entry) => ({
     label: entry.label,
     at: formatEtDateTime(entry.nextOccurrence),
     note: entry.note
   }));
 
-  const waitingReviewLinks: AgentRunLink[] = [
-    ...(waitingReviewBreakdown.recipe > 0
-      ? [{ label: "Recipes queue", href: "/admin/content/recipes#review-queue" }]
-      : []),
-    ...(waitingReviewBreakdown.blog_post > 0
-      ? [{ label: "Blog queue", href: "/admin/content/blog#review-queue" }]
-      : []),
-    ...(waitingReviewBreakdown.review > 0
-      ? [{ label: "Review queue", href: "/admin/content/reviews#review-queue" }]
-      : [])
-  ];
+  const reportAgents: AgentRunReportItem[] = agents.map((agent) => {
+    const control = controlsById.get(agent.id);
+    const ledger = ledgerByAgent.get(agent.id) ?? {
+      lastRunAt: undefined,
+      lastSuccessfulRunAt: undefined,
+      lastFailedRunAt: undefined,
+      consecutiveFailures: 0,
+      runsToday: 0,
+      successfulRunsToday: 0,
+      failedRunsToday: 0,
+      blockedRunsToday: 0,
+      runsLast7Days: 0,
+      successfulRunsLast7Days: 0,
+      failedRunsLast7Days: 0,
+      mutationUsageToday: 0,
+      externalUsageToday: 0
+    };
+    const nextWindow = nextRunEntries.find((entry) => entry.agentId === agent.id);
+    const sharedFields = {
+      ...agent,
+      isEnabled: control?.isEnabled ?? true,
+      requiresManualApproval:
+        control?.requiresManualApproval ?? agent.autonomyMode === "approval_required",
+      controlStatus: (control?.isEnabled ?? true) ? ("enabled" as const) : ("paused" as const),
+      lastObservedAt: ledger.lastRunAt,
+      lastSuccessfulRunAt: ledger.lastSuccessfulRunAt,
+      lastFailedRunAt: ledger.lastFailedRunAt,
+      nextScheduledAt: nextWindow?.nextOccurrence.toISOString(),
+      nextScheduledLabel: nextWindow?.label,
+      consecutiveFailures: ledger.consecutiveFailures,
+      runsToday: ledger.runsToday,
+      successfulRunsToday: ledger.successfulRunsToday,
+      failedRunsToday: ledger.failedRunsToday,
+      blockedRunsToday: ledger.blockedRunsToday,
+      capUsage: buildCapUsage(control, ledger),
+      links: buildAgentLinks(agent.id)
+    };
 
-  const autoPublishedLinks: AgentRunLink[] = [
-    ...(autoPublishedTodayBreakdown.recipe > 0
-      ? [{ label: "Recipes", href: "/admin/content/recipes" }]
-      : []),
-    ...(autoPublishedTodayBreakdown.blog_post > 0
-      ? [{ label: "Blog", href: "/admin/content/blog" }]
-      : []),
-    ...(autoPublishedTodayBreakdown.review > 0
-      ? [{ label: "Reviews", href: "/admin/content/reviews" }]
-      : [])
-  ];
-
-  const manualPublishedLinks: AgentRunLink[] = [
-    ...(manualPublishedTodayBreakdown.recipe > 0
-      ? [{ label: "Recipes", href: "/admin/content/recipes" }]
-      : []),
-    ...(manualPublishedTodayBreakdown.blog_post > 0
-      ? [{ label: "Blog", href: "/admin/content/blog" }]
-      : []),
-    ...(manualPublishedTodayBreakdown.review > 0
-      ? [{ label: "Reviews", href: "/admin/content/reviews" }]
-      : [])
-  ];
-
-  const todaySummary: AgentRunSummaryCard[] = [
-    {
-      label: "Completed runs today",
-      value: compactNumber(completedJobsToday.length),
-      note: formatCountBreakdown(
-        completedTodayBreakdown,
-        {
-          recipe: "recipe",
-          blog_post: "blog post",
-          review: "review",
-          merch_product: "shop pick"
-        },
-        "No completed automation runs yet today."
-      ),
-      tone: completedJobsToday.length > 0 ? "good" : "neutral",
-      links: [
-        { label: "View jobs", href: "/admin/automation/jobs" },
-        { label: "Trigger runs", href: "/admin/automation/trigger" }
-      ]
-    },
-    {
-      label: "Auto-published today",
-      value: compactNumber(autoPublishedTodayRows.length),
-      note: formatCountBreakdown(
-        autoPublishedTodayBreakdown,
-        {
-          recipe: "recipe",
-          blog_post: "blog post",
-          review: "review"
-        },
-        "Nothing has auto-published yet today."
-      ),
-      tone: autoPublishedTodayRows.length > 0 ? "good" : "neutral",
-      links: autoPublishedLinks.length
-        ? autoPublishedLinks
-        : [{ label: "Content queues", href: "/admin/content/recipes" }]
-    },
-    {
-      label: "Manual publishes today",
-      value: compactNumber(manualPublishedTodayRows.length),
-      note: formatCountBreakdown(
-        manualPublishedTodayBreakdown,
-        {
-          recipe: "recipe",
-          blog_post: "blog post",
-          review: "review"
-        },
-        "No AI-generated content needed a manual publish today."
-      ),
-      tone: manualPublishedTodayRows.length === 0 ? "good" : "warning",
-      links: manualPublishedLinks.length
-        ? manualPublishedLinks
-        : [{ label: "Content queues", href: "/admin/content/recipes" }]
-    },
-    {
-      label: "Failed runs today",
-      value: compactNumber(failedJobsToday.length),
-      note: formatCountBreakdown(
-        failedTodayBreakdown,
-        {
-          recipe: "recipe job",
-          blog_post: "blog job",
-          review: "review job",
-          merch_product: "shop job"
-        },
-        "No automation jobs have failed today."
-      ),
-      tone: failedJobsToday.length === 0 ? "good" : "warning",
-      links: [
-        { label: "View jobs", href: "/admin/automation/jobs" },
-        { label: "Open trigger", href: "/admin/automation/trigger" }
-      ]
-    },
-    {
-      label: "Waiting for review",
-      value: compactNumber(
-        waitingReviewBreakdown.recipe +
-          waitingReviewBreakdown.blog_post +
-          waitingReviewBreakdown.review
-      ),
-      note: formatCountBreakdown(
-        waitingReviewBreakdown,
-        {
-          recipe: "recipe",
-          blog_post: "blog post",
-          review: "review"
-        },
-        "No AI-generated content is waiting for review right now."
-      ),
-      tone:
-        waitingReviewBreakdown.recipe +
-          waitingReviewBreakdown.blog_post +
-          waitingReviewBreakdown.review >
-        0
-          ? "warning"
-          : "good",
-      links: waitingReviewLinks.length
-        ? waitingReviewLinks
-        : [{ label: "Recipes", href: "/admin/content/recipes" }]
-    }
-  ];
-
-  return {
-    todaySummary,
-    nextRuns,
-    agents: agents.map((agent): AgentRunReportItem => {
-      const nextWindow = nextRunEntries.find((entry) => entry.agentId === agent.id);
-
-      if (agent.id === "editorial-autopublisher") {
-        return {
-          ...agent,
-          summary: autoPublishEnabled
-            ? `Published ${editorialPublishedLast7} AI-led pieces in the last 7 days, with ${editorialScheduled} currently scheduled and ${editorialPending} still waiting for review.`
-            : "Auto-publish is turned off, so generated content can still queue but it will wait for manual review.",
-          lastObservedAt: editorialLastObservedAt,
-          nextScheduledAt: nextWindow?.nextOccurrence.toISOString(),
-          nextScheduledLabel: nextWindow?.label,
-          stats: [
-            { label: "Published in 7d", value: compactNumber(editorialPublishedLast7) },
-            { label: "Scheduled now", value: compactNumber(editorialScheduled) },
-            { label: "Waiting review", value: compactNumber(editorialPending) },
-            { label: "Failed jobs", value: compactNumber(editorialFailedJobs) }
-          ],
-          links: buildAgentLinks(agent.id)
-        };
-      }
-
-      if (agent.id === "pinterest-distributor") {
-        return {
-          ...agent,
-          summary:
-            agent.status === "live"
-              ? `Published ${pinterestPublishedLast7} Pinterest posts in the last 7 days, with ${pinterestScheduled} currently scheduled through Buffer.`
-              : agent.dependencyNote,
-          lastObservedAt: pinterestLastObservedAt,
-          nextScheduledAt: nextWindow?.nextOccurrence.toISOString(),
-          nextScheduledLabel: nextWindow?.label,
-          stats: [
-            { label: "Published in 7d", value: compactNumber(pinterestPublishedLast7) },
-            { label: "Scheduled now", value: compactNumber(pinterestScheduled) },
-            { label: "Failed posts", value: compactNumber(pinterestFailed) }
-          ],
-          links: buildAgentLinks(agent.id)
-        };
-      }
-
-      if (agent.id === "growth-loop-promoter") {
-        return {
-          ...agent,
-          summary: growthReport.autoPromotionCandidates.length
-            ? `Tracking ${winnerCount} winner pages and ${growthReport.autoPromotionCandidates.length} current auto-promotion candidates from live traffic, share, and affiliate data.`
-            : "No winner pages have surfaced strongly enough yet for automatic re-promotion.",
-          lastObservedAt: growthLastObservedAt,
-          nextScheduledAt: nextWindow?.nextOccurrence.toISOString(),
-          nextScheduledLabel: nextWindow?.label,
-          stats: [
-            { label: "Winner pages", value: compactNumber(winnerCount) },
-            {
-              label: "Promotion candidates",
-              value: compactNumber(growthReport.autoPromotionCandidates.length)
-            },
-            {
-              label: "Share events",
-              value: compactNumber(growthReport.pirateSummary.shareEvents)
-            },
-            {
-              label: "Affiliate clicks",
-              value: compactNumber(growthReport.pirateSummary.affiliateClicks)
-            }
-          ],
-          links: buildAgentLinks(agent.id)
-        };
-      }
-
-      if (agent.id === "shop-shelf-curator") {
-        return {
-          ...agent,
-          summary: `Observed ${merchCreatedLast7} new or refreshed shop picks in the last 7 days, with ${merchPublished} currently live on the shelf.`,
-          lastObservedAt: merchLastObservedAt,
-          nextScheduledAt: nextWindow?.nextOccurrence.toISOString(),
-          nextScheduledLabel: nextWindow?.label,
-          stats: [
-            { label: "Live shop picks", value: compactNumber(merchPublished) },
-            { label: "Featured now", value: compactNumber(merchFeatured) },
-            { label: "Merch jobs", value: compactNumber(merchGenerationJobs.length) },
-            { label: "Failed jobs", value: compactNumber(merchFailedJobs) }
-          ],
-          links: buildAgentLinks(agent.id)
-        };
-      }
-
+    if (agent.id === "editorial-autopublisher") {
       return {
-        ...agent,
-        summary: digestCampaigns.length
-          ? `The digest lane has created ${digestCampaigns.length} automated campaign(s), with ${digestSent} already sent and ${digestScheduled} still queued to go out.`
-          : agent.status === "live"
-            ? "No automated digest campaigns have been created yet."
-            : agent.dependencyNote,
-        lastObservedAt: newsletterLastObservedAt,
-        nextScheduledAt: nextWindow?.nextOccurrence.toISOString(),
-        nextScheduledLabel: nextWindow?.label,
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          autoPublishEnabled
+            ? `Published ${editorialPublishedLast7} AI-led pieces in the last 7 days, with ${editorialScheduled} currently scheduled and ${editorialPending} still waiting for review.`
+            : "Auto-publish is turned off, so generated content can queue but it will still wait for manual review."
+        ),
+        stats: [
+          { label: "Published in 7d", value: compactNumber(editorialPublishedLast7) },
+          { label: "Scheduled now", value: compactNumber(editorialScheduled) },
+          { label: "Waiting review", value: compactNumber(editorialPending) },
+          { label: "Runs in 7d", value: compactNumber(ledger.runsLast7Days) }
+        ]
+      };
+    }
+
+    if (agent.id === "pinterest-distributor") {
+      return {
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          agent.status === "live"
+            ? `Published ${pinterestPublishedLast7} Pinterest post(s) in the last 7 days, with ${pinterestScheduled} currently scheduled through Buffer.`
+            : agent.dependencyNote
+        ),
+        stats: [
+          { label: "Published in 7d", value: compactNumber(pinterestPublishedLast7) },
+          { label: "Scheduled now", value: compactNumber(pinterestScheduled) },
+          { label: "Failed posts", value: compactNumber(pinterestFailed) },
+          { label: "Runs in 7d", value: compactNumber(ledger.runsLast7Days) }
+        ]
+      };
+    }
+
+    if (agent.id === "growth-loop-promoter") {
+      return {
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          growthReport.autoPromotionCandidates.length
+            ? `Tracking ${winnerCount} winner page(s) and ${growthReport.autoPromotionCandidates.length} current auto-promotion candidate(s) from live traffic, share, and affiliate data.`
+            : "No winner pages have surfaced strongly enough yet for automatic re-promotion."
+        ),
+        stats: [
+          { label: "Winner pages", value: compactNumber(winnerCount) },
+          {
+            label: "Promotion candidates",
+            value: compactNumber(growthReport.autoPromotionCandidates.length)
+          },
+          {
+            label: "Share events",
+            value: compactNumber(growthReport.pirateSummary.shareEvents)
+          },
+          {
+            label: "Affiliate clicks",
+            value: compactNumber(growthReport.pirateSummary.affiliateClicks)
+          }
+        ]
+      };
+    }
+
+    if (agent.id === "shop-shelf-curator") {
+      return {
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          `Observed ${merchCreatedLast7} new or refreshed shop pick(s) in the last 7 days, with ${merchPublished} currently live on the shelf.`
+        ),
+        stats: [
+          { label: "Live shop picks", value: compactNumber(merchPublished) },
+          { label: "Featured now", value: compactNumber(merchFeatured) },
+          { label: "Created in 7d", value: compactNumber(merchCreatedLast7) },
+          { label: "Runs in 7d", value: compactNumber(ledger.runsLast7Days) }
+        ]
+      };
+    }
+
+    if (agent.id === "newsletter-digest-agent") {
+      return {
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          digestCampaigns.length
+            ? `The digest lane has created ${digestCampaigns.length} automated campaign(s), with ${digestSent} already sent and ${digestScheduled} still queued to go out.`
+            : agent.status === "live"
+              ? "No automated digest campaigns have been created yet."
+              : agent.dependencyNote
+        ),
         stats: [
           { label: "Digest drafts", value: compactNumber(digestDrafts) },
           { label: "Scheduled sends", value: compactNumber(digestScheduled) },
           { label: "Sent campaigns", value: compactNumber(digestSent) },
           { label: "Recorded clicks", value: compactNumber(digestClicks) }
-        ],
-        links: buildAgentLinks(agent.id)
+        ]
       };
-    })
+    }
+
+    if (agent.id === "search-insights-analyst") {
+      return {
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          latestSearchInsightRun
+            ? `The latest sync surfaced ${latestSearchInsightRun.recommendationCount} recommendation(s) from Search Console data current through ${latestSearchInsightRun.latestAvailableDate}.`
+            : agent.status === "live"
+              ? "Search Console is connected and waiting for the first scheduled sync."
+              : agent.dependencyNote
+        ),
+        stats: [
+          {
+            label: "Recommendations",
+            value: compactNumber(latestSearchInsightRun?.recommendationCount ?? 0)
+          },
+          { label: "New in queue", value: compactNumber(searchQueueSummary.newCount) },
+          { label: "Approved queue", value: compactNumber(searchQueueSummary.approvedCount) },
+          { label: "Active queue", value: compactNumber(searchQueueSummary.active) }
+        ]
+      };
+    }
+
+    if (agent.id === "search-recommendation-executor") {
+      return {
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          searchRuntime
+            ? `The executor currently has ${searchQueueSummary.approvedCount} approved queue item(s) waiting, ${searchQueueSummary.appliedCount} applied item(s) shaping live SEO, and ${searchRuntimeTargetCount} runtime target(s) in the active overlay snapshot.`
+            : searchQueueSummary.approvedCount > 0
+              ? `There are ${searchQueueSummary.approvedCount} approved recommendation(s) waiting for the first runtime rebuild.`
+              : agent.status === "live"
+                ? "The executor is ready, but there are no approved Search Console recommendations to apply yet."
+                : agent.dependencyNote
+        ),
+        stats: [
+          { label: "Approved queue", value: compactNumber(searchQueueSummary.approvedCount) },
+          { label: "Applied queue", value: compactNumber(searchQueueSummary.appliedCount) },
+          { label: "Manual review", value: compactNumber(searchQueueSummary.manualReviewCount) },
+          { label: "Runtime targets", value: compactNumber(searchRuntimeTargetCount) }
+        ]
+      };
+    }
+
+    if (agent.id === "festival-discovery") {
+      return {
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          ledger.runsLast7Days > 0
+            ? `This draft-only discovery lane ran ${ledger.runsLast7Days} time(s) in the last 7 days and keeps festival discovery out of live publishing flows.`
+            : agent.status === "live"
+              ? "This draft-only discovery lane is configured and waiting for its next scheduled scan."
+              : agent.dependencyNote
+        ),
+        stats: [
+          { label: "Runs in 7d", value: compactNumber(ledger.runsLast7Days) },
+          { label: "Succeeded in 7d", value: compactNumber(ledger.successfulRunsLast7Days) },
+          { label: "Failed in 7d", value: compactNumber(ledger.failedRunsLast7Days) }
+        ]
+      };
+    }
+
+    if (agent.id === "pepper-discovery") {
+      return {
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          ledger.runsLast7Days > 0
+            ? `This draft-only discovery lane ran ${ledger.runsLast7Days} time(s) in the last 7 days and keeps pepper research safely in the draft layer.`
+            : agent.status === "live"
+              ? "This draft-only discovery lane is configured and waiting for its next scheduled scan."
+              : agent.dependencyNote
+        ),
+        stats: [
+          { label: "Runs in 7d", value: compactNumber(ledger.runsLast7Days) },
+          { label: "Succeeded in 7d", value: compactNumber(ledger.successfulRunsLast7Days) },
+          { label: "Failed in 7d", value: compactNumber(ledger.failedRunsLast7Days) }
+        ]
+      };
+    }
+
+    if (agent.id === "brand-monitor") {
+      return {
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          ledger.runsLast7Days > 0
+            ? `This mixed-risk lane ran ${ledger.runsLast7Days} time(s) in the last 7 days, but its target governance model is still approval-required before high-risk release output goes live.`
+            : agent.status === "live"
+              ? "This lane is configured, but its live-output path should remain approval-required."
+              : agent.dependencyNote
+        ),
+        stats: [
+          { label: "Runs in 7d", value: compactNumber(ledger.runsLast7Days) },
+          { label: "Succeeded in 7d", value: compactNumber(ledger.successfulRunsLast7Days) },
+          { label: "Failed in 7d", value: compactNumber(ledger.failedRunsLast7Days) }
+        ]
+      };
+    }
+
+    if (agent.id === "tutorial-generator") {
+      return {
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          ledger.runsLast7Days > 0
+            ? `This draft-only lane ran ${ledger.runsLast7Days} time(s) in the last 7 days and keeps tutorial generation inside the backlog, not direct publishing.`
+            : agent.status === "live"
+              ? "This draft-only lane is configured and waiting for its next scheduled scan."
+              : agent.dependencyNote
+        ),
+        stats: [
+          { label: "Runs in 7d", value: compactNumber(ledger.runsLast7Days) },
+          { label: "Succeeded in 7d", value: compactNumber(ledger.successfulRunsLast7Days) },
+          { label: "Failed in 7d", value: compactNumber(ledger.failedRunsLast7Days) }
+        ]
+      };
+    }
+
+    return {
+      ...sharedFields,
+      summary: withPausePrefix(
+        sharedFields,
+        ledger.runsLast7Days > 0
+          ? `This support lane ran ${ledger.runsLast7Days} time(s) in the last 7 days and keeps internal commerce signals fresh for other decisions.`
+          : agent.status === "live"
+            ? "This support lane is configured and waiting for its next scheduled sync."
+            : agent.dependencyNote
+      ),
+      stats: [
+        { label: "Runs in 7d", value: compactNumber(ledger.runsLast7Days) },
+        { label: "Succeeded in 7d", value: compactNumber(ledger.successfulRunsLast7Days) },
+        { label: "Failed in 7d", value: compactNumber(ledger.failedRunsLast7Days) }
+      ]
+    };
+  });
+
+  const todaySummary: AgentRunSummaryCard[] = [
+    {
+      label: "Runs today",
+      value: compactNumber(todayRuns.length),
+      note: formatCountBreakdown(
+        todayStatusBreakdown,
+        {
+          succeeded: "successful run",
+          failed: "failed run",
+          blocked: "blocked run",
+          started: "in-progress run",
+          cancelled: "cancelled run",
+          rolled_back: "rolled-back run"
+        },
+        "No automation runs have started yet today."
+      ),
+      tone: todayRuns.length > 0 ? "good" : "neutral",
+      links: [
+        { label: "Trigger runs", href: "/admin/automation/trigger" },
+        { label: "Agent runs", href: "/admin/automation/agents" }
+      ]
+    },
+    {
+      label: "Succeeded today",
+      value: compactNumber(todayRuns.filter((run) => run.status === "succeeded").length),
+      note: "This count comes from the explicit automation run ledger, not inferred table activity.",
+      tone:
+        todayRuns.filter((run) => run.status === "succeeded").length > 0 ? "good" : "neutral",
+      links: [{ label: "Agent runs", href: "/admin/automation/agents" }]
+    },
+    {
+      label: "Failed today",
+      value: compactNumber(todayRuns.filter((run) => run.status === "failed").length),
+      note:
+        todayRuns.filter((run) => run.status === "failed").length > 0
+          ? "Investigate the failing lanes before widening autonomy."
+          : "No automation lane has recorded a failed run today.",
+      tone:
+        todayRuns.filter((run) => run.status === "failed").length === 0 ? "good" : "warning",
+      links: [
+        { label: "Automation trigger", href: "/admin/automation/trigger" },
+        { label: "Agent runs", href: "/admin/automation/agents" }
+      ]
+    },
+    {
+      label: "Paused lanes",
+      value: compactNumber(pausedAgents),
+      note:
+        pausedAgents > 0
+          ? "These lanes are disabled in the control plane and will not run until resumed."
+          : "Every registered automation lane is currently enabled.",
+      tone: pausedAgents === 0 ? "good" : "warning",
+      links: [{ label: "Manage lanes", href: "/admin/automation/agents" }]
+    },
+    {
+      label: "Needs attention",
+      value: compactNumber(
+        Math.max(
+          agentsNeedingAttention,
+          waitingReviewBreakdown.recipe +
+            waitingReviewBreakdown.blog_post +
+            waitingReviewBreakdown.review
+        )
+      ),
+      note: formatCountBreakdown(
+        waitingReviewBreakdown,
+        {
+          recipe: "recipe waiting for review",
+          blog_post: "blog post waiting for review",
+          review: "review waiting for review"
+        },
+        "No AI-generated content is waiting for review right now."
+      ),
+      tone:
+        agentsNeedingAttention > 0 ||
+        waitingReviewBreakdown.recipe +
+          waitingReviewBreakdown.blog_post +
+          waitingReviewBreakdown.review >
+          0
+          ? "warning"
+          : "good",
+      links: [
+        { label: "Recipes queue", href: "/admin/content/recipes" },
+        { label: "Blog queue", href: "/admin/content/blog" },
+        { label: "Reviews queue", href: "/admin/content/reviews" }
+      ]
+    }
+  ];
+
+  return {
+    controlPlaneAvailable: true,
+    todaySummary,
+    nextRuns,
+    agents: reportAgents,
+    sections: buildSections(reportAgents)
   };
 }

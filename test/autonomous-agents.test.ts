@@ -8,10 +8,14 @@ describe("autonomous agents", () => {
       autoPublishEnabled: true,
       hasBuffer: true,
       hasPinterestProfile: true,
-      hasConvertKit: true
+      hasConvertKit: true,
+      hasSearchConsole: true,
+      hasAnthropic: true,
+      hasSupabaseAdmin: true
     });
 
     expect(agents.every((agent) => agent.status === "live")).toBe(true);
+    expect(agents.find((agent) => agent.id === "content-shop-sync")?.isSupport).toBe(true);
   });
 
   it("flags the right missing dependencies when config is incomplete", () => {
@@ -19,7 +23,10 @@ describe("autonomous agents", () => {
       autoPublishEnabled: false,
       hasBuffer: false,
       hasPinterestProfile: false,
-      hasConvertKit: false
+      hasConvertKit: false,
+      hasSearchConsole: false,
+      hasAnthropic: false,
+      hasSupabaseAdmin: false
     });
 
     expect(agents.find((agent) => agent.id === "editorial-autopublisher")?.status).toBe(
@@ -31,9 +38,24 @@ describe("autonomous agents", () => {
     expect(agents.find((agent) => agent.id === "growth-loop-promoter")?.status).toBe(
       "needs_config"
     );
-    expect(agents.find((agent) => agent.id === "shop-shelf-curator")?.status).toBe("live");
+    expect(agents.find((agent) => agent.id === "shop-shelf-curator")?.status).toBe(
+      "needs_config"
+    );
     expect(agents.find((agent) => agent.id === "newsletter-digest-agent")?.status).toBe(
       "needs_config"
     );
+    expect(agents.find((agent) => agent.id === "search-insights-analyst")?.status).toBe(
+      "needs_config"
+    );
+    expect(agents.find((agent) => agent.id === "search-recommendation-executor")?.status).toBe(
+      "needs_config"
+    );
+    expect(agents.find((agent) => agent.id === "festival-discovery")?.status).toBe(
+      "needs_config"
+    );
+    expect(agents.find((agent) => agent.id === "brand-monitor")?.autonomyMode).toBe(
+      "approval_required"
+    );
+    expect(agents.find((agent) => agent.id === "content-shop-sync")?.isSupport).toBe(true);
   });
 });

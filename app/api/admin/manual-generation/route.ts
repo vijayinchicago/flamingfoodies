@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireAdminApiAccess, writeAdminAuditLog } from "@/lib/admin-api";
 import { runGenerationPipeline } from "@/lib/services/automation";
+import { runManualAutomationTask } from "@/lib/services/automation-control";
 import { runShopPickAutomation } from "@/lib/services/shop-automation";
 import { jsonResponse } from "@/lib/utils";
 
@@ -66,26 +67,60 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result =
-      parsed.data.type === "merch_product"
-        ? await runShopPickAutomation(parsed.data.qty, {
-            source: "manual"
-          })
-        : await runGenerationPipeline(parsed.data.type, parsed.data.qty, {
-            source: "manual",
-            profile: parsed.data.profile
-          });
+    const task = await runManualAutomationTask({
+      agentId:
+        parsed.data.type === "merch_product" ? "shop-shelf-curator" : "editorial-autopublisher",
+      adminId: admin.id,
+      triggerReference: "api:/api/admin/manual-generation",
+      inputPayload: {
+        type: parsed.data.type,
+        qty: parsed.data.qty,
+        profile: parsed.data.profile ?? "default"
+      },
+      execute: async () => {
+        const result =
+          parsed.data.type === "merch_product"
+            ? await runShopPickAutomation(parsed.data.qty, {
+                source: "manual"
+              })
+            : await runGenerationPipeline(parsed.data.type, parsed.data.qty, {
+                source: "manual",
+                profile: parsed.data.profile
+              });
 
-    if ("skippedReason" in result && result.skippedReason) {
+        if ("skippedReason" in result && result.skippedReason) {
+          throw new Error(result.skippedReason);
+        }
+
+        return result;
+      },
+      onSuccess: () => {
+        revalidateGeneratedType(parsed.data.type);
+      },
+      summarize: (result) => ({
+        summary: `Queued ${result.createdJobs.length} ${parsed.data.type} job(s).`,
+        rowsCreated: result.createdJobs.length
+      })
+    });
+
+    if (!task.ok) {
+      const status =
+        task.errorCode === "paused" || task.errorCode === "disabled"
+          ? 423
+          : task.errorCode === "failed" || task.errorCode === "failure_threshold"
+            ? 409
+            : 429;
+
       return jsonResponse(
         {
           ok: false,
-          error: result.skippedReason,
-          ...result
+          error: task.errorMessage
         },
-        { status: 409 }
+        { status }
       );
     }
+
+    const result = task.result;
 
     await writeAdminAuditLog({
       adminId: admin.id,
@@ -100,8 +135,6 @@ export async function POST(request: Request) {
         trigger: "manual_api"
       }
     });
-
-    revalidateGeneratedType(parsed.data.type);
 
     return jsonResponse({
       ok: true,
