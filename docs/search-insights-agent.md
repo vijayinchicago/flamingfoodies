@@ -12,12 +12,20 @@ Create a two-agent loop:
 ## What is now in the repo
 
 - `lib/search-performance.ts`
-  - parses Search Console CSV exports
+  - parses Search Console exports
   - builds a structured recommendation backlog from real query/page patterns
-- `lib/search-content-optimizations.ts`
-  - holds the public-site search upgrades that should apply even when content comes from Supabase rows
+- `lib/services/search-insights.ts`
+  - runs the live Search Console analyst sync
+  - stores queue items in `search_recommendations`
+  - runs the approved-only executor that rebuilds runtime overlays
+- `app/api/admin/search-insights/route.ts`
+  - analyst cron and manual sync entry point
+- `app/api/admin/search-insights-executor/cron/route.ts`
+  - executor cron entry point
+- `app/admin/analytics/search-console/page.tsx`
+  - admin queue, approval, and runtime overlay dashboard
 - `docs/flamingfoodies.com-Performance-on-Search-2026-04-18/search-insights.md`
-  - the manual review from the current export
+  - the manual review that seeded the first modeled recommendations
 
 ## Recommended architecture
 
@@ -52,13 +60,13 @@ Output contract:
 
 This is already modeled in `SearchRecommendation` inside `lib/search-performance.ts`.
 
-### Agent 2: Site Implementation Agent
+### Agent 2: Search Recommendation Executor
 
 Input:
 
 - one or more approved `SearchRecommendation` items
 
-Safe auto-apply surfaces:
+Safe v1 auto-apply surfaces:
 
 - metadata titles and descriptions
 - FAQ additions
@@ -68,7 +76,7 @@ Safe auto-apply surfaces:
 - sitemap updates
 - canonical or host-normalization middleware
 
-Unsafe surfaces that should stay manual for now:
+Unsafe or unsupported surfaces that stay manual for now:
 
 - destructive content rewrites
 - database migrations
@@ -77,9 +85,10 @@ Unsafe surfaces that should stay manual for now:
 
 Responsibilities:
 
-- patch only the files implicated by the recommendation
-- run tests and typecheck
-- write a short change summary with references back to the recommendation IDs
+- read only approved recommendation queue rows
+- map each supported recommendation through an allowlisted implementation registry
+- rebuild runtime overlays from approved items only
+- route unsupported or technical items to manual review with a reason
 
 ## How to operationalize it
 
@@ -92,7 +101,7 @@ This is the fastest path.
 - Review the generated recommendations
 - Feed selected recommendation IDs into the implementation agent
 
-This phase requires no Google API integration and is enough to keep improving the site weekly.
+This phase required no Google API integration and was enough to prove the recommendation model.
 
 ### Phase 2: Replace manual CSV drops with Search Console API snapshots
 
@@ -102,7 +111,8 @@ Add a small ingestion job that:
 - stores the raw snapshot in Supabase or object storage
 - stores parsed recommendations as rows in a `search_recommendations` table or versioned JSON blobs
 
-At that point the analyst can run on cron instead of waiting for a CSV drop.
+This phase is now implemented in the repo through the Search Console OAuth callback flow and the
+weekly analyst cron.
 
 ### Phase 3: Close the loop with approval states
 
@@ -110,24 +120,21 @@ Recommended statuses:
 
 - `new`
 - `approved`
-- `in_progress`
+- `manual_review`
 - `applied`
 - `dismissed`
 
-That gives the implementation agent a clean queue and keeps it from reapplying the same suggestion.
+That gives the executor a clean queue and keeps it from reapplying the same suggestion or silently
+auto-publishing unsupported technical recommendations.
 
 ## Practical first version
 
-If we want the leanest useful system, build it like this:
+The repo now runs the practical first live version like this:
 
-1. Weekly Search Console export lands in `docs/`.
-2. The analyst agent runs `lib/search-performance.ts` and writes a recommendation JSON file.
-3. The implementation agent is allowed to act only on:
-   - public page metadata
-   - FAQ additions
-   - internal links
-   - new supporting landing pages
-   - sitemap updates
-4. A human reviews the diff before deploy.
+1. The weekly analyst sync pulls live Search Console data and refreshes `search_recommendations`.
+2. Admin approves, dismisses, or sends items to manual review from `/admin/analytics/search-console`.
+3. The daily executor rebuilds runtime overlays from approved supported items only.
+4. Unsupported technical recommendations stay queued as `manual_review` instead of mutating live state.
 
-That gets FlamingFoodies a real search-feedback loop quickly, with far less risk than letting an autonomous agent edit the whole codebase from raw logs.
+That keeps the SEO loop autonomous where the write surface is bounded, but still separates analysis,
+approval, and execution.

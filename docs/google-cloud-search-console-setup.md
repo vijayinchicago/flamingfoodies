@@ -10,6 +10,11 @@ The goal of this setup is:
 4. Give the correct Google account access to the Search Console property.
 5. Hand the final values back to the app so I can wire the callback route, store the refresh token, and automate the recommendation agent.
 
+This now feeds a real two-agent loop in the repo:
+
+- `search-insights-analyst` pulls Search Console data and refreshes the recommendation queue
+- `search-recommendation-executor` applies only approved, supported runtime overlays
+
 ## The recommended auth model
 
 Use an OAuth client tied to a real Google account that already has access to the Search Console property.
@@ -407,17 +412,25 @@ Once you complete Parts 1 through 6, send me these answers:
 You do not need to paste the client secret into chat if you do not want to.
 You can keep it local and I can tell you exactly where to place it.
 
+## What success looks like in the app
+
+Once the env vars are saved and the callback flow succeeds:
+
+1. `/admin/analytics/search-console` shows the connected property `sc-domain:flamingfoodies.com`
+2. the weekly analyst sync can populate `search_recommendations`
+3. the admin queue can approve, dismiss, or move recommendations to manual review
+4. the daily executor can rebuild runtime overlays only from approved supported recommendations
+
 ## What I will do after you send that back
 
 After that, I will guide you through:
 
-1. adding the env vars locally
-2. creating the callback route
-3. running the one-time OAuth authorization flow
-4. capturing the refresh token
-5. storing the final credentials in Vercel
-6. building the automatic Search Console ingestion cron
-7. wiring the recommendation agent to that data
+1. adding the env vars locally or in Vercel
+2. running the one-time OAuth authorization flow
+3. capturing the refresh token
+4. storing the final credentials in Vercel
+5. confirming the weekly analyst sync works
+6. confirming the executor only applies approved recommendations
 
 ## Fast checklist
 

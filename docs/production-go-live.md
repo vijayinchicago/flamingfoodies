@@ -17,11 +17,26 @@ This runbook assumes the Vercel project and custom domain already exist.
 
 ## 2. Apply the database schema
 
-Run the SQL files in `supabase/migrations` in this order using the Supabase SQL Editor:
+Run every SQL file in `supabase/migrations` in timestamp order using the Supabase SQL Editor.
 
-1. `20260403150000_initial_schema.sql`
-2. `20260403170000_newsletter_provider_fields.sql`
-3. `20260403183000_merch_products.sql`
+The production schema is no longer just the initial three files. It now also depends on the later
+automation, Search Console, and approval-queue migrations, including:
+
+- `20260420140000_create_search_insights_tables.sql`
+- `20260421150000_create_search_recommendations.sql`
+- `20260421170000_create_automation_control_plane.sql`
+- `20260421183000_create_automation_state_snapshots.sql`
+- `20260421200000_seed_automation_policy_site_settings.sql`
+- `20260421213000_create_automation_approvals.sql`
+- `20260421214000_split_brand_monitor_agents.sql`
+- `20260421223000_update_newsletter_digest_agent_schedule.sql`
+
+Recommended rule:
+
+- treat `supabase/migrations/` as the source of truth and apply the full directory in order for a
+  fresh production project
+- if production is already live, at minimum make sure every migration after the last applied one
+  has been run before expecting the current admin automation surfaces to work correctly
 
 The first migration creates the expected storage buckets too:
 
@@ -78,6 +93,11 @@ Recommended:
 - `PEXELS_API_KEY`
 - `BUFFER_ACCESS_TOKEN`
 - `BUFFER_PROFILE_IDS`
+- `GOOGLE_SEARCH_CONSOLE_PROPERTY=sc-domain:flamingfoodies.com`
+- `GOOGLE_SEARCH_CONSOLE_CLIENT_ID`
+- `GOOGLE_SEARCH_CONSOLE_CLIENT_SECRET`
+- `GOOGLE_SEARCH_CONSOLE_REDIRECT_URI=https://flamingfoodies.com/api/admin/google-search-console/callback`
+- `GOOGLE_SEARCH_CONSOLE_REFRESH_TOKEN`
 
 ## 6. Redeploy production
 
@@ -109,10 +129,18 @@ Verify:
 - `/recipes`, `/reviews`, and `/shop` render live content
 - `/community/submit` creates a pending submission
 - cron endpoints require `Authorization: Bearer <CRON_SECRET>`
+- `/admin/automation/agents` shows the live agent registry and recent run ledger
+- `/admin/automation/approvals` shows release and newsletter approval queues
+- `/admin/newsletter/campaigns` can queue a campaign for approval instead of sending immediately
+- `/admin/analytics/search-console` shows the Search Console queue and executor state once OAuth is connected
+- `/api/admin/newsletter-digest?mode=send_due` processes only approved due campaigns
+- `/api/admin/search-insights` refreshes Search Console recommendations
+- `/api/admin/search-insights-executor/cron` rebuilds runtime overlays only from approved recommendations
 
 ## 10. Nice-to-have right after cutover
 
 - turn on Kit, Anthropic, Buffer, and media provider keys
+- complete the Google Search Console OAuth callback flow and save the refresh token
 - create the first real merch products with live checkout URLs
 - add analytics IDs
 - replace sample imagery and copy with editorial content

@@ -16,7 +16,7 @@ FlamingFoodies is a Next.js 14 App Router project backed by Supabase for auth, c
 
 ## Local Supabase Notes
 
-- Apply the migrations in `supabase/migrations`.
+- Apply every SQL file in `supabase/migrations` in timestamp order.
 - Run the admin seed in `supabase/seed.sql` after your first profile exists.
 - Storage buckets expected by the app are created in the SQL migration:
   - `avatars`
@@ -51,7 +51,7 @@ BUFFER_PROFILE_IDS=instagram:abc123,pinterest:def456,facebook:ghi789
 ## Deploy To Vercel
 
 1. Create the Supabase project.
-2. Run the SQL migration and seed the initial admin role.
+2. Run every SQL migration in `supabase/migrations` in timestamp order, then seed the initial admin role.
 3. Add all required env vars to Vercel.
 4. Run `pnpm env:check:prod` locally against the same env set you plan to use in Vercel.
 5. Deploy the app to Vercel.
@@ -65,6 +65,10 @@ BUFFER_PROFILE_IDS=instagram:abc123,pinterest:def456,facebook:ghi789
    - `/api/admin/publish-scheduled`
    - `/api/admin/social-scheduler`
    - `/api/admin/newsletter-digest`
+   - `/api/admin/newsletter-digest?mode=send_due`
+   - `/api/admin/search-insights`
+   - `/api/admin/search-insights-executor/cron`
+   - `/api/admin/release-monitor`
 
 For the exact production cutover checklist, see `docs/production-go-live.md`.
 
