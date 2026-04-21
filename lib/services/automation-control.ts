@@ -141,7 +141,22 @@ type AutomationRunRow = {
   created_at: string | null;
 };
 
+type AutomationRunDetailRow = AutomationRunRow & {
+  input_payload: unknown;
+  result_payload: unknown;
+};
+
 type AutomationRunEventLevel = "info" | "warning" | "error";
+
+type AutomationRunEventRow = {
+  id: number;
+  run_id: number;
+  level: string;
+  code: string;
+  message: string;
+  payload: unknown;
+  created_at: string | null;
+};
 
 export type AutomationRunStatus =
   | "started"
@@ -171,6 +186,35 @@ export type AutomationRunRecord = {
   createdByAdminId: string | null;
   rollbackRunId: number | null;
   createdAt: string | null;
+};
+
+export type AutomationRunDetailRecord = AutomationRunRecord & {
+  inputPayload: unknown;
+  resultPayload: unknown;
+};
+
+export type AutomationRunEventRecord = {
+  id: number;
+  runId: number;
+  level: AutomationRunEventLevel;
+  code: string;
+  message: string;
+  payload: unknown;
+  createdAt: string | null;
+};
+
+export type AutomationRunSummary = {
+  total: number;
+  startedCount: number;
+  succeededCount: number;
+  failedCount: number;
+  blockedCount: number;
+  cancelledCount: number;
+  rolledBackCount: number;
+  rowsCreated: number;
+  rowsUpdated: number;
+  rowsPublished: number;
+  rowsSent: number;
 };
 
 type AutomationApprovalRow = {
@@ -265,6 +309,14 @@ type AutomationPolicyBlock = {
 
 const AUTOMATION_APPROVAL_SELECT =
   "id, agent_id, subject_type, subject_key, proposed_action, payload, status, source_run_id, approved_by_admin_id, rejected_by_admin_id, decision_reason, approved_at, rejected_at, expires_at, created_at, updated_at";
+
+const AUTOMATION_RUN_SELECT =
+  "id, agent_id, trigger_source, trigger_reference, environment, status, started_at, completed_at, duration_ms, summary, error_message, rows_created, rows_updated, rows_published, rows_sent, external_actions_count, created_by_admin_id, rollback_run_id, created_at";
+
+const AUTOMATION_RUN_DETAIL_SELECT = `${AUTOMATION_RUN_SELECT}, input_payload, result_payload`;
+
+const AUTOMATION_RUN_EVENT_SELECT =
+  "id, run_id, level, code, message, payload, created_at";
 
 type CronAutomationTaskOptions<TResult> = {
   request: Request;
@@ -710,6 +762,46 @@ function parseAutomationRun(row: AutomationRunRow | null): AutomationRunRecord |
   };
 }
 
+function parseAutomationRunDetail(
+  row: AutomationRunDetailRow | null
+): AutomationRunDetailRecord | null {
+  const run = parseAutomationRun(row);
+  if (!run) {
+    return null;
+  }
+
+  return {
+    ...run,
+    inputPayload: row?.input_payload ?? {},
+    resultPayload: row?.result_payload ?? {}
+  };
+}
+
+function parseAutomationRunEvent(
+  row: AutomationRunEventRow | null
+): AutomationRunEventRecord | null {
+  if (
+    !row
+    || typeof row.id !== "number"
+    || typeof row.run_id !== "number"
+    || !row.level
+    || !row.code
+    || !row.message
+  ) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    runId: row.run_id,
+    level: row.level as AutomationRunEventLevel,
+    code: row.code,
+    message: row.message,
+    payload: row.payload ?? {},
+    createdAt: row.created_at ?? null
+  };
+}
+
 function parseAutomationApproval(row: AutomationApprovalRow | null): AutomationApprovalRecord | null {
   if (
     !row
@@ -741,6 +833,47 @@ function parseAutomationApproval(row: AutomationApprovalRow | null): AutomationA
     createdAt: row.created_at ?? null,
     updatedAt: row.updated_at ?? null
   };
+}
+
+export function summarizeAutomationRuns(runs: AutomationRunRecord[]): AutomationRunSummary {
+  return runs.reduce<AutomationRunSummary>(
+    (summary, run) => {
+      summary.total += 1;
+      summary.rowsCreated += run.rowsCreated;
+      summary.rowsUpdated += run.rowsUpdated;
+      summary.rowsPublished += run.rowsPublished;
+      summary.rowsSent += run.rowsSent;
+
+      if (run.status === "started") {
+        summary.startedCount += 1;
+      } else if (run.status === "succeeded") {
+        summary.succeededCount += 1;
+      } else if (run.status === "failed") {
+        summary.failedCount += 1;
+      } else if (run.status === "blocked") {
+        summary.blockedCount += 1;
+      } else if (run.status === "cancelled") {
+        summary.cancelledCount += 1;
+      } else if (run.status === "rolled_back") {
+        summary.rolledBackCount += 1;
+      }
+
+      return summary;
+    },
+    {
+      total: 0,
+      startedCount: 0,
+      succeededCount: 0,
+      failedCount: 0,
+      blockedCount: 0,
+      cancelledCount: 0,
+      rolledBackCount: 0,
+      rowsCreated: 0,
+      rowsUpdated: 0,
+      rowsPublished: 0,
+      rowsSent: 0
+    }
+  );
 }
 
 export function summarizeAutomationApprovals(
@@ -845,6 +978,33 @@ async function readAutomationApprovalById(approvalId: number) {
   }
 
   return parseAutomationApproval((data ?? null) as AutomationApprovalRow | null);
+}
+
+async function readAutomationRunById(runId: number) {
+  if (!flags.hasSupabaseAdmin) {
+    return null;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("automation_runs")
+    .select(AUTOMATION_RUN_DETAIL_SELECT)
+    .eq("id", runId)
+    .maybeSingle();
+
+  if (error) {
+    if (isMissingAutomationControlRelationError(error)) {
+      return null;
+    }
+
+    throw new Error(`Failed to read automation run ${runId}: ${error.message}`);
+  }
+
+  return parseAutomationRunDetail((data ?? null) as AutomationRunDetailRow | null);
 }
 
 async function readAutomationRunsForPolicy(agentId: AutomationAgentId) {
@@ -1279,6 +1439,8 @@ export async function listAutomationRuns(options?: {
   limit?: number;
   since?: string;
   agentId?: AutomationAgentId;
+  status?: AutomationRunStatus;
+  triggerSource?: AutomationTriggerSource;
 }) {
   if (!flags.hasSupabaseAdmin) {
     return [] as AutomationRunRecord[];
@@ -1291,9 +1453,7 @@ export async function listAutomationRuns(options?: {
 
   let query = supabase
     .from("automation_runs")
-    .select(
-      "id, agent_id, trigger_source, trigger_reference, environment, status, started_at, completed_at, duration_ms, summary, error_message, rows_created, rows_updated, rows_published, rows_sent, external_actions_count, created_by_admin_id, rollback_run_id, created_at"
-    )
+    .select(AUTOMATION_RUN_SELECT)
     .order("started_at", { ascending: false })
     .limit(options?.limit ?? 400);
 
@@ -1303,6 +1463,14 @@ export async function listAutomationRuns(options?: {
 
   if (options?.agentId) {
     query = query.eq("agent_id", options.agentId);
+  }
+
+  if (options?.status) {
+    query = query.eq("status", options.status);
+  }
+
+  if (options?.triggerSource) {
+    query = query.eq("trigger_source", options.triggerSource);
   }
 
   const { data, error } = await query;
@@ -1319,6 +1487,45 @@ export async function listAutomationRuns(options?: {
     ? data
         .map((row) => parseAutomationRun(row as AutomationRunRow))
         .filter((row): row is AutomationRunRecord => Boolean(row))
+    : [];
+}
+
+export async function getAutomationRun(runId: number) {
+  return readAutomationRunById(runId);
+}
+
+export async function listAutomationRunEvents(options: {
+  runId: number;
+  limit?: number;
+}) {
+  if (!flags.hasSupabaseAdmin) {
+    return [] as AutomationRunEventRecord[];
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return [] as AutomationRunEventRecord[];
+  }
+
+  const { data, error } = await supabase
+    .from("automation_run_events")
+    .select(AUTOMATION_RUN_EVENT_SELECT)
+    .eq("run_id", options.runId)
+    .order("created_at", { ascending: true })
+    .limit(options.limit ?? 200);
+
+  if (error) {
+    if (isMissingAutomationControlRelationError(error)) {
+      return [] as AutomationRunEventRecord[];
+    }
+
+    throw new Error(`Failed to list automation run events for ${options.runId}: ${error.message}`);
+  }
+
+  return Array.isArray(data)
+    ? data
+        .map((row) => parseAutomationRunEvent(row as AutomationRunEventRow))
+        .filter((row): row is AutomationRunEventRecord => Boolean(row))
     : [];
 }
 
