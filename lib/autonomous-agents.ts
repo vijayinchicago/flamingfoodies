@@ -164,6 +164,24 @@ export function getAutonomousAgents(input: {
       isSupport: false
     },
     {
+      id: "search-performance-evaluator",
+      name: "Search performance evaluator",
+      status: searchConsoleReady ? "live" : "needs_config",
+      cadence: "Daily evaluation pass + manual run",
+      purpose:
+        "Reviews prior Search Console executor decisions after a delay, compares baseline recommendation metrics with the latest queue data, and records keep, escalate, or revert verdicts.",
+      outcome:
+        "Turns the search loop into a judged system instead of a one-way apply flow, without auto-reverting pages blindly.",
+      dependencyNote: searchConsoleReady
+        ? "Search Console queue data and the automation run ledger are available, so evaluator verdicts can be recorded automatically."
+        : "Connect Google Search Console so the evaluator has queue data to judge against.",
+      riskClass: "internal_support",
+      autonomyMode: "bounded_live",
+      writesLiveState: false,
+      writesExternalState: false,
+      isSupport: true
+    },
+    {
       id: "festival-discovery",
       name: "Festival discovery",
       status: aiResearchReady ? "live" : "needs_config",

@@ -51,6 +51,8 @@ const SEARCH_CONSOLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const SEARCH_CONSOLE_API_BASE = "https://searchconsole.googleapis.com/webmasters/v3/sites";
 const SEARCH_ANALYTICS_ROW_LIMIT = 25000;
 const SEARCH_CONSOLE_OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
+const DEFAULT_SEARCH_EVALUATION_WINDOW_DAYS = 7;
+const DEFAULT_SEARCH_EVALUATION_MAX_RUNS = 10;
 
 type SearchConsoleApiRow = {
   keys?: string[];
@@ -110,6 +112,31 @@ type SearchRecommendationQueueRow = {
   updated_at: string;
 };
 
+type SearchExecutorRunRow = {
+  id: number;
+  completed_at: string | null;
+  result_payload: unknown;
+};
+
+type AutomationEvaluationLookupRow = {
+  source_run_id: number;
+  subject_key: string;
+};
+
+export type SearchRecommendationEvaluationBaseline = {
+  recommendationKey: string;
+  recommendationId: string;
+  title: string;
+  targetPath?: string;
+  totalImpressions: number;
+  avgPosition?: number;
+  status: SearchRecommendationStatus;
+  implementationStrategy: SearchImplementationStrategy;
+  supportingQueries: string[];
+  lastSeenAt: string;
+  baselineCapturedAt: string;
+};
+
 export type SearchInsightsAutomationResult =
   | {
       ok: false;
@@ -144,6 +171,28 @@ export type SearchRecommendationExecutorResult =
       manualReviewRecommendationKeys: string[];
       runtimeTargetCount: number;
       appliedRecommendationCount: number;
+      appliedRecommendationSnapshots: SearchRecommendationEvaluationBaseline[];
+      newlyAppliedRecommendationSnapshots: SearchRecommendationEvaluationBaseline[];
+      evaluationWindowDays: number;
+    };
+
+export type SearchRecommendationEvaluatorResult =
+  | {
+      ok: false;
+      skippedReason: string;
+    }
+  | {
+      ok: true;
+      property: string;
+      latestAvailableDate: string;
+      evaluationWindowDays: number;
+      candidateRunCount: number;
+      evaluatedRunIds: number[];
+      evaluatedRecommendationCount: number;
+      keepCount: number;
+      revertCount: number;
+      escalateCount: number;
+      skippedExistingCount: number;
     };
 
 export type SearchRuntimeOptimizationSnapshot = {
@@ -620,7 +669,7 @@ async function fetchSnapshot(config: SearchConsoleConfig, refreshToken: string) 
   };
 }
 
-async function saveRuntimeOptimizations(runtime: SearchRuntimeOptimizations) {
+async function saveRuntimeOptimizations(runtime: SearchRuntimeOptimizations | null) {
   if (!flags.hasSupabaseAdmin) {
     return;
   }
@@ -633,7 +682,7 @@ async function saveRuntimeOptimizations(runtime: SearchRuntimeOptimizations) {
   const { error } = await supabase.from("site_settings").upsert(
     {
       key: SEARCH_RUNTIME_OPTIMIZATIONS_KEY,
-      value: runtime
+      value: runtime ?? {}
     },
     { onConflict: "key" }
   );
@@ -1091,6 +1140,37 @@ function parseRuntimeOptimizations(value: unknown): SearchRuntimeOptimizations |
   };
 }
 
+export function parseSearchRuntimeOptimizationSnapshot(
+  value: unknown
+): SearchRuntimeOptimizationSnapshot | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const runtime = parseRuntimeOptimizations(value.runtime);
+
+  return {
+    capturedAt:
+      typeof value.capturedAt === "string" ? value.capturedAt : new Date().toISOString(),
+    detectedRecommendationIds: Array.isArray(value.detectedRecommendationIds)
+      ? value.detectedRecommendationIds.map((entry) => String(entry))
+      : [],
+    appliedRecommendationIds: Array.isArray(value.appliedRecommendationIds)
+      ? value.appliedRecommendationIds.map((entry) => String(entry))
+      : [],
+    pageTargets: Array.isArray(value.pageTargets)
+      ? value.pageTargets.map((entry) => String(entry))
+      : Object.keys(runtime?.pages ?? {}).sort(),
+    blogTargets: Array.isArray(value.blogTargets)
+      ? value.blogTargets.map((entry) => String(entry))
+      : Object.keys(runtime?.blog ?? {}).sort(),
+    recipeTargets: Array.isArray(value.recipeTargets)
+      ? value.recipeTargets.map((entry) => String(entry))
+      : Object.keys(runtime?.recipes ?? {}).sort(),
+    runtime
+  };
+}
+
 function parseQueuedRecommendation(value: SearchRecommendationQueueRow): SearchQueuedRecommendation | null {
   const status = parseRecommendationStatus(value.status);
   const strategy = parseImplementationStrategy(value.implementation_strategy);
@@ -1255,6 +1335,20 @@ export async function getSearchRuntimeOptimizationSnapshot(): Promise<SearchRunt
   };
 }
 
+export async function restoreSearchRuntimeOptimizationSnapshot(
+  snapshot: SearchRuntimeOptimizationSnapshot | null
+) {
+  await saveRuntimeOptimizations(snapshot?.runtime ?? null);
+
+  return {
+    restoredTargetCount:
+      Object.keys(snapshot?.runtime?.pages ?? {}).length
+      + Object.keys(snapshot?.runtime?.blog ?? {}).length
+      + Object.keys(snapshot?.runtime?.recipes ?? {}).length,
+    restoredRecommendationCount: snapshot?.runtime?.appliedRecommendationIds.length ?? 0
+  };
+}
+
 export async function getRuntimeBlogSearchOptimization(slug: string) {
   const runtime = await getSearchRuntimeOptimizations();
   return runtime?.blog[slug];
@@ -1328,6 +1422,225 @@ function sortQueuedRecommendations(left: SearchQueuedRecommendation, right: Sear
   }
 
   return right.lastSeenAt.localeCompare(left.lastSeenAt);
+}
+
+function buildRecommendationEvaluationBaseline(
+  recommendation: SearchQueuedRecommendation
+): SearchRecommendationEvaluationBaseline {
+  return {
+    recommendationKey: recommendation.recommendationKey,
+    recommendationId: recommendation.recommendationId,
+    title: recommendation.title,
+    targetPath: recommendation.targetPath,
+    totalImpressions: recommendation.totalImpressions,
+    avgPosition: recommendation.avgPosition,
+    status: recommendation.status,
+    implementationStrategy: recommendation.implementationStrategy,
+    supportingQueries: recommendation.supportingQueries,
+    lastSeenAt: recommendation.lastSeenAt,
+    baselineCapturedAt: new Date().toISOString()
+  };
+}
+
+function parseRecommendationEvaluationBaseline(
+  value: unknown
+): SearchRecommendationEvaluationBaseline | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const status = parseRecommendationStatus(value.status);
+  const strategy = parseImplementationStrategy(value.implementationStrategy);
+  const recommendationKey = String(value.recommendationKey ?? "").trim();
+  const recommendationId = String(value.recommendationId ?? "").trim();
+  const title = String(value.title ?? "").trim();
+  const lastSeenAt = String(value.lastSeenAt ?? "").trim();
+  const baselineCapturedAt = String(value.baselineCapturedAt ?? "").trim();
+
+  if (!status || !strategy || !recommendationKey || !recommendationId || !title || !lastSeenAt) {
+    return null;
+  }
+
+  const totalImpressions = toFiniteNumber(value.totalImpressions);
+  const avgPosition = Number.isFinite(Number(value.avgPosition))
+    ? Number(value.avgPosition)
+    : undefined;
+
+  return {
+    recommendationKey,
+    recommendationId,
+    title,
+    targetPath: typeof value.targetPath === "string" ? value.targetPath : undefined,
+    totalImpressions,
+    avgPosition,
+    status,
+    implementationStrategy: strategy,
+    supportingQueries: Array.isArray(value.supportingQueries)
+      ? value.supportingQueries.map((entry) => String(entry)).filter(Boolean)
+      : [],
+    lastSeenAt,
+    baselineCapturedAt: baselineCapturedAt || new Date().toISOString()
+  };
+}
+
+function parseRecommendationEvaluationBaselineList(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [] as SearchRecommendationEvaluationBaseline[];
+  }
+
+  return value
+    .map(parseRecommendationEvaluationBaseline)
+    .filter((entry): entry is SearchRecommendationEvaluationBaseline => Boolean(entry));
+}
+
+function getExecutorEvaluationCandidates(
+  resultPayload: unknown,
+  includeExistingApplied: boolean
+) {
+  if (!isRecord(resultPayload)) {
+    return [] as SearchRecommendationEvaluationBaseline[];
+  }
+
+  const preferred = includeExistingApplied
+    ? resultPayload.appliedRecommendationSnapshots
+    : resultPayload.newlyAppliedRecommendationSnapshots;
+  const fallback = includeExistingApplied ? resultPayload.newlyAppliedRecommendationSnapshots : [];
+
+  return [
+    ...parseRecommendationEvaluationBaselineList(preferred),
+    ...parseRecommendationEvaluationBaselineList(fallback)
+  ].filter(
+    (entry, index, all) =>
+      index === all.findIndex((candidate) => candidate.recommendationKey === entry.recommendationKey)
+  );
+}
+
+function toUtcDay(value: string) {
+  return new Date(`${value.slice(0, 10)}T00:00:00.000Z`);
+}
+
+function diffUtcDays(left: string, right: string) {
+  const diffMs = toUtcDay(left).getTime() - toUtcDay(right).getTime();
+  return Math.floor(diffMs / 86400000);
+}
+
+function buildSearchEvaluationVerdict(input: {
+  baseline: SearchRecommendationEvaluationBaseline;
+  current: SearchQueuedRecommendation | null;
+  latestAvailableDate: string;
+}) {
+  if (!input.current) {
+    return {
+      verdict: "escalate" as const,
+      notes:
+        `Latest Search Console queue no longer contains ${input.baseline.recommendationKey}. ` +
+        "Review whether the recommendation was superseded or removed before taking action.",
+      observedPayload: {
+        latestAvailableDate: input.latestAvailableDate,
+        currentRecommendation: null
+      }
+    };
+  }
+
+  const current = input.current;
+  const impressionsDelta = current.totalImpressions - input.baseline.totalImpressions;
+  const impressionsDeltaPct =
+    input.baseline.totalImpressions > 0
+      ? impressionsDelta / input.baseline.totalImpressions
+      : null;
+  const positionDelta =
+    typeof input.baseline.avgPosition === "number" && typeof current.avgPosition === "number"
+      ? input.baseline.avgPosition - current.avgPosition
+      : null;
+  const stillApplied = current.status === "applied";
+
+  if (
+    stillApplied &&
+    (
+      (positionDelta !== null && positionDelta >= 1)
+      || (impressionsDeltaPct !== null && impressionsDeltaPct >= 0.15)
+    )
+  ) {
+    return {
+      verdict: "keep" as const,
+      notes:
+        `Baseline impressions ${input.baseline.totalImpressions} and avg position ${input.baseline.avgPosition ?? "n/a"} moved to ` +
+        `${current.totalImpressions} and ${current.avgPosition ?? "n/a"} in data current through ${input.latestAvailableDate}.`,
+      observedPayload: {
+        latestAvailableDate: input.latestAvailableDate,
+        currentRecommendation: {
+          recommendationKey: current.recommendationKey,
+          status: current.status,
+          isActive: current.isActive,
+          totalImpressions: current.totalImpressions,
+          avgPosition: current.avgPosition,
+          lastSeenAt: current.lastSeenAt
+        },
+        deltas: {
+          impressionsDelta,
+          impressionsDeltaPct,
+          positionDelta
+        }
+      }
+    };
+  }
+
+  if (
+    (
+      positionDelta !== null &&
+      positionDelta <= -2
+    ) &&
+    (
+      impressionsDeltaPct !== null &&
+      impressionsDeltaPct <= -0.2
+    )
+  ) {
+    return {
+      verdict: "revert" as const,
+      notes:
+        `Baseline impressions ${input.baseline.totalImpressions} and avg position ${input.baseline.avgPosition ?? "n/a"} fell to ` +
+        `${current.totalImpressions} and ${current.avgPosition ?? "n/a"} by ${input.latestAvailableDate}. Review whether the overlay should be reverted or reworked.`,
+      observedPayload: {
+        latestAvailableDate: input.latestAvailableDate,
+        currentRecommendation: {
+          recommendationKey: current.recommendationKey,
+          status: current.status,
+          isActive: current.isActive,
+          totalImpressions: current.totalImpressions,
+          avgPosition: current.avgPosition,
+          lastSeenAt: current.lastSeenAt
+        },
+        deltas: {
+          impressionsDelta,
+          impressionsDeltaPct,
+          positionDelta
+        }
+      }
+    };
+  }
+
+  return {
+    verdict: "escalate" as const,
+    notes:
+      `Signals are mixed for ${input.baseline.recommendationKey}: baseline impressions ${input.baseline.totalImpressions} / avg position ${input.baseline.avgPosition ?? "n/a"}, ` +
+      `latest ${current.totalImpressions} / ${current.avgPosition ?? "n/a"}. Keep watching before widening or reverting.`,
+    observedPayload: {
+      latestAvailableDate: input.latestAvailableDate,
+      currentRecommendation: {
+        recommendationKey: current.recommendationKey,
+        status: current.status,
+        isActive: current.isActive,
+        totalImpressions: current.totalImpressions,
+        avgPosition: current.avgPosition,
+        lastSeenAt: current.lastSeenAt
+      },
+      deltas: {
+        impressionsDelta,
+        impressionsDeltaPct,
+        positionDelta
+      }
+    }
+  };
 }
 
 export async function getSearchRecommendationQueue() {
@@ -1428,6 +1741,12 @@ export async function runSearchRecommendationExecutor(): Promise<SearchRecommend
       (previous.status !== entry.status || previous.decisionReason !== entry.decisionReason)
     );
   });
+  const newlyAppliedRecommendationKeys = changedRows
+    .filter((entry) => {
+      const previous = previousByKey.get(entry.recommendationKey);
+      return previous && previous.status !== "applied" && entry.status === "applied";
+    })
+    .map((entry) => entry.recommendationKey);
 
   if (changedRows.length) {
     const updates = changedRows.map((entry) =>
@@ -1455,6 +1774,19 @@ export async function runSearchRecommendationExecutor(): Promise<SearchRecommend
     Object.keys(execution.runtime.pages).length +
     Object.keys(execution.runtime.blog).length +
     Object.keys(execution.runtime.recipes).length;
+  const queueByKey = new Map(queue.map((entry) => [entry.recommendationKey, entry]));
+  const appliedRecommendationSnapshots = execution.runtime.appliedRecommendationIds
+    .map((recommendationId) => {
+      const match = queue.find((entry) => entry.recommendationId === recommendationId);
+      return match ? buildRecommendationEvaluationBaseline(match) : null;
+    })
+    .filter((entry): entry is SearchRecommendationEvaluationBaseline => Boolean(entry));
+  const newlyAppliedRecommendationSnapshots = newlyAppliedRecommendationKeys
+    .map((recommendationKey) => {
+      const match = queueByKey.get(recommendationKey);
+      return match ? buildRecommendationEvaluationBaseline(match) : null;
+    })
+    .filter((entry): entry is SearchRecommendationEvaluationBaseline => Boolean(entry));
 
   return {
     ok: true,
@@ -1462,7 +1794,182 @@ export async function runSearchRecommendationExecutor(): Promise<SearchRecommend
     appliedRecommendationKeys: execution.appliedRecommendationKeys,
     manualReviewRecommendationKeys: execution.manualReviewRecommendationKeys,
     runtimeTargetCount,
-    appliedRecommendationCount: execution.runtime.appliedRecommendationIds.length
+    appliedRecommendationCount: execution.runtime.appliedRecommendationIds.length,
+    appliedRecommendationSnapshots,
+    newlyAppliedRecommendationSnapshots,
+    evaluationWindowDays: DEFAULT_SEARCH_EVALUATION_WINDOW_DAYS
+  };
+}
+
+export async function runSearchPerformanceEvaluator(options?: {
+  evaluationWindowDays?: number;
+  includeExistingApplied?: boolean;
+  maxRuns?: number;
+}): Promise<SearchRecommendationEvaluatorResult> {
+  const property = await resolveSearchConsoleProperty();
+  if (!property) {
+    return {
+      ok: false,
+      skippedReason: "Search Console property settings are not available yet."
+    };
+  }
+
+  if (!flags.hasSupabaseAdmin) {
+    return {
+      ok: false,
+      skippedReason: "Supabase admin access is required to evaluate search recommendations."
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return {
+      ok: false,
+      skippedReason: "Search evaluator storage is not configured."
+    };
+  }
+
+  const evaluationWindowDays = Math.max(
+    0,
+    Math.trunc(options?.evaluationWindowDays ?? DEFAULT_SEARCH_EVALUATION_WINDOW_DAYS)
+  );
+  const maxRuns = Math.max(1, Math.trunc(options?.maxRuns ?? DEFAULT_SEARCH_EVALUATION_MAX_RUNS));
+  const includeExistingApplied = options?.includeExistingApplied === true;
+
+  const [latestWindow, queue, executorRunsResult] = await Promise.all([
+    getLatestSearchInsightWindow(),
+    getSearchRecommendationQueue(),
+    supabase
+      .from("automation_runs")
+      .select("id, completed_at, result_payload")
+      .eq("agent_id", "search-recommendation-executor")
+      .eq("status", "succeeded")
+      .order("completed_at", { ascending: false })
+      .limit(maxRuns * 3)
+  ]);
+
+  if (!latestWindow) {
+    return {
+      ok: false,
+      skippedReason: "Run Search Console sync first so the evaluator has a current queue snapshot."
+    };
+  }
+
+  if (executorRunsResult.error) {
+    throw new Error(`Failed to read search executor runs for evaluation: ${executorRunsResult.error.message}`);
+  }
+
+  const executorRuns = ((executorRunsResult.data ?? []) as SearchExecutorRunRow[])
+    .filter((row) => typeof row.id === "number" && typeof row.completed_at === "string")
+    .filter(
+      (row) => diffUtcDays(latestWindow.latestAvailableDate, String(row.completed_at)) >= evaluationWindowDays
+    )
+    .slice(0, maxRuns);
+
+  if (!executorRuns.length) {
+    return {
+      ok: true,
+      property,
+      latestAvailableDate: latestWindow.latestAvailableDate,
+      evaluationWindowDays,
+      candidateRunCount: 0,
+      evaluatedRunIds: [],
+      evaluatedRecommendationCount: 0,
+      keepCount: 0,
+      revertCount: 0,
+      escalateCount: 0,
+      skippedExistingCount: 0
+    };
+  }
+
+  const executorRunIds = executorRuns.map((run) => run.id);
+  const { data: evaluationLookupRows, error: evaluationLookupError } = await supabase
+    .from("automation_evaluations")
+    .select("source_run_id, subject_key")
+    .in("source_run_id", executorRunIds);
+
+  if (evaluationLookupError) {
+    throw new Error(`Failed to read existing search evaluations: ${evaluationLookupError.message}`);
+  }
+
+  const existingByRunId = new Map<number, Set<string>>();
+  for (const row of (evaluationLookupRows ?? []) as AutomationEvaluationLookupRow[]) {
+    const existing = existingByRunId.get(row.source_run_id) ?? new Set<string>();
+    existing.add(String(row.subject_key));
+    existingByRunId.set(row.source_run_id, existing);
+  }
+
+  const queueByKey = new Map(queue.map((entry) => [entry.recommendationKey, entry]));
+  const inserts: Array<Record<string, unknown>> = [];
+  const evaluatedRunIds = new Set<number>();
+  let keepCount = 0;
+  let revertCount = 0;
+  let escalateCount = 0;
+  let skippedExistingCount = 0;
+
+  for (const run of executorRuns) {
+    const candidates = getExecutorEvaluationCandidates(run.result_payload, includeExistingApplied);
+    if (!candidates.length) {
+      continue;
+    }
+
+    const existingSubjectKeys = existingByRunId.get(run.id) ?? new Set<string>();
+
+    for (const candidate of candidates) {
+      if (existingSubjectKeys.has(candidate.recommendationKey)) {
+        skippedExistingCount += 1;
+        continue;
+      }
+
+      const verdict = buildSearchEvaluationVerdict({
+        baseline: candidate,
+        current: queueByKey.get(candidate.recommendationKey) ?? null,
+        latestAvailableDate: latestWindow.latestAvailableDate
+      });
+
+      if (verdict.verdict === "keep") {
+        keepCount += 1;
+      } else if (verdict.verdict === "revert") {
+        revertCount += 1;
+      } else {
+        escalateCount += 1;
+      }
+
+      inserts.push({
+        agent_id: "search-performance-evaluator",
+        source_run_id: run.id,
+        subject_type: "search_recommendation",
+        subject_key: candidate.recommendationKey,
+        evaluation_window_days: evaluationWindowDays,
+        baseline_payload: candidate,
+        observed_payload: verdict.observedPayload,
+        verdict: verdict.verdict,
+        notes: verdict.notes
+      });
+      evaluatedRunIds.add(run.id);
+      existingSubjectKeys.add(candidate.recommendationKey);
+    }
+  }
+
+  if (inserts.length) {
+    const { error } = await supabase.from("automation_evaluations").insert(inserts);
+    if (error) {
+      throw new Error(`Failed to write search evaluator verdicts: ${error.message}`);
+    }
+  }
+
+  return {
+    ok: true,
+    property,
+    latestAvailableDate: latestWindow.latestAvailableDate,
+    evaluationWindowDays,
+    candidateRunCount: executorRuns.length,
+    evaluatedRunIds: [...evaluatedRunIds].sort((left, right) => right - left),
+    evaluatedRecommendationCount: inserts.length,
+    keepCount,
+    revertCount,
+    escalateCount,
+    skippedExistingCount
   };
 }
 

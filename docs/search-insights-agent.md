@@ -4,10 +4,11 @@ This is the cleanest way to turn search logs into autonomous site improvements w
 
 ## Goal
 
-Create a two-agent loop:
+Create a search loop with bounded execution and post-run judgment:
 
 1. A search-insights analyst reads Search Console data and produces structured recommendations.
 2. A site-implementation agent picks up approved recommendations and applies bounded content or SEO changes.
+3. A search evaluator checks mature applied recommendations later and records whether they look worth keeping.
 
 ## What is now in the repo
 
@@ -18,12 +19,15 @@ Create a two-agent loop:
   - runs the live Search Console analyst sync
   - stores queue items in `search_recommendations`
   - runs the approved-only executor that rebuilds runtime overlays
+  - runs the delayed search evaluator that records keep / escalate / revert verdicts
 - `app/api/admin/search-insights/route.ts`
   - analyst cron and manual sync entry point
 - `app/api/admin/search-insights-executor/cron/route.ts`
   - executor cron entry point
+- `app/api/admin/search-performance-evaluator/cron/route.ts`
+  - evaluator cron entry point
 - `app/admin/analytics/search-console/page.tsx`
-  - admin queue, approval, and runtime overlay dashboard
+  - admin queue, approval, executor, and evaluator dashboard controls
 - `docs/flamingfoodies.com-Performance-on-Search-2026-04-18/search-insights.md`
   - the manual review that seeded the first modeled recommendations
 
@@ -134,7 +138,8 @@ The repo now runs the practical first live version like this:
 1. The weekly analyst sync pulls live Search Console data and refreshes `search_recommendations`.
 2. Admin approves, dismisses, or sends items to manual review from `/admin/analytics/search-console`.
 3. The daily executor rebuilds runtime overlays from approved supported items only.
-4. Unsupported technical recommendations stay queued as `manual_review` instead of mutating live state.
+4. The daily evaluator reviews mature executor decisions and records keep / escalate / revert verdicts in `automation_evaluations`.
+5. Unsupported technical recommendations stay queued as `manual_review` instead of mutating live state.
 
-That keeps the SEO loop autonomous where the write surface is bounded, but still separates analysis,
-approval, and execution.
+That keeps the SEO loop autonomous where the write surface is bounded, while still separating
+analysis, approval, execution, and post-run judgment.

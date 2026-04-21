@@ -17,6 +17,7 @@
     { "path": "/api/admin/newsletter-digest?mode=send_due", "schedule": "5 * * * *" },
     { "path": "/api/admin/search-insights", "schedule": "30 12 * * 1" },
     { "path": "/api/admin/search-insights-executor/cron", "schedule": "0 13 * * *" },
+    { "path": "/api/admin/search-performance-evaluator/cron", "schedule": "30 13 * * *" },
     { "path": "/api/admin/content-shop-sync", "schedule": "0 12 * * *" },
     { "path": "/api/admin/festival-discovery",  "schedule": "0 2 * * *" },
     { "path": "/api/admin/pepper-discovery",    "schedule": "0 3 * * 1" },

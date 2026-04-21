@@ -10,10 +10,11 @@ The goal of this setup is:
 4. Give the correct Google account access to the Search Console property.
 5. Hand the final values back to the app so I can wire the callback route, store the refresh token, and automate the recommendation agent.
 
-This now feeds a real two-agent loop in the repo:
+This now feeds a real Search Console loop in the repo:
 
 - `search-insights-analyst` pulls Search Console data and refreshes the recommendation queue
 - `search-recommendation-executor` applies only approved, supported runtime overlays
+- `search-performance-evaluator` reviews mature executor decisions and records keep / escalate / revert verdicts
 
 ## The recommended auth model
 

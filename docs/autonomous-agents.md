@@ -71,7 +71,8 @@ Dependencies:
 
 What it does:
 - builds weekly digest campaigns from published content
-- processes scheduled sends when the send window opens
+- queues send approvals instead of sending directly
+- processes only approved due campaigns when the send window opens
 
 Why it matters:
 - turns one-time visitors into repeat readers
@@ -83,29 +84,59 @@ Dependencies:
 ## 6. Search Insights Analyst
 
 What it does:
-- reads Search Console exports or API snapshots
+- reads live Search Console API data
 - clusters rising queries and underperforming page intents
-- turns those signals into structured recommendations for page upgrades or new supporting pages
+- refreshes a durable recommendation queue instead of publishing SEO changes directly
 
 Why it matters:
 - keeps the site aligned with the exact searches Google is already testing us on
 - turns early impressions into a repeatable SEO backlog instead of one-off guesswork
 
 Dependencies:
-- Search Console data feed or a weekly CSV export drop
+- Search Console OAuth connection
 - a bounded implementation agent that only applies approved recommendation types
+
+## 7. Search Recommendation Executor
+
+What it does:
+- reads only approved and active Search Console recommendations
+- applies supported recommendation types through the runtime overlay layer
+- routes technical or unsupported items into manual review instead of mutating the site blindly
+
+Why it matters:
+- separates search analysis from live mutation
+- keeps SEO execution inside a bounded, reversible write surface
+
+Dependencies:
+- live Search Console queue data
+- runtime overlay targets already modeled in the codebase
+
+## 8. Search Performance Evaluator
+
+What it does:
+- reviews prior search executor decisions after a delay
+- compares baseline recommendation metrics with the latest Search Console queue
+- records keep, escalate, or revert verdicts without rolling anything back automatically
+
+Why it matters:
+- closes the loop between "we applied this" and "did it help"
+- keeps search autonomy from becoming a one-way write pipeline
+
+Dependencies:
+- live Search Console queue data
+- automation run ledger entries from the executor
 
 ## Current cadence note
 
-On the current Vercel Hobby plan, cron jobs are limited to daily schedules.
+The deployed automation stack is no longer just a daily batch.
 
 That means:
-- content generation can still run on its normal daily schedule
-- stuck AI drafts get a daily reevaluation pass before scheduled publishing
-- scheduled publishing runs once per day
-- social queueing and Pinterest distribution run once per day
-
-If you later move to Vercel Pro, these agents can be tightened into higher-frequency loops.
+- newsletter digest drafting runs weekly
+- newsletter due-send checks run hourly
+- Search Console analyst sync runs weekly
+- Search recommendation execution runs daily
+- Search evaluation runs daily
+- content publishing, social queueing, growth-loop promotion, and shop refreshes run on their own scheduled cadences in `vercel.json`
 
 ## Recommended Operating Model
 
@@ -117,6 +148,8 @@ For a lean launch, the best autonomous stack is:
 4. Shop Shelf Curator
 5. Newsletter Digest Agent
 6. Search Insights Analyst
+7. Search Recommendation Executor
+8. Search Performance Evaluator
 
 That gives FlamingFoodies a closed loop:
 

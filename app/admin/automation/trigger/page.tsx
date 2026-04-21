@@ -8,6 +8,7 @@ import {
   runNewsletterDigestAction,
   runPublishScheduledAction,
   runReleaseMonitorAction,
+  runSearchPerformanceEvaluatorAction,
   runSearchInsightsExecutorAction,
   runSearchInsightsSyncAction,
   resumeAutomationAgentAction,
@@ -86,6 +87,11 @@ export default async function AdminTriggerPage({
     shopRefreshUpdated?: string;
     notice?: string;
     error?: string;
+    searchEvaluated?: string;
+    searchKeep?: string;
+    searchEscalate?: string;
+    searchRevert?: string;
+    searchSkipped?: string;
   };
 }) {
   const [initialJobs, settings, hasSearchConsole, controlAgents] = await Promise.all([
@@ -165,6 +171,13 @@ export default async function AdminTriggerPage({
           Refreshed {searchParams.shopRefreshReviewed} shop picks, created{" "}
           {searchParams.shopRefreshCreated || "0"}, updated{" "}
           {searchParams.shopRefreshUpdated || "0"}.
+        </p>
+      ) : null}
+      {searchParams?.searchEvaluated ? (
+        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          Search evaluator recorded {searchParams.searchEvaluated} verdict(s): keep{" "}
+          {searchParams.searchKeep || "0"}, escalate {searchParams.searchEscalate || "0"}, revert{" "}
+          {searchParams.searchRevert || "0"}, skipped existing {searchParams.searchSkipped || "0"}.
         </p>
       ) : null}
       <div className="panel-light p-6">
@@ -340,8 +353,8 @@ export default async function AdminTriggerPage({
           <p className="eyebrow">Search</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">Search Console workflow</h2>
           <p className="mt-3 text-sm text-charcoal/65">
-            Refresh the Search Console recommendation queue, then separately run the executor to
-            rebuild only the approved runtime overlays.
+            Refresh the recommendation queue, rebuild only approved runtime overlays, then let the
+            evaluator judge whether those applied overlays were worth keeping.
           </p>
           {hasSearchConsole ? (
             <div className="mt-6 flex flex-wrap gap-3">
@@ -357,6 +370,13 @@ export default async function AdminTriggerPage({
                   idleLabel="Run executor now"
                   pendingLabel="Executing..."
                   className="rounded-full border border-charcoal/10 bg-white px-5 py-3 text-sm font-semibold text-charcoal"
+                />
+              </form>
+              <form action={runSearchPerformanceEvaluatorAction}>
+                <AdminSubmitButton
+                  idleLabel="Run evaluator now"
+                  pendingLabel="Evaluating..."
+                  className="rounded-full border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-semibold text-sky-800"
                 />
               </form>
               <Link

@@ -13,6 +13,15 @@ This file explains:
 - which tables, flags, and wrappers to add
 - how to roll the system out without breaking the current site
 
+## Implementation Status
+
+As of April 21, 2026:
+
+- Phases 0 through 3 are implemented in the live control plane: registry, run ledger, policy enforcement, approvals, and the split Search Console analyst/executor model are all active.
+- Phase 4 is active: `automation_evaluations` now stores keep / revert / escalate judgments, and the first automatic evaluator lane is live for Search executor runs.
+- Phase 5 is started: snapshot-backed rollback is now available for `search-recommendation-executor` and `shop-shelf-curator` from the admin run ledger.
+- Evaluator loops are still early. Search now has an automatic evaluator, while social, editorial, and shop still need their own post-run judgment lanes.
+
 ## Goals
 
 1. Keep the current automation behavior working while adding stronger control and observability.
@@ -33,6 +42,7 @@ These are the meaningful autonomous or cron-driven lanes already in the repo.
 | `newsletter-digest-agent` | weekly digest cron + hourly due-send cron | `newsletter_campaigns`, automation approvals, ConvertKit broadcast sync | digest drafting is autonomous, but sending is approval-gated and only approved due campaigns can go out | `external_send` |
 | `search-insights-analyst` | weekly cron | `search_insight_runs`, `search_recommendations` | read-only Search Console sync + queue only | `draft_only` |
 | `search-recommendation-executor` | daily cron | `search_recommendations`, `site_settings.search_runtime_optimizations` | approved-only bounded overlay registry | `bounded_live` |
+| `search-performance-evaluator` | daily cron | `automation_evaluations` | delayed verdicts on prior executor runs, no automatic rollback | `internal_support` |
 | `festival-discovery` | nightly cron | `festivals` drafts | draft-only inserts | `draft_only` |
 | `pepper-discovery` | weekly cron | pepper discovery tables | draft-oriented discovery flow | `draft_only` |
 | `brand-monitor` | weekly cron | `brands` drafts, `releases` published rows | brands draft-only, releases auto-publish | split into `draft_only` + `approval_required` |
@@ -515,6 +525,20 @@ Guardrails:
 - keep approved-only queue behavior
 - keep allowlisted implementation registry
 - snapshot `search_runtime_optimizations` before rebuild
+
+### `search-performance-evaluator`
+
+- `risk_class = internal_support`
+- `autonomy_mode = bounded_live`
+- `daily_run_cap = 1`
+- `daily_mutation_cap = 24`
+- `rollback_strategy = none`
+
+Guardrails:
+
+- evaluate only prior executor runs, never raw analyst output
+- write verdicts into `automation_evaluations`, not live site state
+- do not auto-rollback runtime overlays without a separate explicit decision
 
 ### `festival-discovery`
 

@@ -1,17 +1,28 @@
 import Link from "next/link";
 
+import { AdminSubmitButton } from "@/components/admin/admin-submit-button";
 import { AdminPage } from "@/components/admin/admin-page";
 import {
+  escalateAutomationRunAction,
+  markAutomationRunKeepAction,
+  rollbackAutomationRunAction
+} from "@/lib/actions/admin-automation";
+import {
   getAutomationRun,
+  listAutomationEvaluations,
+  listAutomationStateSnapshots,
   listAutomationAgents,
   listAutomationRunEvents,
   listAutomationRuns,
+  type AutomationEvaluationRecord,
+  type AutomationEvaluationVerdict,
   summarizeAutomationRuns,
   type AutomationAgentId,
   type AutomationRunDetailRecord,
   type AutomationRunEventRecord,
   type AutomationRunRecord,
-  type AutomationRunStatus
+  type AutomationRunStatus,
+  type AutomationStateSnapshotRecord
 } from "@/lib/services/automation-control";
 
 type RunsSearchParams = {
@@ -19,6 +30,8 @@ type RunsSearchParams = {
   status?: string;
   window?: string;
   runId?: string;
+  notice?: string;
+  error?: string;
 };
 
 const RUN_STATUS_OPTIONS: Array<AutomationRunStatus> = [
@@ -97,6 +110,18 @@ function eventLevelClasses(level: AutomationRunEventRecord["level"]) {
   return "bg-sky-100 text-sky-800";
 }
 
+function verdictClasses(verdict: AutomationEvaluationVerdict) {
+  if (verdict === "keep") {
+    return "bg-emerald-100 text-emerald-800";
+  }
+
+  if (verdict === "revert") {
+    return "bg-sky-100 text-sky-800";
+  }
+
+  return "bg-amber-100 text-amber-800";
+}
+
 function getWindowSince(windowValue: string | undefined) {
   if (windowValue === "1d") {
     return new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -134,8 +159,10 @@ function buildRunsHref(
     agent: searchParams?.agent,
     status: searchParams?.status,
     window: searchParams?.window,
-    runId: searchParams?.runId,
-    ...overrides
+      runId: searchParams?.runId,
+      notice: undefined,
+      error: undefined,
+      ...overrides
   };
 
   if (values.agent) {
@@ -158,15 +185,150 @@ function buildRunsHref(
   return query ? `/admin/automation/runs?${query}` : "/admin/automation/runs";
 }
 
+function supportedRollbackScopeForRun(run: AutomationRunDetailRecord) {
+  if (run.agentId === "search-recommendation-executor") {
+    return "site_settings.search_runtime_optimizations";
+  }
+
+  if (run.agentId === "shop-shelf-curator") {
+    return "merch_products.shop_shelf";
+  }
+
+  return null;
+}
+
+function SnapshotPanel({ snapshots }: { snapshots: AutomationStateSnapshotRecord[] }) {
+  return (
+    <article className="mt-6 rounded-[1.5rem] border border-charcoal/10 p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+        Captured state
+      </p>
+      {snapshots.length ? (
+        <div className="mt-4 grid gap-4">
+          {snapshots.map((snapshot) => (
+            <div key={snapshot.id} className="rounded-2xl border border-charcoal/10 p-4">
+              <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em]">
+                <span className="rounded-full bg-sky-100 px-3 py-1 text-sky-800">
+                  Snapshot
+                </span>
+                <span className="rounded-full bg-charcoal/5 px-3 py-1 text-charcoal/70">
+                  {formatLabel(snapshot.scope)}
+                </span>
+                <span className="text-sm normal-case tracking-normal text-charcoal/55">
+                  {formatDateTime(snapshot.createdAt)}
+                </span>
+              </div>
+              <p className="mt-3 text-sm leading-7 text-charcoal/70">
+                Subject key: <span className="font-mono text-xs">{snapshot.subjectKey}</span>
+              </p>
+              <div className="mt-4 grid gap-4 xl:grid-cols-2">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                    Before
+                  </p>
+                  <pre className="mt-3 overflow-x-auto rounded-2xl bg-charcoal/[0.04] p-4 text-xs leading-6 text-charcoal/80">
+                    {stringifyPayload(snapshot.beforePayload)}
+                  </pre>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                    After
+                  </p>
+                  <pre className="mt-3 overflow-x-auto rounded-2xl bg-charcoal/[0.04] p-4 text-xs leading-6 text-charcoal/80">
+                    {stringifyPayload(snapshot.afterPayload)}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-4 text-sm leading-7 text-charcoal/65">
+          No state snapshots were captured for this run.
+        </p>
+      )}
+    </article>
+  );
+}
+
+function EvaluationPanel({ evaluations }: { evaluations: AutomationEvaluationRecord[] }) {
+  return (
+    <article className="mt-6 rounded-[1.5rem] border border-charcoal/10 p-5">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">Evaluations</p>
+      {evaluations.length ? (
+        <div className="mt-4 grid gap-3">
+          {evaluations.map((evaluation) => (
+            <div key={evaluation.id} className="rounded-2xl border border-charcoal/10 p-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${verdictClasses(evaluation.verdict)}`}
+                >
+                  {formatLabel(evaluation.verdict)}
+                </span>
+                <span className="rounded-full bg-charcoal/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-charcoal/70">
+                  {formatLabel(evaluation.subjectType)}
+                </span>
+                <span className="text-sm text-charcoal/55">
+                  {formatDateTime(evaluation.createdAt)}
+                </span>
+              </div>
+              <p className="mt-3 text-sm leading-7 text-charcoal/70">
+                Subject key: <span className="font-mono text-xs">{evaluation.subjectKey}</span>
+              </p>
+              {evaluation.notes ? (
+                <p className="mt-3 text-sm leading-7 text-charcoal/70">{evaluation.notes}</p>
+              ) : null}
+              <div className="mt-4 grid gap-4 xl:grid-cols-2">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                    Baseline
+                  </p>
+                  <pre className="mt-3 overflow-x-auto rounded-2xl bg-charcoal/[0.04] p-4 text-xs leading-6 text-charcoal/80">
+                    {stringifyPayload(evaluation.baselinePayload)}
+                  </pre>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                    Observed
+                  </p>
+                  <pre className="mt-3 overflow-x-auto rounded-2xl bg-charcoal/[0.04] p-4 text-xs leading-6 text-charcoal/80">
+                    {stringifyPayload(evaluation.observedPayload)}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-4 text-sm leading-7 text-charcoal/65">
+          No evaluations have been recorded for this run yet.
+        </p>
+      )}
+    </article>
+  );
+}
+
 function RunDetailPanel({
   run,
   events,
-  clearHref
+  snapshots,
+  evaluations,
+  clearHref,
+  returnTo
 }: {
   run: AutomationRunDetailRecord;
   events: AutomationRunEventRecord[];
+  snapshots: AutomationStateSnapshotRecord[];
+  evaluations: AutomationEvaluationRecord[];
   clearHref: string;
+  returnTo: string;
 }) {
+  const rollbackScope = supportedRollbackScopeForRun(run);
+  const hasRollbackSnapshot = Boolean(
+    rollbackScope && snapshots.some((snapshot) => snapshot.scope === rollbackScope)
+  );
+  const canRollback = run.status === "succeeded" && !run.rollbackRunId && hasRollbackSnapshot;
+
   return (
     <section className="panel-light p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -224,6 +386,57 @@ function RunDetailPanel({
           </p>
         </article>
       </div>
+
+      <article className="mt-6 rounded-[1.5rem] border border-charcoal/10 p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+          Operator actions
+        </p>
+        <p className="mt-3 text-sm leading-7 text-charcoal/70">
+          Record whether this run should be kept, escalated, or reverted. Rollback is available
+          only for snapshot-backed bounded-live runs.
+        </p>
+        {run.rollbackRunId ? (
+          <p className="mt-4 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-800">
+            This run has already been rolled back. Inspect rollback run #{run.rollbackRunId} for the
+            restoration trail.
+          </p>
+        ) : null}
+        <div className="mt-4 flex flex-wrap gap-3">
+          {run.status !== "started" ? (
+            <>
+              <form action={markAutomationRunKeepAction}>
+                <input type="hidden" name="runId" value={run.id} />
+                <input type="hidden" name="returnTo" value={returnTo} />
+                <AdminSubmitButton
+                  idleLabel="Mark keep"
+                  pendingLabel="Saving..."
+                  className="rounded-full border border-charcoal/10 bg-white px-4 py-2 text-sm font-semibold text-charcoal transition hover:bg-charcoal/5"
+                />
+              </form>
+              <form action={escalateAutomationRunAction}>
+                <input type="hidden" name="runId" value={run.id} />
+                <input type="hidden" name="returnTo" value={returnTo} />
+                <AdminSubmitButton
+                  idleLabel="Escalate"
+                  pendingLabel="Saving..."
+                  className="rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-100"
+                />
+              </form>
+            </>
+          ) : null}
+          {canRollback ? (
+            <form action={rollbackAutomationRunAction}>
+              <input type="hidden" name="runId" value={run.id} />
+              <input type="hidden" name="returnTo" value={returnTo} />
+              <AdminSubmitButton
+                idleLabel="Roll back run"
+                pendingLabel="Rolling back..."
+                className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-800 transition hover:bg-sky-100"
+              />
+            </form>
+          ) : null}
+        </div>
+      </article>
 
       {run.summary || run.errorMessage ? (
         <div className="mt-6 grid gap-4 xl:grid-cols-2">
@@ -295,6 +508,9 @@ function RunDetailPanel({
           </p>
         )}
       </article>
+
+      <SnapshotPanel snapshots={snapshots} />
+      <EvaluationPanel evaluations={evaluations} />
     </section>
   );
 }
@@ -376,26 +592,47 @@ export default async function AdminAutomationRunsPage({
       ? Number(searchParams.runId)
       : null;
 
-  const [agents, runs, selectedRun, selectedRunEvents] = await Promise.all([
-    listAutomationAgents(),
-    listAutomationRuns({
-      limit: 200,
-      since: getWindowSince(selectedWindow),
-      agentId: selectedAgent,
-      status: selectedStatus
-    }),
-    selectedRunId && Number.isFinite(selectedRunId) ? getAutomationRun(selectedRunId) : null,
-    selectedRunId && Number.isFinite(selectedRunId)
-      ? listAutomationRunEvents({ runId: selectedRunId, limit: 100 })
-      : Promise.resolve([])
-  ]);
+  const [agents, runs, selectedRun, selectedRunEvents, selectedRunSnapshots, selectedRunEvaluations] =
+    await Promise.all([
+      listAutomationAgents(),
+      listAutomationRuns({
+        limit: 200,
+        since: getWindowSince(selectedWindow),
+        agentId: selectedAgent,
+        status: selectedStatus
+      }),
+      selectedRunId && Number.isFinite(selectedRunId) ? getAutomationRun(selectedRunId) : null,
+      selectedRunId && Number.isFinite(selectedRunId)
+        ? listAutomationRunEvents({ runId: selectedRunId, limit: 100 })
+        : Promise.resolve([]),
+      selectedRunId && Number.isFinite(selectedRunId)
+        ? listAutomationStateSnapshots({ runId: selectedRunId, limit: 10 })
+        : Promise.resolve([]),
+      selectedRunId && Number.isFinite(selectedRunId)
+        ? listAutomationEvaluations({ sourceRunId: selectedRunId, limit: 20 })
+        : Promise.resolve([])
+    ]);
   const summary = summarizeAutomationRuns(runs);
+  const selectedRunHref = buildRunsHref(searchParams, {
+    runId: selectedRun ? String(selectedRun.id) : undefined
+  });
 
   return (
     <AdminPage
       title="Automation runs"
       description="Use the run ledger as the source of truth for what actually executed, what it changed, what got blocked, and why. This is the operator view for inspecting automation history instead of inferring behavior from content tables."
     >
+      {searchParams?.error ? (
+        <p className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {searchParams.error}
+        </p>
+      ) : null}
+      {searchParams?.notice ? (
+        <p className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          {searchParams.notice}
+        </p>
+      ) : null}
+
       <section className="panel-light p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
@@ -496,7 +733,10 @@ export default async function AdminAutomationRunsPage({
         <RunDetailPanel
           run={selectedRun}
           events={selectedRunEvents}
+          snapshots={selectedRunSnapshots}
+          evaluations={selectedRunEvaluations}
           clearHref={buildRunsHref(searchParams, { runId: undefined })}
+          returnTo={selectedRunHref}
         />
       ) : selectedRunId ? (
         <section className="rounded-[1.75rem] border border-amber-200 bg-amber-50 px-6 py-5">

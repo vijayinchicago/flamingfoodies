@@ -12,8 +12,16 @@ import {
   runGenerationPipeline
 } from "@/lib/services/automation";
 import {
-  recordAutomationSnapshot,
+  appendAutomationRunEvent,
+  beginAutomationRun,
+  completeAutomationRun,
+  createAutomationEvaluation,
+  failAutomationRun,
+  getAutomationRun,
   getAutomationApproval,
+  listAutomationStateSnapshots,
+  markAutomationRunRolledBack,
+  recordAutomationSnapshot,
   updateAutomationApproval,
   pauseAutomationAgent,
   resumeAutomationAgent,
@@ -30,12 +38,17 @@ import {
   syncNewsletterCampaignApprovalStatus
 } from "@/lib/services/newsletter";
 import {
+  parseSearchRuntimeOptimizationSnapshot,
+  restoreSearchRuntimeOptimizationSnapshot,
   getSearchRuntimeOptimizationSnapshot,
+  runSearchPerformanceEvaluator,
   runSearchInsightsAutomation,
   runSearchRecommendationExecutor,
   updateSearchRecommendationStatus
 } from "@/lib/services/search-insights";
 import {
+  parseShopShelfSnapshot,
+  restoreShopShelfSnapshot,
   getShopShelfSnapshot,
   runShopCatalogRefresh
 } from "@/lib/services/shop-automation";
@@ -72,6 +85,7 @@ const automationAgentActionSchema = z.object({
     "newsletter-digest-agent",
     "search-insights-analyst",
     "search-recommendation-executor",
+    "search-performance-evaluator",
     "festival-discovery",
     "pepper-discovery",
     "brand-discovery",
@@ -82,10 +96,16 @@ const automationAgentActionSchema = z.object({
   returnTo: z.string().optional()
 });
 
+const automationRunActionSchema = z.object({
+  runId: z.coerce.number().int().positive(),
+  returnTo: z.string().optional()
+});
+
 const SEARCH_CONSOLE_DASHBOARD_PATH = "/admin/analytics/search-console";
 const AUTOMATION_AGENTS_PATH = "/admin/automation/agents";
 const AUTOMATION_TRIGGER_PATH = "/admin/automation/trigger";
 const AUTOMATION_APPROVALS_PATH = "/admin/automation/approvals";
+const AUTOMATION_RUNS_PATH = "/admin/automation/runs";
 
 async function writeAuditLog(
   supabase: ReturnType<typeof createSupabaseAdminClient>,
@@ -124,12 +144,23 @@ function redirectApprovalsError(message: string): never {
   redirect(`${AUTOMATION_APPROVALS_PATH}?error=${encodeURIComponent(message)}`);
 }
 
+function redirectRunsError(message: string, returnTo?: string): never {
+  const destination = getSafeReturnTo(returnTo, AUTOMATION_RUNS_PATH);
+  redirect(withRedirectMessage(destination, "error", message));
+}
+
 function getSafeReturnTo(raw: string | undefined, fallback = AUTOMATION_AGENTS_PATH) {
   if (!raw?.startsWith("/admin/")) {
     return fallback;
   }
 
   return raw;
+}
+
+function withRedirectMessage(path: string, key: "notice" | "error", value: string) {
+  const url = new URL(path, "https://flamingfoodies.local");
+  url.searchParams.set(key, value);
+  return `${url.pathname}${url.search}`;
 }
 
 function revalidateSearchInsightSurfaces() {
@@ -698,6 +729,60 @@ export async function runSearchInsightsExecutorAction() {
   );
 }
 
+export async function runSearchPerformanceEvaluatorAction() {
+  const admin = await requireAdmin();
+  const task = await runManualAutomationTask({
+    agentId: "search-performance-evaluator",
+    adminId: admin.id,
+    triggerReference: "server_action:search_performance_evaluator",
+    inputPayload: {
+      evaluationWindowDays: 0,
+      includeExistingApplied: true
+    },
+    execute: async () => {
+      const result = await runSearchPerformanceEvaluator({
+        evaluationWindowDays: 0,
+        includeExistingApplied: true
+      });
+      if (!result.ok) {
+        throw new Error(result.skippedReason);
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      revalidateSearchInsightSurfaces();
+      revalidatePath(AUTOMATION_AGENTS_PATH);
+      revalidatePath(AUTOMATION_TRIGGER_PATH);
+      revalidatePath(AUTOMATION_RUNS_PATH);
+    },
+    summarize: (result) => ({
+      summary:
+        `Recorded ${result.evaluatedRecommendationCount} search evaluation verdict(s): ` +
+        `${result.keepCount} keep, ${result.escalateCount} escalate, ${result.revertCount} revert.`,
+      rowsCreated: result.evaluatedRecommendationCount,
+      rowsUpdated: result.skippedExistingCount
+    })
+  });
+
+  const result = task.ok
+    ? task.result
+    : redirect(`${SEARCH_CONSOLE_DASHBOARD_PATH}?error=${encodeURIComponent(task.errorMessage)}`);
+  const supabase = createSupabaseAdminClient();
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "run_search_performance_evaluator",
+    targetType: "search_console",
+    targetId: "manual_evaluator",
+    metadata: result
+  });
+
+  redirect(
+    `${SEARCH_CONSOLE_DASHBOARD_PATH}?evaluated=1&searchKeep=${result.keepCount}&searchEscalate=${result.escalateCount}&searchRevert=${result.revertCount}&searchEvaluated=${result.evaluatedRecommendationCount}&searchSkipped=${result.skippedExistingCount}&latest=${result.latestAvailableDate}`
+  );
+}
+
 async function updateSearchRecommendationStatusAction(input: {
   formData: FormData;
   status: "approved" | "dismissed" | "manual_review";
@@ -951,6 +1036,342 @@ export async function applyAutomationApprovalAction(formData: FormData) {
   redirect(
     `${AUTOMATION_APPROVALS_PATH}?notice=${encodeURIComponent(notice)}`
   );
+}
+
+function getAutomationRunEvaluationPayload(run: Awaited<ReturnType<typeof getAutomationRun>>) {
+  if (!run) {
+    return {};
+  }
+
+  return {
+    status: run.status,
+    triggerSource: run.triggerSource,
+    summary: run.summary,
+    errorMessage: run.errorMessage,
+    rowsCreated: run.rowsCreated,
+    rowsUpdated: run.rowsUpdated,
+    rowsPublished: run.rowsPublished,
+    rowsSent: run.rowsSent,
+    inputPayload: run.inputPayload,
+    resultPayload: run.resultPayload
+  };
+}
+
+function getRollbackSnapshotScope(agentId: NonNullable<Awaited<ReturnType<typeof getAutomationRun>>>["agentId"]) {
+  if (agentId === "search-recommendation-executor") {
+    return "site_settings.search_runtime_optimizations";
+  }
+
+  if (agentId === "shop-shelf-curator") {
+    return "merch_products.shop_shelf";
+  }
+
+  return null;
+}
+
+async function createAutomationRunEvaluationAction(input: {
+  formData: FormData;
+  verdict: "keep" | "escalate";
+  notes: string;
+  auditAction: string;
+  notice: string;
+}) {
+  const admin = await requireAdmin();
+  const parsed = automationRunActionSchema.safeParse({
+    runId: input.formData.get("runId"),
+    returnTo: input.formData.get("returnTo")
+  });
+
+  if (!parsed.success) {
+    redirectRunsError(
+      "Invalid automation run request",
+      input.formData.get("returnTo")?.toString()
+    );
+  }
+
+  const destination = getSafeReturnTo(
+    parsed.data.returnTo,
+    `${AUTOMATION_RUNS_PATH}?runId=${parsed.data.runId}`
+  );
+  const run = await getAutomationRun(parsed.data.runId);
+
+  if (!run) {
+    redirectRunsError("Automation run not found", destination);
+  }
+
+  const evaluation = await createAutomationEvaluation({
+    agentId: run.agentId,
+    sourceRunId: run.id,
+    subjectType: "automation_run",
+    subjectKey: `run:${run.id}`,
+    evaluationWindowDays: 0,
+    baselinePayload: getAutomationRunEvaluationPayload(run),
+    observedPayload: {
+      status: run.status,
+      rollbackRunId: run.rollbackRunId
+    },
+    verdict: input.verdict,
+    notes: input.notes
+  });
+
+  const supabase = createSupabaseAdminClient();
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: input.auditAction,
+    targetType: "automation_run",
+    targetId: String(run.id),
+    metadata: {
+      verdict: evaluation.verdict,
+      evaluationId: evaluation.id
+    }
+  });
+
+  revalidatePath(AUTOMATION_RUNS_PATH);
+  revalidatePath(AUTOMATION_AGENTS_PATH);
+  redirect(withRedirectMessage(destination, "notice", input.notice));
+}
+
+export async function markAutomationRunKeepAction(formData: FormData) {
+  return createAutomationRunEvaluationAction({
+    formData,
+    verdict: "keep",
+    notes: "Reviewed by admin and kept as-is.",
+    auditAction: "keep_automation_run",
+    notice: "Automation run marked keep."
+  });
+}
+
+export async function escalateAutomationRunAction(formData: FormData) {
+  return createAutomationRunEvaluationAction({
+    formData,
+    verdict: "escalate",
+    notes: "Reviewed by admin and escalated for follow-up.",
+    auditAction: "escalate_automation_run",
+    notice: "Automation run escalated for follow-up."
+  });
+}
+
+export async function rollbackAutomationRunAction(formData: FormData) {
+  const admin = await requireAdmin();
+  const parsed = automationRunActionSchema.safeParse({
+    runId: formData.get("runId"),
+    returnTo: formData.get("returnTo")
+  });
+
+  if (!parsed.success) {
+    redirectRunsError("Invalid automation run request", formData.get("returnTo")?.toString());
+  }
+
+  const destination = getSafeReturnTo(
+    parsed.data.returnTo,
+    `${AUTOMATION_RUNS_PATH}?runId=${parsed.data.runId}`
+  );
+  const run = await getAutomationRun(parsed.data.runId);
+
+  if (!run) {
+    redirectRunsError("Automation run not found", destination);
+  }
+
+  if (run.status !== "succeeded") {
+    redirectRunsError("Only successful runs with snapshots can be rolled back.", destination);
+  }
+
+  if (run.rollbackRunId) {
+    redirectRunsError("This run has already been rolled back.", destination);
+  }
+
+  const snapshotScope = getRollbackSnapshotScope(run.agentId);
+  if (!snapshotScope) {
+    redirectRunsError("This automation lane does not support snapshot rollback yet.", destination);
+  }
+
+  const snapshots = await listAutomationStateSnapshots({
+    runId: run.id,
+    limit: 20
+  });
+  const snapshot = snapshots.find((entry) => entry.scope === snapshotScope);
+
+  if (!snapshot) {
+    redirectRunsError("No rollback snapshot is available for this run.", destination);
+  }
+
+  const rollbackRun = await beginAutomationRun({
+    agentId: run.agentId,
+    triggerSource: "admin_action",
+    triggerReference: `server_action:rollback_run:${run.id}`,
+    inputPayload: {
+      sourceRunId: run.id,
+      snapshotId: snapshot.id,
+      snapshotScope: snapshot.scope
+    },
+    createdByAdminId: admin.id
+  });
+
+  if (!rollbackRun) {
+    redirectRunsError("Failed to start rollback run.", destination);
+  }
+
+  await appendAutomationRunEvent(rollbackRun, {
+    level: "info",
+    code: "rollback_started",
+    message: `Rollback for run #${run.id} started.`,
+    payload: {
+      sourceRunId: run.id,
+      snapshotId: snapshot.id,
+      snapshotScope: snapshot.scope
+    }
+  });
+
+  try {
+    let restoreResult: Record<string, unknown>;
+    let beforeRollbackState: unknown;
+    let afterRollbackState: unknown;
+
+    if (run.agentId === "search-recommendation-executor") {
+      const rollbackSnapshot = parseSearchRuntimeOptimizationSnapshot(snapshot.beforePayload);
+      if (!rollbackSnapshot) {
+        throw new Error("The stored search runtime snapshot could not be parsed.");
+      }
+
+      beforeRollbackState = await getSearchRuntimeOptimizationSnapshot();
+      const restored = await restoreSearchRuntimeOptimizationSnapshot(rollbackSnapshot);
+      afterRollbackState = await getSearchRuntimeOptimizationSnapshot();
+      restoreResult = {
+        scope: snapshot.scope,
+        restoredTargetCount: restored.restoredTargetCount,
+        restoredRecommendationCount: restored.restoredRecommendationCount
+      };
+    } else if (run.agentId === "shop-shelf-curator") {
+      const rollbackSnapshot = parseShopShelfSnapshot(snapshot.beforePayload);
+      if (!rollbackSnapshot) {
+        throw new Error("The stored shop shelf snapshot could not be parsed.");
+      }
+
+      beforeRollbackState = await getShopShelfSnapshot();
+      const restored = await restoreShopShelfSnapshot(rollbackSnapshot);
+      afterRollbackState = await getShopShelfSnapshot();
+      restoreResult = {
+        scope: snapshot.scope,
+        restoredEntries: restored.restoredEntries,
+        clearedEntries: restored.clearedEntries,
+        missingEntries: restored.missingEntries
+      };
+    } else {
+      throw new Error("This automation lane does not support rollback yet.");
+    }
+
+    await recordAutomationSnapshot(rollbackRun, {
+      scope: snapshot.scope,
+      subjectKey: snapshot.subjectKey,
+      beforePayload: beforeRollbackState,
+      afterPayload: afterRollbackState
+    });
+
+    await createAutomationEvaluation({
+      agentId: run.agentId,
+      sourceRunId: run.id,
+      subjectType: "automation_run",
+      subjectKey: `run:${run.id}`,
+      evaluationWindowDays: 0,
+      baselinePayload: snapshot.afterPayload,
+      observedPayload: {
+        rollbackRunId: rollbackRun.id,
+        restoredTo: snapshot.beforePayload,
+        restoreResult
+      },
+      verdict: "revert",
+      notes: "Rolled back by admin using the stored pre-run snapshot."
+    });
+
+    await completeAutomationRun(rollbackRun, {
+      summary: `Rolled back run #${run.id} using the stored ${snapshot.scope} snapshot.`,
+      resultPayload: {
+        sourceRunId: run.id,
+        snapshotId: snapshot.id,
+        restoreResult
+      },
+      rowsUpdated:
+        typeof restoreResult.restoredEntries === "number"
+          ? restoreResult.restoredEntries + Number(restoreResult.clearedEntries ?? 0)
+          : Number(restoreResult.restoredTargetCount ?? 0)
+    });
+
+    await appendAutomationRunEvent(rollbackRun, {
+      level: "info",
+      code: "rollback_succeeded",
+      message: `Rollback for run #${run.id} completed successfully.`,
+      payload: restoreResult
+    });
+
+    await markAutomationRunRolledBack({
+      runId: run.id,
+      rollbackRunId: rollbackRun.id
+    });
+
+    await appendAutomationRunEvent(
+      {
+        id: run.id,
+        agentId: run.agentId,
+        startedAt: run.startedAt
+      },
+      {
+        level: "warning",
+        code: "run_rolled_back",
+        message: `Run #${run.id} was rolled back by admin.`,
+        payload: {
+          rollbackRunId: rollbackRun.id,
+          snapshotId: snapshot.id
+        }
+      }
+    );
+
+    const supabase = createSupabaseAdminClient();
+    await writeAuditLog(supabase, {
+      adminId: admin.id,
+      action: "rollback_automation_run",
+      targetType: "automation_run",
+      targetId: String(run.id),
+      metadata: {
+        rollbackRunId: rollbackRun.id,
+        snapshotId: snapshot.id,
+        snapshotScope: snapshot.scope
+      }
+    });
+
+    revalidatePath(AUTOMATION_RUNS_PATH);
+    revalidatePath(AUTOMATION_AGENTS_PATH);
+    revalidatePath(AUTOMATION_TRIGGER_PATH);
+
+    if (run.agentId === "search-recommendation-executor") {
+      revalidateSearchInsightSurfaces();
+    } else if (run.agentId === "shop-shelf-curator") {
+      revalidatePath("/admin/content/merch");
+      revalidatePath("/shop");
+    }
+
+    redirect(
+      withRedirectMessage(
+        destination,
+        "notice",
+        `Automation run #${run.id} rolled back successfully.`
+      )
+    );
+  } catch (error) {
+    await failAutomationRun(rollbackRun, error);
+    await appendAutomationRunEvent(rollbackRun, {
+      level: "error",
+      code: "rollback_failed",
+      message: `Rollback for run #${run.id} failed.`,
+      payload: {
+        message: error instanceof Error ? error.message : "Unknown rollback error"
+      }
+    });
+
+    redirectRunsError(
+      error instanceof Error ? error.message : "Rollback failed.",
+      destination
+    );
+  }
 }
 
 async function updateAutomationAgentEnabledAction(formData: FormData, isEnabled: boolean) {

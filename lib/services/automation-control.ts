@@ -11,6 +11,7 @@ export type AutomationAgentId =
   | "newsletter-digest-agent"
   | "search-insights-analyst"
   | "search-recommendation-executor"
+  | "search-performance-evaluator"
   | "festival-discovery"
   | "pepper-discovery"
   | "brand-discovery"
@@ -236,6 +237,31 @@ type AutomationApprovalRow = {
   updated_at: string | null;
 };
 
+type AutomationStateSnapshotRow = {
+  id: number;
+  agent_id: string;
+  run_id: number;
+  scope: string;
+  subject_key: string;
+  before_payload: unknown;
+  after_payload: unknown;
+  created_at: string | null;
+};
+
+type AutomationEvaluationRow = {
+  id: number;
+  agent_id: string;
+  source_run_id: number;
+  subject_type: string;
+  subject_key: string;
+  evaluation_window_days: number | null;
+  baseline_payload: unknown;
+  observed_payload: unknown;
+  verdict: string;
+  notes: string | null;
+  created_at: string | null;
+};
+
 export type AutomationApprovalStatus =
   | "pending"
   | "approved"
@@ -282,6 +308,33 @@ export type AutomationApprovalSummary = {
   >;
 };
 
+export type AutomationStateSnapshotRecord = {
+  id: number;
+  agentId: AutomationAgentId;
+  runId: number;
+  scope: string;
+  subjectKey: string;
+  beforePayload: unknown;
+  afterPayload: unknown;
+  createdAt: string | null;
+};
+
+export type AutomationEvaluationVerdict = "keep" | "revert" | "escalate";
+
+export type AutomationEvaluationRecord = {
+  id: number;
+  agentId: AutomationAgentId;
+  sourceRunId: number;
+  subjectType: string;
+  subjectKey: string;
+  evaluationWindowDays: number;
+  baselinePayload: unknown;
+  observedPayload: unknown;
+  verdict: AutomationEvaluationVerdict;
+  notes: string | null;
+  createdAt: string | null;
+};
+
 type AutomationRunHandle = {
   id: number;
   agentId: AutomationAgentId;
@@ -317,6 +370,12 @@ const AUTOMATION_RUN_DETAIL_SELECT = `${AUTOMATION_RUN_SELECT}, input_payload, r
 
 const AUTOMATION_RUN_EVENT_SELECT =
   "id, run_id, level, code, message, payload, created_at";
+
+const AUTOMATION_STATE_SNAPSHOT_SELECT =
+  "id, agent_id, run_id, scope, subject_key, before_payload, after_payload, created_at";
+
+const AUTOMATION_EVALUATION_SELECT =
+  "id, agent_id, source_run_id, subject_type, subject_key, evaluation_window_days, baseline_payload, observed_payload, verdict, notes, created_at";
 
 type CronAutomationTaskOptions<TResult> = {
   request: Request;
@@ -461,6 +520,7 @@ function isMissingAutomationControlRelationError(error: unknown) {
     || message.includes("automation_run_events")
     || message.includes("automation_state_snapshots")
     || message.includes("automation_approvals")
+    || message.includes("automation_evaluations")
   ) && (message.includes("does not exist") || message.includes("not found"));
 }
 
@@ -832,6 +892,67 @@ function parseAutomationApproval(row: AutomationApprovalRow | null): AutomationA
     expiresAt: row.expires_at ?? null,
     createdAt: row.created_at ?? null,
     updatedAt: row.updated_at ?? null
+  };
+}
+
+function parseAutomationStateSnapshot(
+  row: AutomationStateSnapshotRow | null
+): AutomationStateSnapshotRecord | null {
+  if (
+    !row
+    || typeof row.id !== "number"
+    || !row.agent_id
+    || typeof row.run_id !== "number"
+    || !row.scope
+    || !row.subject_key
+  ) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    agentId: row.agent_id as AutomationAgentId,
+    runId: row.run_id,
+    scope: row.scope,
+    subjectKey: row.subject_key,
+    beforePayload: row.before_payload ?? {},
+    afterPayload: row.after_payload ?? {},
+    createdAt: row.created_at ?? null
+  };
+}
+
+function parseAutomationEvaluation(
+  row: AutomationEvaluationRow | null
+): AutomationEvaluationRecord | null {
+  if (
+    !row
+    || typeof row.id !== "number"
+    || !row.agent_id
+    || typeof row.source_run_id !== "number"
+    || !row.subject_type
+    || !row.subject_key
+    || !row.verdict
+  ) {
+    return null;
+  }
+
+  if (row.verdict !== "keep" && row.verdict !== "revert" && row.verdict !== "escalate") {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    agentId: row.agent_id as AutomationAgentId,
+    sourceRunId: row.source_run_id,
+    subjectType: row.subject_type,
+    subjectKey: row.subject_key,
+    evaluationWindowDays:
+      typeof row.evaluation_window_days === "number" ? row.evaluation_window_days : 0,
+    baselinePayload: row.baseline_payload ?? {},
+    observedPayload: row.observed_payload ?? {},
+    verdict: row.verdict,
+    notes: row.notes ?? null,
+    createdAt: row.created_at ?? null
   };
 }
 
@@ -1529,6 +1650,96 @@ export async function listAutomationRunEvents(options: {
     : [];
 }
 
+export async function listAutomationStateSnapshots(options?: {
+  runId?: number;
+  agentId?: AutomationAgentId;
+  limit?: number;
+}) {
+  if (!flags.hasSupabaseAdmin) {
+    return [] as AutomationStateSnapshotRecord[];
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return [] as AutomationStateSnapshotRecord[];
+  }
+
+  let query = supabase
+    .from("automation_state_snapshots")
+    .select(AUTOMATION_STATE_SNAPSHOT_SELECT)
+    .order("created_at", { ascending: false })
+    .limit(options?.limit ?? 50);
+
+  if (typeof options?.runId === "number") {
+    query = query.eq("run_id", options.runId);
+  }
+
+  if (options?.agentId) {
+    query = query.eq("agent_id", options.agentId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    if (isMissingAutomationControlRelationError(error)) {
+      return [] as AutomationStateSnapshotRecord[];
+    }
+
+    throw new Error(`Failed to list automation state snapshots: ${error.message}`);
+  }
+
+  return Array.isArray(data)
+    ? data
+        .map((row) => parseAutomationStateSnapshot(row as AutomationStateSnapshotRow))
+        .filter((row): row is AutomationStateSnapshotRecord => Boolean(row))
+    : [];
+}
+
+export async function listAutomationEvaluations(options?: {
+  sourceRunId?: number;
+  agentId?: AutomationAgentId;
+  limit?: number;
+}) {
+  if (!flags.hasSupabaseAdmin) {
+    return [] as AutomationEvaluationRecord[];
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return [] as AutomationEvaluationRecord[];
+  }
+
+  let query = supabase
+    .from("automation_evaluations")
+    .select(AUTOMATION_EVALUATION_SELECT)
+    .order("created_at", { ascending: false })
+    .limit(options?.limit ?? 50);
+
+  if (typeof options?.sourceRunId === "number") {
+    query = query.eq("source_run_id", options.sourceRunId);
+  }
+
+  if (options?.agentId) {
+    query = query.eq("agent_id", options.agentId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    if (isMissingAutomationControlRelationError(error)) {
+      return [] as AutomationEvaluationRecord[];
+    }
+
+    throw new Error(`Failed to list automation evaluations: ${error.message}`);
+  }
+
+  return Array.isArray(data)
+    ? data
+        .map((row) => parseAutomationEvaluation(row as AutomationEvaluationRow))
+        .filter((row): row is AutomationEvaluationRecord => Boolean(row))
+    : [];
+}
+
 export async function getAutomationApproval(approvalId: number) {
   return readAutomationApprovalById(approvalId);
 }
@@ -1755,6 +1966,58 @@ export async function updateAutomationApproval(input: {
   return approval;
 }
 
+export async function createAutomationEvaluation(input: {
+  agentId: AutomationAgentId;
+  sourceRunId: number;
+  subjectType: string;
+  subjectKey: string;
+  evaluationWindowDays?: number;
+  baselinePayload?: unknown;
+  observedPayload?: unknown;
+  verdict: AutomationEvaluationVerdict;
+  notes?: string | null;
+}) {
+  if (!flags.hasSupabaseAdmin) {
+    throw new Error("Supabase admin access is not configured.");
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    throw new Error("Automation evaluations are not available in this environment.");
+  }
+
+  const { data, error } = await supabase
+    .from("automation_evaluations")
+    .insert({
+      agent_id: input.agentId,
+      source_run_id: input.sourceRunId,
+      subject_type: input.subjectType,
+      subject_key: input.subjectKey,
+      evaluation_window_days: Math.max(0, Math.trunc(input.evaluationWindowDays ?? 0)),
+      baseline_payload: toJsonValue(input.baselinePayload ?? {}),
+      observed_payload: toJsonValue(input.observedPayload ?? {}),
+      verdict: input.verdict,
+      notes: input.notes ?? null
+    })
+    .select(AUTOMATION_EVALUATION_SELECT)
+    .maybeSingle();
+
+  if (error) {
+    if (isMissingAutomationControlRelationError(error)) {
+      throw new Error("Automation evaluations table is not available yet. Apply the migration first.");
+    }
+
+    throw new Error(`Failed to create automation evaluation for run ${input.sourceRunId}: ${error.message}`);
+  }
+
+  const evaluation = parseAutomationEvaluation((data ?? null) as AutomationEvaluationRow | null);
+  if (!evaluation) {
+    throw new Error(`Automation evaluation for run ${input.sourceRunId} could not be parsed after insert.`);
+  }
+
+  return evaluation;
+}
+
 export async function setAutomationAgentEnabled(
   agentId: AutomationAgentId,
   isEnabled: boolean
@@ -1917,6 +2180,32 @@ export async function completeAutomationRun(
 
   if (error && !isMissingAutomationControlRelationError(error)) {
     throw new Error(`Failed to complete automation run ${run.id}: ${error.message}`);
+  }
+}
+
+export async function markAutomationRunRolledBack(input: {
+  runId: number;
+  rollbackRunId: number;
+}) {
+  if (!flags.hasSupabaseAdmin) {
+    return;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return;
+  }
+
+  const { error } = await supabase
+    .from("automation_runs")
+    .update({
+      status: "rolled_back",
+      rollback_run_id: input.rollbackRunId
+    })
+    .eq("id", input.runId);
+
+  if (error && !isMissingAutomationControlRelationError(error)) {
+    throw new Error(`Failed to mark automation run ${input.runId} as rolled back: ${error.message}`);
   }
 }
 

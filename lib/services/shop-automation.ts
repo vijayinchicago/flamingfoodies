@@ -41,6 +41,16 @@ export type ShopShelfSnapshot = {
   publishedCount: number;
   featuredCount: number;
   featuredSlugs: string[];
+  entries: Array<{
+    id: number;
+    slug: string;
+    name: string;
+    category: string;
+    href: string;
+    featured: boolean;
+    sortOrder: number;
+    updatedAt: string | null;
+  }>;
   featuredEntries: Array<{
     id: number;
     slug: string;
@@ -52,6 +62,10 @@ export type ShopShelfSnapshot = {
     updatedAt: string | null;
   }>;
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
 
 function getDailyRotationSeed(date = new Date()) {
   return Math.floor(
@@ -305,7 +319,128 @@ export async function getShopShelfSnapshot(): Promise<ShopShelfSnapshot | null> 
     publishedCount: entries.length,
     featuredCount: featuredEntries.length,
     featuredSlugs: featuredEntries.map((entry) => entry.slug),
+    entries,
     featuredEntries
+  };
+}
+
+export function parseShopShelfSnapshot(value: unknown): ShopShelfSnapshot | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const parseEntries = (current: unknown) =>
+    Array.isArray(current)
+      ? current
+          .filter(isRecord)
+          .map((entry) => ({
+            id: Number(entry.id ?? 0),
+            slug: String(entry.slug ?? "").trim(),
+            name: String(entry.name ?? "").trim(),
+            category: String(entry.category ?? "").trim(),
+            href: String(entry.href ?? "").trim(),
+            featured: Boolean(entry.featured),
+            sortOrder: Number.isFinite(Number(entry.sortOrder)) ? Number(entry.sortOrder) : 0,
+            updatedAt: typeof entry.updatedAt === "string" ? entry.updatedAt : null
+          }))
+          .filter((entry) => entry.id > 0 && entry.slug)
+      : [];
+
+  const entries = parseEntries(value.entries);
+  const featuredEntries = parseEntries(value.featuredEntries);
+
+  return {
+    capturedAt:
+      typeof value.capturedAt === "string" ? value.capturedAt : new Date().toISOString(),
+    publishedCount: Number.isFinite(Number(value.publishedCount))
+      ? Number(value.publishedCount)
+      : entries.length,
+    featuredCount: Number.isFinite(Number(value.featuredCount))
+      ? Number(value.featuredCount)
+      : featuredEntries.length,
+    featuredSlugs: Array.isArray(value.featuredSlugs)
+      ? value.featuredSlugs.map((entry) => String(entry))
+      : featuredEntries.map((entry) => entry.slug),
+    entries,
+    featuredEntries
+  };
+}
+
+export async function restoreShopShelfSnapshot(snapshot: ShopShelfSnapshot | null) {
+  if (!flags.hasSupabaseAdmin) {
+    return {
+      restoredEntries: 0,
+      clearedEntries: 0,
+      missingEntries: [] as string[]
+    };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return {
+      restoredEntries: 0,
+      clearedEntries: 0,
+      missingEntries: [] as string[]
+    };
+  }
+
+  const desiredEntries = (snapshot?.entries.length ? snapshot.entries : snapshot?.featuredEntries) ?? [];
+  const desiredBySlug = new Map(desiredEntries.map((entry) => [entry.slug, entry]));
+
+  const { data, error } = await supabase
+    .from("merch_products")
+    .select("id, slug, featured, sort_order")
+    .like("slug", "shop-pick-%");
+
+  if (error) {
+    throw new Error(`Failed to read shop shelf rows for restore: ${error.message}`);
+  }
+
+  const rows = Array.isArray(data) ? data : [];
+  const existingSlugs = new Set(rows.map((row) => String(row.slug)));
+  const missingEntries = desiredEntries
+    .map((entry) => entry.slug)
+    .filter((slug) => !existingSlugs.has(slug));
+
+  let restoredEntries = 0;
+  let clearedEntries = 0;
+
+  for (const row of rows) {
+    const slug = String(row.slug);
+    const desired = desiredBySlug.get(slug);
+    const nextFeatured = desired?.featured ?? false;
+    const currentFeatured = row.featured === true;
+    const currentSortOrder =
+      typeof row.sort_order === "number" ? row.sort_order : Number(row.sort_order ?? 0);
+    const nextSortOrder = desired ? desired.sortOrder : currentSortOrder;
+
+    if (currentFeatured === nextFeatured && currentSortOrder === nextSortOrder) {
+      continue;
+    }
+
+    const { error: updateError } = await supabase
+      .from("merch_products")
+      .update({
+        featured: nextFeatured,
+        sort_order: nextSortOrder
+      })
+      .eq("id", row.id);
+
+    if (updateError) {
+      throw new Error(`Failed to restore shop shelf row ${slug}: ${updateError.message}`);
+    }
+
+    if (desired) {
+      restoredEntries += 1;
+    } else if (currentFeatured) {
+      clearedEntries += 1;
+    }
+  }
+
+  return {
+    restoredEntries,
+    clearedEntries,
+    missingEntries
   };
 }
 

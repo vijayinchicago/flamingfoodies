@@ -6,6 +6,7 @@ import {
   approveSearchRecommendationAction,
   dismissSearchRecommendationAction,
   markSearchRecommendationManualAction,
+  runSearchPerformanceEvaluatorAction,
   runSearchInsightsExecutorAction,
   runSearchInsightsSyncAction
 } from "@/lib/actions/admin-automation";
@@ -180,6 +181,12 @@ export default async function AdminSearchConsolePage({
     executorApplied?: string;
     executorManual?: string;
     runtimeTargets?: string;
+    evaluated?: string;
+    searchEvaluated?: string;
+    searchKeep?: string;
+    searchEscalate?: string;
+    searchRevert?: string;
+    searchSkipped?: string;
     updated?: string;
     notice?: string;
   };
@@ -217,6 +224,13 @@ export default async function AdminSearchConsolePage({
           {searchParams.runtimeTargets || "0"} live runtime target(s).
         </p>
       ) : null}
+      {searchParams?.evaluated ? (
+        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          Evaluator finished. Recorded {searchParams.searchEvaluated || "0"} verdict(s): keep{" "}
+          {searchParams.searchKeep || "0"}, escalate {searchParams.searchEscalate || "0"}, revert{" "}
+          {searchParams.searchRevert || "0"}, skipped existing {searchParams.searchSkipped || "0"}.
+        </p>
+      ) : null}
       {searchParams?.updated && searchParams.notice ? (
         <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
           {searchParams.notice}
@@ -238,14 +252,15 @@ export default async function AdminSearchConsolePage({
       <section className="panel-light p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-3xl">
-            <p className="eyebrow">Two-agent workflow</p>
+            <p className="eyebrow">Search loop</p>
             <h2 className="mt-3 font-display text-4xl text-charcoal">
-              Analyst finds the work. Executor only ships approved work.
+              Analyst finds the work. Executor ships approved work. Evaluator judges the outcome.
             </h2>
             <p className="mt-4 text-sm leading-7 text-charcoal/70">
               The analyst sync now refreshes a durable recommendation queue. Nothing becomes live
               until an admin approves it and the executor rebuilds the runtime overlays from the
-              applied queue.
+              applied queue. The evaluator then compares mature applied recommendations with the
+              latest Search Console queue data and records keep, escalate, or revert verdicts.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -263,6 +278,13 @@ export default async function AdminSearchConsolePage({
                     idleLabel="Run executor now"
                     pendingLabel="Executing..."
                     className="rounded-full border border-charcoal/10 bg-white px-5 py-3 text-sm font-semibold text-charcoal"
+                  />
+                </form>
+                <form action={runSearchPerformanceEvaluatorAction}>
+                  <AdminSubmitButton
+                    idleLabel="Run evaluator now"
+                    pendingLabel="Evaluating..."
+                    className="rounded-full border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-semibold text-sky-800"
                   />
                 </form>
               </>

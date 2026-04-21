@@ -3,6 +3,7 @@ import { flags } from "@/lib/env";
 import {
   getAutomationApprovalSummary,
   listAutomationAgents,
+  listAutomationEvaluations,
   listAutomationRuns,
   type AutomationAgentRecord,
   type AutomationRunRecord
@@ -211,6 +212,13 @@ const scheduleDefinitions: ScheduleDefinition[] = [
     note: "Rebuilds runtime overlays from approved Search Console recommendations.",
     hourUtc: 13,
     minuteUtc: 0
+  },
+  {
+    agentId: "search-performance-evaluator",
+    label: "Search performance evaluator",
+    note: "Records keep, escalate, or revert verdicts for prior search executor decisions.",
+    hourUtc: 13,
+    minuteUtc: 30
   },
   {
     agentId: "shop-shelf-curator",
@@ -519,7 +527,11 @@ function buildAgentLinks(agentId: AutonomousAgent["id"]): AgentRunLink[] {
     ];
   }
 
-  if (agentId === "search-insights-analyst" || agentId === "search-recommendation-executor") {
+  if (
+    agentId === "search-insights-analyst" ||
+    agentId === "search-recommendation-executor" ||
+    agentId === "search-performance-evaluator"
+  ) {
     return [
       { label: "Search Console", href: "/admin/analytics/search-console" },
       { label: "Trigger", href: "/admin/automation/trigger" },
@@ -799,7 +811,8 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
     latestSearchInsightRun,
     searchQueueSummary,
     searchRuntime,
-    approvalSummary
+    approvalSummary,
+    searchEvaluationRecords
   ] = await Promise.all([
     listAutomationAgents(),
     listAutomationRuns({ since: daysAgoIso(30), limit: 1000 }),
@@ -842,7 +855,8 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
     getLatestSearchInsightRunSummary(),
     getSearchRecommendationQueueSummary(),
     getSearchRuntimeOptimizations(),
-    getAutomationApprovalSummary()
+    getAutomationApprovalSummary(),
+    listAutomationEvaluations({ agentId: "search-performance-evaluator", limit: 200 })
   ]);
 
   const controlPlaneAvailable = controlAgents.length > 0;
@@ -930,6 +944,25 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
     expiredCount: 0,
     appliedCount: 0
   };
+  const searchEvaluationSummary = searchEvaluationRecords.reduce(
+    (summary, evaluation) => {
+      summary.total += 1;
+      if (evaluation.verdict === "keep") {
+        summary.keep += 1;
+      } else if (evaluation.verdict === "revert") {
+        summary.revert += 1;
+      } else if (evaluation.verdict === "escalate") {
+        summary.escalate += 1;
+      }
+      return summary;
+    },
+    {
+      total: 0,
+      keep: 0,
+      revert: 0,
+      escalate: 0
+    }
+  );
 
   const waitingReviewBreakdown = {
     recipe: recipeRows.filter((row) => row.status === "pending_review").length,
@@ -1132,6 +1165,28 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
           { label: "Applied queue", value: compactNumber(searchQueueSummary.appliedCount) },
           { label: "Manual review", value: compactNumber(searchQueueSummary.manualReviewCount) },
           { label: "Runtime targets", value: compactNumber(searchRuntimeTargetCount) }
+        ]
+      };
+    }
+
+    if (agent.id === "search-performance-evaluator") {
+      return {
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          searchEvaluationSummary.total > 0
+            ? `The evaluator has recorded ${searchEvaluationSummary.total} verdict(s): ${searchEvaluationSummary.keep} keep, ${searchEvaluationSummary.escalate} escalate, and ${searchEvaluationSummary.revert} revert.`
+            : ledger.runsLast7Days > 0
+              ? `The evaluator ran ${ledger.runsLast7Days} time(s) in the last 7 days and is watching for mature search recommendations to judge.`
+              : agent.status === "live"
+                ? "This evaluator lane is configured and waiting for mature search executor decisions to judge."
+                : agent.dependencyNote
+        ),
+        stats: [
+          { label: "Verdicts", value: compactNumber(searchEvaluationSummary.total) },
+          { label: "Keep", value: compactNumber(searchEvaluationSummary.keep) },
+          { label: "Escalate", value: compactNumber(searchEvaluationSummary.escalate) },
+          { label: "Revert", value: compactNumber(searchEvaluationSummary.revert) }
         ]
       };
     }

@@ -30,6 +30,8 @@ automation, Search Console, and approval-queue migrations, including:
 - `20260421213000_create_automation_approvals.sql`
 - `20260421214000_split_brand_monitor_agents.sql`
 - `20260421223000_update_newsletter_digest_agent_schedule.sql`
+- `20260422001500_create_automation_evaluations.sql`
+- `20260422013000_add_search_performance_evaluator_agent.sql`
 
 Recommended rule:
 
@@ -136,6 +138,7 @@ Verify:
 - `/api/admin/newsletter-digest?mode=send_due` processes only approved due campaigns
 - `/api/admin/search-insights` refreshes Search Console recommendations
 - `/api/admin/search-insights-executor/cron` rebuilds runtime overlays only from approved recommendations
+- `/api/admin/search-performance-evaluator/cron` records delayed keep / escalate / revert verdicts for mature search executor runs
 
 ## 10. Nice-to-have right after cutover
 
