@@ -75,6 +75,7 @@ async function importGrowthLoopRoute({
 }
 
 async function importShopRefreshRoute({
+  getShopShelfSnapshot = vi.fn().mockResolvedValue({ picks: [] }),
   runShopCatalogRefresh = vi.fn().mockResolvedValue({
     mode: "scheduled_refresh",
     windowDays: 30,
@@ -89,12 +90,14 @@ async function importShopRefreshRoute({
 } = {}) {
   vi.resetModules();
   vi.doMock("@/lib/services/shop-automation", () => ({
+    getShopShelfSnapshot,
     runShopCatalogRefresh
   }));
 
   const route = await import("@/app/api/admin/shop-refresh/route");
   return {
     route,
+    getShopShelfSnapshot,
     runShopCatalogRefresh
   };
 }

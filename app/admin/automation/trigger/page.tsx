@@ -155,7 +155,7 @@ export default async function AdminTriggerPage({
       ) : null}
       {searchParams?.processedNewsletters ? (
         <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          Processed {searchParams.processedNewsletters} scheduled newsletter(s), sent{" "}
+          Processed {searchParams.processedNewsletters} due newsletter(s), sent{" "}
           {searchParams.sentNewsletters || "0"}, failed{" "}
           {searchParams.failedNewsletters || "0"}.
         </p>
@@ -327,7 +327,8 @@ export default async function AdminTriggerPage({
           <p className="eyebrow">Send</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">Due newsletters</h2>
           <p className="mt-3 text-sm text-charcoal/65">
-            Process scheduled campaigns whose send window has arrived.
+            Check approved campaigns whose send window has arrived, and queue legacy scheduled
+            items for approval instead of sending them blindly.
           </p>
           <AdminSubmitButton
             idleLabel="Send due campaigns"

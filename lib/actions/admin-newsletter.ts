@@ -7,7 +7,7 @@ import { z } from "zod";
 import { normalizeNewsletterSegmentTags } from "@/lib/newsletter-segments";
 import {
   scheduleNewsletterCampaign,
-  sendNewsletterCampaign
+  resetNewsletterCampaignApproval
 } from "@/lib/services/newsletter";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -24,7 +24,7 @@ const campaignSchema = z.object({
 
 const campaignStateSchema = z.object({
   id: z.coerce.number().int().positive(),
-  intent: z.enum(["draft", "schedule", "send"]),
+  intent: z.enum(["draft", "schedule"]),
   sendAt: z.string().optional()
 });
 
@@ -140,6 +140,9 @@ export async function createNewsletterCampaignAction(formData: FormData) {
 
   revalidatePath("/admin/newsletter/new");
   revalidatePath("/admin/newsletter/campaigns");
+  revalidatePath("/admin/automation/approvals");
+  revalidatePath("/admin/automation/agents");
+  revalidatePath("/admin/automation/trigger");
   redirect("/admin/newsletter/new?created=1");
 }
 
@@ -180,18 +183,6 @@ export async function updateNewsletterCampaignStateAction(formData: FormData) {
       );
     }
   }
-  if (parsed.data.intent === "send") {
-    try {
-      await sendNewsletterCampaign(parsed.data.id);
-    } catch (sendError) {
-      redirect(
-        `/admin/newsletter/campaigns?error=${encodeURIComponent(
-          sendError instanceof Error ? sendError.message : "Newsletter send failed"
-        )}`
-      );
-    }
-  }
-
   if (Object.keys(updates).length) {
     const { error } = await supabase
       .from("newsletter_campaigns")
@@ -200,6 +191,20 @@ export async function updateNewsletterCampaignStateAction(formData: FormData) {
 
     if (error) {
       redirect(`/admin/newsletter/campaigns?error=${encodeURIComponent(error.message)}`);
+    }
+  }
+
+  if (parsed.data.intent === "draft") {
+    try {
+      await resetNewsletterCampaignApproval(parsed.data.id);
+    } catch (resetError) {
+      redirect(
+        `/admin/newsletter/campaigns?error=${encodeURIComponent(
+          resetError instanceof Error
+            ? resetError.message
+            : "Newsletter approval reset failed"
+        )}`
+      );
     }
   }
 
@@ -214,5 +219,8 @@ export async function updateNewsletterCampaignStateAction(formData: FormData) {
   });
 
   revalidatePath("/admin/newsletter/campaigns");
+  revalidatePath("/admin/automation/approvals");
+  revalidatePath("/admin/automation/agents");
+  revalidatePath("/admin/automation/trigger");
   redirect("/admin/newsletter/campaigns?updated=1");
 }

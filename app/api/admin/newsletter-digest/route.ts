@@ -62,7 +62,7 @@ async function handleRequest(request: Request) {
     summarize: (result) => {
       if (result.requestMode === "draft_and_send_due") {
         return {
-          summary: `Drafted newsletter digest and processed ${result.sending.processed} scheduled campaign(s).`,
+          summary: `Drafted newsletter digest and processed ${result.sending.processed} due campaign(s).`,
           rowsCreated: result.digest.draftCount,
           rowsSent: result.sending.sent
         };
@@ -70,7 +70,7 @@ async function handleRequest(request: Request) {
 
       if (result.requestMode === "send_due") {
         return {
-          summary: `Processed ${result.processed} scheduled newsletter campaign(s) and sent ${result.sent}.`,
+          summary: `Processed ${result.processed} due newsletter campaign(s) and sent ${result.sent}.`,
           rowsUpdated: result.processed,
           rowsSent: result.sent
         };

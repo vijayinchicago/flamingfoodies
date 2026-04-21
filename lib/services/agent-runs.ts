@@ -35,8 +35,9 @@ type ScheduleDefinition = {
   agentId: AutonomousAgent["id"];
   label: string;
   note: string;
-  hourUtc: number;
   minuteUtc: number;
+  hourUtc?: number;
+  intervalHours?: number;
   weekdays?: number[];
 };
 
@@ -274,10 +275,17 @@ const scheduleDefinitions: ScheduleDefinition[] = [
   {
     agentId: "newsletter-digest-agent",
     label: "Newsletter digest",
-    note: "Weekly digest preparation and due-send processing.",
+    note: "Weekly digest drafting pass.",
     hourUtc: 10,
     minuteUtc: 0,
     weekdays: [0]
+  },
+  {
+    agentId: "newsletter-digest-agent",
+    label: "Due newsletter sends",
+    note: "Hourly check for approved campaigns whose send windows have arrived.",
+    minuteUtc: 5,
+    intervalHours: 1
   }
 ];
 
@@ -413,6 +421,26 @@ function isBetween(value: string | null | undefined, start: Date, end: Date) {
 }
 
 function getNextOccurrence(schedule: ScheduleDefinition, now = new Date()) {
+  if (schedule.intervalHours) {
+    const firstCandidate = new Date(now);
+    firstCandidate.setUTCSeconds(0, 0);
+    firstCandidate.setUTCMinutes(schedule.minuteUtc);
+
+    if (firstCandidate.getTime() <= now.getTime()) {
+      firstCandidate.setUTCHours(firstCandidate.getUTCHours() + 1);
+    }
+
+    while (firstCandidate.getUTCHours() % schedule.intervalHours !== 0) {
+      firstCandidate.setUTCHours(firstCandidate.getUTCHours() + 1);
+    }
+
+    return firstCandidate;
+  }
+
+  if (typeof schedule.hourUtc !== "number") {
+    return undefined;
+  }
+
   for (let offset = 0; offset <= 14; offset += 1) {
     const candidate = new Date(
       Date.UTC(
@@ -880,7 +908,10 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
   ).length;
 
   const digestDrafts = digestCampaigns.filter((campaign) => campaign.status === "draft").length;
-  const digestScheduled = digestCampaigns.filter((campaign) => campaign.status === "scheduled").length;
+  const digestPendingApproval = digestCampaigns.filter(
+    (campaign) => campaign.status === "pending_approval" || campaign.status === "scheduled"
+  ).length;
+  const digestApproved = digestCampaigns.filter((campaign) => campaign.status === "approved").length;
   const digestSent = digestCampaigns.filter((campaign) => campaign.status === "sent").length;
   const digestClicks = digestCampaigns.reduce(
     (sum, campaign) => sum + Number(campaign.click_count ?? 0),
@@ -1045,14 +1076,15 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
         summary: withPausePrefix(
           sharedFields,
           digestCampaigns.length
-            ? `The digest lane has created ${digestCampaigns.length} automated campaign(s), with ${digestSent} already sent and ${digestScheduled} still queued to go out.`
+            ? `The digest lane has created ${digestCampaigns.length} automated campaign(s), with ${digestPendingApproval} waiting for approval, ${digestApproved} approved to send, and ${digestSent} already delivered.`
             : agent.status === "live"
               ? "No automated digest campaigns have been created yet."
               : agent.dependencyNote
         ),
         stats: [
           { label: "Digest drafts", value: compactNumber(digestDrafts) },
-          { label: "Scheduled sends", value: compactNumber(digestScheduled) },
+          { label: "Needs approval", value: compactNumber(digestPendingApproval) },
+          { label: "Approved sends", value: compactNumber(digestApproved) },
           { label: "Sent campaigns", value: compactNumber(digestSent) },
           { label: "Recorded clicks", value: compactNumber(digestClicks) }
         ]

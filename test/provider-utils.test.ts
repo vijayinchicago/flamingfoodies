@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { extractKitBroadcastId } from "@/lib/services/newsletter";
+import {
+  buildNewsletterSendApprovalSubjectKey,
+  extractKitBroadcastId
+} from "@/lib/services/newsletter";
 import { parseBufferProfileIds } from "@/lib/services/social";
 
 describe("provider utilities", () => {
@@ -8,6 +11,10 @@ describe("provider utilities", () => {
     expect(extractKitBroadcastId({ broadcast: { id: 42 } })).toBe("42");
     expect(extractKitBroadcastId({ id: "abc123" })).toBe("abc123");
     expect(extractKitBroadcastId({})).toBeUndefined();
+  });
+
+  it("builds stable newsletter approval subject keys", () => {
+    expect(buildNewsletterSendApprovalSubjectKey(42)).toBe("newsletter-campaign:42");
   });
 
   it("parses buffer profile mappings with explicit and fallback entries", () => {

@@ -13,6 +13,7 @@ import {
 } from "@/lib/services/automation";
 import {
   recordAutomationSnapshot,
+  getAutomationApproval,
   updateAutomationApproval,
   pauseAutomationAgent,
   resumeAutomationAgent,
@@ -23,7 +24,11 @@ import {
   runBrandDiscovery,
   runReleaseMonitor
 } from "@/lib/services/brand-monitor";
-import { processScheduledNewsletterCampaigns } from "@/lib/services/newsletter";
+import {
+  applyNewsletterSendApproval,
+  processScheduledNewsletterCampaigns,
+  syncNewsletterCampaignApprovalStatus
+} from "@/lib/services/newsletter";
 import {
   getSearchRuntimeOptimizationSnapshot,
   runSearchInsightsAutomation,
@@ -439,6 +444,8 @@ export async function runDueNewsletterSendsAction() {
     execute: processScheduledNewsletterCampaigns,
     onSuccess: () => {
       revalidatePath("/admin/newsletter/campaigns");
+      revalidatePath("/admin/newsletter/new");
+      revalidatePath(AUTOMATION_APPROVALS_PATH);
       revalidatePath(AUTOMATION_TRIGGER_PATH);
       revalidatePath("/admin/automation/agents");
     },
@@ -782,6 +789,10 @@ async function updateAutomationApprovalStatusAction(input: {
     approvedByAdminId: input.status === "approved" ? admin.id : undefined,
     rejectedByAdminId: input.status === "rejected" ? admin.id : undefined
   });
+  await syncNewsletterCampaignApprovalStatus({
+    approvalId: approval.id,
+    status: input.status
+  });
 
   const supabase = createSupabaseAdminClient();
   await writeAuditLog(supabase, {
@@ -800,6 +811,8 @@ async function updateAutomationApprovalStatusAction(input: {
   revalidatePath(AUTOMATION_APPROVALS_PATH);
   revalidatePath(AUTOMATION_AGENTS_PATH);
   revalidatePath(AUTOMATION_TRIGGER_PATH);
+  revalidatePath("/admin/newsletter/campaigns");
+  revalidatePath("/admin/newsletter/new");
   redirect(`${AUTOMATION_APPROVALS_PATH}?notice=${encodeURIComponent(input.notice)}`);
 }
 
@@ -833,24 +846,78 @@ export async function applyAutomationApprovalAction(formData: FormData) {
     redirectApprovalsError("Invalid automation approval request");
   }
 
+  const approval = await getAutomationApproval(parsed.data.approvalId);
+  if (!approval) {
+    redirectApprovalsError("Automation approval not found");
+  }
+
   const task = await runManualAutomationTask({
-    agentId: "release-monitor",
+    agentId: approval.agentId,
     adminId: admin.id,
     triggerReference: "server_action:apply_automation_approval",
     inputPayload: {
       approvalId: parsed.data.approvalId
     },
-    execute: async () => applyReleaseApproval(parsed.data.approvalId),
+    execute: async () => {
+      if (
+        approval.agentId === "release-monitor"
+        && approval.subjectType === "release"
+        && approval.proposedAction === "publish_release"
+      ) {
+        return applyReleaseApproval(parsed.data.approvalId);
+      }
+
+      if (
+        approval.agentId === "newsletter-digest-agent"
+        && approval.subjectType === "newsletter_campaign"
+        && approval.proposedAction === "send_newsletter_campaign"
+      ) {
+        return applyNewsletterSendApproval(parsed.data.approvalId);
+      }
+
+      throw new Error("This automation approval does not support direct apply yet.");
+    },
     onSuccess: () => {
       revalidatePath(AUTOMATION_APPROVALS_PATH);
       revalidatePath(AUTOMATION_AGENTS_PATH);
       revalidatePath(AUTOMATION_TRIGGER_PATH);
-      revalidatePath("/new-releases");
+      if (approval.agentId === "release-monitor") {
+        revalidatePath("/new-releases");
+      }
+
+      if (approval.agentId === "newsletter-digest-agent") {
+        revalidatePath("/admin/newsletter/campaigns");
+        revalidatePath("/admin/newsletter/new");
+      }
     },
-    summarize: (result) => ({
-      summary: `Applied automation approval ${result.approvalId} as release ${result.releaseSlug}.`,
-      rowsPublished: 1
-    })
+    summarize: (result) => {
+      if (
+        approval.agentId === "release-monitor"
+        && "releaseSlug" in result
+        && typeof result.releaseSlug === "string"
+      ) {
+        return {
+          summary: `Applied automation approval ${result.approvalId} as release ${result.releaseSlug}.`,
+          rowsPublished: 1
+        };
+      }
+
+      if (
+        approval.agentId === "newsletter-digest-agent"
+        && "campaignId" in result
+        && typeof result.campaignId === "number"
+      ) {
+        return {
+          summary: `Applied newsletter send approval ${result.approvalId} for campaign ${result.campaignId}.`,
+          rowsSent: 1,
+          externalActionsCount: 1
+        };
+      }
+
+      return {
+        summary: `Applied automation approval ${parsed.data.approvalId}.`
+      };
+    }
   });
 
   const result = task.ok ? task.result : redirectApprovalsError(task.errorMessage);
@@ -860,14 +927,29 @@ export async function applyAutomationApprovalAction(formData: FormData) {
     adminId: admin.id,
     action: "apply_automation_approval",
     targetType: "automation_approval",
-    targetId: String(result.approvalId),
+    targetId: String(parsed.data.approvalId),
     metadata: result
   });
 
+  let notice = "Automation approval applied.";
+  if (
+    approval.agentId === "release-monitor"
+    && "releaseSlug" in result
+    && typeof result.releaseSlug === "string"
+  ) {
+    const existed = "existed" in result && result.existed === true;
+    notice = `Automation approval applied${existed ? ` using existing release ${result.releaseSlug}` : ` and published as ${result.releaseSlug}`}.`;
+  } else if (
+    approval.agentId === "newsletter-digest-agent"
+    && "campaignId" in result
+    && typeof result.campaignId === "number"
+  ) {
+    const alreadySent = "alreadySent" in result && result.alreadySent === true;
+    notice = `Newsletter approval applied and campaign ${result.campaignId} was ${alreadySent ? "already sent" : "sent now"}.`;
+  }
+
   redirect(
-    `${AUTOMATION_APPROVALS_PATH}?notice=${encodeURIComponent(
-      `Automation approval applied${result.existed ? ` using existing release ${result.releaseSlug}` : ` and published as ${result.releaseSlug}`}.`
-    )}`
+    `${AUTOMATION_APPROVALS_PATH}?notice=${encodeURIComponent(notice)}`
   );
 }
 

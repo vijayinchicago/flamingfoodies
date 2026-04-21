@@ -45,4 +45,17 @@ describe("vercel cron config", () => {
     expect(releaseMonitorCron?.schedule).toBe("15 4 * * 1");
     expect(legacyBrandMonitorCron).toBeUndefined();
   });
+
+  it("runs due newsletter sends on an hourly approval-gated cron", () => {
+    const config = readVercelConfig();
+    const digestCron = config.crons?.find(
+      (entry) => entry.path === "/api/admin/newsletter-digest"
+    );
+    const sendDueCron = config.crons?.find(
+      (entry) => entry.path === "/api/admin/newsletter-digest?mode=send_due"
+    );
+
+    expect(digestCron?.schedule).toBe("0 10 * * 0");
+    expect(sendDueCron?.schedule).toBe("5 * * * *");
+  });
 });

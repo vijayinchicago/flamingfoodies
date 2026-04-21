@@ -44,6 +44,9 @@ describe("autonomous agents", () => {
     expect(agents.find((agent) => agent.id === "newsletter-digest-agent")?.status).toBe(
       "needs_config"
     );
+    expect(agents.find((agent) => agent.id === "newsletter-digest-agent")?.autonomyMode).toBe(
+      "approval_required"
+    );
     expect(agents.find((agent) => agent.id === "search-insights-analyst")?.status).toBe(
       "needs_config"
     );

@@ -1,12 +1,37 @@
 import { env, flags } from "@/lib/env";
 import {
+  createAutomationApproval,
+  getAutomationApproval,
+  updateAutomationApproval
+} from "@/lib/services/automation-control";
+import {
   normalizeNewsletterSegmentTags
 } from "@/lib/newsletter-segments";
 import { sampleSubscribers } from "@/lib/sample-data";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import type { NewsletterCampaign } from "@/lib/types";
+import type {
+  NewsletterCampaign,
+  NewsletterCampaignStatus
+} from "@/lib/types";
 
 type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
+
+export type NewsletterSendApprovalPayload = {
+  newsletterCampaign: {
+    campaignId: number;
+    subject: string;
+    previewText: string | null;
+    sendAt: string | null;
+    audienceTags: string[];
+    recipientCount: number;
+    provider: string | null;
+    providerBroadcastId: string | null;
+  };
+};
+
+type ExistingAutomationApproval = NonNullable<
+  Awaited<ReturnType<typeof getAutomationApproval>>
+>;
 
 function extractKitBroadcastId(payload: unknown) {
   if (!payload || typeof payload !== "object") {
@@ -64,6 +89,25 @@ async function getCampaignRow(supabase: AdminClient, id: number) {
   return data;
 }
 
+async function updateCampaignStatus(
+  supabase: AdminClient,
+  campaignId: number,
+  status: NewsletterCampaignStatus,
+  extraUpdates?: Record<string, unknown>
+) {
+  const { error } = await supabase
+    .from("newsletter_campaigns")
+    .update({
+      status,
+      ...extraUpdates
+    })
+    .eq("id", campaignId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 function mapCampaignRow(row: any): NewsletterCampaign {
   return {
     id: row.id,
@@ -82,6 +126,168 @@ function mapCampaignRow(row: any): NewsletterCampaign {
     clickCount: row.click_count ?? undefined,
     createdAt: row.created_at
   };
+}
+
+export function buildNewsletterSendApprovalSubjectKey(campaignId: number) {
+  return `newsletter-campaign:${campaignId}`;
+}
+
+async function findNewsletterSendApproval(campaignId: number) {
+  if (!flags.hasSupabaseAdmin) {
+    return null;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("automation_approvals")
+    .select("id")
+    .eq("agent_id", "newsletter-digest-agent")
+    .eq("subject_type", "newsletter_campaign")
+    .eq("subject_key", buildNewsletterSendApprovalSubjectKey(campaignId))
+    .eq("proposed_action", "send_newsletter_campaign")
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (typeof data?.id !== "number") {
+    return null;
+  }
+
+  return getAutomationApproval(data.id);
+}
+
+function buildNewsletterSendApprovalPayload(input: {
+  campaign: NewsletterCampaign;
+  recipientCount: number;
+  provider: string | null;
+  providerBroadcastId: string | null;
+  sendAt: string | null;
+}): NewsletterSendApprovalPayload {
+  return {
+    newsletterCampaign: {
+      campaignId: input.campaign.id,
+      subject: input.campaign.subject,
+      previewText: input.campaign.previewText ?? null,
+      sendAt: input.sendAt,
+      audienceTags: input.campaign.audienceTags ?? [],
+      recipientCount: input.recipientCount,
+      provider: input.provider,
+      providerBroadcastId: input.providerBroadcastId
+    }
+  };
+}
+
+function getNewsletterApprovalCampaignPayload(
+  payload: Record<string, unknown> | undefined
+) {
+  const campaign =
+    payload?.newsletterCampaign
+    && typeof payload.newsletterCampaign === "object"
+    && !Array.isArray(payload.newsletterCampaign)
+      ? (payload.newsletterCampaign as Record<string, unknown>)
+      : null;
+
+  if (!campaign) {
+    return null;
+  }
+
+  return {
+    campaignId: Number(campaign.campaignId ?? 0),
+    subject: String(campaign.subject ?? "").trim(),
+    previewText:
+      typeof campaign.previewText === "string" ? campaign.previewText : null,
+    sendAt: typeof campaign.sendAt === "string" ? campaign.sendAt : null,
+    audienceTags: Array.isArray(campaign.audienceTags)
+      ? campaign.audienceTags
+          .filter((value): value is string => typeof value === "string")
+          .map((value) => value.trim())
+          .filter(Boolean)
+      : []
+  };
+}
+
+function hasNewsletterApprovalDecisionChanged(
+  approval: ExistingAutomationApproval | null,
+  nextPayload: NewsletterSendApprovalPayload
+) {
+  if (!approval || approval.status !== "approved") {
+    return false;
+  }
+
+  const previous = getNewsletterApprovalCampaignPayload(approval.payload);
+  const next = nextPayload.newsletterCampaign;
+
+  if (!previous) {
+    return true;
+  }
+
+  return (
+    previous.campaignId !== next.campaignId
+    || previous.subject !== next.subject
+    || previous.previewText !== next.previewText
+    || previous.sendAt !== next.sendAt
+    || previous.audienceTags.join("|") !== (next.audienceTags ?? []).join("|")
+  );
+}
+
+function getCampaignApprovalStatus(
+  approvalStatus: ExistingAutomationApproval["status"]
+): NewsletterCampaignStatus {
+  if (approvalStatus === "approved") {
+    return "approved";
+  }
+
+  return "pending_approval";
+}
+
+async function ensureNewsletterSendApproval(input: {
+  campaign: NewsletterCampaign;
+  recipientCount: number;
+  provider: string | null;
+  providerBroadcastId: string | null;
+  sendAt: string | null;
+}) {
+  const existingApproval = await findNewsletterSendApproval(input.campaign.id);
+  const nextPayload = buildNewsletterSendApprovalPayload(input);
+  const result = await createAutomationApproval({
+    agentId: "newsletter-digest-agent",
+    subjectType: "newsletter_campaign",
+    subjectKey: buildNewsletterSendApprovalSubjectKey(input.campaign.id),
+    proposedAction: "send_newsletter_campaign",
+    payload: nextPayload,
+    status: "pending"
+  });
+
+  let approval = result.approval;
+
+  if (hasNewsletterApprovalDecisionChanged(existingApproval, nextPayload)) {
+    approval = await updateAutomationApproval({
+      approvalId: approval.id,
+      status: "pending",
+      decisionReason:
+        "Newsletter send approval reopened after campaign details changed."
+    });
+  }
+
+  if (
+    approval.status === "rejected"
+    || approval.status === "expired"
+    || approval.status === "applied"
+  ) {
+    approval = await updateAutomationApproval({
+      approvalId: approval.id,
+      status: "pending",
+      decisionReason: "Newsletter send approval reopened after scheduling update."
+    });
+  }
+
+  return approval;
 }
 
 async function syncCampaignToKit({
@@ -231,7 +437,8 @@ export async function scheduleNewsletterCampaign(campaignId: number, sendAt: str
       mode: flags.hasConvertKitBroadcast ? "live" : "mock",
       recipientCount: sampleSubscribers.length,
       provider: flags.hasConvertKitBroadcast ? "kit" : undefined,
-      providerBroadcastId: undefined
+      providerBroadcastId: undefined,
+      approvalStatus: "pending" as const
     };
   }
 
@@ -240,31 +447,31 @@ export async function scheduleNewsletterCampaign(campaignId: number, sendAt: str
   const campaign = mapCampaignRow(campaignRow);
   const providerSync = await syncCampaignToKit({
     campaign,
+    sendAt: null
+  });
+  const approval = await ensureNewsletterSendApproval({
+    campaign,
+    recipientCount,
+    provider: providerSync.provider ?? null,
+    providerBroadcastId: providerSync.providerBroadcastId ?? null,
     sendAt
   });
 
-  const { error } = await supabase
-    .from("newsletter_campaigns")
-    .update({
-      status: "scheduled",
-      send_at: sendAt,
-      sent_at: null,
-      recipient_count: recipientCount,
-      audience_tags: campaign.audienceTags ?? [],
-      provider: providerSync.provider ?? null,
-      provider_broadcast_id: providerSync.providerBroadcastId ?? null
-    })
-    .eq("id", campaignId);
-
-  if (error) {
-    throw new Error(error.message);
-  }
+  await updateCampaignStatus(supabase, campaignId, getCampaignApprovalStatus(approval.status), {
+    send_at: sendAt,
+    sent_at: null,
+    recipient_count: recipientCount,
+    audience_tags: campaign.audienceTags ?? [],
+    provider: providerSync.provider ?? null,
+    provider_broadcast_id: providerSync.providerBroadcastId ?? null
+  });
 
   return {
     mode: providerSync.mode,
     recipientCount,
     provider: providerSync.provider,
-    providerBroadcastId: providerSync.providerBroadcastId
+    providerBroadcastId: providerSync.providerBroadcastId,
+    approvalStatus: approval.status
   };
 }
 
@@ -316,6 +523,122 @@ export async function sendNewsletterCampaign(campaignId: number) {
   };
 }
 
+export async function syncNewsletterCampaignApprovalStatus(input: {
+  approvalId: number;
+  status: "approved" | "rejected";
+}) {
+  const approval = await getAutomationApproval(input.approvalId);
+  if (
+    !approval
+    || approval.agentId !== "newsletter-digest-agent"
+    || approval.subjectType !== "newsletter_campaign"
+    || approval.proposedAction !== "send_newsletter_campaign"
+  ) {
+    return null;
+  }
+
+  const payload = getNewsletterApprovalCampaignPayload(approval.payload);
+  if (!payload) {
+    throw new Error("Newsletter send approval is missing its campaign payload.");
+  }
+
+  const campaignId = Number(payload.campaignId ?? 0);
+  if (!Number.isFinite(campaignId) || campaignId <= 0) {
+    throw new Error("Newsletter send approval is missing a valid campaign id.");
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return approval;
+  }
+
+  await updateCampaignStatus(
+    supabase,
+    campaignId,
+    input.status === "approved" ? "approved" : "rejected"
+  );
+
+  return approval;
+}
+
+export async function resetNewsletterCampaignApproval(campaignId: number) {
+  const approval = await findNewsletterSendApproval(campaignId);
+  if (!approval || approval.status === "applied") {
+    return approval;
+  }
+
+  return updateAutomationApproval({
+    approvalId: approval.id,
+    status: "expired",
+    decisionReason: "Newsletter campaign was returned to draft."
+  });
+}
+
+export async function applyNewsletterSendApproval(approvalId: number) {
+  const approval = await getAutomationApproval(approvalId);
+  if (
+    !approval
+    || approval.agentId !== "newsletter-digest-agent"
+    || approval.subjectType !== "newsletter_campaign"
+    || approval.proposedAction !== "send_newsletter_campaign"
+  ) {
+    throw new Error("This automation approval is not a supported newsletter send proposal.");
+  }
+
+  if (approval.status !== "approved") {
+    throw new Error("Approve this newsletter send proposal before applying it.");
+  }
+
+  const payload = getNewsletterApprovalCampaignPayload(approval.payload);
+  if (!payload) {
+    throw new Error("Newsletter send approval is missing its campaign payload.");
+  }
+
+  const campaignId = Number(payload.campaignId ?? 0);
+  if (!Number.isFinite(campaignId) || campaignId <= 0) {
+    throw new Error("Newsletter send approval is missing a valid campaign id.");
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    throw new Error("Newsletter sending is not available in this environment.");
+  }
+
+  const campaignRow = await getCampaignRow(supabase, campaignId);
+  const campaign = mapCampaignRow(campaignRow);
+
+  if (campaign.status === "sent" && campaign.sentAt) {
+    await updateAutomationApproval({
+      approvalId,
+      status: "applied",
+      decisionReason: `Newsletter campaign ${campaignId} was already sent at ${campaign.sentAt}.`
+    });
+
+    return {
+      approvalId,
+      campaignId,
+      subject: campaign.subject,
+      sentAt: campaign.sentAt,
+      alreadySent: true
+    };
+  }
+
+  const result = await sendNewsletterCampaign(campaignId);
+  await updateAutomationApproval({
+    approvalId,
+    status: "applied",
+    decisionReason: `Approved and sent newsletter campaign ${campaignId}.`
+  });
+
+  return {
+    approvalId,
+    campaignId,
+    subject: campaign.subject,
+    sentAt: result.sentAt,
+    alreadySent: false
+  };
+}
+
 export async function processScheduledNewsletterCampaigns() {
   const supabase = createSupabaseAdminClient();
 
@@ -330,8 +653,8 @@ export async function processScheduledNewsletterCampaigns() {
 
   const { data: dueCampaigns, error } = await supabase
     .from("newsletter_campaigns")
-    .select("id")
-    .eq("status", "scheduled")
+    .select("*")
+    .in("status", ["scheduled", "pending_approval", "approved"])
     .not("send_at", "is", null)
     .lte("send_at", new Date().toISOString())
     .order("send_at", { ascending: true })
@@ -346,8 +669,26 @@ export async function processScheduledNewsletterCampaigns() {
 
   for (const campaign of dueCampaigns ?? []) {
     try {
-      await sendNewsletterCampaign(campaign.id);
-      sent += 1;
+      const mappedCampaign = mapCampaignRow(campaign);
+      const recipientCount = await getActiveRecipientCount(supabase, campaign.audience_tags ?? []);
+      const approval = await ensureNewsletterSendApproval({
+        campaign: mappedCampaign,
+        recipientCount,
+        provider: mappedCampaign.provider ?? null,
+        providerBroadcastId: mappedCampaign.providerBroadcastId ?? null,
+        sendAt: mappedCampaign.sendAt ?? null
+      });
+
+      if (approval.status === "approved") {
+        if (mappedCampaign.status !== "approved") {
+          await updateCampaignStatus(supabase, mappedCampaign.id, "approved");
+        }
+
+        await applyNewsletterSendApproval(approval.id);
+        sent += 1;
+      } else if (mappedCampaign.status !== "pending_approval") {
+        await updateCampaignStatus(supabase, mappedCampaign.id, "pending_approval");
+      }
     } catch {
       failures += 1;
     }

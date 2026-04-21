@@ -345,6 +345,14 @@ export interface NewsletterSubscriber {
   subscribedAt: string;
 }
 
+export type NewsletterCampaignStatus =
+  | "draft"
+  | "scheduled"
+  | "pending_approval"
+  | "approved"
+  | "rejected"
+  | "sent";
+
 export interface NewsletterCampaign {
   id: number;
   subject: string;
@@ -354,7 +362,7 @@ export interface NewsletterCampaign {
   audienceTags?: string[];
   provider?: string;
   providerBroadcastId?: string;
-  status: "draft" | "scheduled" | "sent";
+  status: NewsletterCampaignStatus;
   sendAt?: string;
   sentAt?: string;
   recipientCount?: number;

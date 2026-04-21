@@ -11,7 +11,7 @@ export default function AdminNewCampaignPage({
   return (
     <AdminPage
       title="Compose campaign"
-      description="Draft a manual newsletter blast or review the next weekly digest before it goes out."
+      description="Draft a manual newsletter blast or queue the next weekly digest for approval before anything goes to subscribers."
     >
       <form action={createNewsletterCampaignAction} className="panel-light space-y-4 p-6">
         <input
@@ -31,7 +31,7 @@ export default function AdminNewCampaignPage({
             className="rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
           >
             <option value="draft">draft</option>
-            <option value="scheduled">scheduled</option>
+            <option value="scheduled">queue for approval</option>
           </select>
           <input
             name="sendAt"
@@ -39,6 +39,10 @@ export default function AdminNewCampaignPage({
             className="rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
           />
         </div>
+        <p className="text-sm text-charcoal/60">
+          Choosing <strong>queue for approval</strong> creates or refreshes a send proposal in the
+          automation approval queue. The campaign stays blocked until an admin approves it.
+        </p>
         <div className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.03] p-5">
           <p className="eyebrow">Audience</p>
           <h2 className="mt-3 font-display text-3xl text-charcoal">Choose who this is for</h2>

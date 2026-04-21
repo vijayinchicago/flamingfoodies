@@ -80,12 +80,71 @@ function getReleaseProposal(approval: AutomationApprovalRecord) {
   };
 }
 
+function getNewsletterProposal(approval: AutomationApprovalRecord) {
+  const campaign = approval.payload.newsletterCampaign;
+  if (!campaign || typeof campaign !== "object" || Array.isArray(campaign)) {
+    return null;
+  }
+
+  const record = campaign as Record<string, unknown>;
+  const subject = String(record.subject ?? "").trim();
+  const campaignId = Number(record.campaignId ?? 0);
+
+  if (!subject || !Number.isFinite(campaignId) || campaignId <= 0) {
+    return null;
+  }
+
+  return {
+    campaignId,
+    subject,
+    previewText:
+      typeof record.previewText === "string" && record.previewText.trim().length
+        ? record.previewText.trim()
+        : null,
+    sendAt:
+      typeof record.sendAt === "string" && record.sendAt.trim().length
+        ? record.sendAt.trim()
+        : null,
+    audienceTags: Array.isArray(record.audienceTags)
+      ? record.audienceTags.filter((value): value is string => typeof value === "string")
+      : [],
+    recipientCount: Number(record.recipientCount ?? 0),
+    provider:
+      typeof record.provider === "string" && record.provider.trim().length
+        ? record.provider.trim()
+        : null,
+    providerBroadcastId:
+      typeof record.providerBroadcastId === "string" && record.providerBroadcastId.trim().length
+        ? record.providerBroadcastId.trim()
+        : null
+  };
+}
+
 function supportsDirectApply(approval: AutomationApprovalRecord) {
   return (
-    approval.agentId === "release-monitor"
-    && approval.subjectType === "release"
-    && approval.proposedAction === "publish_release"
+    (
+      approval.agentId === "release-monitor"
+      && approval.subjectType === "release"
+      && approval.proposedAction === "publish_release"
+    )
+    || (
+      approval.agentId === "newsletter-digest-agent"
+      && approval.subjectType === "newsletter_campaign"
+      && approval.proposedAction === "send_newsletter_campaign"
+    )
   );
+}
+
+function getDirectApplyLabel(approval: AutomationApprovalRecord) {
+  if (
+    approval.agentId === "newsletter-digest-agent"
+    && approval.subjectType === "newsletter_campaign"
+    && approval.proposedAction === "send_newsletter_campaign"
+  ) {
+    return "Send now";
+  }
+
+  return "Apply now";
 }
 
 function ApprovalActions({ approval }: { approval: AutomationApprovalRecord }) {
@@ -115,7 +174,7 @@ function ApprovalActions({ approval }: { approval: AutomationApprovalRecord }) {
         <form action={applyAutomationApprovalAction}>
           <input type="hidden" name="approvalId" value={approval.id} />
           <AdminSubmitButton
-            idleLabel="Apply now"
+            idleLabel={getDirectApplyLabel(approval)}
             pendingLabel="Applying..."
             className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-800"
           />
@@ -162,9 +221,9 @@ export default async function AdminAutomationApprovalsPage({
               Approval-required work pauses here before it can touch live state.
             </h2>
             <p className="mt-4 text-sm leading-7 text-charcoal/70">
-              Release proposals are the first lane using this queue. More higher-risk automations
-              can plug into the same pattern so research, recommendation, and execution stay
-              separated.
+              Release publishing and newsletter delivery already use this queue. More higher-risk
+              automations can plug into the same pattern so research, recommendation, and
+              execution stay separated.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -227,6 +286,25 @@ export default async function AdminAutomationApprovalsPage({
         <section className="grid gap-4">
           {approvals.map((approval) => {
             const release = getReleaseProposal(approval);
+            const newsletter = getNewsletterProposal(approval);
+            const appliedHref =
+              approval.status === "applied"
+                ? release
+                  ? "/new-releases"
+                  : newsletter
+                    ? "/admin/newsletter/campaigns"
+                    : null
+                : null;
+            const appliedLabel = release
+              ? "Open releases"
+              : newsletter
+                ? "Open campaigns"
+                : null;
+            const recipientCountLabel = newsletter
+              ? new Intl.NumberFormat("en-US").format(
+                  Number.isFinite(newsletter.recipientCount) ? newsletter.recipientCount : 0
+                )
+              : null;
 
             return (
               <article key={approval.id} className="panel-light p-6">
@@ -244,20 +322,36 @@ export default async function AdminAutomationApprovalsPage({
                       </span>
                     </div>
                     <h2 className="mt-4 font-display text-3xl text-charcoal">
-                      {release ? release.title : `${formatLabel(approval.subjectType)} proposal`}
+                      {release
+                        ? release.title
+                        : newsletter
+                          ? newsletter.subject
+                          : `${formatLabel(approval.subjectType)} proposal`}
                     </h2>
                     <p className="mt-3 text-sm leading-7 text-charcoal/70">
                       {release
                         ? `${release.brand} · ${formatLabel(release.type)}`
-                        : `Subject key: ${approval.subjectKey}`}
+                        : newsletter
+                          ? `${recipientCountLabel} recipient(s)${newsletter.sendAt ? ` · send after ${formatDateTime(newsletter.sendAt)}` : ""}`
+                          : `Subject key: ${approval.subjectKey}`}
                     </p>
                     {release?.description ? (
                       <p className="mt-4 text-sm leading-7 text-charcoal/70">
                         {release.description}
                       </p>
                     ) : null}
+                    {newsletter?.previewText ? (
+                      <p className="mt-4 text-sm leading-7 text-charcoal/70">
+                        {newsletter.previewText}
+                      </p>
+                    ) : null}
                     {release?.body ? (
                       <p className="mt-4 text-sm leading-7 text-charcoal/65">{release.body}</p>
+                    ) : null}
+                    {newsletter?.audienceTags.length ? (
+                      <p className="mt-4 text-sm leading-7 text-charcoal/65">
+                        Audience: {newsletter.audienceTags.join(", ")}
+                      </p>
                     ) : null}
                     {approval.decisionReason ? (
                       <p className="mt-4 rounded-2xl bg-charcoal/5 px-4 py-3 text-sm text-charcoal/65">
@@ -286,6 +380,39 @@ export default async function AdminAutomationApprovalsPage({
                     <p className="mt-2 break-all font-mono text-xs text-charcoal">
                       {approval.subjectKey}
                     </p>
+                    {newsletter?.sendAt ? (
+                      <>
+                        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                          Send window
+                        </p>
+                        <p className="mt-2 font-semibold text-charcoal">
+                          {formatDateTime(newsletter.sendAt)}
+                        </p>
+                      </>
+                    ) : null}
+                    {newsletter ? (
+                      <>
+                        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                          Campaign
+                        </p>
+                        <p className="mt-2 font-semibold text-charcoal">
+                          #{newsletter.campaignId} · {recipientCountLabel} recipient(s)
+                        </p>
+                      </>
+                    ) : null}
+                    {newsletter?.provider ? (
+                      <>
+                        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                          Provider
+                        </p>
+                        <p className="mt-2 font-semibold text-charcoal">
+                          {newsletter.provider}
+                          {newsletter.providerBroadcastId
+                            ? ` (${newsletter.providerBroadcastId})`
+                            : ""}
+                        </p>
+                      </>
+                    ) : null}
                     {release?.proposedSlug ? (
                       <>
                         <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-ember">
@@ -309,12 +436,12 @@ export default async function AdminAutomationApprovalsPage({
                         </Link>
                       </>
                     ) : null}
-                    {approval.status === "applied" ? (
+                    {approval.status === "applied" && appliedHref && appliedLabel ? (
                       <Link
-                        href="/new-releases"
+                        href={appliedHref}
                         className="mt-4 inline-flex rounded-full border border-charcoal/10 bg-white px-4 py-2 text-sm font-semibold text-charcoal transition hover:bg-charcoal/5"
                       >
-                        Open releases
+                        {appliedLabel}
                       </Link>
                     ) : null}
                   </div>
@@ -328,8 +455,9 @@ export default async function AdminAutomationApprovalsPage({
           <p className="eyebrow">Empty queue</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">No approvals yet</h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
-            No approval-required automation has queued anything yet. Run the release monitor from
-            the trigger panel to create the first proposals.
+            No approval-required automation has queued anything yet. Run the release monitor,
+            newsletter scheduling flow, or other guarded lanes from the trigger panel to create
+            the first proposals.
           </p>
           <Link
             href="/admin/automation/trigger"

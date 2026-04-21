@@ -113,16 +113,16 @@ export function getAutonomousAgents(input: {
       id: "newsletter-digest-agent",
       name: "Newsletter digest agent",
       status: input.hasConvertKit ? "live" : "needs_config",
-      cadence: "Weekly digest + due-send processing",
+      cadence: "Weekly digest + hourly approved-send checks",
       purpose:
-        "Builds digest campaigns from published content and sends them when the scheduled window opens.",
+        "Builds digest campaigns from published content, queues send proposals for approval, and only delivers approved campaigns when their send window opens.",
       outcome:
         "Turns new inventory and proven winners into repeat traffic instead of one-and-done visits.",
       dependencyNote: input.hasConvertKit
         ? "ConvertKit is configured for live sends, while the autonomy policy can still keep delivery approval-gated."
         : "Connect ConvertKit to move from draft-only digest creation into real audience delivery.",
       riskClass: "external_send",
-      autonomyMode: "draft_only",
+      autonomyMode: "approval_required",
       writesLiveState: false,
       writesExternalState: true,
       isSupport: false
