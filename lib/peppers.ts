@@ -8,7 +8,7 @@ export type HeatTier =
 
 export type PepperOrigin =
   | "mexico" | "central-america" | "caribbean" | "south-america"
-  | "north-america" | "africa" | "southeast-asia" | "south-asia"
+  | "north-america" | "africa" | "southeast-asia" | "east-asia" | "south-asia"
   | "europe" | "middle-east";
 
 export interface Pepper {
@@ -428,7 +428,7 @@ export const PEPPERS: Pepper[] = [
     slug: "gochugaru",
     name: "Gochugaru",
     aliases: ["Korean chili flakes", "Korean red pepper", "gochugaru flakes"],
-    origin: "southeast-asia",
+    origin: "east-asia",
     scovilleMin: 4000,
     scovilleMax: 8000,
     heatTier: "medium",

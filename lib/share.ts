@@ -4,7 +4,8 @@ export const SHARE_PLATFORMS = [
   "pinterest",
   "facebook",
   "x",
-  "whatsapp"
+  "whatsapp",
+  "reddit"
 ] as const;
 
 export type SharePlatform = (typeof SHARE_PLATFORMS)[number];
@@ -31,7 +32,8 @@ export function buildShareUrls({ url, title, description, imageUrl }: BuildShare
     pinterest: withShareTracking(url, "pinterest"),
     facebook: withShareTracking(url, "facebook"),
     x: withShareTracking(url, "x"),
-    whatsapp: withShareTracking(url, "whatsapp")
+    whatsapp: withShareTracking(url, "whatsapp"),
+    reddit: withShareTracking(url, "reddit")
   };
 
   const summary = description?.trim() || title;
@@ -39,7 +41,8 @@ export function buildShareUrls({ url, title, description, imageUrl }: BuildShare
     pinterest: new URL("https://www.pinterest.com/pin/create/button/"),
     facebook: new URL("https://www.facebook.com/sharer/sharer.php"),
     x: new URL("https://twitter.com/intent/tweet"),
-    whatsapp: new URL("https://wa.me/")
+    whatsapp: new URL("https://wa.me/"),
+    reddit: new URL("https://reddit.com/submit")
   };
 
   urls.pinterest.searchParams.set("url", tracked.pinterest);
@@ -52,6 +55,8 @@ export function buildShareUrls({ url, title, description, imageUrl }: BuildShare
   urls.x.searchParams.set("url", tracked.x);
   urls.x.searchParams.set("text", `${title} | FlamingFoodies`);
   urls.whatsapp.searchParams.set("text", `${title} ${tracked.whatsapp}`);
+  urls.reddit.searchParams.set("url", tracked.reddit);
+  urls.reddit.searchParams.set("title", title);
 
   return {
     tracked,
@@ -59,7 +64,8 @@ export function buildShareUrls({ url, title, description, imageUrl }: BuildShare
       pinterest: urls.pinterest.toString(),
       facebook: urls.facebook.toString(),
       x: urls.x.toString(),
-      whatsapp: urls.whatsapp.toString()
+      whatsapp: urls.whatsapp.toString(),
+      reddit: urls.reddit.toString()
     }
   };
 }

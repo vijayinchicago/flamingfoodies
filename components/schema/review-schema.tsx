@@ -12,16 +12,24 @@ export function ReviewSchema({ review }: { review: Review }) {
       "@type": "Product",
       name: review.productName,
       brand: review.brand,
-      image: hero.imageUrl
+      image: hero.imageUrl,
+      offers: {
+        "@type": "Offer",
+        url: review.affiliateUrl,
+        availability: "https://schema.org/InStock",
+        priceCurrency: "USD"
+      }
     },
     reviewRating: {
       "@type": "Rating",
       ratingValue: review.rating,
-      bestRating: 5
+      bestRating: 5,
+      worstRating: 1
     },
     author: {
-      "@type": "Organization",
-      name: "FlamingFoodies"
+      "@type": "Person",
+      name: review.authorName || "FlamingFoodies Team",
+      url: "https://flamingfoodies.com/about"
     }
   };
 

@@ -1,12 +1,15 @@
 import Link from "next/link";
 
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
+import { AffiliateLink } from "@/components/content/affiliate-link";
 import { ReviewCard } from "@/components/cards/review-card";
 import { HotSauceComparisonTable } from "@/components/hot-sauces/hot-sauce-comparison-table";
 import { HotSauceFaqSection } from "@/components/hot-sauces/hot-sauce-faq-section";
 import { SectionHeading } from "@/components/layout/section-heading";
+import { FaqSchema } from "@/components/schema/faq-schema";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
 import { buildHotSauceComparisonRows, getBestGiftableHotSauceReviews } from "@/lib/hot-sauces";
+import { resolveAffiliateLink } from "@/lib/affiliates";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
 import { getReviews } from "@/lib/services/content";
@@ -38,10 +41,33 @@ export const metadata = buildMetadata({
   path: "/hot-sauces/best-gift-sets"
 });
 
+const GIFT_PICKS = [
+  {
+    key: "amazon-hot-sauce-gift-box" as const,
+    label: "Best value gift box",
+    copy: "A curated multi-bottle set — $25–45, ships Prime."
+  },
+  {
+    key: "heatonist-gift-set" as const,
+    label: "Curator's choice",
+    copy: "Heatonist's hand-picked gift set — from $30."
+  },
+  {
+    key: "heatonist-hot-ones-season-22" as const,
+    label: "Hot Ones lineup",
+    copy: "The full Season 22 flight — $35+. Perfect for a fan."
+  }
+];
+
 export default async function BestHotSauceGiftSetsPage() {
   const reviews = await getReviews();
   const giftable = getBestGiftableHotSauceReviews(reviews, 4);
   const comparisonRows = buildHotSauceComparisonRows(giftable, "gifts");
+  const sourcePage = "/hot-sauces/best-gift-sets";
+  const resolvedGiftPicks = GIFT_PICKS.map((pick) => ({
+    ...pick,
+    resolved: resolveAffiliateLink(pick.key, { sourcePage, position: "gift-sets-direct" })
+  })).filter((p): p is typeof p & { resolved: NonNullable<typeof p.resolved> } => Boolean(p.resolved));
 
   return (
     <section className="container-shell py-16">
@@ -101,6 +127,47 @@ export default async function BestHotSauceGiftSetsPage() {
         </div>
       </div>
 
+      <div className="mt-10 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6">
+        <p className="text-xs uppercase tracking-[0.22em] text-ember">Not sure about their heat tolerance?</p>
+        <p className="mt-2 text-sm leading-7 text-cream/75">
+          Take our 2-minute quiz to get a personalized recommendation matched to how spicy they usually eat.
+        </p>
+        <Link
+          href="/quiz"
+          className="mt-4 inline-flex rounded-full border border-white/15 px-5 py-2.5 text-sm font-semibold text-cream"
+        >
+          Take the heat tolerance quiz →
+        </Link>
+      </div>
+
+      {resolvedGiftPicks.length > 0 ? (
+        <div className="mt-12">
+          <SectionHeading
+            eyebrow="Direct picks"
+            title="Shop these gift sets on Amazon now."
+            copy="No review needed — these are the safest wins at each price point."
+          />
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            {resolvedGiftPicks.map((pick) => (
+              <div key={pick.key} className="panel p-5">
+                <p className="text-xs uppercase tracking-[0.22em] text-ember">{pick.label}</p>
+                <p className="mt-2 text-sm leading-6 text-cream/75">{pick.copy}</p>
+                <AffiliateLink
+                  href={pick.resolved.href}
+                  partnerKey={pick.resolved.key}
+                  trackingMode={pick.resolved.trackingMode}
+                  sourcePage={sourcePage}
+                  position="gift-sets-direct"
+                  className="mt-4 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-5 py-2.5 text-sm font-semibold text-white"
+                >
+                  Check price on Amazon
+                </AffiliateLink>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div className="mt-12">
         <SectionHeading
           eyebrow="Giftable picks"
@@ -109,7 +176,21 @@ export default async function BestHotSauceGiftSetsPage() {
         />
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           {giftable.map((review) => (
-            <ReviewCard key={review.id} review={review} />
+            <div key={review.id}>
+              <ReviewCard review={review} />
+              <div className="mt-3 pl-1">
+                <AffiliateLink
+                  href={review.affiliateUrl}
+                  partnerName={review.brand}
+                  productName={review.productName}
+                  sourcePage={sourcePage}
+                  position="gift-sets-card"
+                  className="inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                >
+                  Check price on Amazon
+                </AffiliateLink>
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -121,6 +202,7 @@ export default async function BestHotSauceGiftSetsPage() {
         rows={comparisonRows}
       />
 
+      <FaqSchema faqs={giftFaqs} />
       <HotSauceFaqSection
         eyebrow="FAQ"
         title="Gift-buying questions people usually ask too late."

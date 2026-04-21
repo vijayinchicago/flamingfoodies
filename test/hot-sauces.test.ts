@@ -4,10 +4,12 @@ import {
   buildHotSauceComparisonRows,
   getBestForEggsReviews,
   getAffordableHotSauceReviews,
+  getBestForFriedChickenReviews,
   getBestGiftableHotSauceReviews,
   getBestForPizzaReviews,
   getBestForSeafoodReviews,
   getGiftableHotSauceReviewsUnderPrice,
+  getFriedChickenFriendlyRecipes,
   getBestForWingsReviews,
   getBestHotSaucesReviews,
   getBestForTacosReviews,
@@ -181,6 +183,9 @@ describe("hot sauce helpers", () => {
     expect(getBestForSeafoodReviews(reviews, 2)[0]?.slug).toBe(
       "yellowbird-habanero-hot-sauce-review"
     );
+    expect(getBestForFriedChickenReviews(reviews, 2)[0]?.slug).toBe(
+      "mikes-hot-honey-review"
+    );
     expect(getBestForPizzaReviews(reviews, 2)[0]?.slug).toBe(
       "mikes-hot-honey-review"
     );
@@ -205,6 +210,23 @@ describe("hot sauce helpers", () => {
     expect(getTacoFriendlyRecipes(recipes, 2).map((item) => item.slug)).toContain(
       "birria-quesatacos-with-arbol-salsa"
     );
+    expect(
+      getFriedChickenFriendlyRecipes(
+        [
+          ...recipes,
+          {
+            ...baseRecipe,
+            id: 3,
+            slug: "nashville-hot-chicken-sandwiches",
+            title: "Nashville Hot Chicken Sandwiches",
+            description: "Crisp fried chicken sandwich with cayenne oil.",
+            cuisineType: "american",
+            tags: ["fried chicken", "sandwich"]
+          }
+        ],
+        2
+      )[0]?.slug
+    ).toBe("nashville-hot-chicken-sandwiches");
   });
 
   it("builds best-overall and giftable landing shelves", () => {

@@ -136,6 +136,7 @@ export interface Recipe extends BaseContent {
 
 export interface Review extends BaseContent {
   type: "review";
+  authorName?: string;
   productName: string;
   brand: string;
   rating: number;

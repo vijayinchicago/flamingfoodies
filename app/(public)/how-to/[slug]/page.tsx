@@ -5,6 +5,7 @@ import { AffiliateLink } from "@/components/content/affiliate-link";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
+import { HowToSchema } from "@/components/schema/how-to-schema";
 import { AFFILIATE_LINKS, resolveAffiliateLink } from "@/lib/affiliates";
 import { buildMetadata } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/utils";
@@ -64,6 +65,7 @@ export default async function TutorialPage({ params }: { params: { slug: string 
           { name: tutorial.title, item: absoluteUrl(sourcePage) }
         ]}
       />
+      <HowToSchema tutorial={tutorial} />
       <Breadcrumbs
         items={[
           { label: "Home", href: "/" },
@@ -96,7 +98,7 @@ export default async function TutorialPage({ params }: { params: { slug: string 
       {/* Steps */}
       <div className="mt-12 space-y-6">
         {tutorial.steps.map((step, i) => (
-          <div key={i} className="panel p-8">
+          <div key={i} id={`step-${i + 1}`} className="panel p-8">
             <div className="flex items-start gap-4">
               <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ember/20 font-display text-lg text-ember">
                 {i + 1}
@@ -148,7 +150,7 @@ export default async function TutorialPage({ params }: { params: { slug: string 
                   position="how-to-tool"
                   className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
                 >
-                  View on Amazon ↗
+                  Check price ↗
                 </AffiliateLink>
               </article>
             ))}

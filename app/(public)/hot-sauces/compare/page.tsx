@@ -347,6 +347,16 @@ export default async function HotSauceComparePage({
                 {winner.recommended ? " and comes recommended" : ""}.
                 Both are worth buying — this one just has a slight edge overall.
               </p>
+              <AffiliateLink
+                href={winner.affiliateUrl}
+                partnerName={winner.brand}
+                productName={winner.productName}
+                sourcePage={sourcePage}
+                position="compare-winner-banner"
+                className="mt-5 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-5 py-2.5 text-sm font-semibold text-white"
+              >
+                Check price on Amazon
+              </AffiliateLink>
             </div>
           ) : (
             <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 text-center">

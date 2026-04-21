@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 
 import { AffiliateLink } from "@/components/content/affiliate-link";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
+import { EmailCapture } from "@/components/forms/email-capture";
 import { RecipeCard } from "@/components/cards/recipe-card";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
+import { WebPageSchema } from "@/components/schema/web-page-schema";
 import { AFFILIATE_LINKS, resolveAffiliateLink } from "@/lib/affiliates";
 import { buildMetadata } from "@/lib/seo";
 import { getRecipes } from "@/lib/services/content";
@@ -76,6 +78,11 @@ export default async function PepperPage({ params }: { params: { slug: string } 
           { name: "Pepper Encyclopedia", item: absoluteUrl("/peppers") },
           { name: pepper.name, item: absoluteUrl(sourcePage) }
         ]}
+      />
+      <WebPageSchema
+        name={`${pepper.name}: Scoville Rating, Flavor & Uses`}
+        description={pepper.description}
+        url={absoluteUrl(sourcePage)}
       />
       <Breadcrumbs
         items={[
@@ -194,7 +201,7 @@ export default async function PepperPage({ params }: { params: { slug: string } 
                   position="pepper-affiliate"
                   className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
                 >
-                  View on Amazon ↗
+                  Check price ↗
                 </AffiliateLink>
               </article>
             ))}
@@ -241,6 +248,16 @@ export default async function PepperPage({ params }: { params: { slug: string } 
           </Link>
         </div>
       )}
+
+      <div className="mt-14 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-8">
+        <EmailCapture
+          source="pepper-page"
+          tag={pepper.slug}
+          defaultSegments={["hot-sauce-shelf"]}
+          heading={`Get recipes featuring ${pepper.name}.`}
+          description="Weekly hot sauce picks and spicy recipes in your inbox."
+        />
+      </div>
     </article>
   );
 }

@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { AdSlot } from "@/components/ads/ad-slot";
 import { CommentSection } from "@/components/community/comment-section";
+import { ReviewStickyBuyBar } from "@/components/reviews/review-sticky-buy-bar";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { AffiliateLink } from "@/components/content/affiliate-link";
 import { PinterestSaveButton } from "@/components/content/pinterest-save-button";
@@ -123,8 +124,32 @@ export default async function ReviewPage({
       <div className="mt-6 flex flex-wrap gap-4 text-sm text-cream/60">
         <span>{review.rating.toFixed(1)}/5</span>
         <span>{review.heatLevel || "all heat levels"}</span>
+        {(review.scovilleMin != null || review.scovilleMax != null) ? (
+          <span>
+            {review.scovilleMin != null && review.scovilleMax != null
+              ? `${review.scovilleMin.toLocaleString()}–${review.scovilleMax.toLocaleString()} SHU`
+              : review.scovilleMin != null
+              ? `${review.scovilleMin.toLocaleString()}+ SHU`
+              : `up to ${review.scovilleMax!.toLocaleString()} SHU`}
+          </span>
+        ) : null}
         <span>{formatDate(review.publishedAt)}</span>
+        {review.authorName ? (
+          <span>By {review.authorName}</span>
+        ) : null}
       </div>
+      {review.flavorNotes && review.flavorNotes.length > 0 ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {review.flavorNotes.map((note: string) => (
+            <span
+              key={note}
+              className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-cream/65"
+            >
+              {note}
+            </span>
+          ))}
+        </div>
+      ) : null}
       <div className="mt-8 max-w-3xl">
         <ShareBar
           title={review.title}
@@ -162,9 +187,16 @@ export default async function ReviewPage({
           </div>
         </div>
       ) : null}
+      <ReviewStickyBuyBar
+        productName={review.productName}
+        affiliateUrl={review.affiliateUrl}
+        reviewSlug={review.slug}
+        reviewId={review.id}
+      />
+
       <div className="mt-12 grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="prose-guide" dangerouslySetInnerHTML={{ __html: html }} />
-        <aside className="space-y-6">
+        <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
           <div className="panel p-6">
             <h2 className="font-display text-3xl text-cream">Why this pick</h2>
             <p className="mt-4 text-sm leading-7 text-cream/75">{whyThisPick}</p>
@@ -212,7 +244,7 @@ export default async function ReviewPage({
                 contentSlug={review.slug}
                 className="mt-6 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 font-semibold text-white"
               >
-                View on Amazon
+                Check price on Amazon
               </AffiliateLink>
             ) : (
               <AffiliateLink
@@ -221,7 +253,7 @@ export default async function ReviewPage({
                 productName={review.productName}
                 className="mt-6 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 font-semibold text-white"
               >
-                View on Amazon
+                Check price on Amazon
               </AffiliateLink>
             )}
           </div>
@@ -247,7 +279,7 @@ export default async function ReviewPage({
                     contentSlug={review.slug}
                     className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                   >
-                    View on Amazon
+                    Check price on Amazon
                   </AffiliateLink>
                 </article>
               ))}

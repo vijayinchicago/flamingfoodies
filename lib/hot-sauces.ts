@@ -15,6 +15,7 @@ export type HotSauceComparisonContext =
   | "tacos"
   | "eggs"
   | "wings"
+  | "fried_chicken"
   | "seafood"
   | "pizza"
   | "gifts";
@@ -71,6 +72,12 @@ export const HOT_SAUCE_LANDING_LINKS = [
     eyebrow: "Breakfast",
     title: "Best hot sauces for eggs",
     description: "Everyday pours, chili crisps, and bright bottles that make eggs more interesting fast."
+  },
+  {
+    href: "/hot-sauces/best-for-fried-chicken",
+    eyebrow: "Fried chicken",
+    title: "Best hot sauces for fried chicken",
+    description: "The bottles that cut through crispy breading without turning every bite into a gimmick."
   },
   {
     href: "/hot-sauces/best-for-seafood",
@@ -202,6 +209,13 @@ export function getHotSauceBestForCopy(
 
   if (context === "wings" && hasAnyToken(review, ["wings", "wing", "buffalo", "garlic", "pizza"])) {
     return "Wings and game-day food";
+  }
+
+  if (
+    context === "fried_chicken" &&
+    hasAnyToken(review, ["fried chicken", "hot chicken", "sandwich", "tenders", "hot honey", "drizzle"])
+  ) {
+    return "Fried chicken and hot sandwiches";
   }
 
   if (context === "seafood" && hasAnyToken(review, ["seafood", "shrimp", "fish"])) {
@@ -552,6 +566,31 @@ export function getBestForWingsReviews(reviews: Review[], limit = 4) {
     .slice(0, limit);
 }
 
+export function getBestForFriedChickenReviews(reviews: Review[], limit = 4) {
+  const scored = reviews.map((review) => {
+    let score = 0;
+
+    if (review.category === "pantry-condiment") score += 4;
+    if (hasAnyToken(review, ["fried chicken", "hot chicken", "sandwich", "tenders", "cutlet"])) {
+      score += 5;
+    }
+    if (hasAnyToken(review, ["garlic", "vinegar", "buffalo", "hot honey", "drizzle"])) {
+      score += 4;
+    }
+    if (getHotSauceIntentLabel(review) === "Best for wings") score += 2;
+    if (review.recommended) score += 2;
+    if (review.featured) score += 1;
+    if (review.priceUsd && review.priceUsd <= 15) score += 1;
+
+    return { review, score };
+  });
+
+  return scored
+    .sort((left, right) => right.score - left.score || right.review.rating - left.review.rating)
+    .map((entry) => entry.review)
+    .slice(0, limit);
+}
+
 export function getBestForEggsReviews(reviews: Review[], limit = 4) {
   const scored = reviews.map((review) => {
     let score = 0;
@@ -690,6 +729,28 @@ export function getWingFriendlyRecipes(recipes: Recipe[], limit = 3) {
     if (corpus.includes("fried")) score += 3;
     if (corpus.includes("wings")) score += 4;
     if (corpus.includes("sandwich")) score += 2;
+    if (corpus.includes("burger")) score += 1;
+    if (recipe.cuisineType === "american") score += 1;
+
+    return { recipe, score };
+  });
+
+  return scored
+    .filter((entry) => entry.score > 0)
+    .sort((left, right) => right.score - left.score)
+    .map((entry) => entry.recipe)
+    .slice(0, limit);
+}
+
+export function getFriedChickenFriendlyRecipes(recipes: Recipe[], limit = 3) {
+  const scored = recipes.map((recipe) => {
+    const corpus = normalizeText([recipe.title, recipe.description, recipe.tags.join(" ")].join(" "));
+    let score = 0;
+
+    if (corpus.includes("fried")) score += 4;
+    if (corpus.includes("chicken")) score += 4;
+    if (corpus.includes("sandwich")) score += 4;
+    if (corpus.includes("tenders")) score += 2;
     if (corpus.includes("burger")) score += 1;
     if (recipe.cuisineType === "american") score += 1;
 

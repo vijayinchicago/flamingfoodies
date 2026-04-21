@@ -1,11 +1,14 @@
 import Link from "next/link";
 
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
+import { AffiliateLink } from "@/components/content/affiliate-link";
+import { ShareBar } from "@/components/content/share-bar";
 import { RecipeCard } from "@/components/cards/recipe-card";
 import { ReviewCard } from "@/components/cards/review-card";
 import { HotSauceComparisonTable } from "@/components/hot-sauces/hot-sauce-comparison-table";
 import { HotSauceFaqSection } from "@/components/hot-sauces/hot-sauce-faq-section";
 import { SectionHeading } from "@/components/layout/section-heading";
+import { FaqSchema } from "@/components/schema/faq-schema";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
 import {
   buildHotSauceComparisonRows,
@@ -61,7 +64,7 @@ export default async function BestHotSaucesForTacosPage() {
       />
       <SectionHeading
         eyebrow="Hot sauces for tacos"
-        title="The bottles that make taco night better instead of louder."
+        title="Best Hot Sauces for Tacos — The bottles that make taco night better instead of louder."
         copy="For tacos, the best hot sauce usually adds lift, acid, and a clear pepper identity. These are the bottles we’d reach for first with birria, breakfast tacos, fish tacos, or weeknight taco bowls."
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
@@ -112,7 +115,18 @@ export default async function BestHotSaucesForTacosPage() {
         />
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           {tacoSauces.map((review) => (
-            <ReviewCard key={review.id} review={review} />
+            <div key={review.id} className="flex flex-col">
+              <ReviewCard review={review} />
+              <AffiliateLink
+                href={review.affiliateUrl}
+                productName={review.productName}
+                sourcePage="/hot-sauces/best-for-tacos"
+                position="picks-grid"
+                className="mt-3 flex items-center justify-center rounded-full bg-ember px-5 py-3 text-sm font-semibold text-charcoal transition hover:bg-ember/90"
+              >
+                Check price on Amazon
+              </AffiliateLink>
+            </div>
           ))}
         </div>
       </div>
@@ -137,11 +151,22 @@ export default async function BestHotSaucesForTacosPage() {
         </div>
       </div>
 
+      <FaqSchema faqs={tacoFaqs} />
       <HotSauceFaqSection
         eyebrow="FAQ"
         title="Taco-night questions worth answering before you buy."
         copy="The best taco bottle is usually the one that solves the meal you actually cook most, not the one with the scariest label."
         faqs={tacoFaqs}
+      />
+
+      <ShareBar
+        title="Best Hot Sauces for Tacos"
+        description="Bright, citrusy bottles and balanced everyday pours that make taco night genuinely better."
+        url={absoluteUrl("/hot-sauces/best-for-tacos")}
+        contentType="hot-sauce-list"
+        contentId={0}
+        contentSlug="best-for-tacos"
+        className="mt-12"
       />
     </section>
   );

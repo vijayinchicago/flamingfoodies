@@ -425,7 +425,7 @@ export function RecipeBrowseClient({
                   position="index-callout"
                   className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                 >
-                  View on Amazon
+                  Check price on Amazon
                 </AffiliateLink>
               </article>
             ))}

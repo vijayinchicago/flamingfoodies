@@ -1,9 +1,11 @@
 import Link from "next/link";
 
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
+import { AffiliateLink } from "@/components/content/affiliate-link";
 import { ReviewCard } from "@/components/cards/review-card";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
+import { resolveAffiliateLink } from "@/lib/affiliates";
 import { getGiftableHotSauceReviewsUnderPrice } from "@/lib/hot-sauces";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
@@ -20,6 +22,11 @@ export const metadata = buildMetadata({
 export default async function HotSauceGiftsUnderFiftyPage() {
   const reviews = await getReviews();
   const giftable = getGiftableHotSauceReviewsUnderPrice(reviews, 50, 4);
+  const sourcePage = "/hot-sauces/gifts-under-50";
+  const resolvedGiftBox = resolveAffiliateLink("amazon-hot-sauce-gift-box", {
+    sourcePage,
+    position: "gifts-under-50-direct"
+  });
 
   return (
     <section className="container-shell py-16">
@@ -75,6 +82,39 @@ export default async function HotSauceGiftsUnderFiftyPage() {
         </div>
       </div>
 
+      <div className="mt-10 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6">
+        <p className="text-xs uppercase tracking-[0.22em] text-ember">Not sure about their heat tolerance?</p>
+        <p className="mt-2 text-sm leading-7 text-cream/75">
+          Take our 2-minute quiz to get a personalized recommendation matched to how spicy they usually eat.
+        </p>
+        <Link
+          href="/quiz"
+          className="mt-4 inline-flex rounded-full border border-white/15 px-5 py-2.5 text-sm font-semibold text-cream"
+        >
+          Take the heat tolerance quiz →
+        </Link>
+      </div>
+
+      {resolvedGiftBox ? (
+        <div className="mt-10 panel p-6">
+          <p className="eyebrow">Quick gift — ships Prime</p>
+          <h2 className="mt-3 font-display text-3xl text-cream">Hot Sauce Gift Box — $25–45</h2>
+          <p className="mt-3 text-sm leading-7 text-cream/72">
+            A curated multi-bottle set that lands under budget and arrives ready to give. No wrapping gymnastics required.
+          </p>
+          <AffiliateLink
+            href={resolvedGiftBox.href}
+            partnerKey={resolvedGiftBox.key}
+            trackingMode={resolvedGiftBox.trackingMode}
+            sourcePage={sourcePage}
+            position="gifts-under-50-direct"
+            className="mt-5 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 text-sm font-semibold text-white"
+          >
+            Check price on Amazon
+          </AffiliateLink>
+        </div>
+      ) : null}
+
       <div className="mt-12">
         <SectionHeading
           eyebrow="Giftable picks"
@@ -83,7 +123,21 @@ export default async function HotSauceGiftsUnderFiftyPage() {
         />
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           {giftable.map((review) => (
-            <ReviewCard key={review.id} review={review} />
+            <div key={review.id}>
+              <ReviewCard review={review} />
+              <div className="mt-3 pl-1">
+                <AffiliateLink
+                  href={review.affiliateUrl}
+                  partnerName={review.brand}
+                  productName={review.productName}
+                  sourcePage={sourcePage}
+                  position="gifts-under-50-card"
+                  className="inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                >
+                  Check price on Amazon
+                </AffiliateLink>
+              </div>
+            </div>
           ))}
         </div>
       </div>

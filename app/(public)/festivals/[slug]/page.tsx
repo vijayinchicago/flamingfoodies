@@ -7,6 +7,7 @@ import { ReviewCard } from "@/components/cards/review-card";
 import { RecipeCard } from "@/components/cards/recipe-card";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
+import { EventSchema } from "@/components/schema/event-schema";
 import { AFFILIATE_LINKS, resolveAffiliateLink } from "@/lib/affiliates";
 import { buildMetadata } from "@/lib/seo";
 import { getReviews, getRecipes } from "@/lib/services/content";
@@ -117,6 +118,7 @@ export default async function FestivalPage({ params }: { params: { slug: string 
           { name: festival.name, item: absoluteUrl(sourcePage) }
         ]}
       />
+      <EventSchema festival={festival} />
 
       <Breadcrumbs
         items={[
@@ -223,7 +225,7 @@ export default async function FestivalPage({ params }: { params: { slug: string 
                   position="festival-pack"
                   className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
                 >
-                  View on Amazon ↗
+                  Check price ↗
                 </AffiliateLink>
               </article>
             ))}

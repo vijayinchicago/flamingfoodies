@@ -6,6 +6,7 @@ import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { ReviewCard } from "@/components/cards/review-card";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
+import { WebPageSchema } from "@/components/schema/web-page-schema";
 import { AFFILIATE_LINKS, resolveAffiliateLink } from "@/lib/affiliates";
 import { buildMetadata } from "@/lib/seo";
 import { getReviews } from "@/lib/services/content";
@@ -72,6 +73,11 @@ export default async function BrandPage({ params }: { params: { slug: string } }
           { name: "Brand Directory", item: absoluteUrl("/brands") },
           { name: brand.name, item: absoluteUrl(sourcePage) }
         ]}
+      />
+      <WebPageSchema
+        name={`${brand.name}: History, Products & Reviews`}
+        description={brand.description}
+        url={absoluteUrl(sourcePage)}
       />
       <Breadcrumbs
         items={[
@@ -154,7 +160,7 @@ export default async function BrandPage({ params }: { params: { slug: string } }
                     position="brand-product"
                     className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
                   >
-                    View on Amazon ↗
+                    Check price ↗
                   </AffiliateLink>
                 ) : (
                   <p className="mt-4 text-xs text-cream/35">Link coming soon</p>

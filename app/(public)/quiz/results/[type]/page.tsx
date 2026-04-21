@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { AffiliateLink } from "@/components/content/affiliate-link";
+import { EmailCapture } from "@/components/forms/email-capture";
 import { resolveAffiliateLink } from "@/lib/affiliates";
 import { buildMetadata } from "@/lib/seo";
 
@@ -43,21 +44,32 @@ export function generateMetadata({
   });
 }
 
+const quizAffiliateMap: Record<string, string> = {
+  "mild-adventurer": "amazon-cholula-original",
+  "balanced-burn": "heatonist-los-calientes-rojo",
+  "heat-hunter": "amazon-torchbearer-garlic-reaper",
+  "reaper-chaser": "heatonist-hot-ones-season-22"
+};
+
+const quizProductNames: Record<string, string> = {
+  "mild-adventurer": "Cholula Original Hot Sauce",
+  "balanced-burn": "Heatonist Los Calientes Rojo",
+  "heat-hunter": "Torchbearer Garlic Reaper",
+  "reaper-chaser": "Hot Ones Lineup Collection"
+};
+
 export default function QuizResultPage({
   params
 }: {
   params: { type: string };
 }) {
   const result = resultCopy[params.type] || resultCopy["balanced-burn"];
-  const resolvedOffer = resolveAffiliateLink(
-    params.type === "reaper-chaser"
-      ? "heatonist-hot-ones-season-22"
-      : "fuego-box-monthly-subscription",
-    {
-      sourcePage: `/quiz/results/${params.type}`,
-      position: "quiz-result"
-    }
-  );
+  const affiliateKey = quizAffiliateMap[params.type] || quizAffiliateMap["balanced-burn"];
+  const productName = quizProductNames[params.type] || quizProductNames["balanced-burn"];
+  const resolvedOffer = resolveAffiliateLink(affiliateKey, {
+    sourcePage: `/quiz/results/${params.type}`,
+    position: "quiz-result"
+  });
 
   return (
     <section className="container-shell py-16">
@@ -75,22 +87,31 @@ export default function QuizResultPage({
             Find matching recipes
           </Link>
           {resolvedOffer ? (
-            <AffiliateLink
-              href={resolvedOffer.href}
-              partnerKey={resolvedOffer.key}
-              trackingMode={resolvedOffer.trackingMode}
-              sourcePage={`/quiz/results/${params.type}`}
-              position="quiz-result"
-              className="rounded-full border border-white/15 px-6 py-3 font-semibold text-cream"
-            >
-              See Amazon picks
-            </AffiliateLink>
+            <div className="flex flex-col items-center gap-2">
+              <p className="text-xs uppercase tracking-[0.18em] text-ember">Our pick for you</p>
+              <AffiliateLink
+                href={resolvedOffer.href}
+                partnerKey={resolvedOffer.key}
+                trackingMode={resolvedOffer.trackingMode}
+                sourcePage={`/quiz/results/${params.type}`}
+                position="quiz-result"
+                className="rounded-full border border-white/15 px-6 py-3 font-semibold text-cream"
+              >
+                {productName} — Check price
+              </AffiliateLink>
+            </div>
           ) : null}
         </div>
         <AffiliateDisclosure className="mx-auto mt-8 max-w-2xl text-left" compact />
-        <p className="mt-6 text-sm text-cream/50">
-          Suggested email tag: <code>{result.tag}</code>
-        </p>
+        <div className="mt-10 rounded-[2rem] border border-white/10 bg-white/[0.04] px-6 py-8 text-left">
+          <EmailCapture
+            source="quiz-result"
+            tag={result.tag}
+            defaultSegments={["recipe-club"]}
+            heading={`Get ${result.title} recipes every week.`}
+            description="Weekly picks matched to your heat level. No fluff."
+          />
+        </div>
       </div>
     </section>
   );

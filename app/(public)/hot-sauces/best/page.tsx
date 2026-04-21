@@ -1,10 +1,14 @@
 import Link from "next/link";
 
+import { AdSlot } from "@/components/ads/ad-slot";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
+import { AffiliateLink } from "@/components/content/affiliate-link";
+import { ShareBar } from "@/components/content/share-bar";
 import { ReviewCard } from "@/components/cards/review-card";
 import { HotSauceComparisonTable } from "@/components/hot-sauces/hot-sauce-comparison-table";
 import { HotSauceFaqSection } from "@/components/hot-sauces/hot-sauce-faq-section";
 import { SectionHeading } from "@/components/layout/section-heading";
+import { FaqSchema } from "@/components/schema/faq-schema";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
 import {
   buildHotSauceComparisonRows,
@@ -12,6 +16,7 @@ import {
   getFilteredHotSauceReviews
 } from "@/lib/hot-sauces";
 import { getReviewHeroFields } from "@/lib/review-hero";
+import { getAdRuntimeConfig } from "@/lib/ads";
 import { buildMetadata } from "@/lib/seo";
 import { getReviews } from "@/lib/services/content";
 import type { RecipeFaq } from "@/lib/types";
@@ -43,7 +48,7 @@ export const metadata = buildMetadata({
 });
 
 export default async function BestHotSaucesPage() {
-  const reviews = await getReviews();
+  const [reviews, ads] = await Promise.all([getReviews(), getAdRuntimeConfig()]);
   const bestSauces = getBestHotSaucesReviews(reviews, 6);
   const everyday = getFilteredHotSauceReviews(reviews, "everyday").slice(0, 3);
   const bigHeat = getFilteredHotSauceReviews(reviews, "big-heat").slice(0, 3);
@@ -115,7 +120,18 @@ export default async function BestHotSaucesPage() {
         />
         <div className="mt-8 grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
           {bestSauces.map((review) => (
-            <ReviewCard key={review.id} review={review} />
+            <div key={review.id} className="flex flex-col">
+              <ReviewCard review={review} />
+              <AffiliateLink
+                href={review.affiliateUrl}
+                productName={review.productName}
+                sourcePage="/hot-sauces/best"
+                position="picks-grid"
+                className="mt-3 flex items-center justify-center rounded-full bg-ember px-5 py-3 text-sm font-semibold text-charcoal transition hover:bg-ember/90"
+              >
+                Check price on Amazon
+              </AffiliateLink>
+            </div>
           ))}
         </div>
       </div>
@@ -127,19 +143,37 @@ export default async function BestHotSaucesPage() {
         rows={comparisonRows}
       />
 
+      {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.reviewInline ? (
+        <div className="mt-10">
+          <AdSlot
+            clientId={ads.clientId}
+            slotId={ads.slotIds.reviewInline}
+            slotName="hot_sauce_best_mid_page"
+            placement="mid-page"
+          />
+        </div>
+      ) : null}
+
       <div className="mt-12 grid gap-6 lg:grid-cols-2">
         <div className="panel p-6">
           <p className="eyebrow">Everyday winners</p>
           <h2 className="mt-3 font-display text-4xl text-cream">Use these all week.</h2>
           <div className="mt-5 space-y-3 text-sm text-cream/72">
             {everyday.map((review) => (
-              <Link
-                key={review.slug}
-                href={`/reviews/${review.slug}`}
-                className="block rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3 hover:border-white/20"
-              >
-                {review.title}
-              </Link>
+              <div key={review.slug} className="flex items-center gap-3 rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3">
+                <Link href={`/reviews/${review.slug}`} className="flex-1 hover:text-cream">
+                  {review.title}
+                </Link>
+                <AffiliateLink
+                  href={review.affiliateUrl}
+                  productName={review.productName}
+                  sourcePage="/hot-sauces/best"
+                  position="everyday-list"
+                  className="shrink-0 rounded-full border border-white/20 px-3 py-1 text-xs font-semibold text-cream hover:bg-white/10"
+                >
+                  Buy
+                </AffiliateLink>
+              </div>
             ))}
           </div>
         </div>
@@ -149,23 +183,41 @@ export default async function BestHotSaucesPage() {
           <h2 className="mt-3 font-display text-4xl text-cream">Keep one bigger hitter.</h2>
           <div className="mt-5 space-y-3 text-sm text-cream/72">
             {bigHeat.map((review) => (
-              <Link
-                key={review.slug}
-                href={`/reviews/${review.slug}`}
-                className="block rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3 hover:border-white/20"
-              >
-                {review.title}
-              </Link>
+              <div key={review.slug} className="flex items-center gap-3 rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3">
+                <Link href={`/reviews/${review.slug}`} className="flex-1 hover:text-cream">
+                  {review.title}
+                </Link>
+                <AffiliateLink
+                  href={review.affiliateUrl}
+                  productName={review.productName}
+                  sourcePage="/hot-sauces/best"
+                  position="big-heat-list"
+                  className="shrink-0 rounded-full border border-white/20 px-3 py-1 text-xs font-semibold text-cream hover:bg-white/10"
+                >
+                  Buy
+                </AffiliateLink>
+              </div>
             ))}
           </div>
         </div>
       </div>
 
+      <FaqSchema faqs={bestHotSaucesFaqs} />
       <HotSauceFaqSection
         eyebrow="FAQ"
         title="What people usually want answered first."
         copy="These are the buying questions people usually ask before choosing a bottle."
         faqs={bestHotSaucesFaqs}
+      />
+
+      <ShareBar
+        title="Best Hot Sauces — The bottles we would actually tell someone to buy first."
+        description="The short list: bottles with real repeat-use value, from everyday pours to bigger hitters that still taste good."
+        url={absoluteUrl("/hot-sauces/best")}
+        contentType="hot-sauce-list"
+        contentId={0}
+        contentSlug="best"
+        className="mt-12"
       />
     </section>
   );

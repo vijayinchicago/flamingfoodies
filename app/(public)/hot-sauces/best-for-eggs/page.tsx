@@ -1,10 +1,13 @@
 import Link from "next/link";
 
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
+import { AffiliateLink } from "@/components/content/affiliate-link";
+import { ShareBar } from "@/components/content/share-bar";
 import { ReviewCard } from "@/components/cards/review-card";
 import { HotSauceComparisonTable } from "@/components/hot-sauces/hot-sauce-comparison-table";
 import { HotSauceFaqSection } from "@/components/hot-sauces/hot-sauce-faq-section";
 import { SectionHeading } from "@/components/layout/section-heading";
+import { FaqSchema } from "@/components/schema/faq-schema";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
 import { buildHotSauceComparisonRows, getBestForEggsReviews } from "@/lib/hot-sauces";
 import { getReviewHeroFields } from "@/lib/review-hero";
@@ -55,7 +58,7 @@ export default async function BestHotSaucesForEggsPage() {
       />
       <SectionHeading
         eyebrow="Hot sauces for eggs"
-        title="The fastest way to make eggs feel less predictable."
+        title="Best Hot Sauces for Eggs — The fastest way to make eggs feel less predictable."
         copy="Egg-friendly heat is usually bright, pourable, or textural. These are the bottles and condiments that do the most work on scrambled eggs, fried eggs, breakfast tacos, and lazy weekend breakfasts."
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
@@ -105,7 +108,18 @@ export default async function BestHotSaucesForEggsPage() {
         />
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           {eggSauces.map((review) => (
-            <ReviewCard key={review.id} review={review} />
+            <div key={review.id} className="flex flex-col">
+              <ReviewCard review={review} />
+              <AffiliateLink
+                href={review.affiliateUrl}
+                productName={review.productName}
+                sourcePage="/hot-sauces/best-for-eggs"
+                position="picks-grid"
+                className="mt-3 flex items-center justify-center rounded-full bg-ember px-5 py-3 text-sm font-semibold text-charcoal transition hover:bg-ember/90"
+              >
+                Check price on Amazon
+              </AffiliateLink>
+            </div>
           ))}
         </div>
       </div>
@@ -117,11 +131,22 @@ export default async function BestHotSaucesForEggsPage() {
         rows={comparisonRows}
       />
 
+      <FaqSchema faqs={eggFaqs} />
       <HotSauceFaqSection
         eyebrow="FAQ"
         title="Breakfast bottle questions, answered."
         copy="If the goal is better eggs, breakfast tacos, and hash, these are the answers that save the most buying mistakes."
         faqs={eggFaqs}
+      />
+
+      <ShareBar
+        title="Best Hot Sauces for Eggs"
+        description="Bright, tangy bottles that make scrambles, omelets, and breakfast tacos genuinely better."
+        url={absoluteUrl("/hot-sauces/best-for-eggs")}
+        contentType="hot-sauce-list"
+        contentId={0}
+        contentSlug="best-for-eggs"
+        className="mt-12"
       />
     </section>
   );

@@ -10,7 +10,16 @@
       "Bash(git tag *)",
       "WebSearch",
       "Bash(git commit -m 'Fix ESLint comment for web_search tool cast *)",
-      "Bash(npx supabase *)"
+      "Bash(npx supabase *)",
+      "Read(//Users/vijaysingh/.supabase/**)",
+      "Read(//usr/local/bin/**)",
+      "Read(//Users/vijaysingh/**)",
+      "Read(//opt/homebrew/bin/**)",
+      "Bash(brew list *)",
+      "Bash(ls /Users/vijaysingh/apps/flamingfoodies/lib/structured-data*)",
+      "Bash(npm run *)",
+      "Bash(sed -i '' 's/View on Amazon ↗/Check price ↗/g' 'app/\\(public\\)/brands/[slug]/page.tsx' 'app/\\(public\\)/festivals/[slug]/page.tsx' 'app/\\(public\\)/how-to/[slug]/page.tsx' 'app/\\(public\\)/peppers/[slug]/page.tsx')",
+      "Bash(sed -i '' 's/View on Amazon/Check price on Amazon/g' 'app/\\(public\\)/page.tsx' 'app/\\(public\\)/recipes/[slug]/page.tsx' 'app/\\(public\\)/reviews/[slug]/page.tsx' 'app/\\(public\\)/reviews/page.tsx' 'app/\\(public\\)/subscriptions/page.tsx' components/recipes/recipe-browse-client.tsx)"
     ],
     "additionalDirectories": [
       "/Users/vijaysingh/apps/flamingfoodies/app/(public)/seasonal",

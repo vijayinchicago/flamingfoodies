@@ -8,6 +8,8 @@ export type AdSlotConfig = {
   reviewInline?: string;
   reviewArchive?: string;
   reviewInArticle?: string;
+  recipeInline?: string;
+  recipeInArticle?: string;
 };
 
 export function normalizeAdsensePublisherId(publisherId?: string | null) {
@@ -61,7 +63,9 @@ export async function getAdRuntimeConfig() {
     blogInArticle: env.NEXT_PUBLIC_ADSENSE_BLOG_IN_ARTICLE_SLOT,
     reviewInline: env.NEXT_PUBLIC_ADSENSE_REVIEW_INLINE_SLOT,
     reviewArchive: env.NEXT_PUBLIC_ADSENSE_REVIEW_ARCHIVE_SLOT,
-    reviewInArticle: env.NEXT_PUBLIC_ADSENSE_REVIEW_IN_ARTICLE_SLOT
+    reviewInArticle: env.NEXT_PUBLIC_ADSENSE_REVIEW_IN_ARTICLE_SLOT,
+    recipeInline: env.NEXT_PUBLIC_ADSENSE_RECIPE_INLINE_SLOT ?? env.NEXT_PUBLIC_ADSENSE_REVIEW_INLINE_SLOT,
+    recipeInArticle: env.NEXT_PUBLIC_ADSENSE_RECIPE_IN_ARTICLE_SLOT ?? env.NEXT_PUBLIC_ADSENSE_REVIEW_IN_ARTICLE_SLOT
   };
   const enabledByEnv = flags.hasAdsense;
   const hasManualSlots = Object.values(slotIds).some(Boolean);

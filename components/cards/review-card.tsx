@@ -59,6 +59,11 @@ export function ReviewCard({ review }: { review: Review }) {
           <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-sm font-semibold text-amber-100">
             {review.rating.toFixed(1)}/5
           </span>
+          {review.priceUsd ? (
+            <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-sm text-cream/70">
+              ${review.priceUsd}
+            </span>
+          ) : null}
           <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-sm text-cream/70">
             {review.category}
           </span>

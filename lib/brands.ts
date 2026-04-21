@@ -46,7 +46,6 @@ export const BRANDS: Brand[] = [
     whyItMatters:
       "Tabasco didn't just make hot sauce — it defined what hot sauce was to American consumers for over a century. Every other bottle on the table exists in relation to it.",
     bestFor: "Anyone who wants the definitive American hot sauce experience and a universal condiment that works with almost any food.",
-    pepperSlug: "cayenne",
     featured: true,
     source: "editorial"
   },
@@ -133,7 +132,6 @@ export const BRANDS: Brand[] = [
     ],
     whyItMatters: "Fly By Jing brought Sichuan flavor complexity into the mainstream American hot sauce conversation and proved that Asian condiments could command premium pricing.",
     bestFor: "Anyone interested in Sichuan cooking, chili crisp enthusiasts, and cooks who want textural heat rather than liquid sauce.",
-    pepperSlug: "gochugaru",
     featured: true,
     source: "editorial"
   },

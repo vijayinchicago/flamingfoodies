@@ -315,6 +315,9 @@ export default async function ShopPage() {
 
   return (
     <section className="container-shell py-12 sm:py-16">
+      <div className="mb-6 max-w-4xl">
+        <AffiliateDisclosure compact />
+      </div>
       <div className="grid gap-6 xl:grid-cols-[1.18fr_0.82fr]">
         <div className="relative overflow-hidden rounded-[2.4rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(255,199,79,0.22),transparent_42%),radial-gradient(circle_at_bottom_right,rgba(230,57,70,0.18),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-8 sm:p-10 lg:p-12">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-ember/70 to-transparent" />
@@ -416,8 +419,6 @@ export default async function ShopPage() {
           </div>
         </aside>
       </div>
-
-      <AffiliateDisclosure className="mt-6 max-w-4xl" compact />
 
       {dailyShopPicks.length ? (
         <div id="hot-right-now" className="mt-14">

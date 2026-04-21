@@ -7,6 +7,7 @@ import { SearchForm } from "@/components/search/search-form";
 
 const nav = [
   { href: "/recipes", label: "Recipes" },
+  { href: "/reviews", label: "Reviews" },
   { href: "/hot-sauces", label: "Hot Sauces" },
   { href: "/peppers", label: "Peppers" },
   { href: "/festivals", label: "Festivals" },

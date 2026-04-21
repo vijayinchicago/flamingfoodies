@@ -24,6 +24,7 @@ const buttonClasses =
 
 const shareOptions: Array<{ platform: SharePlatform; label: string }> = [
   { platform: "copy", label: "Copy link" },
+  { platform: "reddit", label: "Reddit" },
   { platform: "pinterest", label: "Pinterest" },
   { platform: "facebook", label: "Facebook" },
   { platform: "x", label: "X" },
@@ -32,8 +33,8 @@ const shareOptions: Array<{ platform: SharePlatform; label: string }> = [
 
 function isNetworkPlatform(
   platform: SharePlatform
-): platform is Extract<SharePlatform, "pinterest" | "facebook" | "x" | "whatsapp"> {
-  return platform === "pinterest" || platform === "facebook" || platform === "x" || platform === "whatsapp";
+): platform is Extract<SharePlatform, "pinterest" | "facebook" | "x" | "whatsapp" | "reddit"> {
+  return platform === "pinterest" || platform === "facebook" || platform === "x" || platform === "whatsapp" || platform === "reddit";
 }
 
 function formatFeedback(platform: SharePlatform) {
@@ -94,7 +95,7 @@ export function ShareBar({
     setFeedback(formatFeedback("copy"));
   }
 
-  function handleNetworkShare(platform: Extract<SharePlatform, "pinterest" | "facebook" | "x" | "whatsapp">) {
+  function handleNetworkShare(platform: Extract<SharePlatform, "pinterest" | "facebook" | "x" | "whatsapp" | "reddit">) {
     const href = shareUrls.network[platform];
     window.open(href, "_blank", "noopener,noreferrer,width=720,height=720");
     logShare(platform, "opened");
