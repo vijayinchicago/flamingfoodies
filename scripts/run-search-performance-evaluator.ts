@@ -98,7 +98,8 @@ async function main() {
   const result = await runSearchPerformanceEvaluator({
     evaluationWindowDays: readNumericFlag(argv, "--window-days"),
     maxRuns: readNumericFlag(argv, "--max-runs"),
-    includeExistingApplied: argv.includes("--include-existing-applied")
+    includeExistingApplied: argv.includes("--include-existing-applied"),
+    allowPendingSearchConsoleLag: argv.includes("--allow-pending-search-console-lag")
   });
   console.log(JSON.stringify(result));
 }

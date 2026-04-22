@@ -23,11 +23,13 @@ async function handleRequest(request: Request) {
   const rawWindowDays = Number(searchParams.get("windowDays") ?? "0");
   const evaluationWindowDays = Number.isFinite(rawWindowDays) ? Math.max(0, rawWindowDays) : 0;
   const includeExistingApplied = searchParams.get("includeExistingApplied") === "1";
+  const allowPendingSearchConsoleLag = searchParams.get("allowPendingSearchConsoleLag") === "1";
 
   try {
     const result = await runSearchPerformanceEvaluator({
       evaluationWindowDays,
-      includeExistingApplied
+      includeExistingApplied,
+      allowPendingSearchConsoleLag
     });
 
     await writeAdminAuditLog({

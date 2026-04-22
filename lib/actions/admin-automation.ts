@@ -737,12 +737,14 @@ export async function runSearchPerformanceEvaluatorAction() {
     triggerReference: "server_action:search_performance_evaluator",
     inputPayload: {
       evaluationWindowDays: 0,
-      includeExistingApplied: true
+      includeExistingApplied: true,
+      allowPendingSearchConsoleLag: true
     },
     execute: async () => {
       const result = await runSearchPerformanceEvaluator({
         evaluationWindowDays: 0,
-        includeExistingApplied: true
+        includeExistingApplied: true,
+        allowPendingSearchConsoleLag: true
       });
       if (!result.ok) {
         throw new Error(result.skippedReason);

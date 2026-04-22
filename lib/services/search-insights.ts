@@ -1805,6 +1805,7 @@ export async function runSearchPerformanceEvaluator(options?: {
   evaluationWindowDays?: number;
   includeExistingApplied?: boolean;
   maxRuns?: number;
+  allowPendingSearchConsoleLag?: boolean;
 }): Promise<SearchRecommendationEvaluatorResult> {
   const property = await resolveSearchConsoleProperty();
   if (!property) {
@@ -1835,6 +1836,7 @@ export async function runSearchPerformanceEvaluator(options?: {
   );
   const maxRuns = Math.max(1, Math.trunc(options?.maxRuns ?? DEFAULT_SEARCH_EVALUATION_MAX_RUNS));
   const includeExistingApplied = options?.includeExistingApplied === true;
+  const allowPendingSearchConsoleLag = options?.allowPendingSearchConsoleLag === true;
 
   const [latestWindow, queue, executorRunsResult] = await Promise.all([
     getLatestSearchInsightWindow(),
@@ -1862,7 +1864,9 @@ export async function runSearchPerformanceEvaluator(options?: {
   const executorRuns = ((executorRunsResult.data ?? []) as SearchExecutorRunRow[])
     .filter((row) => typeof row.id === "number" && typeof row.completed_at === "string")
     .filter(
-      (row) => diffUtcDays(latestWindow.latestAvailableDate, String(row.completed_at)) >= evaluationWindowDays
+      (row) =>
+        allowPendingSearchConsoleLag ||
+        diffUtcDays(latestWindow.latestAvailableDate, String(row.completed_at)) >= evaluationWindowDays
     )
     .slice(0, maxRuns);
 
@@ -1908,6 +1912,12 @@ export async function runSearchPerformanceEvaluator(options?: {
   let skippedExistingCount = 0;
 
   for (const run of executorRuns) {
+    const searchConsoleLagDays = diffUtcDays(
+      latestWindow.latestAvailableDate,
+      String(run.completed_at)
+    );
+    const usedPendingSearchConsoleLag =
+      allowPendingSearchConsoleLag && searchConsoleLagDays < evaluationWindowDays;
     const candidates = getExecutorEvaluationCandidates(run.result_payload, includeExistingApplied);
     if (!candidates.length) {
       continue;
@@ -1926,6 +1936,22 @@ export async function runSearchPerformanceEvaluator(options?: {
         current: queueByKey.get(candidate.recommendationKey) ?? null,
         latestAvailableDate: latestWindow.latestAvailableDate
       });
+      const observedPayload = isRecord(verdict.observedPayload)
+        ? {
+            ...verdict.observedPayload,
+            sourceRunCompletedAt: run.completed_at,
+            searchConsoleLagDays,
+            usedPendingSearchConsoleLag
+          }
+        : {
+            observedPayload: verdict.observedPayload,
+            sourceRunCompletedAt: run.completed_at,
+            searchConsoleLagDays,
+            usedPendingSearchConsoleLag
+          };
+      const notes = usedPendingSearchConsoleLag
+        ? `Seed evaluation only: Search Console data is current through ${latestWindow.latestAvailableDate}, which trails executor run ${run.id} completed at ${run.completed_at}. ${verdict.notes}`
+        : verdict.notes;
 
       if (verdict.verdict === "keep") {
         keepCount += 1;
@@ -1942,9 +1968,9 @@ export async function runSearchPerformanceEvaluator(options?: {
         subject_key: candidate.recommendationKey,
         evaluation_window_days: evaluationWindowDays,
         baseline_payload: candidate,
-        observed_payload: verdict.observedPayload,
+        observed_payload: observedPayload,
         verdict: verdict.verdict,
-        notes: verdict.notes
+        notes
       });
       evaluatedRunIds.add(run.id);
       existingSubjectKeys.add(candidate.recommendationKey);
