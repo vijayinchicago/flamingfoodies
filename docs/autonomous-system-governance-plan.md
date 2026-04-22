@@ -530,7 +530,7 @@ Guardrails:
 
 - `risk_class = internal_support`
 - `autonomy_mode = bounded_live`
-- `daily_run_cap = 1`
+- `daily_run_cap = 2`
 - `daily_mutation_cap = 24`
 - `rollback_strategy = none`
 
