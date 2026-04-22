@@ -56,6 +56,24 @@ export function getAutonomousAgents(input: {
       isSupport: false
     },
     {
+      id: "editorial-performance-evaluator",
+      name: "Editorial performance evaluator",
+      status: dbReady ? "live" : "needs_config",
+      cadence: "Daily evaluation pass + manual run",
+      purpose:
+        "Reviews prior editorial publish decisions after a delay, compares live content performance signals, and records keep, escalate, or revert verdicts.",
+      outcome:
+        "Turns the editorial lane into a judged system instead of a one-way auto-publish pipeline.",
+      dependencyNote: dbReady
+        ? "Supabase admin access and telemetry are available, so published editorial runs can now be judged after they land."
+        : "Supabase admin access is required before editorial verdicts can be recorded.",
+      riskClass: "internal_support",
+      autonomyMode: "bounded_live",
+      writesLiveState: false,
+      writesExternalState: false,
+      isSupport: true
+    },
+    {
       id: "pinterest-distributor",
       name: "Pinterest distributor",
       status: pinterestReady ? "live" : "needs_config",

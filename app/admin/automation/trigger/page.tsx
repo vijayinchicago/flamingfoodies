@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import {
   pauseAutomationAgentAction,
+  runEditorialPerformanceEvaluatorAction,
   runBrandDiscoveryAction,
   runReevaluatePendingAiDraftsAction,
   runDueNewsletterSendsAction,
@@ -92,6 +93,11 @@ export default async function AdminTriggerPage({
     searchEscalate?: string;
     searchRevert?: string;
     searchSkipped?: string;
+    editorialEvaluated?: string;
+    editorialKeep?: string;
+    editorialEscalate?: string;
+    editorialRevert?: string;
+    editorialSkipped?: string;
   };
 }) {
   const [initialJobs, settings, hasSearchConsole, controlAgents] = await Promise.all([
@@ -178,6 +184,13 @@ export default async function AdminTriggerPage({
           Search evaluator recorded {searchParams.searchEvaluated} verdict(s): keep{" "}
           {searchParams.searchKeep || "0"}, escalate {searchParams.searchEscalate || "0"}, revert{" "}
           {searchParams.searchRevert || "0"}, skipped existing {searchParams.searchSkipped || "0"}.
+        </p>
+      ) : null}
+      {searchParams?.editorialEvaluated ? (
+        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          Editorial evaluator recorded {searchParams.editorialEvaluated} verdict(s): keep{" "}
+          {searchParams.editorialKeep || "0"}, escalate {searchParams.editorialEscalate || "0"}, revert{" "}
+          {searchParams.editorialRevert || "0"}, skipped existing {searchParams.editorialSkipped || "0"}.
         </p>
       ) : null}
       <div className="panel-light p-6">
@@ -310,6 +323,19 @@ export default async function AdminTriggerPage({
             idleLabel="Re-evaluate stuck drafts"
             pendingLabel="Re-evaluating..."
             className="mt-6 rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-white"
+          />
+        </form>
+        <form action={runEditorialPerformanceEvaluatorAction} className="panel-light p-6">
+          <p className="eyebrow">Judge</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Editorial evaluator</h2>
+          <p className="mt-3 text-sm text-charcoal/65">
+            Review recent editorial publish runs, score the live content by early traffic and
+            engagement signals, and record keep, escalate, or revert verdicts in the run ledger.
+          </p>
+          <AdminSubmitButton
+            idleLabel="Run editorial evaluator"
+            pendingLabel="Evaluating..."
+            className="mt-6 rounded-full border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-semibold text-sky-800"
           />
         </form>
         <form action={runSocialSchedulerAction} className="panel-light p-6">

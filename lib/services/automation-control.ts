@@ -5,6 +5,7 @@ import { jsonResponse } from "@/lib/utils";
 
 export type AutomationAgentId =
   | "editorial-autopublisher"
+  | "editorial-performance-evaluator"
   | "pinterest-distributor"
   | "growth-loop-promoter"
   | "shop-shelf-curator"

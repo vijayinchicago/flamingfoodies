@@ -11,6 +11,7 @@ import {
   queueSocialScheduler,
   runGenerationPipeline
 } from "@/lib/services/automation";
+import { runEditorialPerformanceEvaluator } from "@/lib/services/editorial-performance-evaluator";
 import {
   appendAutomationRunEvent,
   beginAutomationRun,
@@ -79,6 +80,7 @@ const automationApprovalActionSchema = z.object({
 const automationAgentActionSchema = z.object({
   agentId: z.enum([
     "editorial-autopublisher",
+    "editorial-performance-evaluator",
     "pinterest-distributor",
     "growth-loop-promoter",
     "shop-shelf-curator",
@@ -106,6 +108,12 @@ const AUTOMATION_AGENTS_PATH = "/admin/automation/agents";
 const AUTOMATION_TRIGGER_PATH = "/admin/automation/trigger";
 const AUTOMATION_APPROVALS_PATH = "/admin/automation/approvals";
 const AUTOMATION_RUNS_PATH = "/admin/automation/runs";
+
+function revalidateEditorialEvaluationSurfaces() {
+  revalidatePath("/admin/automation/agents");
+  revalidatePath("/admin/automation/runs");
+  revalidatePath("/admin/automation/trigger");
+}
 
 async function writeAuditLog(
   supabase: ReturnType<typeof createSupabaseAdminClient>,
@@ -332,6 +340,60 @@ export async function runPublishScheduledAction() {
   });
 
   redirect(`${AUTOMATION_TRIGGER_PATH}?published=${result.published.length}`);
+}
+
+export async function runEditorialPerformanceEvaluatorAction() {
+  const admin = await requireAdmin();
+  const task = await runManualAutomationTask({
+    agentId: "editorial-performance-evaluator",
+    adminId: admin.id,
+    triggerReference: "server_action:editorial_performance_evaluator",
+    inputPayload: {
+      evaluationWindowDays: 14,
+      allowImmatureRuns: true
+    },
+    execute: async () => {
+      const result = await runEditorialPerformanceEvaluator({
+        evaluationWindowDays: 14,
+        allowImmatureRuns: true
+      });
+      if (!result.ok) {
+        throw new Error(result.skippedReason);
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      revalidateEditorialEvaluationSurfaces();
+      revalidatePath(AUTOMATION_AGENTS_PATH);
+      revalidatePath(AUTOMATION_TRIGGER_PATH);
+      revalidatePath(AUTOMATION_RUNS_PATH);
+    },
+    summarize: (result) => ({
+      summary:
+        `Recorded ${result.evaluatedContentCount} editorial evaluation verdict(s): ` +
+        `${result.keepCount} keep, ${result.escalateCount} escalate, ${result.revertCount} revert.`,
+      rowsCreated: result.evaluatedContentCount,
+      rowsUpdated: result.skippedExistingCount
+    })
+  });
+
+  const result = task.ok
+    ? task.result
+    : redirect(`${AUTOMATION_TRIGGER_PATH}?error=${encodeURIComponent(task.errorMessage)}`);
+  const supabase = createSupabaseAdminClient();
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "run_editorial_performance_evaluator",
+    targetType: "editorial",
+    targetId: "manual_evaluator",
+    metadata: result
+  });
+
+  redirect(
+    `${AUTOMATION_TRIGGER_PATH}?editorialEvaluated=1&editorialKeep=${result.keepCount}&editorialEscalate=${result.escalateCount}&editorialRevert=${result.revertCount}&editorialSkipped=${result.skippedExistingCount}`
+  );
 }
 
 export async function runReevaluatePendingAiDraftsAction() {

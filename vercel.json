@@ -11,6 +11,7 @@
     { "path": "/api/admin/generate?type=review&qty=1", "schedule": "0 8 * * 1,4" },
     { "path": "/api/admin/reevaluate-ai-drafts", "schedule": "45 17 * * *" },
     { "path": "/api/admin/publish-scheduled", "schedule": "0 18 * * *" },
+    { "path": "/api/admin/editorial-performance-evaluator/cron", "schedule": "45 18 * * *" },
     { "path": "/api/admin/growth-loop", "schedule": "30 18 * * *" },
     { "path": "/api/admin/social-scheduler", "schedule": "15 19 * * *" },
     { "path": "/api/admin/newsletter-digest", "schedule": "0 10 * * 0" },

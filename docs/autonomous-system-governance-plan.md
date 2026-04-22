@@ -15,12 +15,170 @@ This file explains:
 
 ## Implementation Status
 
-As of April 21, 2026:
+As of April 22, 2026:
 
 - Phases 0 through 3 are implemented in the live control plane: registry, run ledger, policy enforcement, approvals, and the split Search Console analyst/executor model are all active.
 - Phase 4 is active: `automation_evaluations` now stores keep / revert / escalate judgments, and the first automatic evaluator lane is live for Search executor runs.
+- The first live Search evaluator verdicts are seeded in production: the executor recorded baseline snapshots and the evaluator wrote lag-aware `escalate` rows for the four currently applied Search recommendations.
 - Phase 5 is started: snapshot-backed rollback is now available for `search-recommendation-executor` and `shop-shelf-curator` from the admin run ledger.
 - Evaluator loops are still early. Search now has an automatic evaluator, while social, editorial, and shop still need their own post-run judgment lanes.
+
+## Concrete Next Execution Plan
+
+This is the execution order from the current repo state.
+
+Each slice should ship as its own commit, tag, and deploy checkpoint so the control plane stays auditable.
+
+### Slice 1: Finish evaluator coverage for the other bounded-live loops
+
+Goal:
+
+- complete Phase 4 beyond Search so the system can judge editorial, social, and shop decisions instead of only recording that they ran
+
+Scope:
+
+- add `editorial-performance-evaluator`
+- add `social-distribution-evaluator`
+- add `shop-performance-evaluator`
+- reuse `automation_evaluations` instead of creating another verdict table
+- wire manual run controls and cron entry points for each evaluator
+- show evaluator verdict counts in `/admin/automation/agents`, `/admin/automation/runs`, and `/admin/automation/trigger`
+
+Likely files:
+
+- `lib/services/automation.ts`
+- `lib/services/social.ts`
+- `lib/services/shop-automation.ts`
+- `lib/services/agent-runs.ts`
+- `lib/autonomous-agents.ts`
+- `lib/actions/admin-automation.ts`
+- `app/api/admin/*-performance-evaluator/route.ts`
+- `app/api/admin/*-performance-evaluator/cron/route.ts`
+- `supabase/migrations/*` for agent seeding rows if new evaluator lanes are registered explicitly
+
+Exit criteria:
+
+- each evaluator writes real `automation_evaluations` rows tied to a prior source run
+- each evaluator is visible as its own lane in the admin agent surfaces
+- at least one manual smoke run exists for editorial, social, and shop evaluator lanes
+
+### Slice 2: Finish rollback and snapshot coverage for the remaining live decision paths
+
+Goal:
+
+- complete Phase 5 for the live paths that still rely more on policy than on reversible state
+
+Scope:
+
+- add before/after snapshots or equivalent touched-entity payloads for `release-monitor` apply actions
+- record touched entity lists for editorial publish batches even if rollback remains manual-only
+- keep newsletter and Buffer sends as non-reversible, but log external action identifiers and exact send targets in the run payload
+- expose rollback availability and rollback gaps clearly in the run ledger UI
+
+Likely files:
+
+- `lib/services/automation-control.ts`
+- `lib/actions/admin-automation.ts`
+- `lib/services/brand-monitor.ts`
+- `lib/services/automation.ts`
+- `lib/services/agent-runs.ts`
+- `app/admin/automation/runs/page.tsx`
+
+Exit criteria:
+
+- release publication through `release-monitor` can be reversed from the run ledger or at minimum restored to its pre-apply state with a documented action
+- editorial runs persist enough before/after context that operators can identify exactly what was published by a given run
+- the run ledger shows which lanes are snapshot-backed, rebuild-backed, or manual-only for rollback
+
+### Slice 3: Certify external-send lanes in production
+
+Goal:
+
+- prove that the guarded external-send model works end to end for newsletter and Pinterest/social, not just in theory
+
+Scope:
+
+- verify production Buffer profile mapping and a manual social distribution pass
+- verify production ConvertKit configuration and a full newsletter approval-to-send pass
+- confirm run-ledger output, cap usage, and pause behavior for both external-send lanes
+- document the operator procedure for pausing, replaying, or rejecting sends
+
+Likely files:
+
+- `docs/production-go-live.md`
+- `docs/autonomous-agents.md`
+- `app/admin/automation/agents/page.tsx`
+- `app/admin/automation/approvals/page.tsx`
+- `app/admin/automation/trigger/page.tsx`
+- `lib/services/agent-runs.ts`
+
+Exit criteria:
+
+- one successful manual newsletter approval-and-send cycle is recorded in `automation_runs`
+- one successful manual Pinterest/social pass is recorded in `automation_runs`
+- external-send agents show healthy last-run state and explicit approval/cap messaging in admin
+
+### Slice 4: Tighten operator visibility and failure handling
+
+Goal:
+
+- make the control plane usable as a daily operating surface instead of only a development surface
+
+Scope:
+
+- add failure-streak, cap-usage, approval-backlog, evaluation-count, and rollback-readiness summaries to the agent cards
+- make run drill-ins easier to follow from source run to approval to evaluation to rollback
+- add explicit “blocked by policy” visibility for caps, quiet hours, paused state, and failure threshold cases
+- document the weekly operator review routine
+
+Likely files:
+
+- `lib/services/agent-runs.ts`
+- `app/admin/automation/agents/page.tsx`
+- `app/admin/automation/runs/page.tsx`
+- `app/admin/automation/trigger/page.tsx`
+- `docs/production-go-live.md`
+
+Exit criteria:
+
+- an operator can answer “what ran, what changed, what is blocked, and what needs review” from admin without opening code
+- failure and block states are visible as first-class statuses rather than hidden in summaries
+
+### Slice 5: Close the rollout with a full autonomy certification pass
+
+Goal:
+
+- mark Phases 4 and 5 complete and convert the governance plan from “mid-rollout” to “operating baseline”
+
+Scope:
+
+- run a smoke checklist across each agent class: draft-only, bounded-live, approval-required, external-send, internal-support
+- confirm every bounded-live lane has either snapshot rollback, rebuild rollback, or an explicit manual-only declaration
+- confirm every external-send lane has approval gating, caps, and pause controls
+- update the implementation status and go-live docs with the final verdict
+
+Likely files:
+
+- `docs/autonomous-system-governance-plan.md`
+- `docs/production-go-live.md`
+- `docs/autonomous-agents.md`
+
+Exit criteria:
+
+- every first-class agent has at least one recent run in the ledger
+- every bounded-live agent has an explicit rollback strategy reflected in code and docs
+- every external-send agent has a verified approval-and-send path
+- the plan can honestly say Phase 4 and Phase 5 are complete
+
+## Immediate Developer Tickets From Here
+
+If we want the next developer agent to execute this in the highest-value order, hand it these tickets:
+
+1. Add `editorial-performance-evaluator` with manual trigger, cron route, run-ledger reporting, and one smoke-tested verdict path.
+2. Add `shop-performance-evaluator` with manual trigger, cron route, verdict storage, and one smoke-tested verdict path.
+3. Add `social-distribution-evaluator` with manual trigger, cron route, verdict storage, and one smoke-tested verdict path.
+4. Extend rollback/snapshot coverage for `release-monitor` apply actions and persist richer touched-entity evidence for editorial publish runs.
+5. Run and document one production newsletter approval-and-send smoke test plus one production Pinterest/social smoke test.
 
 ## Goals
 
@@ -45,7 +203,8 @@ These are the meaningful autonomous or cron-driven lanes already in the repo.
 | `search-performance-evaluator` | daily cron | `automation_evaluations` | delayed verdicts on prior executor runs, no automatic rollback | `internal_support` |
 | `festival-discovery` | nightly cron | `festivals` drafts | draft-only inserts | `draft_only` |
 | `pepper-discovery` | weekly cron | pepper discovery tables | draft-oriented discovery flow | `draft_only` |
-| `brand-monitor` | weekly cron | `brands` drafts, `releases` published rows | brands draft-only, releases auto-publish | split into `draft_only` + `approval_required` |
+| `brand-discovery` | weekly cron | `brands` drafts | draft-only brand research rows | `draft_only` |
+| `release-monitor` | weekly cron | `automation_approvals`, approved `releases` publishes | release proposals stop in approval until an admin applies them | `approval_required` |
 | `tutorial-generator` | weekly cron | `tutorials` drafts | draft-only insert | `draft_only` |
 | `content-shop-sync` | daily cron | shop/content signal tables | internal signal sync | `internal_support` |
 
