@@ -4,15 +4,16 @@ FlamingFoodies is a Next.js 14 App Router project backed by Supabase for auth, c
 
 ## Local Run
 
-1. Copy `.env.example` to `.env.local`.
-2. For a mock-content local run, leave the optional integrations blank.
-3. For a real local run, set:
+1. Use Node `20.19.4` before running local commands. `nvm use` will read the checked-in `.nvmrc`.
+2. Copy `.env.example` to `.env.local`.
+3. For a mock-content local run, leave the optional integrations blank.
+4. For a real local run, set:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` or `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `SUPABASE_SECRET_KEY` or `SUPABASE_SERVICE_ROLE_KEY`
-4. Install dependencies with `pnpm install`.
-5. Run `pnpm env:check`.
-6. Start the app with `pnpm dev`.
+5. Install dependencies with `pnpm install`.
+6. Run `pnpm env:check`.
+7. Start the app with `pnpm dev`.
 
 ## Local Supabase Notes
 
@@ -75,6 +76,7 @@ For the exact production cutover checklist, see `docs/production-go-live.md`.
 ## Verification Commands
 
 ```bash
+nvm use
 pnpm typecheck
 pnpm test
 pnpm build
@@ -84,4 +86,3 @@ pnpm build
 
 - External provider behavior still needs full live-account validation.
 - Integration and E2E coverage are still lighter than the original build plan.
-- Node 20+ should replace Node 18 before production rollout.
