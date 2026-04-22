@@ -53,6 +53,7 @@ import {
   getShopShelfSnapshot,
   runShopCatalogRefresh
 } from "@/lib/services/shop-automation";
+import { runShopPerformanceEvaluator } from "@/lib/services/shop-performance-evaluator";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
@@ -84,6 +85,7 @@ const automationAgentActionSchema = z.object({
     "pinterest-distributor",
     "growth-loop-promoter",
     "shop-shelf-curator",
+    "shop-performance-evaluator",
     "newsletter-digest-agent",
     "search-insights-analyst",
     "search-recommendation-executor",
@@ -110,6 +112,12 @@ const AUTOMATION_APPROVALS_PATH = "/admin/automation/approvals";
 const AUTOMATION_RUNS_PATH = "/admin/automation/runs";
 
 function revalidateEditorialEvaluationSurfaces() {
+  revalidatePath("/admin/automation/agents");
+  revalidatePath("/admin/automation/runs");
+  revalidatePath("/admin/automation/trigger");
+}
+
+function revalidateShopEvaluationSurfaces() {
   revalidatePath("/admin/automation/agents");
   revalidatePath("/admin/automation/runs");
   revalidatePath("/admin/automation/trigger");
@@ -393,6 +401,60 @@ export async function runEditorialPerformanceEvaluatorAction() {
 
   redirect(
     `${AUTOMATION_TRIGGER_PATH}?editorialEvaluated=1&editorialKeep=${result.keepCount}&editorialEscalate=${result.escalateCount}&editorialRevert=${result.revertCount}&editorialSkipped=${result.skippedExistingCount}`
+  );
+}
+
+export async function runShopPerformanceEvaluatorAction() {
+  const admin = await requireAdmin();
+  const task = await runManualAutomationTask({
+    agentId: "shop-performance-evaluator",
+    adminId: admin.id,
+    triggerReference: "server_action:shop_performance_evaluator",
+    inputPayload: {
+      evaluationWindowDays: 14,
+      allowImmatureRuns: true
+    },
+    execute: async () => {
+      const result = await runShopPerformanceEvaluator({
+        evaluationWindowDays: 14,
+        allowImmatureRuns: true
+      });
+      if (!result.ok) {
+        throw new Error(result.skippedReason);
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      revalidateShopEvaluationSurfaces();
+      revalidatePath(AUTOMATION_AGENTS_PATH);
+      revalidatePath(AUTOMATION_TRIGGER_PATH);
+      revalidatePath(AUTOMATION_RUNS_PATH);
+    },
+    summarize: (result) => ({
+      summary:
+        `Recorded ${result.evaluatedContentCount} shop evaluation verdict(s): ` +
+        `${result.keepCount} keep, ${result.escalateCount} escalate, ${result.revertCount} revert.`,
+      rowsCreated: result.evaluatedContentCount,
+      rowsUpdated: result.skippedExistingCount
+    })
+  });
+
+  const result = task.ok
+    ? task.result
+    : redirect(`${AUTOMATION_TRIGGER_PATH}?error=${encodeURIComponent(task.errorMessage)}`);
+  const supabase = createSupabaseAdminClient();
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "run_shop_performance_evaluator",
+    targetType: "shop",
+    targetId: "manual_evaluator",
+    metadata: result
+  });
+
+  redirect(
+    `${AUTOMATION_TRIGGER_PATH}?shopEvaluated=1&shopKeep=${result.keepCount}&shopEscalate=${result.escalateCount}&shopRevert=${result.revertCount}&shopSkipped=${result.skippedExistingCount}`
   );
 }
 

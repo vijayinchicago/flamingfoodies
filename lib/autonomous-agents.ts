@@ -128,6 +128,24 @@ export function getAutonomousAgents(input: {
       isSupport: false
     },
     {
+      id: "shop-performance-evaluator",
+      name: "Shop performance evaluator",
+      status: dbReady ? "live" : "needs_config",
+      cadence: "Daily evaluation pass + manual run",
+      purpose:
+        "Reviews prior shop curator decisions after a delay, compares shelf choices with live affiliate click signals, and records keep, escalate, or revert verdicts.",
+      outcome:
+        "Turns the shop lane into a judged system instead of a one-way shelf refresh pipeline.",
+      dependencyNote: dbReady
+        ? "Supabase admin access, affiliate click logs, and shelf snapshots are available, so curated shop decisions can now be judged after they land."
+        : "Supabase admin access is required before shop verdicts can be recorded.",
+      riskClass: "internal_support",
+      autonomyMode: "bounded_live",
+      writesLiveState: false,
+      writesExternalState: false,
+      isSupport: true
+    },
+    {
       id: "newsletter-digest-agent",
       name: "Newsletter digest agent",
       status: input.hasConvertKit ? "live" : "needs_config",

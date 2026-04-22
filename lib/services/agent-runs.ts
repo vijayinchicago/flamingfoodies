@@ -206,6 +206,13 @@ const scheduleDefinitions: ScheduleDefinition[] = [
     minuteUtc: 0
   },
   {
+    agentId: "shop-performance-evaluator",
+    label: "Shop performance evaluator",
+    note: "Records keep, escalate, or revert verdicts for prior shop curator decisions.",
+    hourUtc: 0,
+    minuteUtc: 30
+  },
+  {
     agentId: "search-insights-analyst",
     label: "Search insights sync",
     note: "Pulls Search Console performance data and refreshes the approval queue.",
@@ -534,6 +541,14 @@ function buildAgentLinks(agentId: AutonomousAgent["id"]): AgentRunLink[] {
     ];
   }
 
+  if (agentId === "shop-performance-evaluator") {
+    return [
+      { label: "Shop picks CMS", href: "/admin/content/merch" },
+      { label: "Trigger", href: "/admin/automation/trigger" },
+      { label: "Agent runs", href: "/admin/automation/runs" }
+    ];
+  }
+
   if (agentId === "newsletter-digest-agent") {
     return [
       { label: "Campaigns", href: "/admin/newsletter/campaigns" },
@@ -828,7 +843,8 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
     searchRuntime,
     approvalSummary,
     searchEvaluationRecords,
-    editorialEvaluationRecords
+    editorialEvaluationRecords,
+    shopEvaluationRecords
   ] = await Promise.all([
     listAutomationAgents(),
     listAutomationRuns({ since: daysAgoIso(30), limit: 1000 }),
@@ -873,7 +889,8 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
     getSearchRuntimeOptimizations(),
     getAutomationApprovalSummary(),
     listAutomationEvaluations({ agentId: "search-performance-evaluator", limit: 200 }),
-    listAutomationEvaluations({ agentId: "editorial-performance-evaluator", limit: 200 })
+    listAutomationEvaluations({ agentId: "editorial-performance-evaluator", limit: 200 }),
+    listAutomationEvaluations({ agentId: "shop-performance-evaluator", limit: 200 })
   ]);
 
   const controlPlaneAvailable = controlAgents.length > 0;
@@ -981,6 +998,25 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
     }
   );
   const editorialEvaluationSummary = editorialEvaluationRecords.reduce(
+    (summary, evaluation) => {
+      summary.total += 1;
+      if (evaluation.verdict === "keep") {
+        summary.keep += 1;
+      } else if (evaluation.verdict === "revert") {
+        summary.revert += 1;
+      } else if (evaluation.verdict === "escalate") {
+        summary.escalate += 1;
+      }
+      return summary;
+    },
+    {
+      total: 0,
+      keep: 0,
+      revert: 0,
+      escalate: 0
+    }
+  );
+  const shopEvaluationSummary = shopEvaluationRecords.reduce(
     (summary, evaluation) => {
       summary.total += 1;
       if (evaluation.verdict === "keep") {
@@ -1135,6 +1171,28 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
           { label: "Featured now", value: compactNumber(merchFeatured) },
           { label: "Created in 7d", value: compactNumber(merchCreatedLast7) },
           { label: "Runs in 7d", value: compactNumber(ledger.runsLast7Days) }
+        ]
+      };
+    }
+
+    if (agent.id === "shop-performance-evaluator") {
+      return {
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          shopEvaluationSummary.total > 0
+            ? `The evaluator has recorded ${shopEvaluationSummary.total} verdict(s): ${shopEvaluationSummary.keep} keep, ${shopEvaluationSummary.escalate} escalate, and ${shopEvaluationSummary.revert} revert.`
+            : ledger.runsLast7Days > 0
+              ? `The evaluator ran ${ledger.runsLast7Days} time(s) in the last 7 days and is watching for mature shop curator decisions to judge.`
+              : agent.status === "live"
+                ? "This evaluator lane is configured and waiting for mature shop curator decisions to judge."
+                : agent.dependencyNote
+        ),
+        stats: [
+          { label: "Verdicts", value: compactNumber(shopEvaluationSummary.total) },
+          { label: "Keep", value: compactNumber(shopEvaluationSummary.keep) },
+          { label: "Escalate", value: compactNumber(shopEvaluationSummary.escalate) },
+          { label: "Revert", value: compactNumber(shopEvaluationSummary.revert) }
         ]
       };
     }

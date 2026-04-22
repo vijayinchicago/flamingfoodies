@@ -20,8 +20,10 @@ As of April 22, 2026:
 - Phases 0 through 3 are implemented in the live control plane: registry, run ledger, policy enforcement, approvals, and the split Search Console analyst/executor model are all active.
 - Phase 4 is active: `automation_evaluations` now stores keep / revert / escalate judgments, and the first automatic evaluator lane is live for Search executor runs.
 - The first live Search evaluator verdicts are seeded in production: the executor recorded baseline snapshots and the evaluator wrote lag-aware `escalate` rows for the four currently applied Search recommendations.
+- The first live editorial evaluator verdict is also seeded in production: one intentionally generated and published blog post was judged by `editorial-performance-evaluator`, which recorded a lag-aware `escalate` row against the publish run.
+- The first live shop evaluator verdict is seeded in production: `shop-performance-evaluator` judged a prior `shop-shelf-curator` shelf refresh from snapshot-backed run evidence and recorded a lag-aware verdict against that run.
 - Phase 5 is started: snapshot-backed rollback is now available for `search-recommendation-executor` and `shop-shelf-curator` from the admin run ledger.
-- Evaluator loops are still early. Search now has an automatic evaluator, while social, editorial, and shop still need their own post-run judgment lanes.
+- Evaluator loops are still early. Search, editorial, and shop now have automatic evaluator lanes, while social still needs its own post-run judgment lane.
 
 ## Concrete Next Execution Plan
 
@@ -33,13 +35,11 @@ Each slice should ship as its own commit, tag, and deploy checkpoint so the cont
 
 Goal:
 
-- complete Phase 4 beyond Search so the system can judge editorial, social, and shop decisions instead of only recording that they ran
+- complete Phase 4 beyond Search, editorial, and shop so the system can judge social decisions instead of only recording that they ran
 
 Scope:
 
-- add `editorial-performance-evaluator`
 - add `social-distribution-evaluator`
-- add `shop-performance-evaluator`
 - reuse `automation_evaluations` instead of creating another verdict table
 - wire manual run controls and cron entry points for each evaluator
 - show evaluator verdict counts in `/admin/automation/agents`, `/admin/automation/runs`, and `/admin/automation/trigger`
@@ -60,7 +60,7 @@ Exit criteria:
 
 - each evaluator writes real `automation_evaluations` rows tied to a prior source run
 - each evaluator is visible as its own lane in the admin agent surfaces
-- at least one manual smoke run exists for editorial, social, and shop evaluator lanes
+- at least one manual smoke run exists for the social evaluator lane
 
 ### Slice 2: Finish rollback and snapshot coverage for the remaining live decision paths
 
@@ -174,11 +174,11 @@ Exit criteria:
 
 If we want the next developer agent to execute this in the highest-value order, hand it these tickets:
 
-1. Add `editorial-performance-evaluator` with manual trigger, cron route, run-ledger reporting, and one smoke-tested verdict path.
-2. Add `shop-performance-evaluator` with manual trigger, cron route, verdict storage, and one smoke-tested verdict path.
-3. Add `social-distribution-evaluator` with manual trigger, cron route, verdict storage, and one smoke-tested verdict path.
-4. Extend rollback/snapshot coverage for `release-monitor` apply actions and persist richer touched-entity evidence for editorial publish runs.
-5. Run and document one production newsletter approval-and-send smoke test plus one production Pinterest/social smoke test.
+1. Add `social-distribution-evaluator` with manual trigger, cron route, verdict storage, and one smoke-tested verdict path.
+2. Extend rollback/snapshot coverage for `release-monitor` apply actions and persist richer touched-entity evidence for editorial publish runs.
+3. Run and document one production newsletter approval-and-send smoke test plus one production Pinterest/social smoke test.
+4. Tighten operator surfaces so an admin can see rollback readiness, evaluation counts, and policy-block reasons without opening raw run payloads.
+5. Do a full autonomy certification pass across every agent class after the remaining social/external-send slices land.
 
 ## Goals
 
@@ -187,6 +187,153 @@ If we want the next developer agent to execute this in the highest-value order, 
 3. Separate low-risk draft-producing agents from live mutating agents and external-send agents.
 4. Make it possible to pause, evaluate, and roll back each lane independently.
 
+## Current Autonomy Snapshot
+
+The live system is autonomous in a bounded sense, not in a fully unattended sense.
+
+That means:
+
+- most agents can already run on schedule without manual intervention
+- the highest-risk actions still stop behind approvals or bounded allowlists
+- the control plane can pause, cap, evaluate, and in some cases roll back live mutations
+- the remaining work is mostly about closing evaluator coverage, rollback coverage, and external-send certification
+
+### Live Agent Coordination Diagram
+
+```mermaid
+flowchart LR
+  CP["Shared control plane<br/>policies, caps, pauses, run ledger, approvals, rollback"]
+
+  subgraph Research["Draft / backlog lanes"]
+    Fest["festival-discovery"]
+    Pep["pepper-discovery"]
+    Brand["brand-discovery"]
+    Tut["tutorial-generator"]
+    Drafts["draft tables / editorial backlog"]
+    Fest --> Drafts
+    Pep --> Drafts
+    Brand --> Drafts
+    Tut --> Drafts
+  end
+
+  subgraph Editorial["Editorial + distribution loop"]
+    Gen["generation crons"]
+    Edit["editorial-autopublisher"]
+    Pub["published recipes / blog / reviews"]
+    Tele["telemetry + affiliate signals"]
+    Growth["growth-loop-promoter"]
+    SocialQ["social_posts queue"]
+    Pin["pinterest-distributor"]
+    EdEval["editorial-performance-evaluator"]
+
+    Gen --> Edit --> Pub
+    Pub --> Tele
+    Pub --> SocialQ
+    Tele --> Growth --> SocialQ --> Pin
+    Edit --> EdEval
+    Tele --> EdEval
+  end
+
+  subgraph Search["SEO loop"]
+    GSC["Google Search Console"]
+    SearchA["search-insights-analyst"]
+    RecQ["search_recommendations queue"]
+    SearchX["search-recommendation-executor"]
+    Runtime["runtime SEO overlays"]
+    SearchEval["search-performance-evaluator"]
+
+    GSC --> SearchA --> RecQ
+    RecQ --> SearchX --> Runtime --> Pub
+    SearchX --> SearchEval
+    RecQ --> SearchEval
+  end
+
+  subgraph Commerce["Commerce loop"]
+    Sync["content-shop-sync"]
+    Shop["shop-shelf-curator"]
+    ShopEval["shop-performance-evaluator"]
+    Shelf["shop / merch_products"]
+    Clicks["affiliate clicks"]
+
+    Pub --> Sync
+    Shelf --> Sync
+    Sync --> Shop --> Shelf
+    Shelf --> Clicks --> Sync
+    Shop --> ShopEval
+    Clicks --> ShopEval
+  end
+
+  subgraph Approval["Approval-gated lanes"]
+    News["newsletter-digest-agent"]
+    Release["release-monitor"]
+    Approvals["admin approvals"]
+    Sends["ConvertKit / releases page"]
+
+    Pub --> News --> Approvals --> Sends
+    Release --> Approvals
+  end
+
+  CP --- Edit
+  CP --- EdEval
+  CP --- Growth
+  CP --- Pin
+  CP --- SearchA
+  CP --- SearchX
+  CP --- SearchEval
+  CP --- Sync
+  CP --- Shop
+  CP --- ShopEval
+  CP --- News
+  CP --- Release
+  CP --- Fest
+  CP --- Pep
+  CP --- Brand
+  CP --- Tut
+```
+
+### Current Agent Maturity Matrix
+
+| Agent | Class | Live today | What it changes | How bounded it is | What still keeps it from "fully autonomous" |
+| --- | --- | --- | --- | --- | --- |
+| `editorial-autopublisher` | `bounded_live` | yes | publishes recipes, blog posts, reviews, and schedules social rows | QA-gated, delay-gated, capped by control plane | rollback is still mostly manual evidence rather than full restore |
+| `editorial-performance-evaluator` | `internal_support` | yes | writes verdicts to `automation_evaluations` | never mutates public state directly | exists, but editorial still needs stronger rollback evidence |
+| `pinterest-distributor` | `external_send` | yes | pushes queued social posts to Buffer / Pinterest | caps, pauses, provider-level failure handling | still needs its own evaluator lane and a documented live certification pass |
+| `growth-loop-promoter` | `bounded_live` | yes | re-queues winner pages into social distribution | dedupe, winner thresholds, daily caps | still depends on social evaluator coverage to complete the loop |
+| `shop-shelf-curator` | `bounded_live` | yes | updates shop ranking and merch picks | bounded write surface plus snapshot-backed rollback | evaluator now exists, but the lane still needs more live verdict history before it feels fully mature |
+| `shop-performance-evaluator` | `internal_support` | yes | writes shop verdicts to `automation_evaluations` | judges snapshot-backed curator runs without mutating the public shelf directly | still early, and needs more live verdict history plus operator review patterns |
+| `newsletter-digest-agent` | `external_send` with `approval_required` send path | yes | drafts campaigns and can send approved campaigns | approval gate, caps, pause controls | still needs a full production approval-and-send certification pass |
+| `search-insights-analyst` | `draft_only` | yes | refreshes `search_recommendations` queue from GSC data | no live page writes | intentionally not a live executor |
+| `search-recommendation-executor` | `bounded_live` | yes | applies approved runtime SEO overlays | approved-only queue, allowlisted implementation registry, snapshots | bounded on purpose; unsupported items still require manual review |
+| `search-performance-evaluator` | `internal_support` | yes | writes search verdicts to `automation_evaluations` | no automatic rollback | already live, but search still relies on explicit human review for stronger corrective action |
+| `festival-discovery` | `draft_only` | yes | inserts draft festival records | draft-only write surface | intentionally stops before live publishing |
+| `pepper-discovery` | `draft_only` | yes | inserts draft pepper research rows | draft-only write surface | intentionally stops before live publishing |
+| `brand-discovery` | `draft_only` | yes | inserts draft brand rows | draft-only write surface | intentionally stops before live publishing |
+| `release-monitor` | `approval_required` | yes | creates release proposals and approval items | approval queue before public release changes | still needs stronger rollback evidence and operator certification |
+| `tutorial-generator` | `draft_only` | yes | creates tutorial drafts | draft-only write surface | intentionally stops before live publishing |
+| `content-shop-sync` | `internal_support` | yes | refreshes internal commerce/content signals | internal-only support job | not a user-facing autonomous publisher by design |
+
+### Practical Answer: Are We Fully Autonomous?
+
+Not yet, and that is the correct posture for this stage.
+
+What is true today:
+
+- the site already has a real multi-agent autonomous operating layer
+- several loops are live, scheduled, and writing production state without manual babysitting
+- search and editorial now both have evaluator lanes, so they are not one-way write pipelines anymore
+
+What is not true yet:
+
+- every bounded-live lane does not yet have a post-run evaluator
+- every live lane does not yet have equally strong rollback coverage
+- every external-send lane has not yet been production-certified end to end
+- the highest-risk actions still and should still stop behind approval or allowlist boundaries
+
+So the honest label is:
+
+- `bounded autonomous system with real guardrails and live agent loops`
+- not `fully unattended self-governing website`
+
 ## Current System Map
 
 These are the meaningful autonomous or cron-driven lanes already in the repo.
@@ -194,9 +341,11 @@ These are the meaningful autonomous or cron-driven lanes already in the repo.
 | Lane | Current trigger | Current write surface | Current guardrail | Target autonomy class |
 | --- | --- | --- | --- | --- |
 | `editorial-autopublisher` | `generate`, `reevaluate-ai-drafts`, `publish-scheduled` crons | `recipes`, `blog_posts`, `reviews`, `social_posts` | AI QA + delayed publish window | `bounded_live` |
+| `editorial-performance-evaluator` | daily cron | `automation_evaluations` | lag-aware verdicts only, no direct live mutations | `internal_support` |
 | `pinterest-distributor` / social scheduler | daily cron | `social_posts`, Buffer publish | platform queue only, provider failure handling | `external_send` |
 | `growth-loop-promoter` | daily cron | `social_posts` queue | max 2 candidates + 7-day dedupe | `bounded_live` |
 | `shop-shelf-curator` | daily pick + nightly refresh | `merch_products`, generation jobs | bounded catalog writes, featured-slot logic | `bounded_live` |
+| `shop-performance-evaluator` | daily cron | `automation_evaluations` | snapshot-backed verdicts only, no direct shelf mutations | `internal_support` |
 | `newsletter-digest-agent` | weekly digest cron + daily due-send cron | `newsletter_campaigns`, automation approvals, ConvertKit broadcast sync | digest drafting is autonomous, but sending is approval-gated and only approved due campaigns can go out | `external_send` |
 | `search-insights-analyst` | weekly cron | `search_insight_runs`, `search_recommendations` | read-only Search Console sync + queue only | `draft_only` |
 | `search-recommendation-executor` | daily cron | `search_recommendations`, `site_settings.search_runtime_optimizations` | approved-only bounded overlay registry | `bounded_live` |

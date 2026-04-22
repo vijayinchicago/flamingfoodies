@@ -9,6 +9,7 @@ export type AutomationAgentId =
   | "pinterest-distributor"
   | "growth-loop-promoter"
   | "shop-shelf-curator"
+  | "shop-performance-evaluator"
   | "newsletter-digest-agent"
   | "search-insights-analyst"
   | "search-recommendation-executor"

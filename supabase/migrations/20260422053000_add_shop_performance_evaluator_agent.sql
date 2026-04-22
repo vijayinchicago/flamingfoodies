@@ -1,0 +1,55 @@
+INSERT INTO automation_agents (
+  agent_id,
+  name,
+  category,
+  risk_class,
+  autonomy_mode,
+  is_enabled,
+  requires_manual_approval,
+  schedule_cron,
+  daily_run_cap,
+  daily_mutation_cap,
+  daily_external_send_cap,
+  max_consecutive_failures,
+  alert_after_minutes,
+  rollback_strategy,
+  config
+) VALUES (
+  'shop-performance-evaluator',
+  'Shop performance evaluator',
+  'commerce',
+  'internal_support',
+  'bounded_live',
+  true,
+  false,
+  '30 0 * * *',
+  2,
+  40,
+  null,
+  3,
+  120,
+  'none',
+  '{
+    "cron_paths": ["/api/admin/shop-performance-evaluator/cron"],
+    "schedule_windows": ["30 0 * * *"],
+    "evaluation_window_days": 14,
+    "source_agent_ids": ["shop-shelf-curator"]
+  }'::jsonb
+)
+ON CONFLICT (agent_id) DO UPDATE
+SET
+  name = EXCLUDED.name,
+  category = EXCLUDED.category,
+  risk_class = EXCLUDED.risk_class,
+  autonomy_mode = EXCLUDED.autonomy_mode,
+  is_enabled = EXCLUDED.is_enabled,
+  requires_manual_approval = EXCLUDED.requires_manual_approval,
+  schedule_cron = EXCLUDED.schedule_cron,
+  daily_run_cap = EXCLUDED.daily_run_cap,
+  daily_mutation_cap = EXCLUDED.daily_mutation_cap,
+  daily_external_send_cap = EXCLUDED.daily_external_send_cap,
+  max_consecutive_failures = EXCLUDED.max_consecutive_failures,
+  alert_after_minutes = EXCLUDED.alert_after_minutes,
+  rollback_strategy = EXCLUDED.rollback_strategy,
+  config = EXCLUDED.config,
+  updated_at = NOW();

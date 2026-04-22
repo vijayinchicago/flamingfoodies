@@ -12,6 +12,7 @@ import {
   runSearchPerformanceEvaluatorAction,
   runSearchInsightsExecutorAction,
   runSearchInsightsSyncAction,
+  runShopPerformanceEvaluatorAction,
   resumeAutomationAgentAction,
   runShopCatalogRefreshAction,
   runSocialSchedulerAction
@@ -98,6 +99,11 @@ export default async function AdminTriggerPage({
     editorialEscalate?: string;
     editorialRevert?: string;
     editorialSkipped?: string;
+    shopEvaluated?: string;
+    shopKeep?: string;
+    shopEscalate?: string;
+    shopRevert?: string;
+    shopSkipped?: string;
   };
 }) {
   const [initialJobs, settings, hasSearchConsole, controlAgents] = await Promise.all([
@@ -191,6 +197,13 @@ export default async function AdminTriggerPage({
           Editorial evaluator recorded {searchParams.editorialEvaluated} verdict(s): keep{" "}
           {searchParams.editorialKeep || "0"}, escalate {searchParams.editorialEscalate || "0"}, revert{" "}
           {searchParams.editorialRevert || "0"}, skipped existing {searchParams.editorialSkipped || "0"}.
+        </p>
+      ) : null}
+      {searchParams?.shopEvaluated ? (
+        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          Shop evaluator recorded {searchParams.shopEvaluated} verdict(s): keep{" "}
+          {searchParams.shopKeep || "0"}, escalate {searchParams.shopEscalate || "0"}, revert{" "}
+          {searchParams.shopRevert || "0"}, skipped existing {searchParams.shopSkipped || "0"}.
         </p>
       ) : null}
       <div className="panel-light p-6">
@@ -334,6 +347,19 @@ export default async function AdminTriggerPage({
           </p>
           <AdminSubmitButton
             idleLabel="Run editorial evaluator"
+            pendingLabel="Evaluating..."
+            className="mt-6 rounded-full border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-semibold text-sky-800"
+          />
+        </form>
+        <form action={runShopPerformanceEvaluatorAction} className="panel-light p-6">
+          <p className="eyebrow">Judge</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Shop evaluator</h2>
+          <p className="mt-3 text-sm text-charcoal/65">
+            Review recent shop curator runs, compare featured picks against live affiliate click
+            signals, and record keep, escalate, or revert verdicts for the shelf decisions.
+          </p>
+          <AdminSubmitButton
+            idleLabel="Run shop evaluator"
             pendingLabel="Evaluating..."
             className="mt-6 rounded-full border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-semibold text-sky-800"
           />
