@@ -23,8 +23,9 @@ const recommended = [
   "ANTHROPIC_API_KEY",
   "UNSPLASH_ACCESS_KEY",
   "PEXELS_API_KEY",
-  "BUFFER_ACCESS_TOKEN",
-  "BUFFER_PROFILE_IDS"
+  "BUFFER_API_KEY",
+  "BUFFER_CHANNEL_IDS",
+  "BUFFER_PINTEREST_BOARD_ID"
 ];
 
 function getValue(name) {
@@ -32,7 +33,7 @@ function getValue(name) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function isBufferProfileFormatValid(value) {
+function isBufferTargetFormatValid(value) {
   if (!value) {
     return true;
   }
@@ -59,12 +60,26 @@ const hasSupabasePublicKey =
 const hasSupabaseAdminKey =
   Boolean(getValue("SUPABASE_SECRET_KEY")) ||
   Boolean(getValue("SUPABASE_SERVICE_ROLE_KEY"));
-const missingRecommended = recommended.filter((name) => !getValue(name));
-const bufferProfiles = getValue("BUFFER_PROFILE_IDS");
+const hasBufferApiConfig =
+  Boolean(getValue("BUFFER_API_KEY")) || Boolean(getValue("BUFFER_ACCESS_TOKEN"));
+const hasBufferTargetConfig =
+  Boolean(getValue("BUFFER_CHANNEL_IDS")) || Boolean(getValue("BUFFER_PROFILE_IDS"));
+const missingRecommended = recommended.filter((name) => {
+  if (name === "BUFFER_API_KEY") {
+    return !hasBufferApiConfig;
+  }
 
-if (!isBufferProfileFormatValid(bufferProfiles)) {
+  if (name === "BUFFER_CHANNEL_IDS") {
+    return !hasBufferTargetConfig;
+  }
+
+  return !getValue(name);
+});
+const bufferTargets = getValue("BUFFER_CHANNEL_IDS") || getValue("BUFFER_PROFILE_IDS");
+
+if (!isBufferTargetFormatValid(bufferTargets)) {
   console.error(
-    "Invalid BUFFER_PROFILE_IDS format. Use comma-separated entries like 'instagram:123,facebook:456,all:789'."
+    "Invalid Buffer target mapping format. Use comma-separated entries like 'pinterest:abc123,facebook:def456,all:xyz789'."
   );
   process.exit(1);
 }

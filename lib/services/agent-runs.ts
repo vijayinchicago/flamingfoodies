@@ -15,7 +15,7 @@ import {
   getSearchRuntimeOptimizations,
   hasSearchConsoleConnection
 } from "@/lib/services/search-insights";
-import { parseBufferProfileIds } from "@/lib/services/social";
+import { getSocialDistributionConfig } from "@/lib/services/social";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 const ET_TIME_ZONE = "America/New_York";
@@ -189,6 +189,13 @@ const scheduleDefinitions: ScheduleDefinition[] = [
     label: "Editorial performance evaluator",
     note: "Records keep, escalate, or revert verdicts for prior editorial publish decisions.",
     hourUtc: 18,
+    minuteUtc: 45
+  },
+  {
+    agentId: "social-distribution-evaluator",
+    label: "Social distribution evaluator",
+    note: "Records keep, escalate, or revert verdicts for prior social distribution decisions.",
+    hourUtc: 20,
     minuteUtc: 45
   },
   {
@@ -517,6 +524,14 @@ function buildAgentLinks(agentId: AutonomousAgent["id"]): AgentRunLink[] {
     ];
   }
 
+  if (agentId === "social-distribution-evaluator") {
+    return [
+      { label: "Social queue", href: "/admin/social/queue" },
+      { label: "Trigger", href: "/admin/automation/trigger" },
+      { label: "Agent runs", href: "/admin/automation/runs" }
+    ];
+  }
+
   if (agentId === "pinterest-distributor") {
     return [
       { label: "Social queue", href: "/admin/social/queue" },
@@ -802,14 +817,17 @@ function withPausePrefix(agent: { isEnabled: boolean }, message: string) {
 }
 
 export async function getAgentRunsReport(): Promise<AgentRunsReport> {
-  const bufferProfiles = parseBufferProfileIds();
+  const socialDistribution = getSocialDistributionConfig();
   const now = new Date();
   const searchConsoleReady =
     flags.hasSearchConsoleAuth || (flags.hasSupabaseAdmin ? await hasSearchConsoleConnection() : false);
   const baseAgents = getAutonomousAgents({
     autoPublishEnabled: true,
-    hasBuffer: flags.hasBuffer,
-    hasPinterestProfile: bufferProfiles.has("pinterest") || bufferProfiles.has("all"),
+    hasSocialDistribution: socialDistribution.hasAnyActivePlatform,
+    hasPinterestDistribution:
+      socialDistribution.hasAnyActivePlatform &&
+      socialDistribution.hasPinterestTarget &&
+      socialDistribution.hasPinterestBoard,
     hasConvertKit: flags.hasConvertKit,
     hasSearchConsole: searchConsoleReady,
     hasAnthropic: flags.hasAnthropic,
@@ -844,7 +862,8 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
     approvalSummary,
     searchEvaluationRecords,
     editorialEvaluationRecords,
-    shopEvaluationRecords
+    shopEvaluationRecords,
+    socialEvaluationRecords
   ] = await Promise.all([
     listAutomationAgents(),
     listAutomationRuns({ since: daysAgoIso(30), limit: 1000 }),
@@ -890,7 +909,8 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
     getAutomationApprovalSummary(),
     listAutomationEvaluations({ agentId: "search-performance-evaluator", limit: 200 }),
     listAutomationEvaluations({ agentId: "editorial-performance-evaluator", limit: 200 }),
-    listAutomationEvaluations({ agentId: "shop-performance-evaluator", limit: 200 })
+    listAutomationEvaluations({ agentId: "shop-performance-evaluator", limit: 200 }),
+    listAutomationEvaluations({ agentId: "social-distribution-evaluator", limit: 200 })
   ]);
 
   const controlPlaneAvailable = controlAgents.length > 0;
@@ -906,8 +926,11 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
 
   const agents = getAutonomousAgents({
     autoPublishEnabled,
-    hasBuffer: flags.hasBuffer,
-    hasPinterestProfile: bufferProfiles.has("pinterest") || bufferProfiles.has("all"),
+    hasSocialDistribution: socialDistribution.hasAnyActivePlatform,
+    hasPinterestDistribution:
+      socialDistribution.hasAnyActivePlatform &&
+      socialDistribution.hasPinterestTarget &&
+      socialDistribution.hasPinterestBoard,
     hasConvertKit: flags.hasConvertKit,
     hasSearchConsole: searchConsoleReady,
     hasAnthropic: flags.hasAnthropic,
@@ -1035,6 +1058,25 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
       escalate: 0
     }
   );
+  const socialEvaluationSummary = socialEvaluationRecords.reduce(
+    (summary, evaluation) => {
+      summary.total += 1;
+      if (evaluation.verdict === "keep") {
+        summary.keep += 1;
+      } else if (evaluation.verdict === "revert") {
+        summary.revert += 1;
+      } else if (evaluation.verdict === "escalate") {
+        summary.escalate += 1;
+      }
+      return summary;
+    },
+    {
+      total: 0,
+      keep: 0,
+      revert: 0,
+      escalate: 0
+    }
+  );
 
   const waitingReviewBreakdown = {
     recipe: recipeRows.filter((row) => row.status === "pending_review").length,
@@ -1128,6 +1170,28 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
           { label: "Scheduled now", value: compactNumber(pinterestScheduled) },
           { label: "Failed posts", value: compactNumber(pinterestFailed) },
           { label: "Runs in 7d", value: compactNumber(ledger.runsLast7Days) }
+        ]
+      };
+    }
+
+    if (agent.id === "social-distribution-evaluator") {
+      return {
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          socialEvaluationSummary.total > 0
+            ? `The evaluator has recorded ${socialEvaluationSummary.total} verdict(s): ${socialEvaluationSummary.keep} keep, ${socialEvaluationSummary.escalate} escalate, and ${socialEvaluationSummary.revert} revert.`
+            : ledger.runsLast7Days > 0
+              ? `The evaluator ran ${ledger.runsLast7Days} time(s) in the last 7 days and is watching for mature social distribution decisions to judge.`
+              : agent.status === "live"
+                ? "This evaluator lane is configured and waiting for mature social distributor decisions to judge."
+                : agent.dependencyNote
+        ),
+        stats: [
+          { label: "Verdicts", value: compactNumber(socialEvaluationSummary.total) },
+          { label: "Keep", value: compactNumber(socialEvaluationSummary.keep) },
+          { label: "Escalate", value: compactNumber(socialEvaluationSummary.escalate) },
+          { label: "Revert", value: compactNumber(socialEvaluationSummary.revert) }
         ]
       };
     }

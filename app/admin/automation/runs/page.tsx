@@ -25,6 +25,8 @@ import {
   type AutomationStateSnapshotRecord
 } from "@/lib/services/automation-control";
 
+export const dynamic = "force-dynamic";
+
 type RunsSearchParams = {
   agent?: string;
   status?: string;

@@ -1,6 +1,8 @@
 import { AdminPage } from "@/components/admin/admin-page";
 import { getSocialQueue } from "@/lib/services/admin";
 
+export const dynamic = "force-dynamic";
+
 export default async function AdminSocialHistoryPage() {
   const socialPosts = await getSocialQueue("published");
 

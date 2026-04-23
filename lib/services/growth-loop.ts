@@ -9,7 +9,10 @@ import {
   getShareAnalytics,
   getTrafficAnalytics
 } from "@/lib/services/analytics";
-import { createSocialPostsForContent } from "@/lib/services/social";
+import {
+  createSocialPostsForContent,
+  type SocialAutomationContext
+} from "@/lib/services/social";
 import { getPirateMetrics } from "@/lib/services/telemetry";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { flags } from "@/lib/env";
@@ -112,7 +115,12 @@ export async function getGrowthLoopReport(windowDays = 30) {
   };
 }
 
-export async function queueGrowthLoopPromotions(windowDays = 30) {
+export async function queueGrowthLoopPromotions(
+  windowDays = 30,
+  options?: {
+    automationContext?: SocialAutomationContext | null;
+  }
+) {
   const report = await getGrowthLoopReport(windowDays);
 
   if (!flags.hasSupabaseAdmin) {
@@ -187,6 +195,17 @@ export async function queueGrowthLoopPromotions(windowDays = 30) {
     contentType: GrowthLoopContentType;
     reason: string;
     postsCreated: number;
+    posts: Array<{
+      id?: number;
+      platform: string;
+      contentId: number;
+      title?: string;
+      contentType: string;
+      linkUrl?: string;
+      path?: string | null;
+      scheduledAt?: string | null;
+      automationContext?: SocialAutomationContext | null;
+    }>;
   }> = [];
   const skipped: Array<{
     title: string;
@@ -212,7 +231,12 @@ export async function queueGrowthLoopPromotions(windowDays = 30) {
       contentId: candidate.content.id,
       title: candidate.content.title,
       slug: candidate.content.slug,
-      imageUrl: candidate.content.imageUrl ?? undefined
+      imageUrl: candidate.content.imageUrl ?? undefined,
+      automationContext: {
+        ...(options?.automationContext ?? {}),
+        sourceReason: candidate.reason,
+        sourcePath: candidate.path
+      }
     });
 
     queuedPosts += result.created.length;
@@ -221,7 +245,8 @@ export async function queueGrowthLoopPromotions(windowDays = 30) {
       path: candidate.content.path,
       contentType: candidate.content.type,
       reason: candidate.reason,
-      postsCreated: result.created.length
+      postsCreated: result.created.length,
+      posts: result.created
     });
   }
 

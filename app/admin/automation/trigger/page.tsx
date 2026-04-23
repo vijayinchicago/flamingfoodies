@@ -9,6 +9,7 @@ import {
   runNewsletterDigestAction,
   runPublishScheduledAction,
   runReleaseMonitorAction,
+  runSocialDistributionEvaluatorAction,
   runSearchPerformanceEvaluatorAction,
   runSearchInsightsExecutorAction,
   runSearchInsightsSyncAction,
@@ -25,7 +26,9 @@ import { flags } from "@/lib/env";
 import { listAutomationAgents } from "@/lib/services/automation-control";
 import { hasSearchConsoleConnection } from "@/lib/services/search-insights";
 import { getGenerationJobs, getSiteSettings } from "@/lib/services/admin";
-import { parseBufferProfileIds } from "@/lib/services/social";
+import { getSocialDistributionConfig } from "@/lib/services/social";
+
+export const dynamic = "force-dynamic";
 
 const triggers = [
   {
@@ -99,6 +102,11 @@ export default async function AdminTriggerPage({
     editorialEscalate?: string;
     editorialRevert?: string;
     editorialSkipped?: string;
+    socialEvaluated?: string;
+    socialKeep?: string;
+    socialEscalate?: string;
+    socialRevert?: string;
+    socialSkipped?: string;
     shopEvaluated?: string;
     shopKeep?: string;
     shopEscalate?: string;
@@ -114,12 +122,14 @@ export default async function AdminTriggerPage({
   ]);
   const autoPublishEnabled =
     settings.find((setting) => setting.key === "auto_publish_ai_content")?.value !== false;
-  const bufferProfiles = parseBufferProfileIds();
+  const socialDistribution = getSocialDistributionConfig();
   const autonomousAgents = getAutonomousAgents({
     autoPublishEnabled,
-    hasBuffer: flags.hasBuffer,
-    hasPinterestProfile:
-      bufferProfiles.has("pinterest") || bufferProfiles.has("all"),
+    hasSocialDistribution: socialDistribution.hasAnyActivePlatform,
+    hasPinterestDistribution:
+      socialDistribution.hasAnyActivePlatform &&
+      socialDistribution.hasPinterestTarget &&
+      socialDistribution.hasPinterestBoard,
     hasConvertKit: flags.hasConvertKit,
     hasSearchConsole,
     hasAnthropic: flags.hasAnthropic,
@@ -197,6 +207,13 @@ export default async function AdminTriggerPage({
           Editorial evaluator recorded {searchParams.editorialEvaluated} verdict(s): keep{" "}
           {searchParams.editorialKeep || "0"}, escalate {searchParams.editorialEscalate || "0"}, revert{" "}
           {searchParams.editorialRevert || "0"}, skipped existing {searchParams.editorialSkipped || "0"}.
+        </p>
+      ) : null}
+      {searchParams?.socialEvaluated ? (
+        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          Social evaluator recorded {searchParams.socialEvaluated} verdict(s): keep{" "}
+          {searchParams.socialKeep || "0"}, escalate {searchParams.socialEscalate || "0"}, revert{" "}
+          {searchParams.socialRevert || "0"}, skipped existing {searchParams.socialSkipped || "0"}.
         </p>
       ) : null}
       {searchParams?.shopEvaluated ? (
@@ -360,6 +377,20 @@ export default async function AdminTriggerPage({
           </p>
           <AdminSubmitButton
             idleLabel="Run shop evaluator"
+            pendingLabel="Evaluating..."
+            className="mt-6 rounded-full border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-semibold text-sky-800"
+          />
+        </form>
+        <form action={runSocialDistributionEvaluatorAction} className="panel-light p-6">
+          <p className="eyebrow">Judge</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Social evaluator</h2>
+          <p className="mt-3 text-sm text-charcoal/65">
+            Review recent social distributor runs, compare published posts against attributable
+            traffic and click signals, and record keep, escalate, or revert verdicts for the
+            social lane.
+          </p>
+          <AdminSubmitButton
+            idleLabel="Run social evaluator"
             pendingLabel="Evaluating..."
             className="mt-6 rounded-full border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-semibold text-sky-800"
           />

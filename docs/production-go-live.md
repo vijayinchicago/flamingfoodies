@@ -93,8 +93,10 @@ Recommended:
 - `ANTHROPIC_API_KEY`
 - `UNSPLASH_ACCESS_KEY`
 - `PEXELS_API_KEY`
-- `BUFFER_ACCESS_TOKEN`
-- `BUFFER_PROFILE_IDS`
+- `BUFFER_API_KEY`
+- `BUFFER_CHANNEL_IDS`
+- `BUFFER_PINTEREST_BOARD_ID`
+- `BUFFER_ORGANIZATION_ID` for local Buffer inspection scripts when needed
 - `GOOGLE_SEARCH_CONSOLE_PROPERTY=sc-domain:flamingfoodies.com`
 - `GOOGLE_SEARCH_CONSOLE_CLIENT_ID`
 - `GOOGLE_SEARCH_CONSOLE_CLIENT_SECRET`
@@ -104,6 +106,14 @@ Recommended:
 ## 6. Redeploy production
 
 After the env vars are saved, redeploy the production deployment so the app picks up the real Supabase config.
+
+For Pinterest specifically:
+
+1. Create a Buffer API key in Buffer Publish.
+2. Run `node scripts/inspect-buffer-pinterest.mjs --env-file .vercel/live.env.production` or another env file that contains `BUFFER_API_KEY`.
+3. Copy the Pinterest `channelId` into `BUFFER_CHANNEL_IDS` as `pinterest:<channel-id>`.
+4. Copy the desired board `serviceId` into `BUFFER_PINTEREST_BOARD_ID`.
+5. Redeploy again after those Buffer env values are added.
 
 ## 7. Create the first admin
 
@@ -139,6 +149,7 @@ Verify:
 - `/api/admin/search-insights` refreshes Search Console recommendations
 - `/api/admin/search-insights-executor/cron` rebuilds runtime overlays only from approved recommendations
 - `/api/admin/search-performance-evaluator/cron` records delayed keep / escalate / revert verdicts for mature search executor runs
+- `/admin/automation/agents` shows the Pinterest distributor as configured only after `BUFFER_API_KEY`, `BUFFER_CHANNEL_IDS`, and `BUFFER_PINTEREST_BOARD_ID` are all live
 
 ## 10. Nice-to-have right after cutover
 

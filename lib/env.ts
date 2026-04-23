@@ -41,6 +41,10 @@ const envSchema = z.object({
   CRON_SECRET: z.string().optional(),
   UNSPLASH_ACCESS_KEY: z.string().optional(),
   PEXELS_API_KEY: z.string().optional(),
+  BUFFER_API_KEY: z.string().optional(),
+  BUFFER_CHANNEL_IDS: z.string().optional(),
+  BUFFER_PINTEREST_BOARD_ID: z.string().optional(),
+  BUFFER_ORGANIZATION_ID: z.string().optional(),
   BUFFER_ACCESS_TOKEN: z.string().optional(),
   BUFFER_PROFILE_IDS: z.string().optional(),
   GOOGLE_CLOUD_PROJECT_ID: z.string().optional(),
@@ -84,7 +88,9 @@ export const flags = {
   hasUpstash:
     hasConfiguredEnvValue(env.KV_REST_API_URL) &&
     hasConfiguredEnvValue(env.KV_REST_API_TOKEN),
-  hasBuffer: hasConfiguredEnvValue(env.BUFFER_ACCESS_TOKEN),
+  hasBuffer:
+    hasConfiguredEnvValue(env.BUFFER_API_KEY) ||
+    hasConfiguredEnvValue(env.BUFFER_ACCESS_TOKEN),
   hasSearchConsoleConfig:
     hasConfiguredEnvValue(env.GOOGLE_SEARCH_CONSOLE_PROPERTY) &&
     hasConfiguredEnvValue(env.GOOGLE_SEARCH_CONSOLE_CLIENT_ID) &&

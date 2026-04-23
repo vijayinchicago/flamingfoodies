@@ -9,6 +9,8 @@ import {
 import { getAutomationPolicyState } from "@/lib/services/automation-control";
 import { getAgentRunsReport } from "@/lib/services/agent-runs";
 
+export const dynamic = "force-dynamic";
+
 function summaryToneClasses(tone: "neutral" | "good" | "warning") {
   if (tone === "good") {
     return "border-emerald-200 bg-emerald-50/80";

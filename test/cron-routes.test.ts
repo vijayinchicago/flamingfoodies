@@ -523,7 +523,13 @@ describe("growth loop cron route", () => {
       ],
       skipped: []
     });
-    expect(queueGrowthLoopPromotions).toHaveBeenCalledWith(30);
+    expect(queueGrowthLoopPromotions).toHaveBeenCalledWith(30, {
+      automationContext: {
+        sourceAgentId: "growth-loop-promoter",
+        sourceRunId: null,
+        sourceLane: "growth_loop"
+      }
+    });
   });
 });
 

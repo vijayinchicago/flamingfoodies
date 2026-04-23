@@ -53,6 +53,7 @@ import {
 } from "@/lib/sample-data";
 import {
   createSocialPostsForContent,
+  getConfiguredSocialPlatforms,
   publishDueScheduledSocialPosts
 } from "@/lib/services/social";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -4074,31 +4075,48 @@ export async function publishScheduledContent() {
 }
 
 export async function queueSocialScheduler() {
+  const configuredPlatforms = getConfiguredSocialPlatforms();
+
   if (!flags.hasSupabaseAdmin) {
     return {
-      queued: 2,
+      queued: 0,
       published: 0,
-      platforms: ["instagram", "pinterest", "facebook"]
+      platforms: configuredPlatforms,
+      queuedPosts: [],
+      publishedPosts: [],
+      failedPostIds: []
     };
   }
 
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
     return {
-      queued: 2,
+      queued: 0,
       published: 0,
-      platforms: ["instagram", "pinterest", "facebook"]
+      platforms: configuredPlatforms,
+      queuedPosts: [],
+      publishedPosts: [],
+      failedPostIds: []
     };
   }
 
   const { data: pendingPosts } = await supabase
     .from("social_posts")
-    .select("id, platform")
+    .select("id, platform, content_type, content_id, link_url, automation_context")
     .eq("status", "pending")
     .order("created_at", { ascending: true })
     .limit(12);
 
   let queued = 0;
+  const queuedPosts: Array<{
+    id: number;
+    platform: string;
+    contentType: string;
+    contentId: number;
+    linkUrl: string | null;
+    scheduledAt: string;
+    automationContext: unknown;
+  }> = [];
 
   for (const [index, post] of (pendingPosts ?? []).entries()) {
     const scheduledAt = new Date(Date.now() + (index + 1) * 45 * 60 * 1000).toISOString();
@@ -4112,15 +4130,35 @@ export async function queueSocialScheduler() {
 
     if (!error) {
       queued += 1;
+      queuedPosts.push({
+        id: post.id,
+        platform: post.platform,
+        contentType: post.content_type ?? "custom",
+        contentId: Number(post.content_id ?? 0),
+        linkUrl: post.link_url ?? null,
+        scheduledAt,
+        automationContext: post.automation_context ?? null
+      });
     }
   }
 
   const publishedNow = await publishDueScheduledSocialPosts();
+  const platforms = Array.from(
+    new Set([
+      ...(pendingPosts ?? []).map((post) => post.platform),
+      ...publishedNow.publishedPosts
+        .map((post) => post.platform)
+        .filter((platform): platform is string => Boolean(platform))
+    ])
+  );
 
   return {
     queued,
     published: publishedNow.published,
-    platforms: Array.from(new Set((pendingPosts ?? []).map((post) => post.platform)))
+    platforms,
+    queuedPosts,
+    publishedPosts: publishedNow.publishedPosts,
+    failedPostIds: publishedNow.failedPostIds
   };
 }
 

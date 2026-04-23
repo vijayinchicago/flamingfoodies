@@ -23,15 +23,15 @@ export type AutonomousAgent = {
 
 export function getAutonomousAgents(input: {
   autoPublishEnabled: boolean;
-  hasBuffer: boolean;
-  hasPinterestProfile: boolean;
+  hasSocialDistribution: boolean;
+  hasPinterestDistribution: boolean;
   hasConvertKit: boolean;
   hasSearchConsole?: boolean;
   hasAnthropic?: boolean;
   hasSupabaseAdmin?: boolean;
 }) {
-  const socialReady = input.hasBuffer;
-  const pinterestReady = input.hasBuffer && input.hasPinterestProfile;
+  const socialReady = input.hasSocialDistribution;
+  const pinterestReady = input.hasPinterestDistribution;
   const searchConsoleReady = Boolean(input.hasSearchConsole);
   const aiResearchReady = (input.hasAnthropic ?? true) && (input.hasSupabaseAdmin ?? true);
   const dbReady = input.hasSupabaseAdmin ?? true;
@@ -83,8 +83,8 @@ export function getAutonomousAgents(input: {
       outcome:
         "Turns each published page into a fresh traffic shot at Pinterest search and saved-pin discovery.",
       dependencyNote: pinterestReady
-        ? "Buffer is configured with a Pinterest profile mapping."
-        : "Add a Pinterest profile to `BUFFER_PROFILE_IDS` so posts can publish instead of just queueing.",
+        ? "Buffer is configured with a Pinterest channel mapping and board target."
+        : "Set `BUFFER_API_KEY`, add a `pinterest:<channel_id>` entry to `BUFFER_CHANNEL_IDS`, and set `BUFFER_PINTEREST_BOARD_ID` so Pinterest sends can run live.",
       riskClass: "external_send",
       autonomyMode: "external_send",
       writesLiveState: false,
@@ -101,13 +101,31 @@ export function getAutonomousAgents(input: {
       outcome:
         "Reuses proven winners to pull more sessions and clicks instead of relying only on brand-new content.",
       dependencyNote: socialReady
-        ? "Buffer is configured, so winner pages can move from insights into live promotion."
-        : "Connect Buffer so winner pages can be auto-promoted instead of only logged.",
+        ? "At least one live social destination is configured, so winner pages can move from insights into promotion."
+        : "Configure Buffer destination mappings so winner pages can be queued for live promotion instead of only logged.",
       riskClass: "bounded_live",
       autonomyMode: "bounded_live",
       writesLiveState: true,
       writesExternalState: false,
       isSupport: false
+    },
+    {
+      id: "social-distribution-evaluator",
+      name: "Social distribution evaluator",
+      status: socialReady && dbReady ? "live" : "needs_config",
+      cadence: "Daily evaluation pass + manual run",
+      purpose:
+        "Reviews prior social distributor runs after a delay, compares published social posts against attributable traffic and click signals, and records keep, escalate, or revert verdicts.",
+      outcome:
+        "Turns the social lane into a judged system instead of a one-way queue-and-send loop.",
+      dependencyNote: socialReady && dbReady
+        ? "Buffer, Supabase admin access, and telemetry are available, so distributed social posts can now be judged after they land."
+        : "A live social destination plus Supabase admin access are required before social verdicts can be recorded.",
+      riskClass: "internal_support",
+      autonomyMode: "bounded_live",
+      writesLiveState: false,
+      writesExternalState: false,
+      isSupport: true
     },
     {
       id: "shop-shelf-curator",

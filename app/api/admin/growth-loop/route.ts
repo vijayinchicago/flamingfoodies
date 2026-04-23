@@ -14,7 +14,14 @@ async function handleRequest(request: Request) {
     inputPayload: {
       windowDays
     },
-    execute: () => queueGrowthLoopPromotions(windowDays),
+    execute: (context) =>
+      queueGrowthLoopPromotions(windowDays, {
+        automationContext: {
+          sourceAgentId: "growth-loop-promoter",
+          sourceRunId: context?.run?.id ?? null,
+          sourceLane: "growth_loop"
+        }
+      }),
     summarize: (result) => ({
       summary: `Queued ${result.queuedPosts} growth-loop post(s) across ${result.queuedContent} content item(s).`,
       rowsPublished: result.queuedContent,

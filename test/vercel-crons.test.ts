@@ -46,7 +46,7 @@ describe("vercel cron config", () => {
     expect(legacyBrandMonitorCron).toBeUndefined();
   });
 
-  it("runs due newsletter sends on an hourly approval-gated cron", () => {
+  it("runs due newsletter sends on the configured approval-gated daily cron", () => {
     const config = readVercelConfig();
     const digestCron = config.crons?.find(
       (entry) => entry.path === "/api/admin/newsletter-digest"
@@ -56,6 +56,6 @@ describe("vercel cron config", () => {
     );
 
     expect(digestCron?.schedule).toBe("0 10 * * 0");
-    expect(sendDueCron?.schedule).toBe("5 * * * *");
+    expect(sendDueCron?.schedule).toBe("5 10 * * *");
   });
 });

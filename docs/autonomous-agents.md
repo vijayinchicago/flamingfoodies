@@ -26,7 +26,7 @@ Dependencies:
 
 What it does:
 - creates Pinterest social posts for published recipes, blog posts, and reviews
-- sends them through Buffer using the Pinterest profile mapping
+- sends them through Buffer using the Pinterest channel mapping and board target
 - gives every new page a second discovery path outside Google
 
 Why it matters:
@@ -34,8 +34,15 @@ Why it matters:
 - strong pins can keep sending traffic long after the publish day
 
 Dependencies:
-- `BUFFER_ACCESS_TOKEN`
-- `BUFFER_PROFILE_IDS` with a `pinterest:<profile_id>` entry or `all:<profile_id>`
+- `BUFFER_API_KEY`
+- `BUFFER_CHANNEL_IDS` with a `pinterest:<channel_id>` entry
+- `BUFFER_PINTEREST_BOARD_ID`
+
+Setup note:
+- the repo still accepts the legacy `BUFFER_ACCESS_TOKEN` and `BUFFER_PROFILE_IDS` envs as a fallback
+- new live Pinterest setup should use the current Buffer GraphQL API flow instead
+- use `node scripts/inspect-buffer-pinterest.mjs --env-file <path-to-env-file>` to list Buffer channels and discover the Pinterest board service id before saving the final env values
+- the step-by-step operator runbook lives in [docs/pinterest-buffer-setup.md](/Users/vijaysingh/apps/flamingfoodies/docs/pinterest-buffer-setup.md)
 
 ## 3. Growth Loop Promoter
 

@@ -1,14 +1,24 @@
 import {
   createCustomSocialPostAction,
+  publishPinterestBacklogNowAction,
   updateSocialPostStateAction
 } from "@/lib/actions/admin-social";
+import { AdminSubmitButton } from "@/components/admin/admin-submit-button";
 import { AdminPage } from "@/components/admin/admin-page";
 import { getSocialQueue } from "@/lib/services/admin";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminSocialQueuePage({
   searchParams
 }: {
-  searchParams?: { created?: string; updated?: string; error?: string };
+  searchParams?: {
+    created?: string;
+    updated?: string;
+    error?: string;
+    bulkPublished?: string;
+    bulkFailed?: string;
+  };
 }) {
   const socialPosts = await getSocialQueue();
 
@@ -77,9 +87,26 @@ export default async function AdminSocialQueuePage({
         {searchParams?.updated ? (
           <p className="text-sm text-emerald-700">Social queue updated.</p>
         ) : null}
+        {searchParams?.bulkPublished ? (
+          <p className="text-sm text-emerald-700">
+            Published {searchParams.bulkPublished} Pinterest backlog post(s). Failed:{" "}
+            {searchParams.bulkFailed || "0"}.
+          </p>
+        ) : null}
         <button className="rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 font-semibold text-white">
           Save social post
         </button>
+      </form>
+      <form action={publishPinterestBacklogNowAction} className="panel-light p-6">
+        <h2 className="font-display text-4xl text-charcoal">Pinterest backlog</h2>
+        <p className="mt-3 text-sm leading-7 text-charcoal/70">
+          Publish up to 25 pending or scheduled Pinterest posts immediately through Buffer.
+        </p>
+        <AdminSubmitButton
+          idleLabel="Publish Pinterest backlog now"
+          pendingLabel="Publishing Pinterest backlog..."
+          className="mt-6 rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white"
+        />
       </form>
       <div className="grid gap-4">
         {socialPosts.map((post) => (
@@ -116,7 +143,7 @@ export default async function AdminSocialQueuePage({
                   value="publish"
                   className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
                 >
-                  Mark published
+                  Publish now
                 </button>
               ) : null}
               {post.status !== "pending" ? (

@@ -6,8 +6,8 @@ describe("autonomous agents", () => {
   it("marks the full autonomous stack live when publishing and distribution are configured", () => {
     const agents = getAutonomousAgents({
       autoPublishEnabled: true,
-      hasBuffer: true,
-      hasPinterestProfile: true,
+      hasSocialDistribution: true,
+      hasPinterestDistribution: true,
       hasConvertKit: true,
       hasSearchConsole: true,
       hasAnthropic: true,
@@ -21,8 +21,8 @@ describe("autonomous agents", () => {
   it("flags the right missing dependencies when config is incomplete", () => {
     const agents = getAutonomousAgents({
       autoPublishEnabled: false,
-      hasBuffer: false,
-      hasPinterestProfile: false,
+      hasSocialDistribution: false,
+      hasPinterestDistribution: false,
       hasConvertKit: false,
       hasSearchConsole: false,
       hasAnthropic: false,

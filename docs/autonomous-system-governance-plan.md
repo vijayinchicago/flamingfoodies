@@ -23,7 +23,7 @@ As of April 22, 2026:
 - The first live editorial evaluator verdict is also seeded in production: one intentionally generated and published blog post was judged by `editorial-performance-evaluator`, which recorded a lag-aware `escalate` row against the publish run.
 - The first live shop evaluator verdict is seeded in production: `shop-performance-evaluator` judged a prior `shop-shelf-curator` shelf refresh from snapshot-backed run evidence and recorded a lag-aware verdict against that run.
 - Phase 5 is started: snapshot-backed rollback is now available for `search-recommendation-executor` and `shop-shelf-curator` from the admin run ledger.
-- Evaluator loops are still early. Search, editorial, and shop now have automatic evaluator lanes, while social still needs its own post-run judgment lane.
+- Evaluator loops are still early. Search, editorial, shop, and social now have evaluator lanes in the repo, while the social lane still needs deployment and its first live seed verdicts before this phase can be called fully shipped.
 
 ## Concrete Next Execution Plan
 
@@ -98,7 +98,7 @@ Goal:
 
 Scope:
 
-- verify production Buffer profile mapping and a manual social distribution pass
+- verify production Buffer API key, Pinterest channel mapping, and board target, then run a manual social distribution pass
 - verify production ConvertKit configuration and a full newsletter approval-to-send pass
 - confirm run-ledger output, cap usage, and pause behavior for both external-send lanes
 - document the operator procedure for pausing, replaying, or rejecting sends

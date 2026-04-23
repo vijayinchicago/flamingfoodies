@@ -43,6 +43,16 @@ async function writeAuditLog(
   });
 }
 
+type PublishedSocialPostSummary = {
+  id: number;
+  platform?: string;
+  contentType?: string;
+  contentId?: number;
+  linkUrl?: string | null;
+  platformPostId: string;
+  publishedAt: string;
+};
+
 function parseHashtags(value?: string) {
   return (value || "")
     .split(",")
@@ -187,4 +197,71 @@ export async function updateSocialPostStateAction(formData: FormData) {
   revalidatePath("/admin/social/queue");
   revalidatePath("/admin/social/history");
   redirect("/admin/social/queue?updated=1");
+}
+
+export async function publishPinterestBacklogNowAction() {
+  const admin = await requireAdmin();
+  const supabase = createSupabaseAdminClient();
+
+  if (!supabase) {
+    redirect("/admin/social/queue?error=Supabase%20admin%20access%20is%20not%20available");
+  }
+
+  const { data: backlogRows, error } = await supabase
+    .from("social_posts")
+    .select("id")
+    .eq("platform", "pinterest")
+    .in("status", ["pending", "scheduled"])
+    .order("created_at", { ascending: true })
+    .limit(25);
+
+  if (error) {
+    redirect(`/admin/social/queue?error=${encodeURIComponent(error.message)}`);
+  }
+
+  const publishedPosts: PublishedSocialPostSummary[] = [];
+  const failedPostIds: number[] = [];
+  let firstErrorMessage: string | null = null;
+
+  for (const row of backlogRows ?? []) {
+    try {
+      const published = await publishSocialPost(row.id);
+      publishedPosts.push({
+        id: published.id,
+        platform: published.platform,
+        contentType: published.contentType,
+        contentId: published.contentId,
+        linkUrl: published.linkUrl,
+        platformPostId: published.platformPostId,
+        publishedAt: published.publishedAt
+      });
+    } catch (publishError) {
+      failedPostIds.push(row.id);
+      if (!firstErrorMessage) {
+        firstErrorMessage =
+          publishError instanceof Error ? publishError.message : "Pinterest publish failed";
+      }
+    }
+  }
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "publish_pinterest_backlog",
+    targetType: "social_post",
+    targetId: "pinterest_backlog",
+    metadata: {
+      attempted: backlogRows?.length ?? 0,
+      published: publishedPosts.length,
+      failedPostIds,
+      firstErrorMessage
+    }
+  });
+
+  revalidatePath("/admin/social/queue");
+  revalidatePath("/admin/social/history");
+  redirect(
+    `/admin/social/queue?bulkPublished=${publishedPosts.length}&bulkFailed=${failedPostIds.length}${
+      firstErrorMessage ? `&error=${encodeURIComponent(firstErrorMessage)}` : ""
+    }`
+  );
 }

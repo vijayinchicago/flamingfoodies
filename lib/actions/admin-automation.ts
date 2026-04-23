@@ -53,6 +53,7 @@ import {
   getShopShelfSnapshot,
   runShopCatalogRefresh
 } from "@/lib/services/shop-automation";
+import { runSocialDistributionEvaluator } from "@/lib/services/social-distribution-evaluator";
 import { runShopPerformanceEvaluator } from "@/lib/services/shop-performance-evaluator";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -82,6 +83,7 @@ const automationAgentActionSchema = z.object({
   agentId: z.enum([
     "editorial-autopublisher",
     "editorial-performance-evaluator",
+    "social-distribution-evaluator",
     "pinterest-distributor",
     "growth-loop-promoter",
     "shop-shelf-curator",
@@ -118,6 +120,12 @@ function revalidateEditorialEvaluationSurfaces() {
 }
 
 function revalidateShopEvaluationSurfaces() {
+  revalidatePath("/admin/automation/agents");
+  revalidatePath("/admin/automation/runs");
+  revalidatePath("/admin/automation/trigger");
+}
+
+function revalidateSocialEvaluationSurfaces() {
   revalidatePath("/admin/automation/agents");
   revalidatePath("/admin/automation/runs");
   revalidatePath("/admin/automation/trigger");
@@ -458,6 +466,60 @@ export async function runShopPerformanceEvaluatorAction() {
   );
 }
 
+export async function runSocialDistributionEvaluatorAction() {
+  const admin = await requireAdmin();
+  const task = await runManualAutomationTask({
+    agentId: "social-distribution-evaluator",
+    adminId: admin.id,
+    triggerReference: "server_action:social_distribution_evaluator",
+    inputPayload: {
+      evaluationWindowDays: 7,
+      allowImmatureRuns: true
+    },
+    execute: async () => {
+      const result = await runSocialDistributionEvaluator({
+        evaluationWindowDays: 7,
+        allowImmatureRuns: true
+      });
+      if (!result.ok) {
+        throw new Error(result.skippedReason);
+      }
+
+      return result;
+    },
+    onSuccess: () => {
+      revalidateSocialEvaluationSurfaces();
+      revalidatePath(AUTOMATION_AGENTS_PATH);
+      revalidatePath(AUTOMATION_TRIGGER_PATH);
+      revalidatePath(AUTOMATION_RUNS_PATH);
+    },
+    summarize: (result) => ({
+      summary:
+        `Recorded ${result.evaluatedPostCount} social evaluation verdict(s): ` +
+        `${result.keepCount} keep, ${result.escalateCount} escalate, ${result.revertCount} revert.`,
+      rowsCreated: result.evaluatedPostCount,
+      rowsUpdated: result.skippedExistingCount
+    })
+  });
+
+  const result = task.ok
+    ? task.result
+    : redirect(`${AUTOMATION_TRIGGER_PATH}?error=${encodeURIComponent(task.errorMessage)}`);
+  const supabase = createSupabaseAdminClient();
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "run_social_distribution_evaluator",
+    targetType: "social_distribution",
+    targetId: "manual_evaluator",
+    metadata: result
+  });
+
+  redirect(
+    `${AUTOMATION_TRIGGER_PATH}?socialEvaluated=1&socialKeep=${result.keepCount}&socialEscalate=${result.escalateCount}&socialRevert=${result.revertCount}&socialSkipped=${result.skippedExistingCount}`
+  );
+}
+
 export async function runReevaluatePendingAiDraftsAction() {
   const admin = await requireAdmin();
   const task = await runManualAutomationTask({
@@ -530,6 +592,7 @@ export async function runSocialSchedulerAction() {
       revalidatePath("/admin/social/history");
       revalidatePath(AUTOMATION_TRIGGER_PATH);
       revalidatePath("/admin/automation/agents");
+      revalidatePath(AUTOMATION_RUNS_PATH);
     },
     summarize: (result) => ({
       summary: `Queued ${result.queued} social post(s) and published ${result.published}.`,
