@@ -16,7 +16,7 @@ export default function AboutPage() {
   return (
     <TrustPageShell
       eyebrow="About"
-      title="FlamingFoodies is built for people who want flavor before flexing."
+      title="Flavor-first spicy food for real kitchens and mixed tables."
       description="FlamingFoodies covers spicy recipes, hot sauce reviews, shopping guides, and practical kitchen advice for people who care about what is worth cooking, pouring, and buying."
       lastUpdated={LAST_UPDATED}
     >
