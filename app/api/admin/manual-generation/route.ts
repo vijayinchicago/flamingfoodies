@@ -8,6 +8,7 @@ import { runShopPickAutomation } from "@/lib/services/shop-automation";
 import { jsonResponse } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 const requestSchema = z.object({
   type: z.enum(["recipe", "blog_post", "review", "merch_product"]),

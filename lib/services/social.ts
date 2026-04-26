@@ -15,6 +15,28 @@ export type SocialAutomationContext = {
   sourcePath?: string | null;
 };
 
+type PostgrestErrorLike = {
+  message?: string;
+} | null | undefined;
+type SocialPostInsertResultRow = {
+  id: number;
+  platform: string;
+  content_id: number;
+  content_type: string;
+  link_url: string;
+  scheduled_at: string | null;
+  automation_context?: unknown;
+};
+
+function getPostgrestErrorMessage(error: PostgrestErrorLike) {
+  return typeof error?.message === "string" ? error.message : "";
+}
+
+export function isMissingSocialAutomationContextError(error: PostgrestErrorLike) {
+  const message = getPostgrestErrorMessage(error);
+  return message.includes("automation_context") && message.includes("social_posts");
+}
+
 function normalizeString(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
@@ -554,10 +576,34 @@ export async function createSocialPostsForContent({
     automation_context: normalizedAutomationContext
   }));
 
-  const { data, error } = await supabase
-    .from("social_posts")
-    .insert(rows)
-    .select("id, platform, content_id, content_type, link_url, scheduled_at, automation_context");
+  const insertRows = async (
+    includeAutomationContext: boolean
+  ): Promise<{
+    data: SocialPostInsertResultRow[] | null;
+    error: PostgrestErrorLike;
+  }> => {
+    const rowsToInsert = includeAutomationContext
+      ? rows
+      : rows.map(({ automation_context: _automationContext, ...legacyRow }) => legacyRow);
+    const selectColumns: string = includeAutomationContext
+      ? "id, platform, content_id, content_type, link_url, scheduled_at, automation_context"
+      : "id, platform, content_id, content_type, link_url, scheduled_at";
+
+    return (await supabase
+      .from("social_posts")
+      .insert(rowsToInsert)
+      .select(selectColumns)) as unknown as {
+      data: SocialPostInsertResultRow[] | null;
+      error: PostgrestErrorLike;
+    };
+  };
+
+  let insertResult = await insertRows(true);
+  if (insertResult.error && isMissingSocialAutomationContextError(insertResult.error)) {
+    insertResult = await insertRows(false);
+  }
+
+  const { data, error } = insertResult;
 
   if (error) {
     throw new Error(error.message);
@@ -574,7 +620,7 @@ export async function createSocialPostsForContent({
         linkUrl: row.link_url,
         path: extractInternalPathFromUrl(row.link_url),
         scheduledAt: row.scheduled_at ?? null,
-        automationContext: parseSocialAutomationContext(row.automation_context)
+        automationContext: parseSocialAutomationContext(row.automation_context ?? null)
       })) ?? created
   };
 }

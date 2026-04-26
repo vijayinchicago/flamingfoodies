@@ -54,6 +54,7 @@ import {
 import {
   createSocialPostsForContent,
   getConfiguredSocialPlatforms,
+  isMissingSocialAutomationContextError,
   publishDueScheduledSocialPosts
 } from "@/lib/services/social";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -157,6 +158,44 @@ const cuisineAliasMap: Record<string, CuisineType> = {
   nigeria: "nigerian",
   malaysia: "malaysian"
 };
+
+type PostgrestErrorLike = {
+  message?: string;
+} | null | undefined;
+type GenerationHistoryRow = {
+  job_type: string | null;
+  status: string | null;
+  parameters: unknown;
+  queued_at?: string | null;
+  created_at?: string | null;
+};
+type GeneratedContentInsertRow = {
+  id: number;
+  slug: string;
+  title: string;
+  image_url: string | null;
+};
+type PendingSocialPostRow = {
+  id: number;
+  platform: string;
+  content_type: string | null;
+  content_id: number | null;
+  link_url: string | null;
+  automation_context?: unknown;
+};
+
+function getPostgrestErrorMessage(error: PostgrestErrorLike) {
+  return typeof error?.message === "string" ? error.message : "";
+}
+
+function isMissingGenerationQueuedAtError(error: PostgrestErrorLike) {
+  const message = getPostgrestErrorMessage(error);
+  return message.includes("queued_at") && message.includes("content_generation_jobs");
+}
+
+function isInvalidCuisineEnumError(error: PostgrestErrorLike) {
+  return getPostgrestErrorMessage(error).includes("invalid input value for enum cuisine_type");
+}
 
 const recipeInstructionSchema = z.object({
   step: z.coerce.number().int().positive(),
@@ -1820,13 +1859,29 @@ function buildSampleGenerationHistory() {
 }
 
 async function listRecentGenerationHistory(supabase: AdminClient) {
-  const { data } = await supabase
+  let timestampColumn: "queued_at" | "created_at" = "queued_at";
+  let result = (await supabase
     .from("content_generation_jobs")
-    .select("job_type, status, created_at, parameters")
-    .order("created_at", { ascending: false })
-    .limit(180);
+    .select("job_type, status, queued_at, parameters")
+    .order("queued_at", { ascending: false })
+    .limit(180)) as unknown as {
+    data: GenerationHistoryRow[] | null;
+    error: PostgrestErrorLike;
+  };
 
-  return (data ?? [])
+  if (result.error && isMissingGenerationQueuedAtError(result.error)) {
+    timestampColumn = "created_at";
+    result = (await supabase
+      .from("content_generation_jobs")
+      .select("job_type, status, created_at, parameters")
+      .order("created_at", { ascending: false })
+      .limit(180)) as unknown as {
+      data: GenerationHistoryRow[] | null;
+      error: PostgrestErrorLike;
+    };
+  }
+
+  return ((result.error ? [] : result.data) ?? [])
     .flatMap((row) => {
       if (row.status === "failed") {
         return [];
@@ -1871,7 +1926,9 @@ async function listRecentGenerationHistory(supabase: AdminClient) {
         {
           type,
           cuisine,
-          createdAt: row.created_at || new Date(0).toISOString(),
+          createdAt:
+            (typeof row[timestampColumn] === "string" ? row[timestampColumn] : null) ||
+            new Date(0).toISOString(),
           profile,
           heatLevel,
           recipeLane,
@@ -2948,6 +3005,66 @@ function getScheduledHeatLevels(parameters: unknown) {
   return normalized.length ? normalized : [...HEAT_LEVELS];
 }
 
+function buildLegacyCuisineCompatibleValues(
+  table: "recipes" | "blog_posts" | "reviews",
+  values: Record<string, any>
+) {
+  if (table === "reviews") {
+    if (values.cuisine_origin === "other") {
+      return null;
+    }
+
+    return {
+      ...values,
+      cuisine_origin: "other"
+    };
+  }
+
+  if (values.cuisine_type === "other") {
+    return null;
+  }
+
+  return {
+    ...values,
+    cuisine_type: "other"
+  };
+}
+
+async function insertGeneratedRowWithCuisineFallback(
+  supabase: AdminClient,
+  table: "recipes" | "blog_posts" | "reviews",
+  values: Record<string, any>,
+  selectColumns: string
+) {
+  let result = (await supabase
+    .from(table)
+    .insert(values)
+    .select(selectColumns)
+    .single()) as unknown as {
+    data: GeneratedContentInsertRow | null;
+    error: PostgrestErrorLike;
+  };
+
+  if (!result.error || !isInvalidCuisineEnumError(result.error)) {
+    return result;
+  }
+
+  const legacyCompatibleValues = buildLegacyCuisineCompatibleValues(table, values);
+  if (!legacyCompatibleValues) {
+    return result;
+  }
+
+  result = (await supabase
+    .from(table)
+    .insert(legacyCompatibleValues)
+    .select(selectColumns)
+    .single()) as unknown as {
+    data: GeneratedContentInsertRow | null;
+    error: PostgrestErrorLike;
+  };
+  return result;
+}
+
 async function insertGeneratedContent(
   supabase: AdminClient,
   anthropic: Anthropic | null,
@@ -2991,19 +3108,21 @@ async function insertGeneratedContent(
     const qaState = buildGeneratedRecipeQaState(payload, agentReview, heroAsset);
     const { automated_publish_eligible: automatedPublishEligible, ...persistedQaState } = qaState;
     const shouldScheduleAutoPublish = Boolean(autoPublish && automatedPublishEligible && publishAt);
-    const { data, error } = await supabase
-      .from("recipes")
-      .insert({
+    const { data, error } = await insertGeneratedRowWithCuisineFallback(
+      supabase,
+      "recipes",
+      {
         ...payload,
         ...persistedQaState,
         slug,
         status: shouldScheduleAutoPublish ? "draft" : "pending_review",
         published_at: shouldScheduleAutoPublish ? publishAt : null
-      })
-      .select("id, slug, title, image_url")
-      .single();
+      },
+      "id, slug, title, image_url"
+    );
 
     if (error) throw new Error(error.message);
+    if (!data) throw new Error("Recipe generation insert returned no row.");
 
     if (shouldScheduleAutoPublish) {
       await createSocialPostsForContent({
@@ -3053,18 +3172,20 @@ async function insertGeneratedContent(
     const shouldScheduleAutoPublish = Boolean(
       autoPublish && qaState.automated_publish_eligible && publishAt
     );
-    const { data, error } = await supabase
-      .from("blog_posts")
-      .insert({
+    const { data, error } = await insertGeneratedRowWithCuisineFallback(
+      supabase,
+      "blog_posts",
+      {
         ...payload,
         slug,
         status: shouldScheduleAutoPublish ? "draft" : "pending_review",
         published_at: shouldScheduleAutoPublish ? publishAt : null
-      })
-      .select("id, slug, title, image_url")
-      .single();
+      },
+      "id, slug, title, image_url"
+    );
 
     if (error) throw new Error(error.message);
+    if (!data) throw new Error("Blog generation insert returned no row.");
 
     if (shouldScheduleAutoPublish) {
       await createSocialPostsForContent({
@@ -3116,19 +3237,21 @@ async function insertGeneratedContent(
     autoPublish && qaState.automated_publish_eligible && publishAt
   );
   const { automated_publish_eligible: _reviewAutoPublishEligible, ...persistedQaState } = qaState;
-  const { data, error } = await supabase
-    .from("reviews")
-    .insert({
+  const { data, error } = await insertGeneratedRowWithCuisineFallback(
+    supabase,
+    "reviews",
+    {
       ...payload,
       ...persistedQaState,
       slug,
       status: shouldScheduleAutoPublish ? "draft" : "pending_review",
       published_at: shouldScheduleAutoPublish ? publishAt : null
-    })
-    .select("id, slug, title, image_url")
-    .single();
+    },
+    "id, slug, title, image_url"
+  );
 
   if (error) throw new Error(error.message);
+  if (!data) throw new Error("Review generation insert returned no row.");
 
   if (shouldScheduleAutoPublish) {
     await createSocialPostsForContent({
@@ -4100,12 +4223,35 @@ export async function queueSocialScheduler() {
     };
   }
 
-  const { data: pendingPosts } = await supabase
-    .from("social_posts")
-    .select("id, platform, content_type, content_id, link_url, automation_context")
-    .eq("status", "pending")
-    .order("created_at", { ascending: true })
-    .limit(12);
+  const loadPendingPosts = async (includeAutomationContext: boolean) => {
+    const selectColumns: string = includeAutomationContext
+      ? "id, platform, content_type, content_id, link_url, automation_context"
+      : "id, platform, content_type, content_id, link_url";
+
+    return (await supabase
+      .from("social_posts")
+      .select(selectColumns)
+      .eq("status", "pending")
+      .order("created_at", { ascending: true })
+      .limit(12)) as unknown as {
+      data: PendingSocialPostRow[] | null;
+      error: PostgrestErrorLike;
+    };
+  };
+
+  let pendingPostsResult = await loadPendingPosts(true);
+  if (
+    pendingPostsResult.error &&
+    isMissingSocialAutomationContextError(pendingPostsResult.error)
+  ) {
+    pendingPostsResult = await loadPendingPosts(false);
+  }
+
+  if (pendingPostsResult.error) {
+    throw new Error(pendingPostsResult.error.message);
+  }
+
+  const pendingPosts = pendingPostsResult.data ?? [];
 
   let queued = 0;
   const queuedPosts: Array<{

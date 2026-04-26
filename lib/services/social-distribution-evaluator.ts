@@ -2,6 +2,7 @@ import { classifyAcquisitionSource, isSocialSource } from "@/lib/pirate-metrics"
 import { flags } from "@/lib/env";
 import {
   extractInternalPathFromUrl,
+  isMissingSocialAutomationContextError,
   parseSocialAutomationContext,
   type SocialAutomationContext
 } from "@/lib/services/social";
@@ -10,6 +11,10 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
 export const DEFAULT_SOCIAL_EVALUATION_WINDOW_DAYS = 7;
 const DEFAULT_SOCIAL_EVALUATION_MAX_RUNS = 10;
+type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
+type PostgrestErrorLike = {
+  message?: string;
+} | null | undefined;
 
 type AutomationEvaluationLookupRow = {
   source_run_id: number;
@@ -32,7 +37,7 @@ type SocialPostRow = {
   content_id: number | null;
   link_url: string | null;
   platform_post_id: string | null;
-  automation_context: unknown;
+  automation_context?: unknown;
 };
 
 type SocialRunCandidate = {
@@ -116,6 +121,32 @@ function normalizeString(value: unknown) {
 function normalizePositiveNumber(value: unknown) {
   const parsed = Number(value);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+async function loadCurrentSocialPostRows(supabase: AdminClient, candidateIds: number[]) {
+  let result = (await supabase
+    .from("social_posts")
+    .select(
+      "id, status, published_at, engagement, platform, content_type, content_id, link_url, platform_post_id, automation_context"
+    )
+    .in("id", candidateIds)) as unknown as {
+    data: SocialPostRow[] | null;
+    error: PostgrestErrorLike;
+  };
+
+  if (result.error && isMissingSocialAutomationContextError(result.error)) {
+    result = (await supabase
+      .from("social_posts")
+      .select(
+        "id, status, published_at, engagement, platform, content_type, content_id, link_url, platform_post_id"
+      )
+      .in("id", candidateIds)) as unknown as {
+      data: SocialPostRow[] | null;
+      error: PostgrestErrorLike;
+    };
+  }
+
+  return result;
 }
 
 function formatNumber(value: number) {
@@ -473,12 +504,7 @@ export async function runSocialDistributionEvaluator(options?: {
     )];
 
     const [currentRowsResult, telemetryResult, affiliateResult, contentTitles] = await Promise.all([
-      supabase
-        .from("social_posts")
-        .select(
-          "id, status, published_at, engagement, platform, content_type, content_id, link_url, platform_post_id, automation_context"
-        )
-        .in("id", candidateIds),
+      loadCurrentSocialPostRows(supabase, candidateIds),
       candidatePaths.length
         ? supabase
             .from("telemetry_events")
