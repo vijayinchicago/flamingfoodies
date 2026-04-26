@@ -6,6 +6,7 @@ import {
   getHotSauceIntentLabel,
   getHotSauceSkipIfCopy
 } from "@/lib/hot-sauces";
+import { formatReviewCategoryLabel } from "@/lib/review-browse";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import type { Review } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
@@ -65,7 +66,7 @@ export function ReviewCard({ review }: { review: Review }) {
             </span>
           ) : null}
           <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-sm text-cream/70">
-            {review.category}
+            {formatReviewCategoryLabel(review.category)}
           </span>
           <span className="text-xs text-cream/48">{formatDate(review.publishedAt)}</span>
         </div>

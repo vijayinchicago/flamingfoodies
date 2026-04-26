@@ -17,7 +17,7 @@ export function LoginPanel() {
     const supabase = createSupabaseBrowserClient();
 
     if (!supabase) {
-      setMessage("Supabase credentials are not configured yet. Add env vars to enable auth.");
+      setMessage("Sign-in is temporarily unavailable right now. Please try again in a bit.");
       return;
     }
 
@@ -34,7 +34,7 @@ export function LoginPanel() {
     setMessage(
       error
         ? error.message
-        : "Check your inbox for a FlamingFoodies sign-in link. Email branding is still being polished."
+        : "Check your inbox for a FlamingFoodies sign-in link."
     );
   }
 
@@ -44,7 +44,7 @@ export function LoginPanel() {
       || (provider === "github" && !githubEnabled)
     ) {
       setMessage(
-        `${provider === "google" ? "Google" : "GitHub"} login is not enabled for FlamingFoodies yet. Use the magic link below for now.`
+        `${provider === "google" ? "Google" : "GitHub"} login is not ready yet. Use the magic link below for now.`
       );
       return;
     }
@@ -52,7 +52,7 @@ export function LoginPanel() {
     const supabase = createSupabaseBrowserClient();
 
     if (!supabase) {
-      setMessage("Supabase credentials are not configured yet. Add env vars to enable auth.");
+      setMessage("Sign-in is temporarily unavailable right now. Please try again in a bit.");
       return;
     }
 
@@ -70,7 +70,7 @@ export function LoginPanel() {
     if (error) {
       setMessage(
         error.message.includes("Unsupported provider")
-          ? `${provider === "google" ? "Google" : "GitHub"} login is not enabled in Supabase yet. Turn it on in Authentication -> Providers before exposing the button.`
+          ? `${provider === "google" ? "Google" : "GitHub"} login is not ready yet. Use the magic link while we finish that setup.`
           : error.message
       );
     }
@@ -79,10 +79,10 @@ export function LoginPanel() {
   return (
     <div className="panel-light max-w-xl p-8">
       <p className="eyebrow">Members</p>
-      <h1 className="mt-3 font-display text-5xl text-charcoal">Log in to turn up the heat</h1>
+      <h1 className="mt-3 font-display text-5xl text-charcoal">Log in to save recipes and picks</h1>
       <p className="mt-4 text-sm leading-7 text-charcoal/70">
-        Use a sign-in link for now. Social login buttons only appear after they are fully enabled
-        in Supabase, so we do not send you into a broken auth flow.
+        Use a sign-in link for now. Social buttons only appear once they are fully ready, so you
+        do not get sent into a dead-end auth flow.
       </p>
       {hasOAuthProvider ? (
         <div className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -107,8 +107,8 @@ export function LoginPanel() {
         </div>
       ) : (
         <div className="mt-8 rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.03] p-4 text-sm leading-7 text-charcoal/70">
-          Social login is hidden until the provider is fully configured in Supabase. Magic link
-          sign-in is the active production path right now.
+          Social login stays hidden until each provider is fully configured. Magic link sign-in is
+          the working path right now.
         </div>
       )}
       <form onSubmit={signInWithEmail} className="mt-6 space-y-4">
@@ -117,7 +117,7 @@ export function LoginPanel() {
           required
           value={email}
           onChange={(event) => setEmail(event.target.value)}
-          placeholder="you@flameclub.com"
+          placeholder="you@example.com"
           className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
         />
         <button

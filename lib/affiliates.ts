@@ -67,7 +67,14 @@ export interface ResolvedAffiliateLink extends AffiliateLinkEntry {
 
 const AMAZON_TAG = env.NEXT_PUBLIC_AMAZON_TAG || "flamingfoodies-20";
 const SKIMLINKS_ENABLED = Boolean(env.NEXT_PUBLIC_SKIMLINKS_ID);
-const AMAZON_ONLY_MODE = true;
+const AMAZON_ONLY_MODE = false;
+const AFFILIATE_PARTNER_LABELS: Record<string, string> = {
+  amazon: "Amazon",
+  mike_hot_sauce: "Mike's Hot Honey",
+  heatonist: "Heatonist",
+  fuego_box: "Fuego Box",
+  pepper_joe: "Pepper Joe's"
+};
 
 export const AFFILIATE_DISCLOSURE_SUMMARY =
   "Some links on FlamingFoodies point to Amazon. If you buy through them, FlamingFoodies may earn a commission at no extra cost to you.";
@@ -113,6 +120,29 @@ export function isExactAmazonProductDestination(
   entry: AffiliateLinkEntry | AffiliateLinkDefinition
 ) {
   return getAffiliateDestinationKind(entry) === "amazon_product";
+}
+
+export function getAffiliatePartnerLabel(partner: string) {
+  return (
+    AFFILIATE_PARTNER_LABELS[partner]
+    || partner.replace(/[_-]+/g, " ").replace(/\b\w/g, (character) => character.toUpperCase())
+  );
+}
+
+export function getAffiliateCtaLabel(
+  entry: AffiliateLinkEntry | AffiliateLinkDefinition | ResolvedAffiliateLink
+) {
+  const destinationKind = getAffiliateDestinationKind(entry);
+
+  if (destinationKind === "amazon_product") {
+    return "View on Amazon";
+  }
+
+  if (destinationKind === "amazon_search") {
+    return "Search on Amazon";
+  }
+
+  return `View at ${getAffiliatePartnerLabel(entry.partner)}`;
 }
 
 function buildAffiliateRedirectHref(

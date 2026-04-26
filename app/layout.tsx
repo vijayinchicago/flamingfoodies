@@ -6,6 +6,7 @@ import "@/app/globals.css";
 import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { sanitizeAdsenseClientId } from "@/lib/ads";
 import { env } from "@/lib/env";
 import { buildMetadata } from "@/lib/seo";
 
@@ -21,15 +22,17 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const adsenseClientId = sanitizeAdsenseClientId(env.NEXT_PUBLIC_ADSENSE_ID);
+
   return (
     <html lang="en">
       <head>
-        {env.NEXT_PUBLIC_ADSENSE_ID ? (
+        {adsenseClientId ? (
           <>
-            <meta name="google-adsense-account" content={env.NEXT_PUBLIC_ADSENSE_ID} />
+            <meta name="google-adsense-account" content={adsenseClientId} />
             <script
               async
-              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${env.NEXT_PUBLIC_ADSENSE_ID}`}
+              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseClientId}`}
               crossOrigin="anonymous"
             />
           </>

@@ -13,6 +13,11 @@ import {
   getHotSauceGuidePosts,
   getTopHotSaucePicks
 } from "@/lib/hot-sauces";
+import {
+  findAffiliateLinkByUrl,
+  getAffiliateCtaLabel,
+  resolveAffiliateLink
+} from "@/lib/affiliates";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
 import { getBlogPosts, getReviews } from "@/lib/services/content";
@@ -28,6 +33,19 @@ export const metadata = buildMetadata({
 export default async function HotSaucesHubPage() {
   const [reviews, posts] = await Promise.all([getReviews(), getBlogPosts()]);
   const topPicks = getTopHotSaucePicks(reviews, 4);
+  const topPickOffers = topPicks.map((review, index) => {
+    const offer = findAffiliateLinkByUrl(review.affiliateUrl);
+
+    return {
+      review,
+      resolved: offer
+        ? resolveAffiliateLink(offer.key, {
+            sourcePage: "/hot-sauces",
+            position: `hub-top-picks-${index + 1}`
+          })
+        : null
+    };
+  });
   const everydayPours = getFilteredHotSauceReviews(reviews, "everyday").slice(0, 4);
   const giftableHeat = getFilteredHotSauceReviews(reviews, "giftable").slice(0, 3);
   const bigHeat = getFilteredHotSauceReviews(reviews, "big-heat").slice(0, 3);
@@ -56,8 +74,8 @@ export default async function HotSaucesHubPage() {
             Find the bottles that fit how you actually cook.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
-            Browse everyday favorites, taco-night bottles, gift sets, and bigger-heat picks, then
-            open the full reviews when you want more detail.
+            Browse everyday favorites, approachable starter bottles, gift sets, and bigger-heat
+            picks, then open the full reviews when you want more detail.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
@@ -119,22 +137,24 @@ export default async function HotSaucesHubPage() {
         <SectionHeading
           eyebrow="Top picks"
           title="Start with these favorites."
-          copy="These are easy bottles to recommend when someone asks what to buy first."
+          copy="These are the easiest bottles to recommend first when you want range, flavor, and fewer bad blind buys."
         />
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
-          {topPicks.map((review) => (
+          {topPickOffers.map(({ review, resolved }, index) => (
             <div key={review.id}>
               <ReviewCard review={review} />
               <div className="mt-3 pl-1">
                 <AffiliateLink
-                  href={review.affiliateUrl}
-                  partnerName={review.brand}
+                  href={resolved?.href || review.affiliateUrl}
+                  partnerKey={resolved?.key}
+                  trackingMode={resolved?.trackingMode}
+                  partnerName={resolved ? undefined : review.brand}
                   productName={review.productName}
                   sourcePage="/hot-sauces"
-                  position="hub-top-picks"
+                  position={`hub-top-picks-${index + 1}`}
                   className="inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                 >
-                  Check price on Amazon
+                  {resolved ? getAffiliateCtaLabel(resolved) : "View retailer offer"}
                 </AffiliateLink>
               </div>
             </div>
@@ -191,7 +211,7 @@ export default async function HotSaucesHubPage() {
         </div>
         <div className="panel p-6">
           <p className="eyebrow">Big heat</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">For people who want consequences.</h2>
+          <h2 className="mt-3 font-display text-4xl text-cream">When you really do want the bigger hit.</h2>
           <div className="mt-5 space-y-3 text-sm text-cream/72">
             {bigHeat.map((review) => (
               <Link key={review.slug} href={`/reviews/${review.slug}`} className="block rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3 hover:border-white/20">

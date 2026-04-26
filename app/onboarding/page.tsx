@@ -5,7 +5,7 @@ import { requireUser } from "@/lib/supabase/auth";
 
 export const metadata = buildMetadata({
   title: "Complete Onboarding | FlamingFoodies",
-  description: "Finish setting up your FlamingFoodies account by choosing your public username.",
+  description: "Finish setting up your FlamingFoodies account so saves, comments, and picks feel like yours.",
   path: "/onboarding",
   noIndex: true
 });
@@ -19,8 +19,8 @@ export default async function OnboardingPage({
 
   return (
     <SimpleFormShell
-      title="Pick your username"
-      copy="Complete the first-login flow by claiming a public username and setting the display name that will appear across the site."
+      title="Set up your profile"
+      copy="Claim your public username and choose the display name that will show up anywhere you save, comment, or share."
     >
       <form action={completeOnboardingAction} className="space-y-5">
         <input

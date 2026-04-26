@@ -1,18 +1,75 @@
-# Niche Site Playbook — Claude Prompt Guide
+# Niche Site Playbook — Session Kickoff + Phase Guide
 
 Use this document to spin up a new automated, affiliate-revenue niche site from scratch.
-Each phase is a standalone prompt you paste into a fresh Claude Code session.
+Each phase is a standalone prompt you can paste into a fresh AI coding session.
 Fill in `[NICHE]`, `[DOMAIN]`, and the bracketed placeholders before sending.
+
+If your goal is to build a FlamingFoodies-style niche clone with the same operating model, start with [docs/master-rebuild-spec.md](/Users/vijaysingh/apps/flamingfoodies/docs/master-rebuild-spec.md) first.
+This playbook is the phased implementation companion, not the top-level architecture contract.
+
+---
+
+## Fresh Session Kickoff
+
+Paste this first in a brand-new AI coding session and repo before you start the phase prompts:
+
+```text
+Read `docs/master-rebuild-spec.md` and `docs/niche-site-playbook.md`.
+
+We are in a new project and the goal is to build a full niche site that follows the FlamingFoodies operating model:
+- Next.js + TypeScript + Tailwind + Supabase + Vercel
+- strong public editorial + commerce site
+- real admin console
+- automation control plane with agents, approvals, runs, and evaluations
+- graceful degradation when optional providers are not configured yet
+
+Use `docs/master-rebuild-spec.md` as the architecture contract and `docs/niche-site-playbook.md` as the phased implementation guide.
+If `docs/master-rebuild-spec.md` is not present, use this playbook as the primary source of truth.
+
+Important instructions:
+- implement the code in the current repo, not just plans or summaries
+- work through the phases in order unless the docs clearly justify combining steps
+- make the site launchable even before external provider setup is complete
+- when optional tools are missing, keep the UI and automation surfaces working with clear `needs_config` states
+- preserve the bounded-autonomy model instead of building an unbounded AI autopilot
+- add concise docs where future operators will need them
+
+Project inputs:
+- Site name: [SITE NAME]
+- Domain: [DOMAIN]
+- Tagline: [TAGLINE]
+- Niche: [NICHE]
+- Audience: [AUDIENCE]
+- Core verticals: [VERTICALS]
+- Core entities: [ENTITIES]
+- Monetization plan: [MONETIZATION PLAN]
+- Optional providers for phase 1: [LIST OR "none yet"]
+
+Start with Phase 0 from `docs/niche-site-playbook.md`, generate the strategy, and then continue into implementation.
+At the end of each major phase, summarize what is complete, what still needs configuration, and what should happen next.
+```
 
 ---
 
 ## How to use this
 
-1. Start a new Claude Code session in an empty directory
+1. Start a new AI coding session in an empty directory
 2. Run Phase 0 first — it generates the strategy doc that informs every phase after
-3. Run phases in order, pasting each prompt into Claude
+3. Run phases in order, pasting each prompt into your AI coding agent
 4. Each phase builds on the previous one — don't skip phases
 5. Commit after each phase before moving to the next
+6. Deploy from a clean commit, tag, or release candidate snapshot instead of a dirty mixed workspace
+
+If you are rebuilding after an outage, data loss, or provider wipe instead of creating a brand-new site, use the companion recovery manual too:
+
+- [docs/disaster-recovery-rebuild-playbook.md](/Users/vijaysingh/apps/flamingfoodies/docs/disaster-recovery-rebuild-playbook.md)
+
+If you want a reusable package for creating other niche sites that follow this exact model, keep these together:
+
+- [docs/master-rebuild-spec.md](/Users/vijaysingh/apps/flamingfoodies/docs/master-rebuild-spec.md)
+- [docs/niche-site-playbook.md](/Users/vijaysingh/apps/flamingfoodies/docs/niche-site-playbook.md)
+- [docs/autonomous-system-governance-plan.md](/Users/vijaysingh/apps/flamingfoodies/docs/autonomous-system-governance-plan.md)
+- [docs/editorial-style-guide.md](/Users/vijaysingh/apps/flamingfoodies/docs/editorial-style-guide.md)
 
 ---
 
@@ -25,9 +82,9 @@ I want to build an automated niche content site focused on [NICHE].
 
 The site should:
 - Generate passive revenue through affiliate links and display ads
-- Be updated automatically by AI agents running on cron jobs
+- Use a bounded autonomous system with cron-driven agents, approvals, and evaluator loops
 - Rank in Google for long-tail niche search queries
-- Require minimal human intervention after launch
+- Need limited operator intervention after launch, mainly for approvals, rollback, and link upgrades
 
 Please produce a strategy document covering:
 
@@ -39,7 +96,7 @@ Please produce a strategy document covering:
 
 4. **Taxonomy** — Define the core categories, tags, and filter dimensions that content will be organized by. These become the database schema enums and the navigation structure.
 
-5. **Agent strategy** — List 4–6 automated agents that will keep the site fresh. For each: what it does, how often it runs, what table it writes to, and how new content enters a draft/review/publish workflow.
+5. **Agent strategy** — List 6–10 automation lanes across draft-only discovery, bounded-live publishers/executors, external-send distribution, evaluator loops, and internal support syncs. For each: what it does, how often it runs, what table or write surface it touches, what guardrails bound it, and whether it stops at draft, approval, or live state.
 
 6. **SEO keyword targets** — List 10 high-intent, low-competition keyword clusters this site should own in year one. Include the page type that would rank for each.
 
@@ -69,7 +126,7 @@ Bootstrap a Next.js 14 App Router project with the following:
 - Tailwind CSS with a custom design system (dark theme preferred)
 - Supabase for database and auth
 - Vercel for hosting and cron jobs
-- Anthropic SDK for AI agents
+- An AI provider SDK or adapter for agent workflows
 
 **Design system:**
 - Color palette suited to [NICHE] — propose primary, accent, and neutral colors with names (like `flame`, `ember`, `cream`, `charcoal`)
@@ -93,32 +150,57 @@ Bootstrap a Next.js 14 App Router project with the following:
 ```bash
 # ── Supabase ──────────────────────────────────────────────
 NEXT_PUBLIC_SUPABASE_URL=          # Project URL from Supabase dashboard
-NEXT_PUBLIC_SUPABASE_ANON_KEY=     # Anon/public key — safe to expose
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=  # Publishable/public key — safe to expose
+NEXT_PUBLIC_SUPABASE_ANON_KEY=     # Optional legacy fallback if your starter still expects it
 SUPABASE_SERVICE_ROLE_KEY=         # Service role key — server-only, never expose to client
 
 # ── Site ──────────────────────────────────────────────────
 NEXT_PUBLIC_SITE_URL=              # Full URL e.g. https://yoursite.com (no trailing slash)
                                    # Also used to build hero image URLs — required
+NEXT_PUBLIC_SITE_NAME=             # Public site/brand name
 
-# ── AI Agents ─────────────────────────────────────────────
-ANTHROPIC_API_KEY=                 # From console.anthropic.com — used by all content agents
-CRON_SECRET=                       # Any random string — added as x-cron-secret header by Vercel crons
+# ── AI & Automation ───────────────────────────────────────
+AI_PROVIDER_API_KEY=               # API key for your chosen AI provider
+AI_PROVIDER_MODEL=                 # Primary model identifier for generation/evaluation lanes
+CRON_SECRET=                       # Any random string — sent as Authorization: Bearer <CRON_SECRET> to cron routes
+
+# ── Affiliate & Commerce ──────────────────────────────────
+NEXT_PUBLIC_AMAZON_TAG=            # Amazon Associates tracking ID for affiliate links
+
+# ── Audience & Email (optional) ───────────────────────────
+CONVERTKIT_API_KEY=                # ConvertKit form subscribe key
+CONVERTKIT_API_SECRET=             # ConvertKit broadcast/send key for approval-gated sends
+CONVERTKIT_FORM_ID=                # ConvertKit signup form ID
+
+# ── Social Distribution (optional) ────────────────────────
+BUFFER_API_KEY=                    # Preferred Buffer API key
+BUFFER_CHANNEL_IDS=                # e.g. pinterest:channel-id,instagram:channel-id
+BUFFER_PINTEREST_BOARD_ID=         # Pinterest board service ID for live sends
+BUFFER_ORGANIZATION_ID=            # Helpful for local inspection scripts
+BUFFER_ACCESS_TOKEN=               # Optional legacy fallback
+BUFFER_PROFILE_IDS=                # Optional legacy fallback
+
+# ── Search Console (optional but recommended) ─────────────
+GOOGLE_SEARCH_CONSOLE_PROPERTY=    # e.g. sc-domain:yoursite.com
+GOOGLE_SEARCH_CONSOLE_CLIENT_ID=
+GOOGLE_SEARCH_CONSOLE_CLIENT_SECRET=
+GOOGLE_SEARCH_CONSOLE_REDIRECT_URI=
+GOOGLE_SEARCH_CONSOLE_REFRESH_TOKEN=
 
 # ── Analytics & Ads ───────────────────────────────────────
 NEXT_PUBLIC_GA4_ID=                # Google Analytics 4 measurement ID (optional)
+NEXT_PUBLIC_CLARITY_ID=            # Microsoft Clarity project ID (optional)
+NEXT_PUBLIC_PLAUSIBLE_DOMAIN=      # Plausible domain (optional)
 NEXT_PUBLIC_ADSENSE_ID=            # Google AdSense publisher ID (optional, add after approval)
-
-# ── Images: Hero cards ────────────────────────────────────
-# No API key needed. Hero images use next/og which is built into Next.js.
-# The only requirement is NEXT_PUBLIC_SITE_URL being set correctly above.
+NEXT_PUBLIC_SHOW_ADS=              # "true" to enable ads in production
 
 # ── Images: Body / inline photos (optional, add after launch) ─
 UNSPLASH_ACCESS_KEY=               # Free at unsplash.com/developers — used for inline article photos
 # PEXELS_API_KEY=                  # Alternative to Unsplash — free at pexels.com/api
 
 # ── Images: AI-generated (optional, paid) ─────────────────
-# OPENAI_API_KEY=                  # For DALL-E 3 image generation (~$0.04/image)
-# REPLICATE_API_TOKEN=             # For Stable Diffusion via Replicate (~$0.002/image)
+# IMAGE_MODEL_API_KEY=             # Optional API key for an AI image provider
+# IMAGE_MODEL_NAME=                # Optional image model identifier
 ```
 
 The site name is [SITE NAME]. The tagline is [TAGLINE]. Propose a logo mark using an emoji or simple CSS shape that fits [NICHE].
@@ -187,7 +269,7 @@ Also create:
 - `lib/supabase/client.ts` — browser Supabase client
 - `lib/supabase/server.ts` — server Supabase client (for server components)
 - `lib/supabase/admin.ts` — service role client (for cron agents)
-- `lib/cron.ts` — requireCronAuthorization(request) using CRON_SECRET header
+- `lib/cron.ts` — requireCronAuthorization(request) using `Authorization: Bearer <CRON_SECRET>`
 
 Name migration files with timestamp prefix: `20260101000000_create_[table]_table.sql`
 ```
@@ -224,8 +306,8 @@ These are photos embedded within article body text — a photo of a dish mid-rec
 
 **Layer 3 — AI-generated images (optional, paid)**
 Custom AI images per article — looks premium but costs money per image.
-- OpenAI DALL-E 3: ~$0.04/image via `OPENAI_API_KEY` — good quality, easy API
-- Replicate (Stable Diffusion): ~$0.002/image via `REPLICATE_API_TOKEN` — cheaper, more control
+- Use any managed or self-hosted image-generation provider that fits the budget and license needs
+- Store provider credentials in generic image-generation env vars rather than hard-coding one vendor into the architecture
 - Use sparingly — only for featured/hero content, not bulk generation
 - Never required for launch; add later if budget allows
 
@@ -236,8 +318,7 @@ Custom AI images per article — looks premium but costs money per image.
 | Hero/card images | next/og (built-in) | none needed | free |
 | Body photos | Unsplash API | `UNSPLASH_ACCESS_KEY` | free |
 | Body photos | Pexels API | `PEXELS_API_KEY` | free |
-| AI images | OpenAI DALL-E | `OPENAI_API_KEY` | ~$0.04/img |
-| AI images | Replicate | `REPLICATE_API_TOKEN` | ~$0.002/img |
+| AI images | AI image provider | `IMAGE_MODEL_API_KEY`, `IMAGE_MODEL_NAME` | varies |
 
 **For a new site: start with Layer 1 only. Add Layer 2 via Unsplash once the site is live.**
 
@@ -364,71 +445,82 @@ The site is [SITE NAME], focused on [NICHE].
 Agent strategy from Phase 0:
 [PASTE AGENT STRATEGY SECTION]
 
-For each agent, build:
+Build a bounded automation system, not just a pile of loose cron jobs.
+
+**First, create a shared control plane:**
+- `automation_agents` (registry + per-lane policy)
+- `automation_runs` and `automation_run_events` (run ledger and touched-entity evidence)
+- `automation_approvals` (approval queue for higher-risk actions)
+- `automation_evaluations` (keep / escalate / revert verdicts on prior runs)
+- policy helpers for global pause, external-send pause, draft-creation pause, ET quiet hours, daily caps, and failure thresholds
+
+**For each automation lane, build:**
 
 1. **Service file** (`lib/services/[agent-name].ts`):
-   - Uses Anthropic SDK (`import Anthropic from "@anthropic-ai/sdk"`)
-   - Uses the `claude-haiku-4-5-20251001` model for cost efficiency (or claude-sonnet-4-6 for quality-critical agents)
-   - For discovery agents: use the built-in web search tool:
-     ```typescript
-     // @ts-ignore — web_search_20250305 not yet typed in SDK
-     tools: [{ type: "web_search_20250305", name: "web_search" }],
-     tool_choice: { type: "auto" }
-     ```
-   - Loads existing slugs from DB to avoid duplicates
-   - Parses Claude's response as JSON
-   - Upserts new items with `status: 'draft'` and `source: 'ai_discovered'`
-   - Returns `{ found, inserted, skipped, error? }`
+   - Uses an AI provider SDK or adapter where AI is actually required
+   - Uses the cheaper model for routine draft generation/discovery and a stronger model only where quality really matters
+   - For discovery or research lanes, use web search if needed, but keep those lanes `draft_only` or `approval_required`
+   - Loads existing slugs/subject keys to avoid duplicates
+   - Parses structured JSON responses instead of freeform prose
+   - Returns a typed summary of `{ found, inserted, updated, skipped, blockedReason?, error? }`
+   - Records enough touched-entity context that operators can tell exactly what the run changed
 
-2. **API route** (`app/api/admin/[agent-name]/route.ts`):
-   - `requireCronAuthorization(request)`
-   - Calls the service function
-   - Calls `revalidatePath()` if new items were inserted
-   - Exports both GET and POST handlers
-   - `export const maxDuration = 60`
+2. **Run-ledger integration**:
+   - Every lane should write a start/success/failure/blocked row into `automation_runs`
+   - Persist supporting events in `automation_run_events`
+   - For bounded-live mutations, capture snapshot or rollback context where practical
+   - For evaluator lanes, write verdicts into `automation_evaluations`, not public site state
+   - If the lane introduces a new optional column, enum value, or provider payload field, keep the code backward-compatible across at least one deploy so a lagging production schema does not crash the route
 
-3. **Add to `vercel.json` crons** with an appropriate schedule
+3. **Route or manual entry point**:
+   - Cron-triggered routes should call `requireCronAuthorization(request)`
+   - Higher-risk manual runs can be exposed through server actions or admin routes
+   - Call `revalidatePath()` only when a write actually happened
+   - Use a realistic `maxDuration` for heavier lanes like generation or evaluator passes instead of assuming `60` seconds is enough
 
-**Standard agent types to build:**
-- **Content discovery agent**: Searches the web for new [NICHE] items to add (e.g. new products, events, people). Writes drafts.
-- **Content generation agent**: Generates editorial content (articles, guides, reviews) using Claude. Writes drafts.
-- **Content refresh agent**: Re-evaluates draft content and publishes if it meets quality criteria.
-- **Scheduled publish agent**: Moves content from `scheduled` → `published` at the right time.
-- **Visual QA agent** (see below): Audits published content for missing images, broken hero URLs, and empty fields before they go live.
+4. **Add the lane to `vercel.json` crons** with an appropriate schedule
 
-**Visual QA agent** (`lib/services/visual-qa.ts` + `app/api/admin/visual-qa/route.ts`):
+**Standard autonomy classes to model:**
+- `draft_only` — discovery or generation lanes that stop in draft
+- `bounded_live` — publishers/executors that can mutate live state inside a narrow write surface
+- `approval_required` — proposals that must stop in `automation_approvals`
+- `external_send` — Buffer/newsletter style lanes that send to third-party audiences
+- `internal_support` — syncs and evaluators that strengthen the system without touching the public site directly
 
-This agent runs after the publish pipeline and catches problems a text-only review would miss.
+**Recommended automation lane types to build:**
+- **Draft discovery lane**: searches for new [NICHE] entities or topics and writes drafts only
+- **Editorial generation lane**: generates articles/guides/reviews into draft state
+- **Editorial autopublisher / bounded executor**: promotes eligible drafts or approved changes into live state after QA gates
+- **External-send distributor**: pushes live content to social or email, but only inside caps, pauses, and provider guardrails
+- **Growth loop promoter**: re-queues proven winners instead of relying only on brand-new content
+- **Evaluator lane**: reviews mature prior runs after a delay and records keep / escalate / revert verdicts
+- **Support sync**: logs internal signals like content-to-shop matches, exact-link gaps, or commerce relevance without acting as a publisher
 
-```typescript
-// What it checks for each published item across all content tables:
-// 1. imageUrl is set and points to a valid URL (not null, not empty string, not a 404)
-// 2. The hero image URL returns a 200 when fetched (HEAD request)
-// 3. title and description are non-empty and within SEO length limits
-// 4. slug is valid (kebab-case, no spaces, no special chars)
-// 5. affiliateKeys array items all resolve to known entries in AFFILIATE_LINKS
-// 6. For recipes: ingredients and steps arrays are non-empty
-// 7. For reviews: rating is set and within valid range
+**QA and publish rules:**
+- Discovery and generation lanes write drafts only
+- Live publishers/executors should only mutate after automated QA, policy checks, and any delayed publish windows pass
+- Release/newsletter/high-risk outbound actions should write to `automation_approvals`
+- Evaluator lanes should judge prior runs after enough time has passed to observe real outcomes
+- Do not start with a catch-all visual QA agent unless you have a proven gap; prefer embedding QA in the publish path and adding a support QA lane later if needed
 
-// Returns: { table, slug, issues: string[] }[] — one entry per item with problems
-// Writes problem items back to DB with status: 'needs_review'
-// Sends a summary to an admin Slack webhook or email if problems found
-```
+**Admin/operator surfaces to build:**
+- `/admin/automation/trigger`
+- `/admin/automation/agents`
+- `/admin/automation/approvals`
+- `/admin/automation/runs`
+- `/admin/content/[vertical]` draft review pages where manual review is still part of the workflow
 
-Schedule: run daily, 30 minutes after the publish agent.
-
-**Publish workflow:**
-- Agents write `status: 'draft'`
-- Admin reviews drafts at `/admin/content/[vertical]`
-- Admin approves → `status: 'published'` (or schedules for a future date)
-- The refresh agent can also auto-publish drafts that meet a quality score threshold
-- Visual QA agent audits published items and flags problems back to `needs_review`
-
-**Admin draft review pages** (`app/admin/content/[vertical]/page.tsx`):
-- Table of drafts with preview, approve/reject buttons
-- Shows hero image thumbnail using the generated hero URL
-- Server actions for status transitions
-- Protected by middleware (admin-only)
+**Cron surface to expect in `vercel.json`:**
+- generation
+- draft reevaluation
+- scheduled publishing
+- social distribution
+- growth-loop promotion
+- evaluator passes
+- shop refresh
+- newsletter drafting / due-send checks
+- search insight sync and search execution
+- discovery lanes for under-covered entities
 ```
 
 ---
@@ -498,11 +590,14 @@ Build the monetization layer:
 
 **Affiliate system** (`lib/affiliates.ts`):
 - `AFFILIATE_LINKS` record — a catalog of every product we link to, keyed by a short slug
-- Each entry: { product, description, badge, url, asin (if Amazon), trackingId }
-- `resolveAffiliateLink(key, { sourcePage, position })` — returns the tracked URL with UTM params and Amazon tag
+- Each entry should look more like the current production model: `{ partner, product, url, amazonOnlyUrl?, category, badge, description, bestFor, priceLabel, searchTerms[] }`
+- `resolveAffiliateLink(key, { sourcePage, position })` — returns the tracked redirect URL and knows whether the destination is an exact Amazon product page, an Amazon search fallback, or a merchant page
+- `getAffiliateDestinationKind()` or an equivalent helper should exist so the UI and admin tools can reason about link quality
 - `AffiliateLink` component (`components/content/affiliate-link.tsx`) — renders an <a> with rel="sponsored nofollow" and data attributes for click tracking
 - `AffiliateDisclosure` component — small "contains affiliate links" notice
-- Populate the catalog with 20–30 real [NICHE]-relevant products from Amazon
+- Populate the catalog with 20–30 real [NICHE]-relevant products and partners
+- For the highest-intent products, prefer exact product URLs where you know the SKU/ASIN. Search-result fallbacks are acceptable for long-tail coverage, but they should be treated as a leak to improve later, not the ideal state.
+- If you add dynamic catalog growth, keep it scoped to safe search-fallback coverage by default. Do not auto-create exact product URLs unless you have a trusted product identifier source or an approval step.
 
 **Display ads** (`components/ads/ad-slot.tsx`):
 - Wrapper component that renders an AdSense ad unit when NEXT_PUBLIC_ADSENSE_ID is set
@@ -514,6 +609,14 @@ Build the monetization layer:
 - `injectInlineAffiliateLinks(content, terms)` — scans markdown/HTML content for product name mentions and wraps them in AffiliateLink components
 - Use this to auto-monetize AI-generated content
 
+**Affiliate registry health** (`app/admin/settings/affiliates/page.tsx` or equivalent):
+- Show exact-product coverage, search-fallback risk, clicked search fallbacks, and top source pages
+- Use this report to prioritize manual upgrades from search-result links to exact product links
+
+**Commerce support loops:**
+- Add a `content-shop-sync`-style service that matches content against the affiliate catalog, promotes strong matches into the shop, and logs gap terms
+- Add a `shop-shelf-curator`-style lane that re-ranks or refreshes shop picks from real click signals instead of leaving the shelf static
+
 **Shop page** (`app/(public)/shop/page.tsx`):
 - Curated product grid organized by category
 - Each item shows product name, description, price range badge, affiliate buy button
@@ -522,6 +625,7 @@ Build the monetization layer:
 **Subscriptions page** (`app/(public)/subscriptions/page.tsx`):
 - If relevant to [NICHE]: curate 4–6 subscription box services
 - For each: name, tagline, price, what's included, affiliate sign-up link
+- Keep recurring subscriptions, one-time gifts, and merchant offers clearly distinguished instead of blurring them together
 
 **Revenue tracking** (`lib/services/revenue-events.ts`):
 - `trackAffiliateClick(key, sourcePage, position)` — write to a `affiliate_clicks` table
@@ -585,7 +689,7 @@ Run through this launch checklist and fix anything that's missing:
 □ Detail pages render a hero image banner at the top
 □ `generateMetadata` passes the hero image URL to `buildMetadata({ images: [...] })`
 □ Test OG image in social preview tool (opengraph.xyz or similar)
-□ Visual QA agent has been run and returned zero issues
+□ Publish-path QA has been exercised and there are no known blocking image/content issues
 
 **SEO:**
 □ Every page has unique title + description metadata
@@ -608,11 +712,22 @@ Run through this launch checklist and fix anything that's missing:
 □ AffiliateDisclosure present on any page with affiliate links
 □ AdSense ID set in env (or placeholder for post-approval)
 □ Amazon Associates tracking ID in affiliate URLs
+□ Highest-intent affiliate products have exact product URLs where known
+□ Search-result fallback links have been reviewed in the affiliate registry report
+□ Merchant-page links are labeled honestly and not presented as Amazon links
 
 **Automation:**
 □ All cron jobs listed in vercel.json
 □ CRON_SECRET set in Vercel env vars
-□ Agents tested manually via /api/admin/[agent]?secret=...
+□ `automation_runs`, `automation_approvals`, and `automation_evaluations` tables exist
+□ `/admin/automation/trigger`, `/admin/automation/agents`, and `/admin/automation/approvals` load correctly
+□ Deploy was cut from a clean committed snapshot, not an unrelated dirty workspace
+□ Global pause, external-send pause, draft-creation pause, and quiet-hours controls are wired
+□ Every live lane records a run in the ledger when it executes
+□ Approval-required lanes stop in the approval queue instead of mutating live state directly
+□ Evaluator lanes can be manually smoke tested and write verdicts successfully
+□ External-send lanes have at least one manual certification run recorded
+□ At least one representative cron/manual automation route has a successful post-deploy production smoke check using the real auth convention
 □ Draft review workflow works end to end
 
 **Security:**
@@ -660,9 +775,8 @@ export async function getItemsFromDb(): Promise<Item[]> {
 ```typescript
 // lib/cron.ts
 export function requireCronAuthorization(request: Request) {
-  const secret = request.headers.get("x-cron-secret") 
-    ?? new URL(request.url).searchParams.get("secret");
-  if (secret !== process.env.CRON_SECRET) {
+  const secret = request.headers.get("authorization");
+  if (secret !== `Bearer ${process.env.CRON_SECRET}`) {
     return new Response("Unauthorized", { status: 401 });
   }
   return null;
@@ -671,22 +785,39 @@ export function requireCronAuthorization(request: Request) {
 
 ### Agent web search pattern
 ```typescript
-const client = new Anthropic();
-const response = await client.messages.create({
-  model: "claude-haiku-4-5-20251001",
-  max_tokens: 4096,
-  // @ts-ignore — web_search_20250305 not yet in SDK types
-  tools: [{ type: "web_search_20250305", name: "web_search" }],
-  tool_choice: { type: "auto" },
-  messages: [{ role: "user", content: prompt }]
+const client = createAiClient({
+  apiKey: process.env.AI_PROVIDER_API_KEY
+});
+
+const response = await client.generateStructured({
+  model: process.env.AI_PROVIDER_MODEL,
+  maxTokens: 4096,
+  tools: supportsWebSearch ? [{ type: "web_search", name: "web_search" }] : [],
+  prompt
 });
 ```
 
+If the chosen SDK does not support built-in web search, fetch sources with a separate retrieval helper before generation.
+
+### Bounded autonomy pattern
+- Every lane gets an autonomy class: `draft_only`, `bounded_live`, `approval_required`, `external_send`, or `internal_support`
+- Every run writes to `automation_runs` before and after work happens
+- Approval-required lanes write proposals to `automation_approvals`
+- Evaluator lanes write keep / escalate / revert verdicts to `automation_evaluations`
+- Global pauses, class pauses, quiet hours, and daily caps are checked before work starts
+
 ### Draft/publish workflow
-- Agents always write `status: 'draft'`, `source: 'ai_discovered'`
-- Admin reviews at `/admin/content/[vertical]`
-- A re-evaluation agent can auto-publish drafts above a quality threshold
+- Discovery and generation lanes write `status: 'draft'` by default
+- Admin reviews at `/admin/content/[vertical]` when the lane is not allowed to auto-promote
+- Bounded-live publishers/executors can auto-promote only after QA and policy checks pass
+- Approval-required lanes stop in `automation_approvals`
 - RLS policy: `FOR SELECT USING (status = 'published')` keeps drafts off public pages
+
+### Affiliate link quality policy
+- Exact product links are preferred for the highest-intent affiliate opportunities
+- Amazon search fallbacks are acceptable as temporary coverage, not the ideal end state
+- Dynamic catalog expansion should default to search-fallback coverage only
+- Use an affiliate registry report to prioritize which fallbacks deserve manual upgrade work
 
 ### Revenue-oriented internal linking
 On every detail page, ask: what would someone buy next? Link it.
@@ -719,16 +850,17 @@ Build a production-ready Next.js 14 App Router site with:
 2. TypeScript interfaces + 10 seed entries for each of the 3 content types
 3. Homepage + listing + detail pages for each content type
 4. Supabase migration files for all tables with RLS
-5. 3 AI cron agents (discovery, generation, refresh) with vercel.json schedules
+5. A bounded automation stack with draft discovery, generation, autopublish/executor, evaluator, and approval-gated external-send lanes wired into `vercel.json`
 6. Full SEO layer: sitemap, robots, JSON-LD schemas, OG image API
 7. Affiliate catalog with 20 real products + AffiliateLink component
-8. Admin dashboard with draft review queues
+8. Admin dashboard with draft review queues plus automation trigger / runs / approvals views
 
 Use these proven patterns throughout:
 - DB functions always fall back to static arrays on error
-- Agents write drafts, humans or a QA agent promote to published
+- Draft-only lanes write drafts; live mutations go through QA and control-plane policy checks
 - Cron auth via CRON_SECRET header
-- Web search via Anthropic's built-in web_search_20250305 tool (// @ts-ignore the type)
+- Web search via your chosen AI provider's tool support or a separate retrieval helper
+- Approval-required lanes write to `automation_approvals`; evaluator lanes write to `automation_evaluations`
 - Every detail page gets BreadcrumbSchema + content-type JSON-LD
 ```
 

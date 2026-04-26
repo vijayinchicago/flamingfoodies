@@ -6,6 +6,7 @@ import { EmailCapture } from "@/components/forms/email-capture";
 import { SectionHeading } from "@/components/layout/section-heading";
 import {
   SUBSCRIPTION_KEYS,
+  getAffiliateCtaLabel,
   getAffiliateLinkEntries,
   resolveAffiliateLink
 } from "@/lib/affiliates";
@@ -14,7 +15,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata = buildMetadata({
   title: "Spicy Subscription Boxes | FlamingFoodies",
   description:
-    "Curated hot sauce subscriptions, spicy gifts, and recurring heat-forward picks.",
+    "One-time gift sets, recurring hot sauce subscriptions, and spicy partner offers worth considering.",
   path: "/subscriptions"
 });
 
@@ -34,8 +35,8 @@ export default function SubscriptionsPage() {
     <section className="container-shell py-16">
       <SectionHeading
         eyebrow="Subscriptions"
-        title="Curated spicy subscriptions and partner offers."
-        copy="This page leans into recurring offers and giftable collections instead of pretending we already run a merch line."
+        title="Recurring boxes, one-time gifts, and spicy partner offers."
+        copy="Some picks here are true monthly subscriptions, while others are cleaner one-time gifts. The point is to help you choose the right kind of purchase, not blur them together."
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-4">
@@ -55,7 +56,7 @@ export default function SubscriptionsPage() {
               position="subscription-grid"
               className="mt-8 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-6 py-3 font-semibold text-white"
             >
-              Check price on Amazon
+              {getAffiliateCtaLabel(resolved)}
             </AffiliateLink>
           </article>
         ))}

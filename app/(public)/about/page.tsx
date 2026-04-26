@@ -8,7 +8,7 @@ const LAST_UPDATED = "April 10, 2026";
 export const metadata = buildMetadata({
   title: "About FlamingFoodies",
   description:
-    "What FlamingFoodies covers, how we choose recipes and hot sauce picks, and what the site is trying to build.",
+    "What FlamingFoodies covers, how we choose recipes and hot sauce picks, and the standards behind the editorial system.",
   path: "/about"
 });
 
@@ -17,7 +17,7 @@ export default function AboutPage() {
     <TrustPageShell
       eyebrow="About"
       title="FlamingFoodies is built for people who want flavor before flexing."
-      description="We cover spicy recipes, hot sauce reviews, shopping guides, and practical kitchen advice for people who care about what is worth cooking, pouring, and buying."
+      description="FlamingFoodies covers spicy recipes, hot sauce reviews, shopping guides, and practical kitchen advice for people who care about what is worth cooking, pouring, and buying."
       lastUpdated={LAST_UPDATED}
     >
       <div className="grid gap-6 lg:grid-cols-3">
@@ -40,30 +40,42 @@ export default function AboutPage() {
           </p>
         </article>
         <article className="panel p-6">
-          <p className="eyebrow">What the site is building</p>
-          <h2 className="mt-3 font-display text-3xl text-cream">A sharper spicy-food home base.</h2>
+          <p className="eyebrow">What guides it</p>
+          <h2 className="mt-3 font-display text-3xl text-cream">Built around practical editorial standards.</h2>
           <p className="mt-4 text-sm leading-7 text-cream/75">
-            We want the site to be useful whether you are planning dinner, buying one better
-            bottle, or trying to build a smarter spicy pantry over time. Search, saves, shares,
-            and email all feed that loop.
+            FlamingFoodies is steered with a simple bias: make the site useful to weeknight cooks,
+            curious beginners, and gift shoppers, not only people chasing maximum heat. That
+            standard shapes what gets published and what gets recommended.
           </p>
         </article>
       </div>
 
-      <div className="panel p-8">
-        <p className="eyebrow">Editorial standards</p>
-        <h2 className="mt-3 font-display text-4xl text-cream">Warm, practical, and clear about what we know.</h2>
-        <div className="mt-5 grid gap-5 md:grid-cols-2">
-          <p className="text-sm leading-7 text-cream/75">
-            We publish original recipes, reviews, and food stories built around a family-table
-            tone: welcoming, specific, and grounded in what people actually cook and eat. We aim
-            for a voice that feels generous and useful, not performative or content-farm generic.
-          </p>
-          <p className="text-sm leading-7 text-cream/75">
-            When we recommend products, we try to explain why a pick is strong, who it is for, and
-            when a different bottle would be smarter. Where a draft needs human review before
-            publish, we use that editorial pass to check imagery, clarity, and category fit.
-          </p>
+      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="panel p-8">
+          <p className="eyebrow">Editorial standards</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">Warm, practical, and clear about what we know.</h2>
+          <div className="mt-5 grid gap-5 md:grid-cols-2">
+            <p className="text-sm leading-7 text-cream/75">
+              We publish original recipes, reviews, and food stories built around a family-table
+              tone: welcoming, specific, and grounded in what people actually cook and eat. We aim
+              for a voice that feels generous and useful, not performative or content-farm generic.
+            </p>
+            <p className="text-sm leading-7 text-cream/75">
+              When we recommend products, we try to explain why a pick is strong, who it is for,
+              and when a different bottle would be smarter. Where a draft needs extra review before
+              publish, we use editorial checks to tighten imagery, clarity, and category fit.
+            </p>
+          </div>
+        </div>
+
+        <div className="panel p-8">
+          <p className="eyebrow">How reviews get checked</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">Method beats hype.</h2>
+          <div className="mt-5 space-y-4 text-sm leading-7 text-cream/75">
+            <p>We look for practical signals first: what a bottle is good on, where the heat actually lands, and whether the recommendation makes sense for the person clicking it.</p>
+            <p>When a review or recipe carries QA notes, image review, or fact review, we surface that on-page so readers can see the confidence signals instead of guessing.</p>
+            <p>Questions or corrections are welcome. If a claim changes or a better fit emerges, we would rather update the page than leave stale certainty in place.</p>
+          </div>
         </div>
       </div>
 

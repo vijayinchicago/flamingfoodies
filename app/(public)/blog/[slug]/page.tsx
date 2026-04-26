@@ -2,6 +2,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 
 import { AdSlot } from "@/components/ads/ad-slot";
+import { ContentCard } from "@/components/cards/content-card";
 import { CommentSection } from "@/components/community/comment-section";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { PinterestSaveButton } from "@/components/content/pinterest-save-button";
@@ -48,7 +49,7 @@ export default async function BlogPostPage({
 }: {
   params: { slug: string };
 }) {
-  const post = await getBlogPost(params.slug);
+  const [post, allPosts] = await Promise.all([getBlogPost(params.slug), getBlogPosts()]);
 
   if (!post) notFound();
 
@@ -58,6 +59,28 @@ export default async function BlogPostPage({
     getAdRuntimeConfig()
   ]);
   const html = injectInlineAffiliateLinks(rawHtml, `/blog/${post.slug}`, dynamicTerms);
+  const relatedPosts = allPosts
+    .filter((candidate) => candidate.slug !== post.slug)
+    .map((candidate) => {
+      let score = 0;
+
+      if (candidate.category === post.category) {
+        score += 4;
+      }
+
+      if (candidate.cuisineType && candidate.cuisineType === post.cuisineType) {
+        score += 2;
+      }
+
+      if (candidate.heatLevel && candidate.heatLevel === post.heatLevel) {
+        score += 1;
+      }
+
+      return { candidate, score };
+    })
+    .sort((left, right) => right.score - left.score)
+    .slice(0, 3)
+    .map(({ candidate }) => candidate);
 
   return (
     <article className="container-shell py-16">
@@ -81,16 +104,8 @@ export default async function BlogPostPage({
         {post.title}
       </h1>
       <p className="mt-4 max-w-3xl text-base leading-7 text-cream/75 sm:text-lg sm:leading-8">{post.description}</p>
-      <div className="mt-4 flex flex-wrap gap-4 text-sm text-cream/55">
-        <span>{post.authorName}</span>
-        <span>{formatDate(post.publishedAt)}</span>
-        <span>{post.readTimeMinutes || 4} min read</span>
-      </div>
-      <div className="mt-5 max-w-3xl">
-        <AffiliateDisclosure compact />
-      </div>
       {post.imageUrl ? (
-        <div className="relative mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05]">
+        <div className="relative mt-6 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05]">
           <PinterestSaveButton
             title={post.title}
             description={post.description}
@@ -113,6 +128,14 @@ export default async function BlogPostPage({
           </div>
         </div>
       ) : null}
+      <div className="mt-4 flex flex-wrap gap-4 text-sm text-cream/55">
+        <span>{post.authorName}</span>
+        <span>{formatDate(post.publishedAt)}</span>
+        <span>{post.readTimeMinutes || 4} min read</span>
+      </div>
+      <div className="mt-5 max-w-3xl">
+        <AffiliateDisclosure compact />
+      </div>
       <div className="mt-8 max-w-4xl">
         <ShareBar
           title={post.title}
@@ -153,6 +176,31 @@ export default async function BlogPostPage({
             contentId={post.id}
             contentSlug={post.slug}
           />
+        </div>
+      ) : null}
+      {relatedPosts.length ? (
+        <div className="mt-14">
+          <p className="eyebrow">Keep reading</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">
+            More stories in this lane.
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
+            If this post helped, these are the next pieces most likely to keep the thread going.
+          </p>
+          <div className="mt-8 grid gap-6 lg:grid-cols-3">
+            {relatedPosts.map((candidate) => (
+              <ContentCard
+                key={candidate.slug}
+                href={`/blog/${candidate.slug}`}
+                image={candidate.imageUrl}
+                imageAlt={candidate.imageAlt}
+                eyebrow={candidate.category}
+                title={candidate.title}
+                description={candidate.description}
+                meta={candidate.publishedAt}
+              />
+            ))}
+          </div>
         </div>
       ) : null}
       <div className="mt-12">

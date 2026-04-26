@@ -90,7 +90,7 @@ Recommended:
 - `CONVERTKIT_API_KEY`
 - `CONVERTKIT_API_SECRET`
 - `CONVERTKIT_FORM_ID`
-- `ANTHROPIC_API_KEY`
+- the AI provider key env defined in `.env.example`
 - `UNSPLASH_ACCESS_KEY`
 - `PEXELS_API_KEY`
 - `BUFFER_API_KEY`
@@ -153,7 +153,7 @@ Verify:
 
 ## 10. Nice-to-have right after cutover
 
-- turn on Kit, Anthropic, Buffer, and media provider keys
+- turn on Kit, the AI provider key, Buffer, and media provider keys
 - complete the Google Search Console OAuth callback flow and save the refresh token
 - create the first real merch products with live checkout URLs
 - add analytics IDs

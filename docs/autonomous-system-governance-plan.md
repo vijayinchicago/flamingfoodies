@@ -23,7 +23,7 @@ As of April 22, 2026:
 - The first live editorial evaluator verdict is also seeded in production: one intentionally generated and published blog post was judged by `editorial-performance-evaluator`, which recorded a lag-aware `escalate` row against the publish run.
 - The first live shop evaluator verdict is seeded in production: `shop-performance-evaluator` judged a prior `shop-shelf-curator` shelf refresh from snapshot-backed run evidence and recorded a lag-aware verdict against that run.
 - Phase 5 is started: snapshot-backed rollback is now available for `search-recommendation-executor` and `shop-shelf-curator` from the admin run ledger.
-- Evaluator loops are still early. Search, editorial, shop, and social now have evaluator lanes in the repo, while the social lane still needs deployment and its first live seed verdicts before this phase can be called fully shipped.
+- Evaluator loops are still early. Search, editorial, shop, and social all now have evaluator lanes in the repo; what remains is building enough live verdict history and operator confidence for Phase 4 to feel routine instead of newly landed.
 
 ## Concrete Next Execution Plan
 
@@ -35,13 +35,13 @@ Each slice should ship as its own commit, tag, and deploy checkpoint so the cont
 
 Goal:
 
-- complete Phase 4 beyond Search, editorial, and shop so the system can judge social decisions instead of only recording that they ran
+- finish operationalizing the newer evaluator lanes so Phase 4 reads as an active practice instead of a freshly landed capability
 
 Scope:
 
-- add `social-distribution-evaluator`
+- smoke-test and seed `social-distribution-evaluator` with real source-run verdicts
 - reuse `automation_evaluations` instead of creating another verdict table
-- wire manual run controls and cron entry points for each evaluator
+- keep manual run controls and cron entry points wired and visible for each evaluator
 - show evaluator verdict counts in `/admin/automation/agents`, `/admin/automation/runs`, and `/admin/automation/trigger`
 
 Likely files:
@@ -174,7 +174,7 @@ Exit criteria:
 
 If we want the next developer agent to execute this in the highest-value order, hand it these tickets:
 
-1. Add `social-distribution-evaluator` with manual trigger, cron route, verdict storage, and one smoke-tested verdict path.
+1. Seed and review `social-distribution-evaluator` with real verdict history, then surface its counts and health more clearly in admin.
 2. Extend rollback/snapshot coverage for `release-monitor` apply actions and persist richer touched-entity evidence for editorial publish runs.
 3. Run and document one production newsletter approval-and-send smoke test plus one production Pinterest/social smoke test.
 4. Tighten operator surfaces so an admin can see rollback readiness, evaluation counts, and policy-block reasons without opening raw run payloads.
@@ -196,100 +196,202 @@ That means:
 - most agents can already run on schedule without manual intervention
 - the highest-risk actions still stop behind approvals or bounded allowlists
 - the control plane can pause, cap, evaluate, and in some cases roll back live mutations
-- the remaining work is mostly about closing evaluator coverage, rollback coverage, and external-send certification
+- the remaining work is mostly about maturing evaluator coverage, expanding rollback coverage, and finishing external-send certification
 
-### Live Agent Coordination Diagram
+### Overall Agent Architecture Diagram
+
+This diagram is keyed to the current registry in [lib/autonomous-agents.ts](/Users/vijaysingh/apps/flamingfoodies/lib/autonomous-agents.ts) and highlights every first-class agent lane that is currently modeled in code.
 
 ```mermaid
-flowchart LR
-  CP["Shared control plane<br/>policies, caps, pauses, run ledger, approvals, rollback"]
+flowchart TB
+  classDef control fill:#1f2937,stroke:#111827,color:#ffffff
+  classDef system fill:#f8fafc,stroke:#94a3b8,color:#0f172a
+  classDef draft fill:#ecfdf3,stroke:#16a34a,color:#14532d
+  classDef bounded fill:#fff7ed,stroke:#ea580c,color:#7c2d12
+  classDef external fill:#fef2f2,stroke:#dc2626,color:#7f1d1d
+  classDef approval fill:#eff6ff,stroke:#2563eb,color:#1e3a8a
+  classDef support fill:#faf5ff,stroke:#9333ea,color:#581c87
 
-  subgraph Research["Draft / backlog lanes"]
-    Fest["festival-discovery"]
-    Pep["pepper-discovery"]
-    Brand["brand-discovery"]
-    Tut["tutorial-generator"]
-    Drafts["draft tables / editorial backlog"]
-    Fest --> Drafts
-    Pep --> Drafts
-    Brand --> Drafts
-    Tut --> Drafts
+  CP["Shared control plane<br/>automation_agents, automation_runs,<br/>automation_approvals, automation_evaluations,<br/>caps, pauses, and rollback"]:::control
+
+  Generation["Generation and publish crons"]:::system
+  Drafts["Draft backlogs<br/>festivals, peppers, brands, tutorials"]:::system
+  Published["Published content<br/>recipes, blog posts, reviews"]:::system
+  Signals["Traffic, telemetry,<br/>affiliate clicks"]:::system
+  SocialQueue["social_posts queue"]:::system
+  SearchQueue["search_recommendations queue"]:::system
+  RuntimeSeo["Runtime SEO overlays"]:::system
+  ShopShelf["Shop shelf and merch_products"]:::system
+  Approvals["Approval queue"]:::system
+  BufferPinterest["Buffer / Pinterest"]:::system
+  ConvertKit["ConvertKit"]:::system
+  Releases["Public releases page"]:::system
+  GSC["Google Search Console"]:::system
+
+  subgraph Discovery["Discovery and proposal lanes"]
+    Festival["festival-discovery"]:::draft
+    Pepper["pepper-discovery"]:::draft
+    Brand["brand-discovery"]:::draft
+    Tutorial["tutorial-generator"]:::draft
+    Release["release-monitor"]:::approval
   end
 
-  subgraph Editorial["Editorial + distribution loop"]
-    Gen["generation crons"]
-    Edit["editorial-autopublisher"]
-    Pub["published recipes / blog / reviews"]
-    Tele["telemetry + affiliate signals"]
-    Growth["growth-loop-promoter"]
-    SocialQ["social_posts queue"]
-    Pin["pinterest-distributor"]
-    EdEval["editorial-performance-evaluator"]
-
-    Gen --> Edit --> Pub
-    Pub --> Tele
-    Pub --> SocialQ
-    Tele --> Growth --> SocialQ --> Pin
-    Edit --> EdEval
-    Tele --> EdEval
+  subgraph Editorial["Editorial, social, and audience loop"]
+    EditorialAuto["editorial-autopublisher"]:::bounded
+    EditorialEval["editorial-performance-evaluator"]:::support
+    Growth["growth-loop-promoter"]:::bounded
+    Pinterest["pinterest-distributor"]:::external
+    SocialEval["social-distribution-evaluator"]:::support
+    Newsletter["newsletter-digest-agent<br/>(approval-gated send)"]:::external
   end
 
-  subgraph Search["SEO loop"]
-    GSC["Google Search Console"]
-    SearchA["search-insights-analyst"]
-    RecQ["search_recommendations queue"]
-    SearchX["search-recommendation-executor"]
-    Runtime["runtime SEO overlays"]
-    SearchEval["search-performance-evaluator"]
-
-    GSC --> SearchA --> RecQ
-    RecQ --> SearchX --> Runtime --> Pub
-    SearchX --> SearchEval
-    RecQ --> SearchEval
+  subgraph Search["Search loop"]
+    SearchAnalyst["search-insights-analyst"]:::draft
+    SearchExec["search-recommendation-executor"]:::bounded
+    SearchEval["search-performance-evaluator"]:::support
   end
 
   subgraph Commerce["Commerce loop"]
-    Sync["content-shop-sync"]
-    Shop["shop-shelf-curator"]
-    ShopEval["shop-performance-evaluator"]
-    Shelf["shop / merch_products"]
-    Clicks["affiliate clicks"]
-
-    Pub --> Sync
-    Shelf --> Sync
-    Sync --> Shop --> Shelf
-    Shelf --> Clicks --> Sync
-    Shop --> ShopEval
-    Clicks --> ShopEval
+    Sync["content-shop-sync"]:::support
+    ShopCurator["shop-shelf-curator"]:::bounded
+    ShopEval["shop-performance-evaluator"]:::support
   end
 
-  subgraph Approval["Approval-gated lanes"]
-    News["newsletter-digest-agent"]
-    Release["release-monitor"]
-    Approvals["admin approvals"]
-    Sends["ConvertKit / releases page"]
+  Generation --> EditorialAuto --> Published
+  Published --> Signals
+  Published --> SocialQueue
+  Signals --> Growth --> SocialQueue --> Pinterest --> BufferPinterest
 
-    Pub --> News --> Approvals --> Sends
-    Release --> Approvals
-  end
+  Published --> Newsletter --> Approvals --> ConvertKit
 
-  CP --- Edit
-  CP --- EdEval
-  CP --- Growth
-  CP --- Pin
-  CP --- SearchA
-  CP --- SearchX
-  CP --- SearchEval
-  CP --- Sync
-  CP --- Shop
-  CP --- ShopEval
-  CP --- News
-  CP --- Release
-  CP --- Fest
-  CP --- Pep
-  CP --- Brand
-  CP --- Tut
+  GSC --> SearchAnalyst --> SearchQueue --> SearchExec --> RuntimeSeo --> Published
+  SearchQueue --> SearchEval
+  SearchExec --> SearchEval
+
+  Festival --> Drafts
+  Pepper --> Drafts
+  Brand --> Drafts
+  Tutorial --> Drafts
+  Release --> Approvals --> Releases
+
+  Published --> Sync
+  ShopShelf --> Sync
+  Sync --> ShopCurator --> ShopShelf
+  Signals --> ShopEval
+  ShopCurator --> ShopEval
+
+  EditorialAuto --> EditorialEval
+  Signals --> EditorialEval
+  Pinterest --> SocialEval
+  Signals --> SocialEval
+
+  CP -. governs .-> Festival
+  CP -. governs .-> Release
+  CP -. governs .-> EditorialAuto
+  CP -. governs .-> SearchAnalyst
+  CP -. governs .-> Sync
+  CP -. governs .-> Newsletter
 ```
+
+Color key:
+
+- `Green` = `draft_only`
+- `Amber` = `bounded_live`
+- `Red` = `external_send`
+- `Blue` = `approval_required`
+- `Purple` = `internal_support`
+
+### Runtime and Infrastructure Diagram
+
+This view complements the agent topology above by making the execution surfaces explicit: scheduled cron entry points, manual admin triggers, QA and approval gates, shared automation tables, and the external providers each lane depends on.
+
+```mermaid
+flowchart LR
+  classDef entry fill:#eff6ff,stroke:#2563eb,color:#1e3a8a
+  classDef runtime fill:#fff7ed,stroke:#ea580c,color:#7c2d12
+  classDef gate fill:#fefce8,stroke:#ca8a04,color:#713f12
+  classDef data fill:#ecfeff,stroke:#0891b2,color:#164e63
+  classDef external fill:#f5f3ff,stroke:#7c3aed,color:#4c1d95
+  classDef admin fill:#f0fdf4,stroke:#16a34a,color:#14532d
+
+  Cron["Vercel Cron<br/>vercel.json schedules"]:::entry
+  AdminUI["Admin surfaces<br/>trigger, agents, approvals, runs"]:::admin
+
+  subgraph Runtime["App runtime entry points"]
+    CronRoutes["Cron routes<br/>generate, publish-scheduled,<br/>reevaluate-ai-drafts, social-scheduler,<br/>newsletter-digest, search-insights,<br/>search executor, evaluators, discovery lanes"]:::runtime
+    AdminActions["Server actions / manual runs<br/>admin run actions, pause/resume,<br/>approval apply / reject"]:::runtime
+    Services["Automation services<br/>automation.ts, search-insights.ts,<br/>social.ts, shop-automation.ts,<br/>brand-monitor.ts, newsletter.ts"]:::runtime
+  end
+
+  subgraph Gates["QA and policy gates"]
+    Policy["Control-plane policy<br/>caps, pauses, quiet hours,<br/>failure thresholds, rollback strategy"]:::gate
+    QA["Editorial QA gates<br/>image checks, delayed publish,<br/>cuisine QA prompts where needed"]:::gate
+    Approval["Approval gates<br/>automation_approvals for newsletter<br/>and release-monitor actions"]:::gate
+    Eval["Post-run evaluators<br/>editorial, social, shop, search"]:::gate
+  end
+
+  subgraph Data["Supabase state and ledger"]
+    Site["site_settings / feature flags"]:::data
+    Agents["automation_agents"]:::data
+    Runs["automation_runs<br/>automation_run_events"]:::data
+    Approvals["automation_approvals"]:::data
+    Evaluations["automation_evaluations"]:::data
+    Snapshots["automation_state_snapshots"]:::data
+    Content["recipes, blog_posts, reviews,<br/>social_posts, newsletter_campaigns,<br/>search_recommendations, merch_products,<br/>festivals, peppers, brands, tutorials, releases"]:::data
+  end
+
+  subgraph Providers["External providers and delivery surfaces"]
+    AIProvider["AI provider"]:::external
+    Media["Image / media providers"]:::external
+    SearchConsole["Google Search Console"]:::external
+    Buffer["Buffer / Pinterest"]:::external
+    Kit["ConvertKit"]:::external
+    Public["Public site surfaces<br/>recipes, blog, shop, releases"]:::external
+    Telemetry["Traffic and affiliate telemetry"]:::external
+  end
+
+  Cron --> CronRoutes --> Services
+  AdminUI --> AdminActions --> Services
+
+  Site --> Policy
+  Agents --> Policy
+  Services --> Policy
+  Services --> QA
+  Services --> Approval
+  Services --> Eval
+
+  Services --> Runs
+  Services --> Content
+  Approval --> Approvals
+  Eval --> Evaluations
+  Services --> Snapshots
+
+  Services --> AIProvider
+  Services --> Media
+  SearchConsole --> Services
+  Services --> Buffer
+  Services --> Kit
+  Content --> Public
+  Public --> Telemetry --> Services
+  Runs --> AdminUI
+  Approvals --> AdminUI
+  Evaluations --> AdminUI
+```
+
+What this second diagram adds that the agent topology does not:
+
+- It shows that `vercel.json` cron routes and admin-triggered server actions are separate execution entry points into the same service layer.
+- It makes the QA layer explicit, especially editorial/image checks and cuisine QA before autopublish decisions.
+- It shows that approvals, runs, evaluations, and snapshots are distinct control-plane tables rather than one generic automation blob.
+- It surfaces the operator loop: admins do not just watch the agents, they also pause lanes, apply approvals, rerun jobs, and inspect ledger history.
+- It makes the provider dependency chain explicit for the AI provider, Search Console, Buffer/Pinterest, ConvertKit, and telemetry feedback.
+
+### Known Modeling Gaps
+
+The diagrams are now close to the real system, but two caveats are still worth keeping in view:
+
+- `brand-monitor` still exists in the legacy `AutomationAgentId` union in [lib/services/automation-control.ts](/Users/vijaysingh/apps/flamingfoodies/lib/services/automation-control.ts:6), even though the active modeled lanes are now `brand-discovery` and `release-monitor`.
+- Some cron-triggered behavior is still grouped as runtime entry points instead of first-class agents, especially shared generation and publish routes like `generate`, `reevaluate-ai-drafts`, and `publish-scheduled` from [vercel.json](/Users/vijaysingh/apps/flamingfoodies/vercel.json:3).
 
 ### Current Agent Maturity Matrix
 
@@ -297,8 +399,8 @@ flowchart LR
 | --- | --- | --- | --- | --- | --- |
 | `editorial-autopublisher` | `bounded_live` | yes | publishes recipes, blog posts, reviews, and schedules social rows | QA-gated, delay-gated, capped by control plane | rollback is still mostly manual evidence rather than full restore |
 | `editorial-performance-evaluator` | `internal_support` | yes | writes verdicts to `automation_evaluations` | never mutates public state directly | exists, but editorial still needs stronger rollback evidence |
-| `pinterest-distributor` | `external_send` | yes | pushes queued social posts to Buffer / Pinterest | caps, pauses, provider-level failure handling | still needs its own evaluator lane and a documented live certification pass |
-| `growth-loop-promoter` | `bounded_live` | yes | re-queues winner pages into social distribution | dedupe, winner thresholds, daily caps | still depends on social evaluator coverage to complete the loop |
+| `pinterest-distributor` | `external_send` | yes | pushes queued social posts to Buffer / Pinterest | caps, pauses, provider-level failure handling | now paired with the social evaluator lane, but still needs stronger operator messaging for provider limits and ongoing live certification |
+| `growth-loop-promoter` | `bounded_live` | yes | re-queues winner pages into social distribution | dedupe, winner thresholds, daily caps | now has evaluator coverage, but still depends on clean social telemetry and queue hygiene to stay trustworthy |
 | `shop-shelf-curator` | `bounded_live` | yes | updates shop ranking and merch picks | bounded write surface plus snapshot-backed rollback | evaluator now exists, but the lane still needs more live verdict history before it feels fully mature |
 | `shop-performance-evaluator` | `internal_support` | yes | writes shop verdicts to `automation_evaluations` | judges snapshot-backed curator runs without mutating the public shelf directly | still early, and needs more live verdict history plus operator review patterns |
 | `newsletter-digest-agent` | `external_send` with `approval_required` send path | yes | drafts campaigns and can send approved campaigns | approval gate, caps, pause controls | still needs a full production approval-and-send certification pass |
@@ -320,11 +422,11 @@ What is true today:
 
 - the site already has a real multi-agent autonomous operating layer
 - several loops are live, scheduled, and writing production state without manual babysitting
-- search and editorial now both have evaluator lanes, so they are not one-way write pipelines anymore
+- search, editorial, shop, and social now all have evaluator lanes, so the biggest live loops are no longer one-way write pipelines
 
 What is not true yet:
 
-- every bounded-live lane does not yet have a post-run evaluator
+- not every live lane has equally mature evaluator history, rollback evidence, or operator-facing messaging yet
 - every live lane does not yet have equally strong rollback coverage
 - every external-send lane has not yet been production-certified end to end
 - the highest-risk actions still and should still stop behind approval or allowlist boundaries

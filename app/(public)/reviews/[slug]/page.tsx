@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AdSlot } from "@/components/ads/ad-slot";
+import { ReviewCard } from "@/components/cards/review-card";
 import { CommentSection } from "@/components/community/comment-section";
 import { ReviewStickyBuyBar } from "@/components/reviews/review-sticky-buy-bar";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
@@ -14,6 +15,7 @@ import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { ReviewSchema } from "@/components/schema/review-schema";
 import {
   findAffiliateLinkByUrl,
+  getAffiliateCtaLabel,
   getReviewAffiliateRecommendations,
   resolveAffiliateLink
 } from "@/lib/affiliates";
@@ -28,7 +30,7 @@ import {
 import { getMerchThemeClasses } from "@/lib/merch";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
-import { getFeaturedMerchProducts, getReview } from "@/lib/services/content";
+import { getFeaturedMerchProducts, getReview, getReviews } from "@/lib/services/content";
 import { absoluteUrl, formatDate, markdownToHtml } from "@/lib/utils";
 
 export async function generateMetadata({
@@ -64,6 +66,7 @@ export default async function ReviewPage({
 
   if (!review) notFound();
   const hero = getReviewHeroFields(review);
+  const reviewByline = review.authorName || "FlamingFoodies editorial";
 
   const [rawHtml, dynamicTerms] = await Promise.all([
     markdownToHtml(review.content),
@@ -93,11 +96,51 @@ export default async function ReviewPage({
       })
     }))
     .filter((entry): entry is { offer: (typeof relatedOffers)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
-  const merchPreview = await getFeaturedMerchProducts(2);
-  const ads = await getAdRuntimeConfig();
+  const [merchPreview, ads, allReviews] = await Promise.all([
+    getFeaturedMerchProducts(2),
+    getAdRuntimeConfig(),
+    getReviews()
+  ]);
   const whyThisPick = getHotSauceWhyBuy(review);
   const bestFor = getHotSauceBestForCopy(review);
   const skipIf = getHotSauceSkipIfCopy(review);
+  const qaSignals = [
+    review.imageReviewed
+      ? "Hero imagery reviewed for match and clarity."
+      : "Hero imagery is using the currently published asset.",
+    review.factQaReviewed
+      ? "Key product facts received a manual fact pass."
+      : "Key product facts rely on current source data and may be refreshed.",
+    review.qaReport
+      ? `Latest QA status: ${review.qaReport.status.toUpperCase()} (${review.qaReport.score}/100).`
+      : "No archived QA score is published for this review yet."
+  ];
+  const relatedReviews = allReviews
+    .filter((candidate) => candidate.slug !== review.slug)
+    .map((candidate) => {
+      let score = 0;
+
+      if (candidate.category === review.category) {
+        score += 5;
+      }
+
+      if (candidate.heatLevel && candidate.heatLevel === review.heatLevel) {
+        score += 3;
+      }
+
+      if (candidate.cuisineOrigin && candidate.cuisineOrigin === review.cuisineOrigin) {
+        score += 2;
+      }
+
+      if (candidate.recommended) {
+        score += 1;
+      }
+
+      return { candidate, score };
+    })
+    .sort((left, right) => right.score - left.score || right.candidate.rating - left.candidate.rating)
+    .slice(0, 3)
+    .map(({ candidate }) => candidate);
 
   return (
     <article className="container-shell py-16">
@@ -121,6 +164,29 @@ export default async function ReviewPage({
         {review.title}
       </h1>
       <p className="mt-4 max-w-3xl text-base leading-7 text-cream/75 sm:text-lg sm:leading-8">{review.description}</p>
+      {hero.imageUrl ? (
+        <div className="relative mt-6 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05]">
+          <PinterestSaveButton
+            title={review.title}
+            description={review.description}
+            url={absoluteUrl(`/reviews/${review.slug}`)}
+            imageUrl={hero.imageUrl}
+            contentType="review"
+            contentId={review.id}
+            contentSlug={review.slug}
+            className="absolute right-4 top-4 z-10 inline-flex rounded-full border border-white/15 bg-charcoal/70 px-4 py-2 text-sm font-semibold text-cream backdrop-blur-md transition hover:border-white/30 hover:bg-charcoal/80"
+          />
+          <div className="relative h-[260px] sm:h-[340px]">
+            <Image
+              src={hero.imageUrl}
+              alt={hero.imageAlt}
+              fill
+              sizes="(min-width: 1280px) 960px, 100vw"
+              className="object-cover"
+            />
+          </div>
+        </div>
+      ) : null}
       <div className="mt-6 flex flex-wrap gap-4 text-sm text-cream/60">
         <span>{review.rating.toFixed(1)}/5</span>
         <span>{review.heatLevel || "all heat levels"}</span>
@@ -134,9 +200,7 @@ export default async function ReviewPage({
           </span>
         ) : null}
         <span>{formatDate(review.publishedAt)}</span>
-        {review.authorName ? (
-          <span>By {review.authorName}</span>
-        ) : null}
+        <span>By {reviewByline}</span>
       </div>
       {review.flavorNotes && review.flavorNotes.length > 0 ? (
         <div className="mt-3 flex flex-wrap gap-2">
@@ -164,29 +228,6 @@ export default async function ReviewPage({
       <div className="mt-6 max-w-3xl">
         <AffiliateDisclosure compact />
       </div>
-      {hero.imageUrl ? (
-        <div className="relative mt-8 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05]">
-          <PinterestSaveButton
-            title={review.title}
-            description={review.description}
-            url={absoluteUrl(`/reviews/${review.slug}`)}
-            imageUrl={hero.imageUrl}
-            contentType="review"
-            contentId={review.id}
-            contentSlug={review.slug}
-            className="absolute right-4 top-4 z-10 inline-flex rounded-full border border-white/15 bg-charcoal/70 px-4 py-2 text-sm font-semibold text-cream backdrop-blur-md transition hover:border-white/30 hover:bg-charcoal/80"
-          />
-          <div className="relative h-[260px] sm:h-[340px]">
-            <Image
-              src={hero.imageUrl}
-              alt={hero.imageAlt}
-              fill
-              sizes="(min-width: 1280px) 960px, 100vw"
-              className="object-cover"
-            />
-          </div>
-        </div>
-      ) : null}
       <ReviewStickyBuyBar
         productName={review.productName}
         affiliateUrl={review.affiliateUrl}
@@ -220,6 +261,38 @@ export default async function ReviewPage({
             </ul>
           </div>
           <div className="panel p-6">
+            <p className="eyebrow">How we checked this</p>
+            <h2 className="mt-3 font-display text-3xl text-cream">Review confidence</h2>
+            <ul className="mt-4 space-y-3 text-sm leading-7 text-cream/75">
+              {qaSignals.map((signal) => (
+                <li key={signal}>{signal}</li>
+              ))}
+            </ul>
+            {review.qaReport ? (
+              <p className="mt-4 text-sm leading-7 text-cream/68">
+                {review.qaReport.warnings.length} warning
+                {review.qaReport.warnings.length === 1 ? "" : "s"} and {review.qaReport.blockers.length} blocker
+                {review.qaReport.blockers.length === 1 ? "" : "s"} are currently logged in the stored QA report.
+              </p>
+            ) : null}
+            {review.qaNotes ? (
+              <p className="mt-4 text-sm leading-7 text-cream/68">{review.qaNotes}</p>
+            ) : null}
+            <div className="mt-5 rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
+              <p className="text-xs uppercase tracking-[0.22em] text-ember">Editorial oversight</p>
+              <p className="mt-2 text-sm leading-7 text-cream/75">
+                FlamingFoodies reviews move through the site&apos;s editorial and QA workflow before
+                they are updated or promoted.
+              </p>
+              <Link
+                href="/about"
+                className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+              >
+                Read our standards
+              </Link>
+            </div>
+          </div>
+          <div className="panel p-6">
             <h2 className="font-display text-3xl text-cream">Cons</h2>
             <ul className="mt-4 space-y-3 text-sm text-cream/75">
               {review.cons.map((con: string) => (
@@ -244,7 +317,7 @@ export default async function ReviewPage({
                 contentSlug={review.slug}
                 className="mt-6 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 font-semibold text-white"
               >
-                Check price on Amazon
+                {getAffiliateCtaLabel(resolvedPrimaryOffer)}
               </AffiliateLink>
             ) : (
               <AffiliateLink
@@ -253,12 +326,12 @@ export default async function ReviewPage({
                 productName={review.productName}
                 className="mt-6 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 font-semibold text-white"
               >
-                Check price on Amazon
+                View retailer offer
               </AffiliateLink>
             )}
           </div>
           <div className="panel p-6">
-            <h2 className="font-display text-3xl text-cream">More Amazon shelf builders</h2>
+            <h2 className="font-display text-3xl text-cream">More shelf builders</h2>
             <div className="mt-4 space-y-4">
               {resolvedRelatedOffers.map(({ offer, resolved }) => (
                 <article
@@ -279,7 +352,7 @@ export default async function ReviewPage({
                     contentSlug={review.slug}
                     className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                   >
-                    Check price on Amazon
+                    {getAffiliateCtaLabel(resolved)}
                   </AffiliateLink>
                 </article>
               ))}
@@ -333,6 +406,22 @@ export default async function ReviewPage({
             contentId={review.id}
             contentSlug={review.slug}
           />
+        </div>
+      ) : null}
+      {relatedReviews.length ? (
+        <div className="mt-14">
+          <p className="eyebrow">Read next</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">
+            More reviews that fit this lane.
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
+            If this bottle was close but not quite right, these reviews are the next smartest places to compare.
+          </p>
+          <div className="mt-8 grid gap-6 lg:grid-cols-3">
+            {relatedReviews.map((candidate) => (
+              <ReviewCard key={candidate.id} review={candidate} />
+            ))}
+          </div>
         </div>
       ) : null}
       <div className="mt-12">

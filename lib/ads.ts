@@ -12,9 +12,16 @@ export type AdSlotConfig = {
   recipeInArticle?: string;
 };
 
+export function sanitizeAdsenseClientId(clientId?: string | null) {
+  const trimmed = clientId?.trim();
+  if (!trimmed) return undefined;
+  return trimmed.startsWith("ca-") ? trimmed : `ca-${trimmed}`;
+}
+
 export function normalizeAdsensePublisherId(publisherId?: string | null) {
-  if (!publisherId) return undefined;
-  return publisherId.startsWith("ca-") ? publisherId.slice(3) : publisherId;
+  const normalizedClientId = sanitizeAdsenseClientId(publisherId);
+  if (!normalizedClientId) return undefined;
+  return normalizedClientId.slice(3);
 }
 
 export function buildAdsTxtContent(publisherId?: string | null, extraLines?: string | null) {
@@ -57,6 +64,7 @@ export function coerceSiteSettingBoolean(value: unknown, fallback = false) {
 }
 
 export async function getAdRuntimeConfig() {
+  const clientId = sanitizeAdsenseClientId(env.NEXT_PUBLIC_ADSENSE_ID);
   const slotIds: AdSlotConfig = {
     blogInline: env.NEXT_PUBLIC_ADSENSE_BLOG_INLINE_SLOT,
     blogArchive: env.NEXT_PUBLIC_ADSENSE_BLOG_ARCHIVE_SLOT,
@@ -70,10 +78,10 @@ export async function getAdRuntimeConfig() {
   const enabledByEnv = flags.hasAdsense;
   const hasManualSlots = Object.values(slotIds).some(Boolean);
 
-  if (!enabledByEnv || !env.NEXT_PUBLIC_ADSENSE_ID) {
+  if (!enabledByEnv || !clientId) {
     return {
       enabled: false,
-      clientId: env.NEXT_PUBLIC_ADSENSE_ID,
+      clientId,
       slotIds,
       manualSlotsEnabled: false
     };
@@ -98,7 +106,7 @@ export async function getAdRuntimeConfig() {
 
   return {
     enabled: showAds,
-    clientId: env.NEXT_PUBLIC_ADSENSE_ID,
+    clientId,
     slotIds,
     manualSlotsEnabled: showAds && hasManualSlots
   };

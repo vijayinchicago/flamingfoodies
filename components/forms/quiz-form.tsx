@@ -9,26 +9,58 @@ import { ANALYTICS_EVENTS } from "@/lib/telemetry-events";
 
 type Answers = Record<number, string>;
 
+function formatResultLabel(value: string) {
+  return value
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
 const questions = [
   {
-    prompt: "Pick a wing challenge:",
-    options: ["Buffalo mild", "Classic hot", "Ghost pepper glaze", "Reaper roulette"]
+    prompt: "What sounds right on a normal weeknight?",
+    options: [
+      "Warm and balanced",
+      "A clear kick, but still easygoing",
+      "Hot enough to feel it",
+      "Big heat is part of the fun"
+    ]
   },
   {
-    prompt: "How do you feel about fermented funk?",
-    options: ["No thanks", "A little", "Love it", "Need more of it"]
+    prompt: "When spice shows up, you want it to...",
+    options: [
+      "Stay gentle and let flavor lead",
+      "Wake the dish up without taking over",
+      "Hang around for a while",
+      "Push all the way to the edge"
+    ]
   },
   {
-    prompt: "What ruins a spicy dish for you?",
-    options: ["Pain without flavor", "Too sweet", "Too mild", "Nothing, push it harder"]
+    prompt: "Which bottle sounds most useful to you?",
+    options: [
+      "An everyday taco-and-eggs bottle",
+      "A balanced sauce with some personality",
+      "A hotter bottle for wings and grilled food",
+      "A serious-heat bottle for challenge mode"
+    ]
   },
   {
-    prompt: "Choose a pantry move:",
-    options: ["Paprika and move on", "Chilli crisp", "Habanero mash", "Fermented mash plus fresh pepper"]
+    prompt: "Who are you usually cooking for?",
+    options: [
+      "A mixed crowd with cautious eaters",
+      "People who like spice but not chaos",
+      "Mostly heat-friendly eaters",
+      "People who want the hottest thing on the table"
+    ]
   },
   {
-    prompt: "Best late-night heat move:",
-    options: ["Spicy popcorn", "Kimchi noodles", "Jerk chicken leftovers", "Sauce tasting flight"]
+    prompt: "If you were shopping today, what lane fits best?",
+    options: [
+      "Starter bottle",
+      "Balanced everyday pour",
+      "Bolder shelf upgrade",
+      "Maximum-heat flex pick"
+    ]
   }
 ];
 
@@ -79,12 +111,12 @@ export function QuizForm() {
         </section>
       ))}
       <div className="panel flex flex-col items-start gap-4 p-6">
-        <p className="text-sm uppercase tracking-[0.24em] text-ember">Current result</p>
-        <h2 className="font-display text-4xl text-cream">{result.replace(/-/g, " ")}</h2>
+        <p className="text-sm uppercase tracking-[0.24em] text-ember">Your heat lane so far</p>
+        <h2 className="font-display text-4xl text-cream">{formatResultLabel(result)}</h2>
         <p className="text-sm text-cream/68">
           {allAnswered
-            ? "Quiz complete. Open the result to get the matching content path."
-            : `Answer ${questions.length - answerCount} more question${questions.length - answerCount === 1 ? "" : "s"} to lock in the result.`}
+            ? "All set. Open your result for recipes, bottle picks, and gift-safe next steps."
+            : `Answer ${questions.length - answerCount} more question${questions.length - answerCount === 1 ? "" : "s"} to lock in a starting lane.`}
         </p>
         <Link
           href={allAnswered ? `/quiz/results/${result}` : "/quiz"}
@@ -104,7 +136,7 @@ export function QuizForm() {
           }}
           className={`rounded-full px-6 py-3 font-semibold ${allAnswered ? "bg-gradient-to-r from-flame to-ember text-white" : "cursor-not-allowed border border-white/10 text-cream/45"}`}
         >
-          See your results
+          See your recipe + bottle plan
         </Link>
       </div>
     </div>

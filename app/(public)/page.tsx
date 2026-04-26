@@ -9,6 +9,7 @@ import { SectionHeading } from "@/components/layout/section-heading";
 import { OrganizationSchema } from "@/components/schema/organization-schema";
 import {
   HOME_FEATURED_AFFILIATE_KEYS,
+  getAffiliateCtaLabel,
   getAffiliateLinkEntries,
   resolveAffiliateLink
 } from "@/lib/affiliates";
@@ -47,14 +48,13 @@ export default async function HomePage() {
           <div className="panel relative overflow-hidden px-5 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-16">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(244,99,30,0.22),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(230,57,70,0.22),transparent_30%)]" />
             <div className="relative">
-              <p className="eyebrow">Bold recipes. Sauce reviews. Heat-loving people.</p>
+              <p className="eyebrow">Flavor-first recipes, bottle guides, and practical spice advice.</p>
               <h1 className="mt-4 max-w-4xl font-display text-4xl leading-none text-cream sm:text-6xl xl:text-7xl">
-                The spicy food platform for people who want flavor before flexing.
+                The spicy food guide for curious beginners, weeknight cooks, and real sauce people.
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-7 text-cream/78 sm:text-lg sm:leading-8">
-                Explore high-heat recipes, product reviews, community posts, and practical guides
-                for people who care about heat, flavor, and what is actually worth cooking or
-                buying.
+                Find approachable dinners, sharper hot sauce reviews, gift-friendly picks, and
+                practical buying guides that help you cook and shop with more confidence.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
                 <Link
@@ -64,42 +64,42 @@ export default async function HomePage() {
                   Browse recipes
                 </Link>
                 <Link
-                  href="/shop"
+                  href="/recipes?heat=mild&maxTime=45&sort=quickest"
                   className="inline-flex w-full justify-center rounded-full bg-white px-6 py-3 font-semibold text-charcoal sm:w-auto"
                 >
-                  Shop sauces and gear
+                  Start mild and fast
                 </Link>
                 <Link
-                  href="/quiz"
+                  href="/shop#gift-mode"
                   className="inline-flex w-full justify-center rounded-full border border-white/15 px-6 py-3 font-semibold text-cream sm:w-auto"
                 >
-                  Take the heat quiz
+                  Shop gift ideas
                 </Link>
               </div>
               <div className="mt-10 grid gap-4 text-sm text-cream/72 sm:grid-cols-3">
                 <Link
-                  href="/recipes"
+                  href="/recipes?maxTime=45&sort=quickest"
                   className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 transition hover:bg-white/[0.08]"
                 >
-                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Start with dinner</p>
-                  <p className="mt-2 font-display text-3xl text-cream">Recipes</p>
-                  <p className="mt-2 leading-6">Search by cuisine, heat, cook time, or difficulty instead of scrolling one giant archive.</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Dinner fast</p>
+                  <p className="mt-2 font-display text-3xl text-cream">Quick recipes</p>
+                  <p className="mt-2 leading-6">Jump straight into weeknight-friendly dinners instead of digging through the full archive first.</p>
                 </Link>
                 <Link
-                  href="/hot-sauces"
+                  href="/quiz"
                   className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 transition hover:bg-white/[0.08]"
                 >
-                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Find a bottle</p>
-                  <p className="mt-2 font-display text-3xl text-cream">Hot sauces</p>
-                  <p className="mt-2 leading-6">Browse everyday pours, gift picks, and best-for pages that match what you actually eat.</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-ember">New to spice?</p>
+                  <p className="mt-2 font-display text-3xl text-cream">Take the quiz</p>
+                  <p className="mt-2 leading-6">Get a gentler starting point for recipes, bottles, and next steps if you are still finding your ceiling.</p>
                 </Link>
                 <Link
-                  href="/shop"
+                  href="/shop#gift-mode"
                   className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 transition hover:bg-white/[0.08]"
                 >
-                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Shop the shelf</p>
-                  <p className="mt-2 font-display text-3xl text-cream">Sauces and gear</p>
-                  <p className="mt-2 leading-6">Jump into starter shelves, gift ideas, pantry heat, and tools that earn their keep.</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Buying for someone else?</p>
+                  <p className="mt-2 font-display text-3xl text-cream">Gift mode</p>
+                  <p className="mt-2 leading-6">Start with curated sets, safe gifts, and shelf builders instead of guessing someone else&apos;s heat tolerance.</p>
                 </Link>
               </div>
             </div>
@@ -137,8 +137,8 @@ export default async function HomePage() {
       <section className="container-shell py-10">
         <SectionHeading
           eyebrow="Top recipes"
-          title="High-heat dinner ideas with actual range."
-          copy="From fermented Korean noodle bowls to Scotch bonnet grill skewers, the recipe layer is built for both discovery and search."
+          title="Flavor-first dinners with room for mild, medium, and serious heat."
+          copy="From quick weeknight bowls to bigger weekend projects, the recipe layer is built to help people find the right dinner path fast."
         />
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
           {recipes.map((recipe) => (
@@ -164,7 +164,7 @@ export default async function HomePage() {
                 </h2>
               </div>
               <Link
-                href="/shop#starter-kits"
+                href="/shop#starter-kit"
                 className="inline-flex w-full justify-center rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream sm:w-auto"
               >
                 Open the shop
@@ -180,7 +180,7 @@ export default async function HomePage() {
                   <h3 className="mt-3 font-display text-3xl text-cream">{collection.ctaLabel}</h3>
                   <p className="mt-4 text-sm leading-7 text-cream/72">{collection.description}</p>
                   <Link
-                    href={collection.key === "gift-guide" ? "/shop#gift-ideas" : `/shop#${collection.key}`}
+                    href={`/shop#${collection.key}`}
                     className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
                   >
                     Explore
@@ -219,7 +219,7 @@ export default async function HomePage() {
                     position="home-commerce"
                     className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                   >
-                    Check price on Amazon
+                    {getAffiliateCtaLabel(resolved)}
                   </AffiliateLink>
                 </article>
               ))}

@@ -12,6 +12,7 @@
     "lint": "next lint",
     "typecheck": "rm -rf .next/types && tsc --noEmit",
     "test": "vitest run",
+    "parity-pack:capture": "node scripts/capture-recovery-parity-pack.mjs",
     "buffer:inspect:pinterest": "node scripts/inspect-buffer-pinterest.mjs",
     "env:check": "node scripts/validate-env.mjs",
     "env:check:prod": "node scripts/validate-env.mjs --production",

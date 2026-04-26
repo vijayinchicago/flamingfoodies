@@ -108,7 +108,10 @@ function BundleLaneCard({ collection }: { collection: ResolvedBundle }) {
   const guide = SHOP_GUIDE_LINKS[collection.key];
 
   return (
-    <article className="panel relative overflow-hidden p-6 sm:p-7">
+    <article
+      id={collection.key}
+      className="panel relative scroll-mt-24 overflow-hidden p-6 sm:p-7"
+    >
       <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-ember/60 to-transparent" />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>

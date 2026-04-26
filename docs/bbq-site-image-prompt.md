@@ -1,6 +1,6 @@
 # BBQ Site — Add Hero Images & Visual QA Agent
 
-Paste this prompt into your BBQ site's Claude Code session.
+Paste this prompt into your BBQ site's AI coding session.
 
 ---
 
@@ -23,8 +23,8 @@ An agent can fetch a relevant photo by keyword when generating content and store
 
 **Layer 3 — AI-generated images (optional, paid)**
 Custom AI images per article. Not needed at launch.
-- OpenAI DALL-E 3: `OPENAI_API_KEY` — ~$0.04/image
-- Replicate (Stable Diffusion): `REPLICATE_API_TOKEN` — ~$0.002/image
+- Use any managed or self-hosted image-generation provider that fits your budget and license needs
+- Store the credentials and model selection in generic image-generation env vars
 
 **Summary — image API keys for the BBQ site:**
 
@@ -33,11 +33,10 @@ Custom AI images per article. Not needed at launch.
 | Hero & card images | next/og (built-in) | none | free |
 | Body photos | Unsplash | `UNSPLASH_ACCESS_KEY` | free |
 | Body photos | Pexels | `PEXELS_API_KEY` | free |
-| AI article images | OpenAI DALL-E 3 | `OPENAI_API_KEY` | ~$0.04/img |
-| AI article images | Replicate | `REPLICATE_API_TOKEN` | ~$0.002/img |
+| AI article images | AI image provider | provider-specific | varies |
 
 **For this session: only Layer 1 is being built. No new API keys needed.**
-Add `.env` entries for Unsplash or DALL-E later when you want body images.
+Add `.env` entries for Unsplash or your chosen image-generation provider later when you want body images.
 
 ---
 

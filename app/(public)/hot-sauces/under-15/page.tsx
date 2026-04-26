@@ -50,10 +50,10 @@ export default async function HotSaucesUnderFifteenPage() {
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
-              href="/reviews?filter=under-15"
+              href="/reviews?sort=price-low"
               className="inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
             >
-              Browse all under-$15 reviews
+              Browse price-sorted reviews
             </Link>
             <Link
               href="/shop#under-15"
