@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { RecipeCard } from "@/components/cards/recipe-card";
@@ -16,6 +17,7 @@ import {
 import { getFeaturedCollection, getCompetitions } from "@/lib/services/content";
 import { getGuides } from "@/lib/content/guides";
 import { getEditorialFranchises } from "@/lib/editorial-franchises";
+import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import { getShopAffiliateCollections } from "@/lib/shop";
 import { getCurrentOccasions } from "@/lib/seasonal/occasions";
 import { formatDate } from "@/lib/utils";
@@ -30,6 +32,9 @@ export default async function HomePage() {
   const homeAffiliateLinks = getAffiliateLinkEntries(HOME_FEATURED_AFFILIATE_KEYS);
   const shopCollections = getShopAffiliateCollections();
   const editorialFranchises = getEditorialFranchises(blogPosts);
+  const featuredRecipe = recipes[0] ?? null;
+  const featuredRecipeHero = featuredRecipe ? getRecipeHeroFields(featuredRecipe) : null;
+  const featuredGuide = guides[0] ?? null;
   const resolvedHomeAffiliateLinks = homeAffiliateLinks
     .map((link) => ({
       link,
@@ -64,10 +69,10 @@ export default async function HomePage() {
                   Browse recipes
                 </Link>
                 <Link
-                  href="/recipes?heat=mild&maxTime=45&sort=quickest"
+                  href="/hot-sauces"
                   className="inline-flex w-full justify-center rounded-full bg-white px-6 py-3 font-semibold text-charcoal sm:w-auto"
                 >
-                  Start mild and fast
+                  Find a hot sauce
                 </Link>
                 <Link
                   href="/shop#gift-mode"
@@ -76,60 +81,104 @@ export default async function HomePage() {
                   Shop gift ideas
                 </Link>
               </div>
-              <div className="mt-10 grid gap-4 text-sm text-cream/72 sm:grid-cols-3">
+
+              {featuredRecipe && featuredRecipeHero ? (
+                <Link
+                  href={`/recipes/${featuredRecipe.slug}`}
+                  className="relative mt-8 block overflow-hidden rounded-[2rem] border border-white/10 bg-[#120b08] shadow-[0_22px_60px_rgba(0,0,0,0.28)] lg:hidden"
+                >
+                  <div className="relative min-h-[260px]">
+                    <Image
+                      src={featuredRecipeHero.imageUrl}
+                      alt={featuredRecipeHero.imageAlt}
+                      fill
+                      sizes="100vw"
+                      priority
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/45 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 p-5">
+                      <div className="rounded-[1.6rem] border border-white/10 bg-charcoal/75 p-5 backdrop-blur-md">
+                        <p className="text-xs uppercase tracking-[0.24em] text-ember">Cook this first</p>
+                        <h2 className="mt-3 font-display text-3xl text-cream">{featuredRecipe.title}</h2>
+                        <p className="mt-3 text-sm leading-7 text-cream/78">
+                          {featuredRecipe.description}
+                        </p>
+                        <div className="mt-4 flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-cream/58">
+                          <span>{featuredRecipe.totalTimeMinutes} min</span>
+                          <span>{featuredRecipe.heatLevel} heat</span>
+                          <span>{featuredRecipe.saveCount} saves</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ) : null}
+
+              <div className="mt-8 grid gap-4 text-sm text-cream/72 sm:grid-cols-2">
                 <Link
                   href="/recipes?maxTime=45&sort=quickest"
                   className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 transition hover:bg-white/[0.08]"
                 >
-                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Dinner fast</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Dinner tonight</p>
                   <p className="mt-2 font-display text-3xl text-cream">Quick recipes</p>
-                  <p className="mt-2 leading-6">Jump straight into weeknight-friendly dinners instead of digging through the full archive first.</p>
+                  <p className="mt-2 leading-6">Jump straight into 45-minute dinners instead of digging through the full archive first.</p>
                 </Link>
                 <Link
-                  href="/quiz"
+                  href="/recipes?heat=mild&maxTime=45&sort=quickest"
                   className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 transition hover:bg-white/[0.08]"
                 >
                   <p className="text-xs uppercase tracking-[0.2em] text-ember">New to spice?</p>
-                  <p className="mt-2 font-display text-3xl text-cream">Take the quiz</p>
-                  <p className="mt-2 leading-6">Get a gentler starting point for recipes, bottles, and next steps if you are still finding your ceiling.</p>
-                </Link>
-                <Link
-                  href="/shop#gift-mode"
-                  className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 transition hover:bg-white/[0.08]"
-                >
-                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Buying for someone else?</p>
-                  <p className="mt-2 font-display text-3xl text-cream">Gift mode</p>
-                  <p className="mt-2 leading-6">Start with curated sets, safe gifts, and shelf builders instead of guessing someone else&apos;s heat tolerance.</p>
+                  <p className="mt-2 font-display text-3xl text-cream">Start mild</p>
+                  <p className="mt-2 leading-6">Use the gentler recipe lane if you want flavor first and less risk on the first pass.</p>
                 </Link>
               </div>
             </div>
           </div>
-          <div className="grid gap-6">
-            <div className="panel p-7">
-              <p className="eyebrow">Featured guide</p>
-              <h2 className="mt-3 font-display text-4xl text-cream">{guides[0]?.title}</h2>
-              <p className="mt-4 text-sm leading-7 text-cream/70">{guides[0]?.description}</p>
+          <div className="hidden gap-6 lg:grid">
+            {featuredRecipe && featuredRecipeHero ? (
               <Link
-                href={`/guides/${guides[0]?.slug}`}
-                className="mt-6 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                href={`/recipes/${featuredRecipe.slug}`}
+                className="group relative overflow-hidden rounded-[2.25rem] border border-white/10 bg-[#120b08] shadow-[0_24px_70px_rgba(0,0,0,0.32)]"
               >
-                Read guide
+                <div className="relative min-h-[500px]">
+                  <Image
+                    src={featuredRecipeHero.imageUrl}
+                    alt={featuredRecipeHero.imageAlt}
+                    fill
+                    sizes="(min-width: 1024px) 34vw, 100vw"
+                    priority
+                    className="object-cover transition duration-500 group-hover:scale-[1.02]"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/35 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-6">
+                    <div className="rounded-[2rem] border border-white/10 bg-charcoal/78 p-6 backdrop-blur-md">
+                      <p className="text-xs uppercase tracking-[0.24em] text-ember">Tonight&apos;s pick</p>
+                      <h2 className="mt-3 font-display text-4xl text-cream">{featuredRecipe.title}</h2>
+                      <p className="mt-4 text-sm leading-7 text-cream/78">{featuredRecipe.description}</p>
+                      <div className="mt-5 flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-cream/58">
+                        <span>{featuredRecipe.totalTimeMinutes} min</span>
+                        <span>{featuredRecipe.heatLevel} heat</span>
+                        <span>{featuredRecipe.saveCount} saves</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </Link>
-            </div>
-            <div className="panel p-7">
-              <p className="eyebrow">Hot sauce hub</p>
-              <h2 className="mt-3 font-display text-4xl text-cream">Find the right bottle faster.</h2>
-              <p className="mt-4 text-sm leading-7 text-cream/70">
-                Browse best-for pages, under-$15 picks, giftable sets, and hot sauce reviews that
-                make it easier to buy the right bottle the first time.
-              </p>
-              <Link
-                href="/hot-sauces"
-                className="mt-6 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
-              >
-                Explore hot sauces
-              </Link>
-            </div>
+            ) : null}
+            {featuredGuide ? (
+              <div className="panel p-7">
+                <p className="eyebrow">Featured guide</p>
+                <h2 className="mt-3 font-display text-4xl text-cream">{featuredGuide.title}</h2>
+                <p className="mt-4 text-sm leading-7 text-cream/70">{featuredGuide.description}</p>
+                <Link
+                  href={`/guides/${featuredGuide.slug}`}
+                  className="mt-6 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                >
+                  Read guide
+                </Link>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>

@@ -6,13 +6,16 @@ import { useState } from "react";
 import { SiteBrand } from "@/components/layout/site-brand";
 import { SearchForm } from "@/components/search/search-form";
 
-const nav = [
+const primaryNav = [
   { href: "/recipes", label: "Recipes" },
-  { href: "/reviews", label: "Reviews" },
   { href: "/hot-sauces", label: "Hot Sauces" },
+  { href: "/reviews", label: "Reviews" },
+  { href: "/shop", label: "Shop" }
+];
+
+const secondaryNav = [
   { href: "/peppers", label: "Peppers" },
   { href: "/festivals", label: "Festivals" },
-  { href: "/shop", label: "Shop" },
   { href: "/blog", label: "Blog" }
 ];
 
@@ -30,26 +33,29 @@ export function HeaderClient({
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-charcoal/70 backdrop-blur-xl">
       <div className="container-shell py-3 sm:py-4">
-        <div className="flex items-center justify-between gap-3 lg:gap-6">
+        <div className="flex items-center justify-between gap-3 lg:gap-5 xl:gap-8">
           <SiteBrand
             href="/"
-            subtitle="Turn Up the Heat"
+            subtitle="Flavor-first spicy food"
             priority
-            imageSize={40}
+            imageSize={44}
+            className="shrink-0"
+            titleClassName="max-w-[11ch] truncate text-[1.55rem] leading-none sm:max-w-none sm:overflow-visible sm:whitespace-nowrap sm:text-[1.9rem]"
+            subtitleClassName="tracking-[0.22em]"
             onClick={() => setMobileOpen(false)}
           />
-          <nav className="hidden items-center gap-6 lg:flex">
-            {nav.map((item) => (
+          <nav className="hidden items-center gap-5 lg:flex xl:gap-6">
+            {primaryNav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-sm font-medium text-cream/80 hover:text-white"
+                className="text-sm font-semibold text-cream/80 hover:text-white"
               >
                 {item.label}
               </Link>
             ))}
           </nav>
-          <div className="hidden xl:block xl:w-[320px]">
+          <div className="hidden 2xl:block 2xl:w-[280px]">
             <SearchForm source="header" compact />
           </div>
           <div className="hidden items-center gap-3 lg:flex">
@@ -126,13 +132,31 @@ export function HeaderClient({
             id="mobile-header-nav"
             className="mt-4 rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-4 lg:hidden"
           >
-            <div className="grid gap-2 sm:grid-cols-2">
-              {nav.map((item) => (
+            <div>
+              <p className="text-xs uppercase tracking-[0.22em] text-ember">Primary paths</p>
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {primaryNav.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className="rounded-[1.1rem] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-cream/88"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+            <div className="mt-5">
+              <p className="text-xs uppercase tracking-[0.22em] text-ember">Explore more</p>
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              {secondaryNav.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-[1.1rem] border border-white/10 bg-white/[0.02] px-4 py-3 text-sm font-semibold text-cream/78"
                 >
                   {item.label}
                 </Link>

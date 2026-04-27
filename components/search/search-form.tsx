@@ -11,6 +11,10 @@ export function SearchForm({
   className?: string;
   compact?: boolean;
 }) {
+  const placeholder = compact
+    ? "Search the site"
+    : "Search recipes, reviews, blog, and guides";
+
   return (
     <form
       action="/search"
@@ -35,7 +39,7 @@ export function SearchForm({
           defaultValue={defaultValue}
           type="search"
           required
-          placeholder="Search recipes, reviews, blog, and guides"
+          placeholder={placeholder}
           className={cn(
             compact
               ? "w-full bg-transparent px-2 py-1 text-sm text-cream outline-none placeholder:text-cream/40"
