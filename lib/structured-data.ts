@@ -32,7 +32,7 @@ export function buildArticleStructuredData(post: BlogPost) {
       name: "FlamingFoodies",
       logo: {
         "@type": "ImageObject",
-        url: absoluteUrl("/api/og?title=FlamingFoodies")
+        url: absoluteUrl("/brand/flamingfoodies-mark.png")
       }
     },
     articleSection: post.category,

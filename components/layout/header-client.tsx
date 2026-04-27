@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
+import { SiteBrand } from "@/components/layout/site-brand";
 import { SearchForm } from "@/components/search/search-form";
 
 const nav = [
@@ -30,17 +31,13 @@ export function HeaderClient({
     <header className="sticky top-0 z-40 border-b border-white/10 bg-charcoal/70 backdrop-blur-xl">
       <div className="container-shell py-3 sm:py-4">
         <div className="flex items-center justify-between gap-3 lg:gap-6">
-          <Link href="/" className="flex min-w-0 items-center gap-3" onClick={() => setMobileOpen(false)}>
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-flame to-ember text-lg sm:h-10 sm:w-10 sm:text-xl">
-              🔥
-            </span>
-            <div className="min-w-0">
-              <div className="truncate font-display text-xl text-cream sm:text-2xl">FlamingFoodies</div>
-              <div className="hidden text-xs uppercase tracking-[0.28em] text-cream/55 sm:block">
-                Turn Up the Heat
-              </div>
-            </div>
-          </Link>
+          <SiteBrand
+            href="/"
+            subtitle="Turn Up the Heat"
+            priority
+            imageSize={40}
+            onClick={() => setMobileOpen(false)}
+          />
           <nav className="hidden items-center gap-6 lg:flex">
             {nav.map((item) => (
               <Link

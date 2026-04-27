@@ -6,7 +6,7 @@ export function OrganizationSchema() {
     "@type": "Organization",
     name: "FlamingFoodies",
     url: absoluteUrl("/"),
-    logo: absoluteUrl("/api/og?title=FlamingFoodies")
+    logo: absoluteUrl("/brand/flamingfoodies-mark.png")
   };
 
   return (

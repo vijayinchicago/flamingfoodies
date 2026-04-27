@@ -1,11 +1,19 @@
 import Link from "next/link";
 
+import { SiteBrand } from "@/components/layout/site-brand";
+
 export function Footer() {
   return (
     <footer className="border-t border-white/10 bg-charcoal/95">
       <div className="container-shell grid gap-10 py-14 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
         <div>
-          <div className="font-display text-3xl text-cream">FlamingFoodies</div>
+          <SiteBrand
+            href="/"
+            imageSize={64}
+            titleClassName="text-3xl"
+            subtitle="Flavor-first spicy food"
+            subtitleClassName="tracking-[0.24em]"
+          />
           <p className="mt-4 max-w-xl text-sm leading-7 text-cream/70">
             Recipes, reviews, community spotlights, and the internet&apos;s favorite place
             to chase deeper flavor and higher heat.
