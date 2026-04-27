@@ -35,6 +35,9 @@ export default async function HomePage() {
   const featuredRecipe = recipes[0] ?? null;
   const featuredRecipeHero = featuredRecipe ? getRecipeHeroFields(featuredRecipe) : null;
   const featuredGuide = guides[0] ?? null;
+  const mobileRecipePreviewCount = 4;
+  const mobileShopLaneCount = 3;
+  const mobileAffiliatePreviewCount = 2;
   const resolvedHomeAffiliateLinks = homeAffiliateLinks
     .map((link) => ({
       link,
@@ -53,13 +56,13 @@ export default async function HomePage() {
           <div className="panel relative overflow-hidden px-5 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-16">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(244,99,30,0.22),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(230,57,70,0.22),transparent_30%)]" />
             <div className="relative">
-              <p className="eyebrow">Flavor-first recipes, bottle guides, and practical spice advice.</p>
-              <h1 className="mt-4 max-w-4xl font-display text-4xl leading-none text-cream sm:text-6xl xl:text-7xl">
-                The spicy food guide for curious beginners, weeknight cooks, and real sauce people.
+              <p className="eyebrow">Flavor-first spicy food</p>
+              <h1 className="mt-4 max-w-4xl font-display text-4xl leading-[0.98] text-cream sm:text-6xl xl:text-[5.35rem]">
+                Flavor-first spicy food for real kitchens and mixed tables.
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-7 text-cream/78 sm:text-lg sm:leading-8">
-                Find approachable dinners, sharper hot sauce reviews, gift-friendly picks, and
-                practical buying guides that help you cook and shop with more confidence.
+                Cook approachable dinners, choose better bottles, and find gift-worthy heat
+                without turning every meal into a stunt.
               </p>
               <div className="mt-8 flex flex-wrap gap-4">
                 <Link
@@ -168,14 +171,17 @@ export default async function HomePage() {
             ) : null}
             {featuredGuide ? (
               <div className="panel p-7">
-                <p className="eyebrow">Featured guide</p>
-                <h2 className="mt-3 font-display text-4xl text-cream">{featuredGuide.title}</h2>
-                <p className="mt-4 text-sm leading-7 text-cream/70">{featuredGuide.description}</p>
+                <p className="eyebrow">Bottle path</p>
+                <h2 className="mt-3 font-display text-4xl text-cream">Find the right bottle faster.</h2>
+                <p className="mt-4 text-sm leading-7 text-cream/70">
+                  Start with everyday bottles, under-$15 picks, and giftable sets that make the
+                  hot sauce side feel easier to navigate.
+                </p>
                 <Link
-                  href={`/guides/${featuredGuide.slug}`}
+                  href="/hot-sauces"
                   className="mt-6 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
                 >
-                  Read guide
+                  Explore hot sauces
                 </Link>
               </div>
             ) : null}
@@ -187,12 +193,22 @@ export default async function HomePage() {
         <SectionHeading
           eyebrow="Top recipes"
           title="Flavor-first dinners with room for mild, medium, and serious heat."
-          copy="From quick weeknight bowls to bigger weekend projects, the recipe layer is built to help people find the right dinner path fast."
+          copy="Fast dinners, gentler starts, and bigger weekend payoffs."
         />
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
-          {recipes.map((recipe) => (
-            <RecipeCard key={recipe.id} recipe={recipe} />
+          {recipes.map((recipe, index) => (
+            <div key={recipe.id} className={index >= mobileRecipePreviewCount ? "hidden lg:block" : ""}>
+              <RecipeCard recipe={recipe} />
+            </div>
           ))}
+        </div>
+        <div className="mt-6 lg:hidden">
+          <Link
+            href="/recipes"
+            className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+          >
+            See all recipes
+          </Link>
         </div>
       </section>
 
@@ -200,7 +216,7 @@ export default async function HomePage() {
         <SectionHeading
           eyebrow="Shop the heat"
           title="Shop the bottles, gear, and pantry picks that earn their keep."
-          copy="At launch, the store should stay practical: better bottles, useful gear, giftable sets, and pantry staples that actually support the cooking."
+          copy="Better bottles, useful gear, and giftable heat without the clutter."
         />
         <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
         <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
@@ -220,10 +236,10 @@ export default async function HomePage() {
               </Link>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-3">
-              {shopCollections.map((collection) => (
+              {shopCollections.map((collection, index) => (
                 <article
                   key={collection.key}
-                  className="rounded-[1.75rem] border border-white/10 bg-white/5 p-5"
+                  className={`${index >= mobileShopLaneCount ? "hidden md:block " : ""}rounded-[1.75rem] border border-white/10 bg-white/5 p-5`}
                 >
                   <p className="text-xs uppercase tracking-[0.24em] text-ember">{collection.title}</p>
                   <h3 className="mt-3 font-display text-3xl text-cream">{collection.ctaLabel}</h3>
@@ -237,6 +253,14 @@ export default async function HomePage() {
                 </article>
               ))}
             </div>
+            <div className="mt-6 md:hidden">
+              <Link
+                href="/shop"
+                className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              >
+                See the full shop
+              </Link>
+            </div>
           </div>
           <div className="panel p-8">
             <p className="eyebrow">Affiliate staples</p>
@@ -244,10 +268,10 @@ export default async function HomePage() {
               Products that pair naturally with the recipes and reviews.
             </h2>
             <div className="mt-8 space-y-4">
-              {resolvedHomeAffiliateLinks.map(({ link, resolved }) => (
+              {resolvedHomeAffiliateLinks.map(({ link, resolved }, index) => (
                 <article
                   key={link.key}
-                  className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5"
+                  className={`${index >= mobileAffiliatePreviewCount ? "hidden lg:block " : ""}rounded-[1.5rem] border border-white/10 bg-white/5 p-5`}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
@@ -272,6 +296,14 @@ export default async function HomePage() {
                   </AffiliateLink>
                 </article>
               ))}
+            </div>
+            <div className="mt-6 lg:hidden">
+              <Link
+                href="/shop"
+                className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              >
+                See more shop picks
+              </Link>
             </div>
           </div>
         </div>

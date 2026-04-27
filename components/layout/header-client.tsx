@@ -36,12 +36,12 @@ export function HeaderClient({
         <div className="flex items-center justify-between gap-3 lg:gap-5 xl:gap-8">
           <SiteBrand
             href="/"
-            subtitle="Flavor-first spicy food"
+            subtitle="For real kitchens and mixed tables"
             priority
             imageSize={44}
             className="shrink-0"
-            titleClassName="max-w-[11ch] truncate text-[1.55rem] leading-none sm:max-w-none sm:overflow-visible sm:whitespace-nowrap sm:text-[1.9rem]"
-            subtitleClassName="tracking-[0.22em]"
+            titleClassName="max-w-[13ch] truncate text-[1.35rem] leading-none sm:max-w-none sm:overflow-visible sm:whitespace-nowrap sm:text-[1.9rem]"
+            subtitleClassName="tracking-[0.16em]"
             onClick={() => setMobileOpen(false)}
           />
           <nav className="hidden items-center gap-5 lg:flex xl:gap-6">
@@ -91,12 +91,6 @@ export function HeaderClient({
             ) : null}
           </div>
           <div className="flex items-center gap-2 lg:hidden">
-            <Link
-              href="/search"
-              className="rounded-full border border-white/15 px-3 py-2 text-sm font-semibold text-cream/85 hover:border-white/30 hover:text-white"
-            >
-              Search
-            </Link>
             <button
               type="button"
               aria-expanded={mobileOpen}
