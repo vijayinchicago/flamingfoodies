@@ -22,6 +22,8 @@ import { getShopAffiliateCollections } from "@/lib/shop";
 import { getCurrentOccasions } from "@/lib/seasonal/occasions";
 import { formatDate } from "@/lib/utils";
 
+export const revalidate = 3600;
+
 export default async function HomePage() {
   const [{ recipes, blogPosts, reviews }, guides, competitions] = await Promise.all([
     getFeaturedCollection(),

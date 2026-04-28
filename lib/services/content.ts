@@ -19,6 +19,7 @@ import {
 import type { AffiliateLinkEntry } from "@/lib/affiliates";
 import { getBlogHeroFields } from "@/lib/blog-hero";
 import { flags } from "@/lib/env";
+import { sortRecipesByDiscovery } from "@/lib/recipe-browse";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import {
   applyBlogSearchOptimization,
@@ -53,6 +54,208 @@ function sortPublished<T extends { publishedAt?: string }>(items: T[]) {
   return [...items].sort((left, right) =>
     (right.publishedAt || "").localeCompare(left.publishedAt || "")
   );
+}
+
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+
+function getSortableTimestamp(item: { publishedAt?: string; createdAt?: string }) {
+  const raw = item.publishedAt ?? item.createdAt;
+  if (!raw) {
+    return 0;
+  }
+
+  const timestamp = new Date(raw).getTime();
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function getDailyRotationSeed(now = new Date()) {
+  return Math.floor(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) / DAY_IN_MS
+  );
+}
+
+function rotateItems<T>(items: T[], offset: number) {
+  if (!items.length) {
+    return [];
+  }
+
+  const normalizedOffset = ((offset % items.length) + items.length) % items.length;
+  return [...items.slice(normalizedOffset), ...items.slice(0, normalizedOffset)];
+}
+
+function sortByRecent<T extends { publishedAt?: string; createdAt?: string }>(items: T[]) {
+  return [...items].sort(
+    (left, right) => getSortableTimestamp(right) - getSortableTimestamp(left)
+  );
+}
+
+function getHomepageEligiblePool<T extends { featured?: boolean }>(items: T[]) {
+  const featured = items.filter((item) => item.featured);
+  return featured.length ? featured : items;
+}
+
+function pickRotatingCandidate<T extends { id: number }>(
+  items: T[],
+  offset: number,
+  usedIds: Set<number>
+) {
+  const available = items.filter((item) => !usedIds.has(item.id));
+  if (!available.length) {
+    return null;
+  }
+
+  return available[((offset % available.length) + available.length) % available.length] ?? null;
+}
+
+function selectRotatingWindow<T extends { id: number }>(
+  items: T[],
+  limit: number,
+  seed: number,
+  qualityWindow = limit * 3
+) {
+  if (!items.length || limit <= 0) {
+    return [];
+  }
+
+  const candidates = items.slice(0, Math.max(limit, qualityWindow));
+  if (candidates.length <= limit) {
+    return rotateItems(candidates, seed).slice(0, limit);
+  }
+
+  const start = (seed * Math.max(1, limit - 1)) % candidates.length;
+  return rotateItems(candidates, start).slice(0, limit);
+}
+
+function sortBlogPostsByMomentum(posts: BlogPost[]) {
+  return [...posts].sort((left, right) => {
+    const viewDelta = right.viewCount - left.viewCount;
+    if (viewDelta !== 0) {
+      return viewDelta;
+    }
+
+    const likeDelta = right.likeCount - left.likeCount;
+    if (likeDelta !== 0) {
+      return likeDelta;
+    }
+
+    return getSortableTimestamp(right) - getSortableTimestamp(left);
+  });
+}
+
+function sortReviewsByMomentum(reviews: Review[]) {
+  return [...reviews].sort((left, right) => {
+    if (left.recommended !== right.recommended) {
+      return left.recommended ? -1 : 1;
+    }
+
+    const ratingDelta = right.rating - left.rating;
+    if (ratingDelta !== 0) {
+      return ratingDelta;
+    }
+
+    const viewDelta = right.viewCount - left.viewCount;
+    if (viewDelta !== 0) {
+      return viewDelta;
+    }
+
+    return getSortableTimestamp(right) - getSortableTimestamp(left);
+  });
+}
+
+function sortRecipesByEvergreen(recipes: Recipe[]) {
+  return [...recipes].sort((left, right) => {
+    const saveDelta = right.saveCount - left.saveCount;
+    if (saveDelta !== 0) {
+      return saveDelta;
+    }
+
+    const ratingDelta = (right.ratingAvg ?? 0) - (left.ratingAvg ?? 0);
+    if (ratingDelta !== 0) {
+      return ratingDelta;
+    }
+
+    const viewDelta = right.viewCount - left.viewCount;
+    if (viewDelta !== 0) {
+      return viewDelta;
+    }
+
+    return getSortableTimestamp(right) - getSortableTimestamp(left);
+  });
+}
+
+function selectHomepageRecipes(recipes: Recipe[], limit: number, seed: number) {
+  const pool = getHomepageEligiblePool(recipes);
+  if (!pool.length || limit <= 0) {
+    return [];
+  }
+
+  const targetCount = Math.min(limit, pool.length);
+  const discoveryPool = sortRecipesByDiscovery(pool).slice(0, Math.max(targetCount + 4, 10));
+  const quickPool = sortRecipesByDiscovery(
+    pool.filter((recipe) => recipe.totalTimeMinutes <= 45)
+  ).slice(0, 8);
+  const approachablePool = sortRecipesByDiscovery(
+    pool.filter((recipe) => recipe.heatLevel === "mild" || recipe.heatLevel === "medium")
+  ).slice(0, 8);
+  const evergreenPool = sortRecipesByEvergreen(pool).slice(0, 8);
+  const recentPool = sortByRecent(pool).slice(0, 8);
+
+  const selections: Recipe[] = [];
+  const usedIds = new Set<number>();
+  const slotPools = [
+    discoveryPool,
+    quickPool,
+    approachablePool,
+    evergreenPool,
+    recentPool,
+    discoveryPool
+  ];
+
+  slotPools.forEach((slotPool, index) => {
+    if (selections.length >= targetCount) {
+      return;
+    }
+
+    const candidate = pickRotatingCandidate(slotPool, seed + index * 2, usedIds);
+    if (!candidate) {
+      return;
+    }
+
+    selections.push(candidate);
+    usedIds.add(candidate.id);
+  });
+
+  if (selections.length < targetCount) {
+    for (const candidate of rotateItems(discoveryPool, seed + targetCount)) {
+      if (usedIds.has(candidate.id)) {
+        continue;
+      }
+
+      selections.push(candidate);
+      usedIds.add(candidate.id);
+
+      if (selections.length >= targetCount) {
+        break;
+      }
+    }
+  }
+
+  if (selections.length < targetCount) {
+    for (const candidate of rotateItems(sortRecipesByDiscovery(pool), seed + targetCount * 2)) {
+      if (usedIds.has(candidate.id)) {
+        continue;
+      }
+
+      selections.push(candidate);
+      usedIds.add(candidate.id);
+
+      if (selections.length >= targetCount) {
+        break;
+      }
+    }
+  }
+
+  return selections;
 }
 
 function sortMerch(items: MerchProduct[]) {
@@ -1153,11 +1356,22 @@ export async function getFeaturedCollection() {
     getBlogPosts(),
     getReviews()
   ]);
+  const dailySeed = getDailyRotationSeed();
+  const featuredPosts = getHomepageEligiblePool(posts);
+  const featuredReviews = getHomepageEligiblePool(reviews);
 
   return {
-    recipes: recipes.filter((item) => item.featured).slice(0, 6),
-    blogPosts: posts.filter((item) => item.featured).slice(0, 2),
-    reviews: reviews.filter((item) => item.featured).slice(0, 4)
+    recipes: selectHomepageRecipes(recipes, 6, dailySeed),
+    blogPosts: selectRotatingWindow(
+      sortBlogPostsByMomentum(featuredPosts),
+      2,
+      dailySeed + 5
+    ),
+    reviews: selectRotatingWindow(
+      sortReviewsByMomentum(featuredReviews),
+      4,
+      dailySeed + 11
+    )
   };
 }
 
