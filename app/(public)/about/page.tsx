@@ -95,6 +95,24 @@ export default function AboutPage() {
             Contact FlamingFoodies
           </Link>
           <Link
+            href="/editorial-policy"
+            className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+          >
+            Editorial policy
+          </Link>
+          <Link
+            href="/review-methodology"
+            className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+          >
+            Review methodology
+          </Link>
+          <Link
+            href="/corrections"
+            className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+          >
+            Corrections policy
+          </Link>
+          <Link
             href="/subscriptions"
             className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
           >

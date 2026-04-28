@@ -45,7 +45,7 @@ export function sanitizeAutomationAuthorName(authorName?: string) {
   }
 
   if (authorName === "FlamingFoodies AI Desk") {
-    return "FlamingFoodies";
+    return "FlamingFoodies Team";
   }
 
   return authorName;

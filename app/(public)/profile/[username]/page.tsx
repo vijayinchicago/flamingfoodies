@@ -22,7 +22,8 @@ export async function generateMetadata({
     title: profile ? `${profile.displayName} | FlamingFoodies` : "Member Profile | FlamingFoodies",
     description:
       profile?.bio || `See spicy posts and community stats for @${params.username}.`,
-    path: `/profile/${params.username}`
+    path: `/profile/${params.username}`,
+    noIndex: true
   });
 }
 

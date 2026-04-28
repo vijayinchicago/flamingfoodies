@@ -1,6 +1,7 @@
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import { getRecipeIngredientSections, getRecipeMethodSteps } from "@/lib/recipes";
 import type { BlogPost, Recipe, RecipeFaq } from "@/lib/types";
+import { buildAuthorStructuredData } from "@/lib/authors";
 import { absoluteUrl } from "@/lib/utils";
 
 export type ItemListEntry = {
@@ -23,10 +24,7 @@ export function buildArticleStructuredData(post: BlogPost) {
     image: post.imageUrl ? [post.imageUrl] : undefined,
     datePublished: post.publishedAt,
     dateModified: post.publishedAt,
-    author: {
-      "@type": "Person",
-      name: post.authorName
-    },
+    author: buildAuthorStructuredData(post.authorName),
     publisher: {
       "@type": "Organization",
       name: "FlamingFoodies",
@@ -83,7 +81,7 @@ export function buildRecipeStructuredData(recipe: Recipe) {
     name: recipe.title,
     description: recipe.description,
     image: [hero.imageUrl],
-    author: { "@type": "Person", name: recipe.authorName },
+    author: buildAuthorStructuredData(recipe.authorName),
     datePublished: recipe.publishedAt,
     prepTime: `PT${recipe.prepTimeMinutes}M`,
     cookTime: `PT${recipe.cookTimeMinutes}M`,

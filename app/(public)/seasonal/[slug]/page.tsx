@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 
 import { RecipeCard } from "@/components/cards/recipe-card";
 import { ReviewCard } from "@/components/cards/review-card";
-import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
@@ -108,9 +107,23 @@ export default async function SeasonalPage({ params }: { params: { slug: string 
           title={occasion.title}
           copy={occasion.description}
         />
+        <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-cream/72">
+          <p className="eyebrow">Seasonal note</p>
+          <p className="mt-3">
+            Seasonal pages are built to help you plan the menu, heat range, and flavor lane first.
+            Sauce reviews and shopping paths sit lower on the page so the hosting guidance stays
+            clearly separate from commercial decisions.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link href="/editorial-policy" className="font-semibold text-cream underline underline-offset-4">
+              Editorial policy
+            </Link>
+            <Link href="/review-methodology" className="font-semibold text-cream underline underline-offset-4">
+              Review methodology
+            </Link>
+          </div>
+        </div>
       </div>
-
-      <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
 
       {/* Editorial context */}
       <div className="mt-10 grid gap-6 lg:grid-cols-2">
@@ -131,14 +144,14 @@ export default async function SeasonalPage({ params }: { params: { slug: string 
           </div>
         </div>
         <div className="panel p-8">
-          <p className="eyebrow">Buying tip</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">What to stock.</h2>
+          <p className="eyebrow">Planning tip</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">How to stock the table.</h2>
           <p className="mt-4 text-sm leading-7 text-cream/72">{occasion.buyingTip}</p>
           <Link
-            href="/shop"
-            className="mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
+            href="/reviews"
+            className="mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
           >
-            Shop the right picks
+            Browse hot sauce reviews
           </Link>
         </div>
       </div>
@@ -147,9 +160,9 @@ export default async function SeasonalPage({ params }: { params: { slug: string 
       {reviews.length > 0 ? (
         <div className="mt-14">
           <SectionHeading
-            eyebrow="The bottles"
+            eyebrow="The sauce lane"
             title={`Hot sauce picks for ${occasion.title.toLowerCase()}.`}
-            copy="These are the sauces that earn their spot for this specific occasion — chosen for flavor, heat range, and real-world use."
+            copy="These reviews are here to help if you want a sauce match for the occasion after you have the menu and heat range in mind."
           />
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
             {reviews.map((review) => (

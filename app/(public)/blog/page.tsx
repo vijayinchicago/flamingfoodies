@@ -1,10 +1,9 @@
 import Link from "next/link";
 
-import { AdSlot } from "@/components/ads/ad-slot";
 import { ContentCard } from "@/components/cards/content-card";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
-import { getAdRuntimeConfig } from "@/lib/ads";
+import { shouldPromoteBlogPost } from "@/lib/editorial-guards";
 import {
   BLOG_SORT_OPTIONS,
   filterBlogPosts,
@@ -69,16 +68,18 @@ export default async function BlogIndexPage({
   };
 }) {
   const posts = await getBlogPosts();
-  const ads = await getAdRuntimeConfig();
-  const franchises = getEditorialFranchises(posts);
-  const browseOptions = getBlogBrowseOptions(posts);
+  const visiblePosts = posts.filter((post) =>
+    shouldPromoteBlogPost({ slug: post.slug, source: post.source })
+  );
+  const franchises = getEditorialFranchises(visiblePosts);
+  const browseOptions = getBlogBrowseOptions(visiblePosts);
   const query = getSingleSearchParam(searchParams?.q)?.trim() ?? "";
   const category = getSingleSearchParam(searchParams?.category) ?? "all";
   const cuisine = (getSingleSearchParam(searchParams?.cuisine) ?? "all") as CuisineType | "all";
   const heat = (getSingleSearchParam(searchParams?.heat) ?? "all") as HeatLevel | "all";
   const sort = parseBlogSort(getSingleSearchParam(searchParams?.sort));
   const page = Number.parseInt(getSingleSearchParam(searchParams?.page) ?? "1", 10);
-  const filteredPosts = filterBlogPosts(posts, {
+  const filteredPosts = filterBlogPosts(visiblePosts, {
     query,
     category,
     cuisine,
@@ -105,6 +106,17 @@ export default async function BlogIndexPage({
         title="Search spicy food stories by topic, cuisine, and heat lane."
         copy="Longer reads on spicy food culture, shelf-building, gear, ingredients, and the ideas that make the rest of the site more useful."
       />
+      <div className="mt-6 flex flex-wrap gap-3 text-sm text-cream/70">
+        <Link href="/editorial-policy" className="underline underline-offset-4">
+          Editorial policy
+        </Link>
+        <Link href="/corrections" className="underline underline-offset-4">
+          Corrections policy
+        </Link>
+        <Link href="/authors" className="underline underline-offset-4">
+          Contributor pages
+        </Link>
+      </div>
       <div className="mt-10 grid gap-6 xl:grid-cols-3">
         {franchises.map((franchise) => (
           <article key={franchise.key} className="panel p-6">
@@ -250,17 +262,6 @@ export default async function BlogIndexPage({
           </Link>
         ))}
       </div>
-      {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.blogArchive && posts.length ? (
-        <div className="mt-10 max-w-4xl">
-          <AdSlot
-            clientId={ads.clientId}
-            slotId={ads.slotIds.blogArchive}
-            slotName="blog_archive_feature"
-            placement="blog_archive"
-            className="bg-white/[0.04]"
-          />
-        </div>
-      ) : null}
       <div className="mt-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="eyebrow">Editorial archive</p>

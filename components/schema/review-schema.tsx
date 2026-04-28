@@ -1,19 +1,9 @@
 import type { Review } from "@/lib/types";
+import { buildAuthorStructuredData } from "@/lib/authors";
 import { getReviewHeroFields } from "@/lib/review-hero";
 
 export function ReviewSchema({ review }: { review: Review }) {
   const hero = getReviewHeroFields(review);
-  const author = review.authorName
-    ? {
-        "@type": "Person",
-        name: review.authorName,
-        url: "https://flamingfoodies.com/about"
-      }
-    : {
-        "@type": "Organization",
-        name: "FlamingFoodies",
-        url: "https://flamingfoodies.com/about"
-      };
   const schema = {
     "@context": "https://schema.org",
     "@type": "Review",
@@ -37,7 +27,7 @@ export function ReviewSchema({ review }: { review: Review }) {
       bestRating: 5,
       worstRating: 1
     },
-    author
+    author: buildAuthorStructuredData(review.authorName)
   };
 
   return (

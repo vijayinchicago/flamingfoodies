@@ -265,9 +265,9 @@ export default async function HomePage() {
             </div>
           </div>
           <div className="panel p-8">
-            <p className="eyebrow">Affiliate staples</p>
+            <p className="eyebrow">Shelf starters</p>
             <h2 className="mt-3 font-display text-4xl text-cream">
-              Products that pair naturally with the recipes and reviews.
+              Useful picks that match the way people actually cook.
             </h2>
             <div className="mt-8 space-y-4">
               {resolvedHomeAffiliateLinks.map(({ link, resolved }, index) => (
@@ -313,9 +313,9 @@ export default async function HomePage() {
 
       <section className="container-shell py-10">
         <SectionHeading
-          eyebrow="Hot takes"
-          title="Editorial and reviews that make the commerce layer feel earned."
-          copy="The site pairs practical food content with buying guides and sauce reviews so affiliates feel useful, not bolted on."
+          eyebrow="Stories and reviews"
+          title="Recipes, explainers, and bottle reviews with a clearer line between them."
+          copy="Start with food and practical context, then use reviews and buying guides when you need product help."
         />
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
           {blogPosts.map((post) => (

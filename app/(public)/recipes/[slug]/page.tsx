@@ -18,6 +18,7 @@ import { RecipeMethodSection } from "@/components/recipes/recipe-method-section"
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { FaqSchema } from "@/components/schema/faq-schema";
 import { RecipeSchema } from "@/components/schema/recipe-schema";
+import { getPublicAuthorByName, getPublicAuthorHref } from "@/lib/authors";
 import {
   rateRecipeAction,
   toggleRecipeSaveAction
@@ -317,6 +318,7 @@ export default async function RecipePage({
   const printNoteBlocks = getPrintNoteBlocks(recipe, substitutions, servingSuggestions);
   const runtimeRecipeOptimization = await getRuntimeRecipeSearchOptimization(recipe.slug);
   const searchInsightBlocks = getRecipeSearchInsightBlocks(recipe, runtimeRecipeOptimization);
+  const recipeAuthor = getPublicAuthorByName(recipe.authorName);
   const planningStats = [
     { label: "Prep", value: formatCookTime(recipe.prepTimeMinutes) },
     { label: "Cook", value: formatCookTime(recipe.cookTimeMinutes) },
@@ -536,7 +538,13 @@ export default async function RecipePage({
               </div>
 
               <div className="mt-8 flex flex-wrap gap-3 text-sm text-cream/65">
-                <span>By {recipe.authorName}</span>
+                {recipeAuthor ? (
+                  <Link href={getPublicAuthorHref(recipe.authorName)} className="underline underline-offset-4">
+                    By {recipeAuthor.displayName}
+                  </Link>
+                ) : (
+                  <span>By {recipe.authorName}</span>
+                )}
                 <span>{recipe.ratingAvg?.toFixed(1) || "New"} average rating</span>
                 <span>{recipe.ratingCount} ratings</span>
                 <span>{recipe.saveCount} saves</span>

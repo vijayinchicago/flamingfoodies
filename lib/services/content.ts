@@ -19,6 +19,7 @@ import {
 import type { AffiliateLinkEntry } from "@/lib/affiliates";
 import { getBlogHeroFields } from "@/lib/blog-hero";
 import { flags } from "@/lib/env";
+import { shouldPromoteBlogPost } from "@/lib/editorial-guards";
 import { sortRecipesByDiscovery } from "@/lib/recipe-browse";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import {
@@ -342,7 +343,7 @@ function mapBlogRow(row: any): BlogPost {
     title: row.title,
     description: row.description,
     content: row.content,
-    authorName: sanitizeAutomationAuthorName(row.author_name) || "FlamingFoodies",
+    authorName: sanitizeAutomationAuthorName(row.author_name) || "FlamingFoodies Team",
     category: row.category,
     tags: sanitizeAutomationTags(row.tags ?? []),
     imageUrl: hero.imageUrl,
@@ -460,7 +461,7 @@ function mapReviewRow(row: any): Review {
     factQaReviewed: row.fact_qa_reviewed ?? undefined,
     qaNotes: sanitizeAutomationQaNotes(row.qa_notes),
     qaReport: row.qa_report ?? undefined,
-    authorName: row.author_name ?? undefined,
+    authorName: sanitizeAutomationAuthorName(row.author_name) || "FlamingFoodies Review Desk",
     recommended: row.recommended ?? false,
     featured: row.featured ?? false
   };
@@ -1357,7 +1358,10 @@ export async function getFeaturedCollection() {
     getReviews()
   ]);
   const dailySeed = getDailyRotationSeed();
-  const featuredPosts = getHomepageEligiblePool(posts);
+  const editorialPosts = posts.filter((post) =>
+    shouldPromoteBlogPost({ slug: post.slug, source: post.source })
+  );
+  const featuredPosts = getHomepageEligiblePool(editorialPosts);
   const featuredReviews = getHomepageEligiblePool(reviews);
 
   return {

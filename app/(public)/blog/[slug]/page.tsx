@@ -1,25 +1,25 @@
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { AdSlot } from "@/components/ads/ad-slot";
 import { ContentCard } from "@/components/cards/content-card";
 import { CommentSection } from "@/components/community/comment-section";
-import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { PinterestSaveButton } from "@/components/content/pinterest-save-button";
 import { ShareBar } from "@/components/content/share-bar";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { ArticleSchema } from "@/components/schema/article-schema";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
-import { getAdRuntimeConfig } from "@/lib/ads";
-import { injectInlineAffiliateLinks } from "@/lib/inline-affiliate-links";
-import { getDynamicInlineTerms } from "@/lib/services/catalog-auto-grow";
+import { getPublicAuthorByName, getPublicAuthorHref } from "@/lib/authors";
+import { isReviewHoldBlogSlug, shouldPromoteBlogPost } from "@/lib/editorial-guards";
 import { buildMetadata } from "@/lib/seo";
-import { absoluteUrl, formatDate, markdownToHtml } from "@/lib/utils";
 import { getBlogPost, getBlogPosts } from "@/lib/services/content";
+import { absoluteUrl, formatDate, markdownToHtml } from "@/lib/utils";
 
 export async function generateStaticParams() {
   const posts = await getBlogPosts();
-  return posts.map((post) => ({ slug: post.slug }));
+  return posts
+    .filter((post) => shouldPromoteBlogPost({ slug: post.slug, source: post.source }))
+    .map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({
@@ -40,7 +40,8 @@ export async function generateMetadata({
     title: post.seoTitle || post.title,
     description: post.seoDescription || post.description,
     path: `/blog/${post.slug}`,
-    images: post.imageUrl ? [post.imageUrl] : undefined
+    images: post.imageUrl ? [post.imageUrl] : undefined,
+    noIndex: post.source === "ai_generated" || isReviewHoldBlogSlug(post.slug)
   });
 }
 
@@ -53,14 +54,14 @@ export default async function BlogPostPage({
 
   if (!post) notFound();
 
-  const [rawHtml, dynamicTerms, ads] = await Promise.all([
-    markdownToHtml(post.content),
-    getDynamicInlineTerms(),
-    getAdRuntimeConfig()
-  ]);
-  const html = injectInlineAffiliateLinks(rawHtml, `/blog/${post.slug}`, dynamicTerms);
+  const [html] = await Promise.all([markdownToHtml(post.content)]);
+  const author = getPublicAuthorByName(post.authorName);
   const relatedPosts = allPosts
-    .filter((candidate) => candidate.slug !== post.slug)
+    .filter(
+      (candidate) =>
+        candidate.slug !== post.slug &&
+        shouldPromoteBlogPost({ slug: candidate.slug, source: candidate.source })
+    )
     .map((candidate) => {
       let score = 0;
 
@@ -129,55 +130,48 @@ export default async function BlogPostPage({
         </div>
       ) : null}
       <div className="mt-4 flex flex-wrap gap-4 text-sm text-cream/55">
-        <span>{post.authorName}</span>
+        {author ? (
+          <Link href={getPublicAuthorHref(post.authorName)} className="underline underline-offset-4">
+            By {author.displayName}
+          </Link>
+        ) : (
+          <span>By {post.authorName}</span>
+        )}
         <span>{formatDate(post.publishedAt)}</span>
         <span>{post.readTimeMinutes || 4} min read</span>
       </div>
-      <div className="mt-5 max-w-3xl">
-        <AffiliateDisclosure compact />
-      </div>
-      <div className="mt-8 max-w-4xl">
-        <ShareBar
-          title={post.title}
-          description={post.description}
-          url={absoluteUrl(`/blog/${post.slug}`)}
-          imageUrl={post.imageUrl}
-          contentType="blog_post"
-          contentId={post.id}
-          contentSlug={post.slug}
-        />
-      </div>
-      {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.blogInline ? (
-        <div className="mt-8 max-w-4xl">
-          <AdSlot
-            clientId={ads.clientId}
-            slotId={ads.slotIds.blogInline}
-            slotName="blog_post_inline"
-            placement="blog_post"
+      <div className="mt-8 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="max-w-4xl">
+          <ShareBar
+            title={post.title}
+            description={post.description}
+            url={absoluteUrl(`/blog/${post.slug}`)}
+            imageUrl={post.imageUrl}
             contentType="blog_post"
             contentId={post.id}
             contentSlug={post.slug}
           />
         </div>
-      ) : null}
+        <aside className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-cream/72">
+          <p className="eyebrow">Editorial note</p>
+          <p className="mt-3">
+            Blog posts are meant to explain, contextualize, or report. They are kept separate from
+            product-review scoring and buying-guide methodology.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link href="/editorial-policy" className="font-semibold text-cream underline underline-offset-4">
+              Editorial policy
+            </Link>
+            <Link href="/corrections" className="font-semibold text-cream underline underline-offset-4">
+              Corrections
+            </Link>
+          </div>
+        </aside>
+      </div>
       <div
         className="prose-guide mt-12"
         dangerouslySetInnerHTML={{ __html: html }}
       />
-      {ads.manualSlotsEnabled && ads.clientId && ads.slotIds.blogInArticle ? (
-        <div className="mt-10 max-w-4xl">
-          <AdSlot
-            clientId={ads.clientId}
-            slotId={ads.slotIds.blogInArticle}
-            slotName="blog_post_in_article"
-            placement="blog_post_body"
-            format="in-article"
-            contentType="blog_post"
-            contentId={post.id}
-            contentSlug={post.slug}
-          />
-        </div>
-      ) : null}
       {relatedPosts.length ? (
         <div className="mt-14">
           <p className="eyebrow">Keep reading</p>

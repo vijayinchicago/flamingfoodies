@@ -91,9 +91,23 @@ export default async function TutorialPage({ params }: { params: { slug: string 
           {tutorial.title}
         </h1>
         <p className="mt-5 max-w-3xl text-base leading-8 text-cream/75">{tutorial.intro}</p>
+        <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-cream/72">
+          <p className="eyebrow">Guide note</p>
+          <p className="mt-3">
+            These how-to pages are written to help you cook or troubleshoot first. Any optional
+            tool links live near the end of the page so the instructions stay separate from the
+            gear list.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link href="/editorial-policy" className="font-semibold text-cream underline underline-offset-4">
+              Editorial policy
+            </Link>
+            <Link href="/corrections" className="font-semibold text-cream underline underline-offset-4">
+              Corrections
+            </Link>
+          </div>
+        </div>
       </div>
-
-      <AffiliateDisclosure className="mt-8 max-w-3xl" compact />
 
       {/* Steps */}
       <div className="mt-12 space-y-6">
@@ -130,8 +144,13 @@ export default async function TutorialPage({ params }: { params: { slug: string 
       {/* Gear / tools */}
       {affiliateItems.length > 0 && (
         <div className="mt-12">
-          <p className="eyebrow">Tools for this guide</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">What you&apos;ll need.</h2>
+          <AffiliateDisclosure className="max-w-3xl" compact />
+          <p className="mt-6 eyebrow">Optional tools</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">Helpful gear if you&apos;re stocking the setup.</h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
+            None of these are required to follow the guide. They are here for readers who want a
+            cleaner, more repeatable setup after trying the method.
+          </p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {affiliateItems.map(({ key, entry, resolved }) => (
               <article key={key} className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
@@ -150,7 +169,7 @@ export default async function TutorialPage({ params }: { params: { slug: string 
                   position="how-to-tool"
                   className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
                 >
-                  Check price ↗
+                  View option ↗
                 </AffiliateLink>
               </article>
             ))}

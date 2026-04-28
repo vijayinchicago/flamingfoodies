@@ -114,9 +114,23 @@ export default async function PepperPage({ params }: { params: { slug: string } 
           </p>
         )}
         <p className="mt-5 max-w-3xl text-lg leading-8 text-cream/75">{pepper.description}</p>
+        <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-cream/72">
+          <p className="eyebrow">Field guide note</p>
+          <p className="mt-3">
+            Pepper pages are meant to help you understand heat range, flavor, and cooking use
+            first. If we include sauce or pantry links, they sit later on the page as optional
+            examples rather than part of the core reference.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link href="/editorial-policy" className="font-semibold text-cream underline underline-offset-4">
+              Editorial policy
+            </Link>
+            <Link href="/corrections" className="font-semibold text-cream underline underline-offset-4">
+              Corrections
+            </Link>
+          </div>
+        </div>
       </div>
-
-      <AffiliateDisclosure className="mt-8 max-w-3xl" compact />
 
       {/* Flavor + Scoville two-col */}
       <div className="mt-12 grid gap-6 lg:grid-cols-3">
@@ -176,39 +190,6 @@ export default async function PepperPage({ params }: { params: { slug: string } 
         </div>
       </div>
 
-      {/* Shop these */}
-      {affiliateItems.length > 0 && (
-        <div className="mt-12">
-          <p className="eyebrow">Shop these</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
-            Sauces and products that feature {pepper.name.toLowerCase()}.
-          </h2>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {affiliateItems.map(({ key, entry, resolved }) => (
-              <article key={key} className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
-                <p className="text-xs uppercase tracking-[0.22em] text-ember">
-                  {"badge" in entry ? String(entry.badge) : "Pick"}
-                </p>
-                <h3 className="mt-2 font-display text-2xl text-cream">{entry.product}</h3>
-                <p className="mt-2 text-sm leading-6 text-cream/65">
-                  {"description" in entry ? String(entry.description) : ""}
-                </p>
-                <AffiliateLink
-                  href={resolved.href}
-                  partnerKey={resolved.key}
-                  trackingMode={resolved.trackingMode}
-                  sourcePage={sourcePage}
-                  position="pepper-affiliate"
-                  className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
-                >
-                  Check price ↗
-                </AffiliateLink>
-              </article>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Related recipes */}
       {displayRecipes.length > 0 && (
         <div className="mt-14">
@@ -246,6 +227,44 @@ export default async function PepperPage({ params }: { params: { slug: string } 
           <Link href="/peppers" className="mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
             Full pepper encyclopedia
           </Link>
+        </div>
+      )}
+
+      {/* Pantry examples */}
+      {affiliateItems.length > 0 && (
+        <div className="mt-12">
+          <AffiliateDisclosure className="max-w-3xl" compact />
+          <p className="mt-6 eyebrow">Pantry examples</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">
+            If you want to taste {pepper.name.toLowerCase()} in a bottle or pantry product.
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
+            These are optional examples of how this pepper shows up in real products. The profile
+            above should still stand on its own even if you never shop from this section.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {affiliateItems.map(({ key, entry, resolved }) => (
+              <article key={key} className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
+                <p className="text-xs uppercase tracking-[0.22em] text-ember">
+                  {"badge" in entry ? String(entry.badge) : "Example"}
+                </p>
+                <h3 className="mt-2 font-display text-2xl text-cream">{entry.product}</h3>
+                <p className="mt-2 text-sm leading-6 text-cream/65">
+                  {"description" in entry ? String(entry.description) : ""}
+                </p>
+                <AffiliateLink
+                  href={resolved.href}
+                  partnerKey={resolved.key}
+                  trackingMode={resolved.trackingMode}
+                  sourcePage={sourcePage}
+                  position="pepper-affiliate"
+                  className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
+                >
+                  View example ↗
+                </AffiliateLink>
+              </article>
+            ))}
+          </div>
         </div>
       )}
 

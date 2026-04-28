@@ -156,6 +156,22 @@ export default async function FestivalPage({ params }: { params: { slug: string 
         <p className="mt-5 max-w-3xl text-base leading-8 text-cream/75 sm:text-lg">
           {festival.description}
         </p>
+        <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-cream/72">
+          <p className="eyebrow">Festival guide note</p>
+          <p className="mt-3">
+            Festival pages are meant to help you decide whether an event fits your taste, travel
+            window, and cooking interests first. Any optional gear or bottle links sit later on the
+            page after the event context.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link href="/editorial-policy" className="font-semibold text-cream underline underline-offset-4">
+              Editorial policy
+            </Link>
+            <Link href="/corrections" className="font-semibold text-cream underline underline-offset-4">
+              Corrections
+            </Link>
+          </div>
+        </div>
 
         {festival.website ? (
           <a
@@ -168,8 +184,6 @@ export default async function FestivalPage({ params }: { params: { slug: string 
           </a>
         ) : null}
       </div>
-
-      <AffiliateDisclosure className="mt-8 max-w-3xl" compact />
 
       {/* Editorial + Expect two-col */}
       <div className="mt-12 grid gap-6 lg:grid-cols-2">
@@ -196,53 +210,17 @@ export default async function FestivalPage({ params }: { params: { slug: string 
         <p className="mt-3 text-base leading-8 text-cream/80">{festival.bestFor}</p>
       </div>
 
-      {/* What to pack */}
-      {packItems.length > 0 ? (
-        <div className="mt-12">
-          <p className="eyebrow">What to pack</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
-            Shop before you go.
-          </h2>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/70">{festival.packIntro}</p>
-          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {packItems.map(({ key, entry, resolved }) => (
-              <article
-                key={key}
-                className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5"
-              >
-                <p className="text-xs uppercase tracking-[0.22em] text-ember">
-                  {"badge" in entry && entry.badge ? String(entry.badge) : "Pick"}
-                </p>
-                <h3 className="mt-2 font-display text-2xl text-cream">{entry.product}</h3>
-                <p className="mt-2 text-sm leading-6 text-cream/65">
-                  {"description" in entry && entry.description ? String(entry.description) : ""}
-                </p>
-                <AffiliateLink
-                  href={resolved.href}
-                  partnerKey={resolved.key}
-                  trackingMode={resolved.trackingMode}
-                  sourcePage={sourcePage}
-                  position="festival-pack"
-                  className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
-                >
-                  Check price ↗
-                </AffiliateLink>
-              </article>
-            ))}
-          </div>
-        </div>
-      ) : null}
-
       {/* Can't make it? Related reviews */}
       {displayReviews.length > 0 ? (
         <div className="mt-16">
-          <p className="eyebrow">Can&apos;t make it?</p>
+          <p className="eyebrow">Flavor lane</p>
           <h2 className="mt-3 font-display text-4xl text-cream">
-            Try the sauces at home.
+            If you want a taste of the festival at home.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/70">
-            These are the sauce profiles you&apos;ll encounter on the {festival.shortName} floor —
-            shop them now and arrive with your palate already calibrated.
+            These reviews help map the bottle styles and sauce personalities you are likely to run
+            into around {festival.shortName}, without treating shopping as the main reason the page
+            exists.
           </p>
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
             {displayReviews.map((review) => (
@@ -256,6 +234,47 @@ export default async function FestivalPage({ params }: { params: { slug: string 
             >
               Browse all hot sauce reviews
             </Link>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Optional prep picks */}
+      {packItems.length > 0 ? (
+        <div className="mt-12">
+          <AffiliateDisclosure className="max-w-3xl" compact />
+          <p className="mt-6 eyebrow">Optional prep picks</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">
+            If you&apos;re packing ahead.
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/70">
+            These links are for readers who already know they want to prep a bag, cooler, or pantry
+            backup before the trip. The festival guide above should still work without this section.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {packItems.map(({ key, entry, resolved }) => (
+              <article
+                key={key}
+                className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5"
+              >
+                <p className="text-xs uppercase tracking-[0.22em] text-ember">
+                  {"badge" in entry && entry.badge ? String(entry.badge) : "Optional"}
+                </p>
+                <h3 className="mt-2 font-display text-2xl text-cream">{entry.product}</h3>
+                <p className="mt-2 text-sm leading-6 text-cream/65">
+                  {"description" in entry && entry.description ? String(entry.description) : ""}
+                </p>
+                <AffiliateLink
+                  href={resolved.href}
+                  partnerKey={resolved.key}
+                  trackingMode={resolved.trackingMode}
+                  sourcePage={sourcePage}
+                  position="festival-pack"
+                  className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
+                >
+                  View option ↗
+                </AffiliateLink>
+              </article>
+            ))}
           </div>
         </div>
       ) : null}

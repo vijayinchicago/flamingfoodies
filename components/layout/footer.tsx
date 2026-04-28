@@ -52,6 +52,10 @@ export function Footer() {
           </h2>
           <div className="mt-4 flex flex-col gap-3 text-sm text-cream/75">
             <Link href="/about">About</Link>
+            <Link href="/authors">Contributors</Link>
+            <Link href="/editorial-policy">Editorial policy</Link>
+            <Link href="/review-methodology">Review methodology</Link>
+            <Link href="/corrections">Corrections</Link>
             <Link href="/contact">Contact</Link>
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>

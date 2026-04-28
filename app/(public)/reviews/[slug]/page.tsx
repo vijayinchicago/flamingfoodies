@@ -13,6 +13,7 @@ import { ShareBar } from "@/components/content/share-bar";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { ReviewSchema } from "@/components/schema/review-schema";
+import { getPublicAuthorByName, getPublicAuthorHref } from "@/lib/authors";
 import {
   findAffiliateLinkByUrl,
   getAffiliateCtaLabel,
@@ -66,7 +67,8 @@ export default async function ReviewPage({
 
   if (!review) notFound();
   const hero = getReviewHeroFields(review);
-  const reviewByline = review.authorName || "FlamingFoodies editorial";
+  const reviewByline = review.authorName || "FlamingFoodies Review Desk";
+  const reviewAuthor = getPublicAuthorByName(reviewByline);
 
   const [rawHtml, dynamicTerms] = await Promise.all([
     markdownToHtml(review.content),
@@ -200,7 +202,13 @@ export default async function ReviewPage({
           </span>
         ) : null}
         <span>{formatDate(review.publishedAt)}</span>
-        <span>By {reviewByline}</span>
+        {reviewAuthor ? (
+          <Link href={getPublicAuthorHref(reviewByline)} className="underline underline-offset-4">
+            By {reviewAuthor.displayName}
+          </Link>
+        ) : (
+          <span>By {reviewByline}</span>
+        )}
       </div>
       {review.flavorNotes && review.flavorNotes.length > 0 ? (
         <div className="mt-3 flex flex-wrap gap-2">
@@ -225,8 +233,25 @@ export default async function ReviewPage({
           contentSlug={review.slug}
         />
       </div>
-      <div className="mt-6 max-w-3xl">
-        <AffiliateDisclosure compact />
+      <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="max-w-3xl">
+          <AffiliateDisclosure compact />
+        </div>
+        <aside className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-cream/72">
+          <p className="eyebrow">Review method</p>
+          <p className="mt-3">
+            Review pages focus on flavor, heat behavior, repeat-use value, and whether the bottle
+            fits the kind of cook or shopper it is pitched to.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link href="/review-methodology" className="font-semibold text-cream underline underline-offset-4">
+              Review methodology
+            </Link>
+            <Link href="/affiliate-disclosure" className="font-semibold text-cream underline underline-offset-4">
+              Affiliate disclosure
+            </Link>
+          </div>
+        </aside>
       </div>
       <ReviewStickyBuyBar
         productName={review.productName}

@@ -11,8 +11,9 @@ import { formatDate } from "@/lib/utils";
 export const metadata = buildMetadata({
   title: "New Hot Sauce Releases | FlamingFoodies",
   description:
-    "New hot sauce product launches, limited editions, brand collabs, and restocks — tracked weekly by our discovery agent.",
-  path: "/new-releases"
+    "A rolling feed of new hot sauce launches, limited editions, collabs, and restocks that may later earn fuller editorial coverage.",
+  path: "/new-releases",
+  noIndex: true
 });
 
 const TYPE_COLORS: Record<string, string> = {
@@ -31,7 +32,7 @@ export default async function NewReleasesPage() {
       <SectionHeading
         eyebrow="New releases"
         title="What's just dropped in hot sauce."
-        copy="New products, limited editions, brand collabs, and restocks — our agent scans the hot sauce world weekly so you don't miss anything worth buying."
+        copy="New products, limited editions, brand collabs, and restocks collected in one place before the strongest items graduate into fuller review or guide coverage."
       />
 
       <AffiliateDisclosure className="mt-8 max-w-3xl" compact />
@@ -40,7 +41,7 @@ export default async function NewReleasesPage() {
         <div className="mt-12 rounded-[2rem] border border-white/10 bg-white/[0.03] p-12 text-center">
           <p className="font-display text-3xl text-cream">First scan coming soon.</p>
           <p className="mt-4 text-sm text-cream/55 max-w-md mx-auto">
-            Our discovery agent runs weekly. Check back after the first run — new releases will appear here automatically.
+            Check back after the first update cycle and this feed will start filling in with fresh launches and restocks.
           </p>
           <div className="mt-8 flex justify-center flex-wrap gap-3">
             <Link href="/reviews" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">

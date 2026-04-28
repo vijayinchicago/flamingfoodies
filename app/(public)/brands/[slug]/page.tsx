@@ -105,9 +105,23 @@ export default async function BrandPage({ params }: { params: { slug: string } }
         </h1>
         <p className="mt-3 text-lg text-cream/55">{brand.tagline}</p>
         <p className="mt-5 max-w-3xl text-base leading-8 text-cream/75">{brand.description}</p>
+        <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-cream/72">
+          <p className="eyebrow">Directory note</p>
+          <p className="mt-3">
+            Brand pages are meant to separate company background, tasting context, and our review
+            coverage from the act of shopping. If we link to bottles, those links live lower on the
+            page after the editorial summary.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <Link href="/editorial-policy" className="font-semibold text-cream underline underline-offset-4">
+              Editorial policy
+            </Link>
+            <Link href="/review-methodology" className="font-semibold text-cream underline underline-offset-4">
+              Review methodology
+            </Link>
+          </div>
+        </div>
       </div>
-
-      <AffiliateDisclosure className="mt-8 max-w-3xl" compact />
 
       {/* Editorial + Why it matters */}
       <div className="mt-12 grid gap-6 lg:grid-cols-2">
@@ -141,11 +155,30 @@ export default async function BrandPage({ params }: { params: { slug: string } }
         </div>
       </div>
 
+      {/* Related reviews */}
+      {displayReviews.length > 0 && (
+        <div className="mt-14">
+          <p className="eyebrow">Read the reviews</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">What we think of {brand.name}.</h2>
+          <div className="mt-8 grid gap-6 lg:grid-cols-2">
+            {displayReviews.map((review) => <ReviewCard key={review.id} review={review} />)}
+          </div>
+          <Link href="/reviews" className="mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+            Browse all reviews
+          </Link>
+        </div>
+      )}
+
       {/* Product line */}
       {resolvedProducts.length > 0 && (
         <div className="mt-12">
-          <p className="eyebrow">Product line</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Shop {brand.name}.</h2>
+          <AffiliateDisclosure className="max-w-3xl" compact />
+          <p className="mt-6 eyebrow">Signature lineup</p>
+          <h2 className="mt-3 font-display text-4xl text-cream">If you want to browse the bottles.</h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
+            These links are here for readers who already know they want to explore the lineup after
+            reading the brand profile or the reviews above.
+          </p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {resolvedProducts.map(({ product, resolved }) => (
               <article key={product.name} className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
@@ -160,7 +193,7 @@ export default async function BrandPage({ params }: { params: { slug: string } }
                     position="brand-product"
                     className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
                   >
-                    Check price ↗
+                    View bottle ↗
                   </AffiliateLink>
                 ) : (
                   <p className="mt-4 text-xs text-cream/35">Link coming soon</p>
@@ -168,20 +201,6 @@ export default async function BrandPage({ params }: { params: { slug: string } }
               </article>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Related reviews */}
-      {displayReviews.length > 0 && (
-        <div className="mt-14">
-          <p className="eyebrow">Read the reviews</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">What we think of {brand.name}.</h2>
-          <div className="mt-8 grid gap-6 lg:grid-cols-2">
-            {displayReviews.map((review) => <ReviewCard key={review.id} review={review} />)}
-          </div>
-          <Link href="/reviews" className="mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
-            Browse all reviews
-          </Link>
         </div>
       )}
 
