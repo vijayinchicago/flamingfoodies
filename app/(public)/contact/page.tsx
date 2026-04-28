@@ -4,7 +4,7 @@ import { TrustPageShell } from "@/components/layout/trust-page-shell";
 import { buildMetadata } from "@/lib/seo";
 
 const LAST_UPDATED = "April 10, 2026";
-const CONTACT_EMAIL = "foodiesflaming@gmail.com";
+const CONTACT_EMAIL = "hello@flamingfoodies.com";
 
 export const metadata = buildMetadata({
   title: "Contact FlamingFoodies",
