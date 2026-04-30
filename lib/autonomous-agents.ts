@@ -56,6 +56,24 @@ export function getAutonomousAgents(input: {
       isSupport: false
     },
     {
+      id: "prepublish-qa",
+      name: "Prepublish QA",
+      status: dbReady ? "live" : "needs_config",
+      cadence: "Daily before scheduled publish + manual run",
+      purpose:
+        "Checks scheduled editorial drafts one more time before they go live, records QA blockers, and moves anything failing the gate back into review.",
+      outcome:
+        "Prevents brittle or incomplete scheduled drafts from slipping through the autonomous publish lane.",
+      dependencyNote: dbReady
+        ? "Supabase admin access is available, so scheduled drafts can be re-checked and demoted before publish."
+        : "Supabase admin access is required before scheduled drafts can be QA-gated automatically.",
+      riskClass: "internal_support",
+      autonomyMode: "bounded_live",
+      writesLiveState: true,
+      writesExternalState: false,
+      isSupport: true
+    },
+    {
       id: "editorial-performance-evaluator",
       name: "Editorial performance evaluator",
       status: dbReady ? "live" : "needs_config",

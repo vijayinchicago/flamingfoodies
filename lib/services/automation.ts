@@ -30,6 +30,7 @@ import {
   expireTimedOutGenerationJobs,
   shouldRetryGenerationFailure
 } from "@/lib/services/generation-jobs";
+import { runInlinePrepublishQaForRow } from "@/lib/services/prepublish-qa";
 import {
   buildRecipeHeroImageAlt,
   buildRecipeHeroImageUrl,
@@ -2863,8 +2864,10 @@ function buildGeneratedBlogQaState(
   const qaReport = mergeAgentQaReviewForAutonomousDraft(baseQaReport, agentReview);
 
   return {
-    qaNotes: buildAgentQaNotes(baseQaNote, agentReview),
-    qaReport,
+    qa_notes: buildAgentQaNotes(baseQaNote, agentReview),
+    qa_report: qaReport,
+    qa_checked_at:
+      automatedImageQa || automatedEditorialQa ? new Date().toISOString() : null,
     automated_publish_eligible: shouldAutonomousPublish({
       agentReview,
       baseReport: baseQaReport,
@@ -3169,16 +3172,19 @@ async function insertGeneratedContent(
       hero_image_query_used: heroAsset.searchQuery
     });
     const qaState = buildGeneratedBlogQaState(payload, agentReview, heroAsset);
+    const { automated_publish_eligible: blogAutoPublishEligible, ...persistedQaState } = qaState;
     const shouldScheduleAutoPublish = Boolean(
-      autoPublish && qaState.automated_publish_eligible && publishAt
+      autoPublish && blogAutoPublishEligible && publishAt
     );
     const { data, error } = await insertGeneratedRowWithCuisineFallback(
       supabase,
       "blog_posts",
       {
         ...payload,
+        ...persistedQaState,
         slug,
         status: shouldScheduleAutoPublish ? "draft" : "pending_review",
+        qa_issues: [],
         published_at: shouldScheduleAutoPublish ? publishAt : null
       },
       "id, slug, title, image_url"
@@ -3577,6 +3583,15 @@ async function reevaluatePendingBlogRow(
     autoPublishSetting === undefined ? true : Boolean(autoPublishSetting);
 
   if (!autoPublish || !qaState.automated_publish_eligible) {
+    await supabase
+      .from("blog_posts")
+      .update({
+        qa_notes: qaState.qa_notes,
+        qa_report: qaState.qa_report,
+        qa_checked_at: qaState.qa_checked_at
+      })
+      .eq("id", row.id);
+
     return {
       id: row.id,
       type: "blog_post",
@@ -3595,6 +3610,9 @@ async function reevaluatePendingBlogRow(
   await supabase
     .from("blog_posts")
     .update({
+      qa_notes: qaState.qa_notes,
+      qa_report: qaState.qa_report,
+      qa_checked_at: qaState.qa_checked_at,
       status: "draft",
       published_at: publishAt
     })
@@ -4135,15 +4153,38 @@ async function publishFromTable(
 ) {
   const { data: rows } = await supabase
     .from(table)
-    .select("id, slug, title, published_at, status, source")
+    .select("*")
     .eq("source", "ai_generated")
     .eq("status", "draft")
     .not("published_at", "is", null)
     .lte("published_at", new Date().toISOString());
 
   const published: Array<{ id: number; slug: string; title: string; type: string }> = [];
+  const blocked: Array<{
+    id: number;
+    slug: string;
+    title: string;
+    type: string;
+    issueCount: number;
+  }> = [];
 
   for (const row of rows ?? []) {
+    const gateResult = await runInlinePrepublishQaForRow(supabase, {
+      table,
+      row
+    });
+
+    if (gateResult.status === "blocked") {
+      blocked.push({
+        id: gateResult.id,
+        slug: gateResult.slug,
+        title: gateResult.title,
+        type: gateResult.type,
+        issueCount: gateResult.issueCount
+      });
+      continue;
+    }
+
     const { data, error } = await supabase
       .from(table)
       .update({
@@ -4163,7 +4204,10 @@ async function publishFromTable(
     }
   }
 
-  return published;
+  return {
+    published,
+    blocked
+  };
 }
 
 export async function publishScheduledContent() {
@@ -4173,7 +4217,8 @@ export async function publishScheduledContent() {
         ...sampleRecipes.filter((recipe) => recipe.status === "published").slice(0, 1),
         ...sampleBlogPosts.filter((post) => post.status === "published").slice(0, 1),
         ...sampleReviews.filter((review) => review.status === "published").slice(0, 1)
-      ]
+      ],
+      blocked: []
     };
   }
 
@@ -4184,7 +4229,8 @@ export async function publishScheduledContent() {
         ...sampleRecipes.filter((recipe) => recipe.status === "published").slice(0, 1),
         ...sampleBlogPosts.filter((post) => post.status === "published").slice(0, 1),
         ...sampleReviews.filter((review) => review.status === "published").slice(0, 1)
-      ]
+      ],
+      blocked: []
     };
   }
 
@@ -4193,7 +4239,8 @@ export async function publishScheduledContent() {
   const reviews = await publishFromTable(supabase, "reviews");
 
   return {
-    published: [...recipes, ...blogPosts, ...reviews]
+    published: [...recipes.published, ...blogPosts.published, ...reviews.published],
+    blocked: [...recipes.blocked, ...blogPosts.blocked, ...reviews.blocked]
   };
 }
 

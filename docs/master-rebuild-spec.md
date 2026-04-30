@@ -196,6 +196,7 @@ The FlamingFoodies operating model currently uses 17 lanes. New clones should pr
 | Brand discovery | Expands the commercial/entity graph as drafts |
 | Release monitor | Detects launches or news and queues approval proposals |
 | Tutorial generator | Creates draft tutorial/how-to inventory |
+| Prepublish QA support worker | Rechecks scheduled editorial drafts and blocks weak items before live publish |
 | Content-shop sync | Feeds internal commerce signals from editorial coverage |
 
 For a non-food niche, adapt the nouns while keeping the loop structure.
@@ -205,6 +206,7 @@ For a non-food niche, adapt the nouns while keeping the loop structure.
 The live architecture should include scheduled entry points for:
 
 - content generation
+- prepublish QA checks shortly before any scheduled publish lane
 - publish-scheduled checks
 - evaluator passes
 - social queueing and distribution
@@ -241,7 +243,20 @@ Every clone should:
 - show related reading and recirculation on detail pages
 - make beginner-safe paths visible, not just expert paths
 
-### 10. Graceful Degradation Rules
+### 10. Prepublish Editorial QA
+
+Scheduled editorial content must pass a dedicated prepublish QA gate before it can go live.
+
+Required behavior:
+
+- generation and discovery lanes can create drafts or scheduled drafts
+- a prepublish QA stage must validate scheduled recipes, articles, reviews, or equivalent editorial rows before auto-publish
+- failing rows must move to `needs_review`
+- failing rows must persist `qa_issues` so operators can see why the row was blocked
+- the live publish lane must rerun or enforce the same QA gate inline as a fail-safe even if the standalone prepublish worker did not run first
+- post-publish loops such as visual QA or performance evaluators are support systems, not substitutes for the prepublish gate
+
+### 11. Graceful Degradation Rules
 
 The site must remain stable when optional providers are missing.
 
@@ -294,6 +309,7 @@ Treat the build as complete only when all of these are true:
 - the admin dashboard loads
 - automation agents are listed with accurate readiness states
 - cron routes exist and are authorization-protected
+- scheduled editorial drafts must fail safely into `needs_review` with persisted `qa_issues` instead of bypassing QA and publishing live
 - optional providers are absent without causing runtime failures
 - the release candidate is deployed from a clean committed snapshot, not an unrelated dirty worktree
 - at least one representative automation route is smoke-tested after deploy with real production auth

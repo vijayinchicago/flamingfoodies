@@ -318,14 +318,14 @@ flowchart LR
   AdminUI["Admin surfaces<br/>trigger, agents, approvals, runs"]:::admin
 
   subgraph Runtime["App runtime entry points"]
-    CronRoutes["Cron routes<br/>generate, publish-scheduled,<br/>reevaluate-ai-drafts, social-scheduler,<br/>newsletter-digest, search-insights,<br/>search executor, evaluators, discovery lanes"]:::runtime
+    CronRoutes["Cron routes<br/>generate, prepublish-qa,<br/>publish-scheduled, reevaluate-ai-drafts,<br/>social-scheduler, newsletter-digest,<br/>search-insights, search executor,<br/>evaluators, discovery lanes"]:::runtime
     AdminActions["Server actions / manual runs<br/>admin run actions, pause/resume,<br/>approval apply / reject"]:::runtime
     Services["Automation services<br/>automation.ts, search-insights.ts,<br/>social.ts, shop-automation.ts,<br/>brand-monitor.ts, newsletter.ts"]:::runtime
   end
 
   subgraph Gates["QA and policy gates"]
     Policy["Control-plane policy<br/>caps, pauses, quiet hours,<br/>failure thresholds, rollback strategy"]:::gate
-    QA["Editorial QA gates<br/>image checks, delayed publish,<br/>cuisine QA prompts where needed"]:::gate
+    QA["Editorial QA gates<br/>generation QA, prepublish gate,<br/>image checks, delayed publish"]:::gate
     Approval["Approval gates<br/>automation_approvals for newsletter<br/>and release-monitor actions"]:::gate
     Eval["Post-run evaluators<br/>editorial, social, shop, search"]:::gate
   end
@@ -443,6 +443,7 @@ These are the meaningful autonomous or cron-driven lanes already in the repo.
 | Lane | Current trigger | Current write surface | Current guardrail | Target autonomy class |
 | --- | --- | --- | --- | --- |
 | `editorial-autopublisher` | `generate`, `reevaluate-ai-drafts`, `publish-scheduled` crons | `recipes`, `blog_posts`, `reviews`, `social_posts` | AI QA + delayed publish window | `bounded_live` |
+| `prepublish-qa` | scheduled cron + manual admin run | `recipes`, `blog_posts`, `reviews`, related `social_posts` scheduling state | rechecks scheduled drafts, moves failures to `needs_review`, persists `qa_issues` | `internal_support` |
 | `editorial-performance-evaluator` | daily cron | `automation_evaluations` | lag-aware verdicts only, no direct live mutations | `internal_support` |
 | `pinterest-distributor` / social scheduler | daily cron | `social_posts`, Buffer publish | platform queue only, provider failure handling | `external_send` |
 | `growth-loop-promoter` | daily cron | `social_posts` queue | max 2 candidates + 7-day dedupe | `bounded_live` |
@@ -458,6 +459,12 @@ These are the meaningful autonomous or cron-driven lanes already in the repo.
 | `release-monitor` | weekly cron | `automation_approvals`, approved `releases` publishes | release proposals stop in approval until an admin applies them | `approval_required` |
 | `tutorial-generator` | weekly cron | `tutorials` drafts | draft-only insert | `draft_only` |
 | `content-shop-sync` | daily cron | shop/content signal tables | internal signal sync | `internal_support` |
+
+Editorial publish rule:
+
+- scheduled recipes, blog posts, and reviews must pass prepublish QA before auto-publish
+- failing rows must move to `needs_review` with persisted `qa_issues`
+- post-publish evaluators and visual QA are support loops, not substitutes for the publish gate
 
 ## Main Problems To Solve
 
@@ -852,7 +859,9 @@ These should be the first values inserted into `automation_agents`.
 
 Guardrails:
 
-- keep existing QA gate
+- keep the embedded generation-time QA gate
+- run dedicated prepublish QA shortly before scheduled publish
+- rerun the same prepublish checks inline inside the publish lane as a fail-safe
 - cap auto-published items per day
 - block if failure streak exceeds threshold
 
@@ -1014,6 +1023,7 @@ Changes:
 Update:
 
 - `app/api/admin/generate/route.ts`
+- `app/api/admin/prepublish-qa/route.ts`
 - `app/api/admin/reevaluate-ai-drafts/route.ts`
 - `app/api/admin/publish-scheduled/route.ts`
 - `app/api/admin/social-scheduler/route.ts`

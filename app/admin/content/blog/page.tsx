@@ -106,7 +106,11 @@ export default async function AdminBlogPage({
   const posts = await getAdminBlogPosts();
   const blogAuditMap = await getBlogAuditSummaryMap(posts.map((p) => p.id));
   const reviewQueue = posts.filter(
-    (post) => (post.status === "pending_review" || post.source === "ai_generated") && post.status !== "published"
+    (post) =>
+      (post.status === "pending_review" ||
+        post.status === "needs_review" ||
+        post.source === "ai_generated") &&
+      post.status !== "published"
   );
   const queueEntries = reviewQueue.map((post) => {
     const qaReport = buildBlogQaReport(post);
@@ -336,6 +340,7 @@ export default async function AdminBlogPage({
             >
               <option value="draft">draft</option>
               <option value="pending_review">pending review</option>
+              <option value="needs_review">needs review</option>
               <option value="published">published</option>
             </select>
           </div>

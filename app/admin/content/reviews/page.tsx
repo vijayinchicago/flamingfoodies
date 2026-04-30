@@ -108,7 +108,11 @@ export default async function AdminReviewsPage({
   const reviews = await getAdminReviews();
   const reviewAuditMap = await getReviewAuditSummaryMap(reviews.map((r) => r.id));
   const reviewQueue = reviews.filter(
-    (review) => (review.status === "pending_review" || review.source === "ai_generated") && review.status !== "published"
+    (review) =>
+      (review.status === "pending_review" ||
+        review.status === "needs_review" ||
+        review.source === "ai_generated") &&
+      review.status !== "published"
   );
   const queueEntries = reviewQueue.map((review) => {
     const qaReport = buildReviewQaReport(review);
@@ -368,6 +372,7 @@ export default async function AdminReviewsPage({
               <select name="status" className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember">
                 <option value="draft">draft</option>
                 <option value="pending_review">pending review</option>
+                <option value="needs_review">needs review</option>
                 <option value="published">published</option>
               </select>
               <label className="flex items-center gap-3 text-sm text-charcoal/70">

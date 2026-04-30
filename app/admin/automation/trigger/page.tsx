@@ -4,6 +4,7 @@ import {
   pauseAutomationAgentAction,
   runEditorialPerformanceEvaluatorAction,
   runBrandDiscoveryAction,
+  runPrepublishQaAction,
   runReevaluatePendingAiDraftsAction,
   runDueNewsletterSendsAction,
   runNewsletterDigestAction,
@@ -78,6 +79,10 @@ export default async function AdminTriggerPage({
   searchParams?: {
     created?: string;
     published?: string;
+    publishBlocked?: string;
+    prepublishReviewed?: string;
+    prepublishReady?: string;
+    prepublishBlocked?: string;
     reevaluated?: string;
     promoted?: string;
     backfillPublished?: string;
@@ -161,7 +166,15 @@ export default async function AdminTriggerPage({
       ) : null}
       {searchParams?.published ? (
         <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-          Published {searchParams.published} scheduled item(s).
+          Published {searchParams.published} scheduled item(s) and blocked{" "}
+          {searchParams.publishBlocked || "0"} failing prepublish QA.
+        </p>
+      ) : null}
+      {searchParams?.prepublishReviewed ? (
+        <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          Prepublish QA reviewed {searchParams.prepublishReviewed} scheduled item(s), clearing{" "}
+          {searchParams.prepublishReady || "0"} and blocking{" "}
+          {searchParams.prepublishBlocked || "0"}.
         </p>
       ) : null}
       {searchParams?.reevaluated ? (
@@ -330,11 +343,25 @@ export default async function AdminTriggerPage({
       </div>
       <ManualGenerationPanel triggers={triggers} initialJobs={initialJobs} />
       <div className="grid gap-4 lg:grid-cols-3">
+        <form action={runPrepublishQaAction} className="panel-light p-6">
+          <p className="eyebrow">Gate</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Prepublish QA</h2>
+          <p className="mt-3 text-sm text-charcoal/65">
+            Re-check every scheduled editorial draft before the publish lane runs and move anything
+            failing QA back into review.
+          </p>
+          <AdminSubmitButton
+            idleLabel="Run prepublish QA"
+            pendingLabel="Checking..."
+            className="mt-6 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-semibold text-emerald-800"
+          />
+        </form>
         <form action={runPublishScheduledAction} className="panel-light p-6">
           <p className="eyebrow">Publish</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">Scheduled content</h2>
           <p className="mt-3 text-sm text-charcoal/65">
-            Promote scheduled drafts whose delayed publish window has elapsed.
+            Promote scheduled drafts whose delayed publish window has elapsed. This lane now
+            re-runs the prepublish QA gate inline before anything can go live.
           </p>
           <AdminSubmitButton
             idleLabel="Publish due items"

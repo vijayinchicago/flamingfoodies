@@ -12,6 +12,7 @@ import {
   runGenerationPipeline
 } from "@/lib/services/automation";
 import { runEditorialPerformanceEvaluator } from "@/lib/services/editorial-performance-evaluator";
+import { runPrepublishQaForScheduledContent } from "@/lib/services/prepublish-qa";
 import {
   appendAutomationRunEvent,
   beginAutomationRun,
@@ -82,6 +83,7 @@ const automationApprovalActionSchema = z.object({
 const automationAgentActionSchema = z.object({
   agentId: z.enum([
     "editorial-autopublisher",
+    "prepublish-qa",
     "editorial-performance-evaluator",
     "social-distribution-evaluator",
     "pinterest-distributor",
@@ -337,8 +339,11 @@ export async function runPublishScheduledAction() {
       }
     },
     summarize: (result) => ({
-      summary: `Published ${result.published.length} scheduled item(s).`,
-      rowsPublished: result.published.length
+      summary:
+        `Published ${result.published.length} scheduled item(s) and blocked ` +
+        `${result.blocked.length} failing prepublish QA.`,
+      rowsPublished: result.published.length,
+      rowsUpdated: result.blocked.length
     })
   });
 
@@ -351,11 +356,60 @@ export async function runPublishScheduledAction() {
     targetType: "cron",
     targetId: "publish_scheduled",
     metadata: {
-      publishedCount: result.published.length
+      publishedCount: result.published.length,
+      blockedCount: result.blocked.length
     }
   });
 
-  redirect(`${AUTOMATION_TRIGGER_PATH}?published=${result.published.length}`);
+  redirect(
+    `${AUTOMATION_TRIGGER_PATH}?published=${result.published.length}&publishBlocked=${result.blocked.length}`
+  );
+}
+
+export async function runPrepublishQaAction() {
+  const admin = await requireAdmin();
+  const task = await runManualAutomationTask({
+    agentId: "prepublish-qa",
+    adminId: admin.id,
+    triggerReference: "server_action:prepublish_qa",
+    inputPayload: {
+      dueOnly: false
+    },
+    execute: () =>
+      runPrepublishQaForScheduledContent({
+        dueOnly: false
+      }),
+    onSuccess: () => {
+      revalidatePath("/admin/automation/jobs");
+      revalidatePath(AUTOMATION_TRIGGER_PATH);
+      revalidatePath("/admin/automation/agents");
+      revalidatePath("/admin/automation/runs");
+      revalidatePath("/admin/content/recipes");
+      revalidatePath("/admin/content/blog");
+      revalidatePath("/admin/content/reviews");
+    },
+    summarize: (result) => ({
+      summary:
+        `Prepublish QA reviewed ${result.reviewed} scheduled item(s), clearing ` +
+        `${result.ready} and blocking ${result.blocked}.`,
+      rowsUpdated: result.reviewed
+    })
+  });
+
+  const result = task.ok ? task.result : redirectTriggerError(task.errorMessage);
+  const supabase = createSupabaseAdminClient();
+
+  await writeAuditLog(supabase, {
+    adminId: admin.id,
+    action: "run_prepublish_qa",
+    targetType: "automation",
+    targetId: "prepublish_qa",
+    metadata: result
+  });
+
+  redirect(
+    `${AUTOMATION_TRIGGER_PATH}?prepublishReviewed=${result.reviewed}&prepublishReady=${result.ready}&prepublishBlocked=${result.blocked}`
+  );
 }
 
 export async function runEditorialPerformanceEvaluatorAction() {

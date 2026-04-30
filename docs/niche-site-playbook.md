@@ -490,6 +490,7 @@ Build a bounded automation system, not just a pile of loose cron jobs.
 **Recommended automation lane types to build:**
 - **Draft discovery lane**: searches for new [NICHE] entities or topics and writes drafts only
 - **Editorial generation lane**: generates articles/guides/reviews into draft state
+- **Prepublish QA support worker**: rechecks scheduled editorial drafts shortly before publish and moves failing rows to `needs_review` with `qa_issues`
 - **Editorial autopublisher / bounded executor**: promotes eligible drafts or approved changes into live state after QA gates
 - **External-send distributor**: pushes live content to social or email, but only inside caps, pauses, and provider guardrails
 - **Growth loop promoter**: re-queues proven winners instead of relying only on brand-new content
@@ -498,7 +499,9 @@ Build a bounded automation system, not just a pile of loose cron jobs.
 
 **QA and publish rules:**
 - Discovery and generation lanes write drafts only
-- Live publishers/executors should only mutate after automated QA, policy checks, and any delayed publish windows pass
+- Scheduled editorial drafts must pass dedicated prepublish QA before auto-publish
+- Failing scheduled rows should move to `needs_review` and persist `qa_issues` instead of silently staying in the publish queue
+- Live publishers/executors should only mutate after automated QA, policy checks, any delayed publish windows, and an inline publish-path fail-safe pass
 - Release/newsletter/high-risk outbound actions should write to `automation_approvals`
 - Evaluator lanes should judge prior runs after enough time has passed to observe real outcomes
 - Do not start with a catch-all visual QA agent unless you have a proven gap; prefer embedding QA in the publish path and adding a support QA lane later if needed
@@ -513,6 +516,7 @@ Build a bounded automation system, not just a pile of loose cron jobs.
 **Cron surface to expect in `vercel.json`:**
 - generation
 - draft reevaluation
+- prepublish QA shortly before scheduled publishing
 - scheduled publishing
 - social distribution
 - growth-loop promotion
@@ -728,6 +732,8 @@ Run through this launch checklist and fix anything that's missing:
 □ Evaluator lanes can be manually smoke tested and write verdicts successfully
 □ External-send lanes have at least one manual certification run recorded
 □ At least one representative cron/manual automation route has a successful post-deploy production smoke check using the real auth convention
+□ Dedicated prepublish QA can be run manually or on schedule and records a real run in the ledger
+□ A deliberately bad scheduled editorial smoke row fails auto-publish, moves to `needs_review`, and stores `qa_issues`
 □ Draft review workflow works end to end
 
 **Security:**

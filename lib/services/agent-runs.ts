@@ -178,6 +178,13 @@ const scheduleDefinitions: ScheduleDefinition[] = [
     minuteUtc: 45
   },
   {
+    agentId: "prepublish-qa",
+    label: "Prepublish QA",
+    note: "Re-checks scheduled editorial drafts and moves anything failing QA back into review.",
+    hourUtc: 17,
+    minuteUtc: 55
+  },
+  {
     agentId: "editorial-autopublisher",
     label: "Publish scheduled content",
     note: "Makes due scheduled content live.",
@@ -956,7 +963,9 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
     (row) => row.status === "published" && row.published_at && row.published_at >= cutoff7
   ).length;
   const editorialScheduled = editorialRows.filter((row) => row.status === "draft").length;
-  const editorialPending = editorialRows.filter((row) => row.status === "pending_review").length;
+  const editorialPending = editorialRows.filter((row) =>
+    row.status === "pending_review" || row.status === "needs_review"
+  ).length;
 
   const pinterestPublishedLast7 = pinterestRows.filter(
     (row) => row.status === "published" && row.published_at && row.published_at >= cutoff7
@@ -1079,9 +1088,15 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
   );
 
   const waitingReviewBreakdown = {
-    recipe: recipeRows.filter((row) => row.status === "pending_review").length,
-    blog_post: blogRows.filter((row) => row.status === "pending_review").length,
-    review: reviewRows.filter((row) => row.status === "pending_review").length
+    recipe: recipeRows.filter(
+      (row) => row.status === "pending_review" || row.status === "needs_review"
+    ).length,
+    blog_post: blogRows.filter(
+      (row) => row.status === "pending_review" || row.status === "needs_review"
+    ).length,
+    review: reviewRows.filter(
+      (row) => row.status === "pending_review" || row.status === "needs_review"
+    ).length
   };
 
   const todayRuns = controlRuns.filter((run) => isBetween(run.startedAt, etDayBounds.start, etDayBounds.end));
@@ -1152,6 +1167,22 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
           { label: "Scheduled now", value: compactNumber(editorialScheduled) },
           { label: "Waiting review", value: compactNumber(editorialPending) },
           { label: "Runs in 7d", value: compactNumber(ledger.runsLast7Days) }
+        ]
+      };
+    }
+
+    if (agent.id === "prepublish-qa") {
+      return {
+        ...sharedFields,
+        summary: withPausePrefix(
+          sharedFields,
+          `Runs ahead of scheduled publish to keep ${editorialScheduled} scheduled item(s) honest and ${editorialPending} review-bound item(s) out of the live lane.`
+        ),
+        stats: [
+          { label: "Scheduled now", value: compactNumber(editorialScheduled) },
+          { label: "Waiting review", value: compactNumber(editorialPending) },
+          { label: "Runs in 7d", value: compactNumber(ledger.runsLast7Days) },
+          { label: "Failures", value: compactNumber(ledger.failedRunsLast7Days) }
         ]
       };
     }

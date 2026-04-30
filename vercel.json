@@ -10,6 +10,7 @@
     { "path": "/api/admin/shop-refresh", "schedule": "30 23 * * *" },
     { "path": "/api/admin/generate?type=review&qty=1", "schedule": "0 8 * * 1,4" },
     { "path": "/api/admin/reevaluate-ai-drafts", "schedule": "45 17 * * *" },
+    { "path": "/api/admin/prepublish-qa", "schedule": "55 17 * * *" },
     { "path": "/api/admin/publish-scheduled", "schedule": "0 18 * * *" },
     { "path": "/api/admin/editorial-performance-evaluator/cron", "schedule": "45 18 * * *" },
     { "path": "/api/admin/growth-loop", "schedule": "30 18 * * *" },

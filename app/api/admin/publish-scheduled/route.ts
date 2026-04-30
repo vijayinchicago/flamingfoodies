@@ -5,6 +5,7 @@ import { runCronAutomationTask } from "@/lib/services/automation-control";
 import { jsonResponse } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 120;
 
 async function handleRequest(request: Request) {
   const { pathname } = new URL(request.url);
@@ -25,8 +26,11 @@ async function handleRequest(request: Request) {
       }
     },
     summarize: (result) => ({
-      summary: `Published ${result.published.length} scheduled item(s).`,
-      rowsPublished: result.published.length
+      summary:
+        `Published ${result.published.length} scheduled item(s) and blocked ` +
+        `${result.blocked.length} failing prepublish QA.`,
+      rowsPublished: result.published.length,
+      rowsUpdated: result.blocked.length
     })
   });
 

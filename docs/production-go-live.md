@@ -32,6 +32,7 @@ automation, Search Console, and approval-queue migrations, including:
 - `20260421223000_update_newsletter_digest_agent_schedule.sql`
 - `20260422001500_create_automation_evaluations.sql`
 - `20260422013000_add_search_performance_evaluator_agent.sql`
+- `20260429100000_add_prepublish_qa_worker_and_needs_review.sql`
 
 Recommended rule:
 
@@ -146,10 +147,12 @@ Verify:
 - `/admin/newsletter/campaigns` can queue a campaign for approval instead of sending immediately
 - `/admin/analytics/search-console` shows the Search Console queue and executor state once OAuth is connected
 - `/api/admin/newsletter-digest?mode=send_due` processes only approved due campaigns
+- `/api/admin/prepublish-qa` exists, requires `Authorization: Bearer <CRON_SECRET>`, and records a real run in `automation_runs`
 - `/api/admin/search-insights` refreshes Search Console recommendations
 - `/api/admin/search-insights-executor/cron` rebuilds runtime overlays only from approved recommendations
 - `/api/admin/search-performance-evaluator/cron` records delayed keep / escalate / revert verdicts for mature search executor runs
 - `/admin/automation/agents` shows the Pinterest distributor as configured only after `BUFFER_API_KEY`, `BUFFER_CHANNEL_IDS`, and `BUFFER_PINTEREST_BOARD_ID` are all live
+- a deliberately bad scheduled editorial smoke row fails auto-publish, moves to `needs_review`, and stores `qa_issues` instead of going live
 
 ## 10. Nice-to-have right after cutover
 

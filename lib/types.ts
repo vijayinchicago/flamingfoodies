@@ -15,7 +15,12 @@ export type MerchThemeKey =
   | "charcoal";
 export type CuisineType = (typeof CUISINE_TYPES)[number];
 export type RecipeGenerationLane = (typeof RECIPE_GENERATION_LANES)[number];
-export type PostStatus = "draft" | "pending_review" | "published" | "archived";
+export type PostStatus =
+  | "draft"
+  | "pending_review"
+  | "needs_review"
+  | "published"
+  | "archived";
 export type ContentSource = "editorial" | "ai_generated" | "community";
 
 export interface BaseContent {
@@ -41,6 +46,9 @@ export interface BlogPost extends BaseContent {
   authorId?: string;
   category: string;
   content: string;
+  qaNotes?: string;
+  qaReport?: RecipeQaReport;
+  qaIssues?: RecipeQaIssue[];
   seoTitle?: string;
   seoDescription?: string;
   cuisineType?: CuisineType;
@@ -127,6 +135,7 @@ export interface Recipe extends BaseContent {
   cuisineQaReviewed?: boolean;
   qaNotes?: string;
   qaReport?: RecipeQaReport;
+  qaIssues?: RecipeQaIssue[];
   seoTitle?: string;
   seoDescription?: string;
   ratingAvg?: number;
@@ -155,6 +164,7 @@ export interface Review extends BaseContent {
   factQaReviewed?: boolean;
   qaNotes?: string;
   qaReport?: RecipeQaReport;
+  qaIssues?: RecipeQaIssue[];
   recommended: boolean;
 }
 

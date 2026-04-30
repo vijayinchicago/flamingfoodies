@@ -52,6 +52,7 @@ import type {
   MerchProduct,
   Recipe,
   RecipeFaq,
+  RecipeQaReport,
   RecipeIngredient,
   RecipeIngredientSection,
   RecipeInstruction,
@@ -66,7 +67,7 @@ const heatLevels = HEAT_LEVELS;
 const cuisineTypes = CUISINE_TYPES;
 const difficulties = ["beginner", "intermediate", "advanced"] as const;
 const merchAvailability = ["preview", "waitlist", "live"] as const;
-const editorialStatuses = ["draft", "pending_review", "published"] as const;
+const editorialStatuses = ["draft", "pending_review", "needs_review", "published"] as const;
 const QA_NOTES_MAX_LENGTH = 4000;
 
 const blogSchema = z.object({
@@ -254,6 +255,17 @@ function getPublishedAt(
   }
 
   return existingPublishedAt ?? new Date().toISOString();
+}
+
+function buildQaIssuesForStatus(
+  status: (typeof editorialStatuses)[number],
+  qaReport: RecipeQaReport
+) {
+  if (status !== "needs_review") {
+    return [];
+  }
+
+  return [...qaReport.blockers, ...qaReport.warnings];
 }
 
 async function writeAuditLog(
@@ -1090,6 +1102,10 @@ export async function createBlogPostAction(formData: FormData) {
       featured: parsed.data.featured ?? false,
       affiliate_disclosure: true,
       status: parsed.data.status,
+      qa_notes: null,
+      qa_report: qa.qaReport,
+      qa_checked_at: new Date().toISOString(),
+      qa_issues: buildQaIssuesForStatus(parsed.data.status, qa.qaReport),
       source: "editorial",
       seo_title: parsed.data.title.slice(0, 60),
       seo_description: parsed.data.description.slice(0, 160),
@@ -1199,6 +1215,7 @@ export async function updateBlogPostAction(formData: FormData) {
       image_alt: qa.imageAlt,
       featured: parsed.data.featured ?? false,
       status: parsed.data.status,
+      qa_issues: buildQaIssuesForStatus(parsed.data.status, qa.qaReport),
       seo_title: parsed.data.title.slice(0, 60),
       seo_description: parsed.data.description.slice(0, 160),
       read_time_minutes: calculateReadTime(parsed.data.content),
@@ -1272,6 +1289,9 @@ export async function updateBlogPostStateAction(formData: FormData) {
 
     updates.status = "published";
     updates.published_at = new Date().toISOString();
+    updates.qa_report = qaReportForPublish;
+    updates.qa_checked_at = new Date().toISOString();
+    updates.qa_issues = [];
   }
   if (parsed.data.intent === "archive") {
     updates.status = "archived";
@@ -1436,6 +1456,7 @@ export async function createRecipeAction(formData: FormData) {
       qa_report: qa.qaReport,
       qa_checked_at:
         qa.heroImageReviewed || qa.cuisineQaReviewed ? new Date().toISOString() : null,
+      qa_issues: buildQaIssuesForStatus(parsed.data.status, qa.qaReport),
       featured: parsed.data.featured ?? false,
       status: parsed.data.status,
       source: "editorial",
@@ -1606,6 +1627,7 @@ export async function updateRecipeAction(formData: FormData) {
       qa_report: qa.qaReport,
       qa_checked_at:
         qa.heroImageReviewed || qa.cuisineQaReviewed ? new Date().toISOString() : null,
+      qa_issues: buildQaIssuesForStatus(parsed.data.status, qa.qaReport),
       featured: parsed.data.featured ?? false,
       status: parsed.data.status,
       seo_title: parsed.data.title.slice(0, 60),
@@ -1719,7 +1741,8 @@ export async function updateRecipeStateAction(formData: FormData) {
             image_alt: publishHeroFields?.imageAlt ?? recipeRowForPublish?.image_alt ?? null,
             hero_image_reviewed: Boolean(recipeRowForPublish?.hero_image_reviewed),
             qa_checked_at: new Date().toISOString(),
-            qa_report: qaReportForPublish
+            qa_report: qaReportForPublish,
+            qa_issues: []
           }
         : {})
     })
@@ -1912,6 +1935,7 @@ export async function createReviewAction(formData: FormData) {
       qa_report: qa.qaReport,
       qa_checked_at:
         qa.imageReviewed || qa.factQaReviewed ? new Date().toISOString() : null,
+      qa_issues: buildQaIssuesForStatus(parsed.data.status, qa.qaReport),
       tags: parseCsvList(parsed.data.tags || ""),
       recommended: parsed.data.recommended ?? false,
       featured: parsed.data.featured ?? false,
@@ -2055,6 +2079,7 @@ export async function updateReviewAction(formData: FormData) {
       qa_report: qa.qaReport,
       qa_checked_at:
         qa.imageReviewed || qa.factQaReviewed ? new Date().toISOString() : null,
+      qa_issues: buildQaIssuesForStatus(parsed.data.status, qa.qaReport),
       tags: parseCsvList(parsed.data.tags || ""),
       recommended: parsed.data.recommended ?? false,
       featured: parsed.data.featured ?? false,
@@ -2163,7 +2188,8 @@ export async function updateReviewStateAction(formData: FormData) {
             image_alt: publishHeroFields?.imageAlt ?? reviewRowForPublish?.image_alt ?? null,
             image_reviewed: Boolean(reviewRowForPublish?.image_reviewed),
             qa_checked_at: new Date().toISOString(),
-            qa_report: qaReportForPublish
+            qa_report: qaReportForPublish,
+            qa_issues: []
           }
         : {})
     })

@@ -12,6 +12,7 @@ What it does:
 - watches generated recipes, blog posts, and hot sauce reviews
 - runs automated QA already built into the generation pipeline
 - auto-schedules eligible content for publish without manual approval
+- relies on a dedicated prepublish QA gate before anything actually goes live
 
 Why it matters:
 - keeps daily inventory moving live
@@ -22,7 +23,24 @@ Dependencies:
 - `auto_publish_ai_content = true`
 - working image providers so recipes, blogs, and reviews can clear image QA
 
-## 2. Pinterest Distributor
+## 2. Prepublish QA
+
+What it does:
+- rechecks scheduled recipes, blog posts, and reviews shortly before the publish lane runs
+- validates structural completeness, slug validity, SEO basics, content-type-specific readiness, and monetization readiness where appropriate
+- moves failing rows to `needs_review` and persists `qa_issues`
+
+Why it matters:
+- makes the editorial QA gate explicit instead of relying only on generation-time checks
+- protects the live publish lane from stale scheduled drafts or schema/content regressions
+- gives operators a visible support worker they can run on demand before a publish window
+
+Dependencies:
+- the editorial QA helpers for each content type
+- a protected cron or manual trigger using the shared control plane
+- the publish lane must rerun the same checks inline as a fail-safe
+
+## 3. Pinterest Distributor
 
 What it does:
 - creates Pinterest social posts for published recipes, blog posts, and reviews
@@ -44,7 +62,7 @@ Setup note:
 - use `node scripts/inspect-buffer-pinterest.mjs --env-file <path-to-env-file>` to list Buffer channels and discover the Pinterest board service id before saving the final env values
 - the step-by-step operator runbook lives in [docs/pinterest-buffer-setup.md](/Users/vijaysingh/apps/flamingfoodies/docs/pinterest-buffer-setup.md)
 
-## 3. Growth Loop Promoter
+## 4. Growth Loop Promoter
 
 What it does:
 - reads live traffic, share, and affiliate signals
@@ -59,7 +77,7 @@ Dependencies:
 - working telemetry
 - Buffer configured for live distribution
 
-## 4. Shop Shelf Curator
+## 5. Shop Shelf Curator
 
 What it does:
 - adds a fresh daily shop pick
@@ -74,7 +92,7 @@ Dependencies:
 - affiliate catalog entries
 - exact Amazon product links for the most important products
 
-## 5. Newsletter Digest Agent
+## 6. Newsletter Digest Agent
 
 What it does:
 - builds weekly digest campaigns from published content
@@ -88,7 +106,7 @@ Why it matters:
 Dependencies:
 - ConvertKit configuration for live sends
 
-## 6. Search Insights Analyst
+## 7. Search Insights Analyst
 
 What it does:
 - reads live Search Console API data
@@ -103,7 +121,7 @@ Dependencies:
 - Search Console OAuth connection
 - a bounded implementation agent that only applies approved recommendation types
 
-## 7. Search Recommendation Executor
+## 8. Search Recommendation Executor
 
 What it does:
 - reads only approved and active Search Console recommendations
@@ -118,7 +136,7 @@ Dependencies:
 - live Search Console queue data
 - runtime overlay targets already modeled in the codebase
 
-## 8. Search Performance Evaluator
+## 9. Search Performance Evaluator
 
 What it does:
 - reviews prior search executor decisions after a delay
@@ -150,20 +168,22 @@ That means:
 For a lean launch, the best autonomous stack is:
 
 1. Editorial Autopublisher
-2. Pinterest Distributor
-3. Growth Loop Promoter
-4. Shop Shelf Curator
-5. Newsletter Digest Agent
-6. Search Insights Analyst
-7. Search Recommendation Executor
-8. Search Performance Evaluator
+2. Prepublish QA
+3. Pinterest Distributor
+4. Growth Loop Promoter
+5. Shop Shelf Curator
+6. Newsletter Digest Agent
+7. Search Insights Analyst
+8. Search Recommendation Executor
+9. Search Performance Evaluator
 
 That gives FlamingFoodies a closed loop:
 
 1. Generate high-intent content.
-2. Publish it automatically.
-3. Push it to Pinterest and social.
-4. Watch what wins.
-5. Re-promote winners.
-6. Read search demand and capture rising topics or weak search matches.
-7. Feed the strongest traffic and search signals back into the next content cycle.
+2. Recheck scheduled drafts with prepublish QA before anything goes live.
+3. Publish it automatically only if the gate still clears.
+4. Push it to Pinterest and social.
+5. Watch what wins.
+6. Re-promote winners.
+7. Read search demand and capture rising topics or weak search matches.
+8. Feed the strongest traffic and search signals back into the next content cycle.

@@ -140,7 +140,11 @@ export default async function AdminRecipesPage({
   const recipes = await getAdminRecipes();
   const recipeAuditMap = await getRecipeAuditSummaryMap(recipes.map((recipe) => recipe.id));
   const reviewQueue = recipes.filter(
-    (recipe) => (recipe.status === "pending_review" || recipe.source === "ai_generated") && recipe.status !== "published"
+    (recipe) =>
+      (recipe.status === "pending_review" ||
+        recipe.status === "needs_review" ||
+        recipe.source === "ai_generated") &&
+      recipe.status !== "published"
   );
   const queueEntries = reviewQueue.map((recipe) => {
     const qaReport = buildRecipeQaReport(recipe);

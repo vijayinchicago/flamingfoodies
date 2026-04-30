@@ -178,6 +178,7 @@ export default async function AdminBlogEditPage({
           >
             <option value="draft">draft</option>
             <option value="pending_review">pending review</option>
+            <option value="needs_review">needs review</option>
             <option value="published">published</option>
           </select>
         </div>
