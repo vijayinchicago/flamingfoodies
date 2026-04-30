@@ -3,6 +3,7 @@ import type { MetadataRoute } from "next";
 import { getBlogPosts, getRecipes, getReviews } from "@/lib/services/content";
 import { getGuides } from "@/lib/content/guides";
 import { getFestivalsFromDb } from "@/lib/festivals";
+import { shouldNoIndexPath } from "@/lib/indexing-policy";
 import { getPeppersFromDb } from "@/lib/peppers";
 import { getBrandsFromDb } from "@/lib/brands";
 import { getTutorialsFromDb } from "@/lib/tutorials";
@@ -55,6 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   return staticRoutes
+    .filter(({ path }) => !shouldNoIndexPath(path))
     .map(({ path, lastModified }) => ({
       url: absoluteUrl(path),
       lastModified: new Date(lastModified)
@@ -76,15 +78,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         url: absoluteUrl(`/guides/${guide.slug}`),
         lastModified: new Date(guide.publishedAt)
       })),
-      festivals.map((festival) => ({
+      festivals
+        .filter((festival) => !shouldNoIndexPath(`/festivals/${festival.slug}`))
+        .map((festival) => ({
         url: absoluteUrl(`/festivals/${festival.slug}`),
         lastModified: new Date()
       })),
-      peppers.map((pepper) => ({
+      peppers
+        .filter((pepper) => !shouldNoIndexPath(`/peppers/${pepper.slug}`))
+        .map((pepper) => ({
         url: absoluteUrl(`/peppers/${pepper.slug}`),
         lastModified: new Date()
       })),
-      brands.map((brand) => ({
+      brands
+        .filter((brand) => !shouldNoIndexPath(`/brands/${brand.slug}`))
+        .map((brand) => ({
         url: absoluteUrl(`/brands/${brand.slug}`),
         lastModified: new Date()
       })),

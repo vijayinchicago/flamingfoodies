@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { shouldNoIndexPath } from "@/lib/indexing-policy";
 import { absoluteUrl } from "@/lib/utils";
 
 export function buildMetadata({
@@ -16,6 +17,7 @@ export function buildMetadata({
   noIndex?: boolean;
 }): Metadata {
   const url = absoluteUrl(path);
+  const blockIndexing = Boolean(noIndex || shouldNoIndexPath(path));
   return {
     title,
     description,
@@ -35,7 +37,7 @@ export function buildMetadata({
       description,
       images: images?.length ? images : [absoluteUrl("/api/og?title=FlamingFoodies")]
     },
-    robots: noIndex
+    robots: blockIndexing
       ? {
           index: false,
           follow: false

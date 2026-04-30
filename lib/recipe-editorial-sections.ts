@@ -13,12 +13,48 @@ function normalizeText(value?: string | null) {
   return (value || "").toLowerCase();
 }
 
-function buildRecipeCorpus(recipe: Recipe) {
-  const sectionItems =
-    recipe.ingredientSections?.flatMap((section) => section.items.map((item) => item.item)) ?? [];
-  const methodCopy =
-    recipe.methodSteps?.map((step) => `${step.title} ${step.body}`) ?? [];
+const primaryIngredientStopTokens = [
+  "broth",
+  "stock",
+  "bouillon",
+  "water",
+  "oil",
+  "vinegar",
+  "salt",
+  "pepper",
+  "paprika",
+  "cayenne",
+  "oregano",
+  "garlic",
+  "onion",
+  "shallot",
+  "ginger",
+  "scallion",
+  "lemon",
+  "lime",
+  "sugar",
+  "honey",
+  "soy sauce",
+  "fish sauce",
+  "butter",
+  "cream",
+  "milk",
+  "yogurt",
+  "rice",
+  "pasta",
+  "noodle",
+  "noodles",
+  "tortilla",
+  "bread",
+  "bun",
+  "roll",
+  "pickle",
+  "slaw",
+  "tomato",
+  "tomatoes"
+] as const;
 
+function buildRecipeIdentityCorpus(recipe: Recipe) {
   return normalizeText(
     [
       recipe.title,
@@ -26,19 +62,49 @@ function buildRecipeCorpus(recipe: Recipe) {
       recipe.intro,
       recipe.heroSummary,
       recipe.tags.join(" "),
-      recipe.ingredients.map((ingredient) => ingredient.item).join(" "),
-      sectionItems.join(" "),
-      recipe.instructions.map((step) => step.text).join(" "),
-      methodCopy.join(" "),
       recipe.cuisineType,
       recipe.heatLevel
     ].join(" ")
   );
 }
 
-function hasAnyToken(recipe: Recipe, tokens: string[]) {
-  const corpus = buildRecipeCorpus(recipe);
-  return tokens.some((token) => corpus.includes(token));
+function isPrimaryIngredientCandidate(item: string) {
+  const normalized = normalizeText(item);
+
+  if (!normalized) {
+    return false;
+  }
+
+  return !primaryIngredientStopTokens.some((token) => normalized.includes(token));
+}
+
+function buildRecipePrimaryIngredientCorpus(recipe: Recipe) {
+  const directIngredients = recipe.ingredients.map((ingredient) => ingredient.item);
+  const sectionItems =
+    recipe.ingredientSections?.flatMap((section) => section.items.map((item) => item.item)) ?? [];
+
+  const uniquePrimaryIngredients = [...new Set([...directIngredients, ...sectionItems])]
+    .map((item) => item.trim())
+    .filter(isPrimaryIngredientCandidate);
+
+  return normalizeText(uniquePrimaryIngredients.join(" "));
+}
+
+type RecipeMatchSource = "identity" | "primary-ingredients";
+
+function hasAnyToken(
+  recipe: Recipe,
+  tokens: string[],
+  sources: RecipeMatchSource[] = ["identity"]
+) {
+  const corpora = {
+    identity: buildRecipeIdentityCorpus(recipe),
+    "primary-ingredients": buildRecipePrimaryIngredientCorpus(recipe)
+  };
+
+  return tokens.some((token) =>
+    sources.some((source) => corpora[source].includes(normalizeText(token)))
+  );
 }
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -100,6 +166,7 @@ export function getRecipeEditorialSections(recipes: Recipe[], now = new Date()) 
     eyebrow: string;
     title: string;
     description: string;
+    matchSources?: RecipeMatchSource[];
     matcher: (recipe: Recipe) => boolean;
   }> = [
     {
@@ -115,8 +182,13 @@ export function getRecipeEditorialSections(recipes: Recipe[], now = new Date()) 
       eyebrow: "Hall of fame chicken",
       title: "Chicken recipes with real staying power.",
       description: "The curries, grills, braises, and weeknight wins that keep chicken from going flat.",
+      matchSources: ["identity", "primary-ingredients"],
       matcher: (recipe) =>
-        hasAnyToken(recipe, ["chicken", "thigh", "drumstick", "wings", "carnitas chicken"])
+        hasAnyToken(
+          recipe,
+          ["chicken", "thigh", "drumstick", "wings", "carnitas chicken"],
+          ["identity", "primary-ingredients"]
+        )
     },
     {
       key: "noodle-nights",
@@ -131,8 +203,7 @@ export function getRecipeEditorialSections(recipes: Recipe[], now = new Date()) 
       eyebrow: "Taco night",
       title: "Tacos, wraps, and hand-held spicy favorites.",
       description: "The recipes that know exactly how people actually eat on a busy weeknight.",
-      matcher: (recipe) =>
-        hasAnyToken(recipe, ["taco", "tacos", "quesadilla", "wrap", "birria", "carnitas"])
+      matcher: (recipe) => hasAnyToken(recipe, ["taco", "tacos", "quesadilla", "wrap", "birria"])
     },
     {
       key: "curry-house",

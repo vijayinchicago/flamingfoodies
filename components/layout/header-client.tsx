@@ -8,15 +8,15 @@ import { SearchForm } from "@/components/search/search-form";
 
 const primaryNav = [
   { href: "/recipes", label: "Recipes" },
-  { href: "/hot-sauces", label: "Hot Sauces" },
+  { href: "/blog", label: "Blog" },
   { href: "/reviews", label: "Reviews" },
-  { href: "/shop", label: "Shop" }
+  { href: "/how-to", label: "How-To" }
 ];
 
 const secondaryNav = [
+  { href: "/hot-sauces", label: "Hot Sauces" },
   { href: "/peppers", label: "Peppers" },
-  { href: "/festivals", label: "Festivals" },
-  { href: "/blog", label: "Blog" }
+  { href: "/shop", label: "Shop" }
 ];
 
 export function HeaderClient({

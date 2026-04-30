@@ -15,8 +15,8 @@ export function Footer() {
             subtitleClassName="tracking-[0.24em]"
           />
           <p className="mt-4 max-w-xl text-sm leading-7 text-cream/70">
-            Recipes, reviews, community spotlights, and the internet&apos;s favorite place
-            to chase deeper flavor and higher heat.
+            Recipes, reviews, explainers, and practical spicy-food guidance for real kitchens and
+            mixed tables.
           </p>
         </div>
         <div>
@@ -25,25 +25,22 @@ export function Footer() {
           </h2>
           <div className="mt-4 flex flex-col gap-3 text-sm text-cream/75">
             <Link href="/recipes">Recipes</Link>
-            <Link href="/hot-sauces">Hot Sauces</Link>
-            <Link href="/peppers">Pepper Encyclopedia</Link>
-            <Link href="/brands">Brand Directory</Link>
-            <Link href="/festivals">Festivals</Link>
+            <Link href="/blog">Blog</Link>
+            <Link href="/reviews">Reviews</Link>
             <Link href="/how-to">How-To Guides</Link>
-            <Link href="/new-releases">New Releases</Link>
-            <Link href="/community">Community Feed</Link>
             <Link href="/guides">Guides</Link>
           </div>
         </div>
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-ember">
-            Heat Club
+            More Paths
           </h2>
           <div className="mt-4 flex flex-col gap-3 text-sm text-cream/75">
-            <Link href="/quiz">Heat Quiz</Link>
-            <Link href="/subscriptions">Subscription Boxes</Link>
+            <Link href="/hot-sauces">Hot Sauces</Link>
+            <Link href="/peppers">Pepper Encyclopedia</Link>
+            <Link href="/brands">Brand Directory</Link>
+            <Link href="/festivals">Festivals</Link>
             <Link href="/shop">Shop</Link>
-            <Link href="/leaderboard">Leaderboard</Link>
           </div>
         </div>
         <div>
