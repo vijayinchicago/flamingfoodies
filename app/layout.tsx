@@ -11,9 +11,9 @@ import { env } from "@/lib/env";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildMetadata({
-  title: "FlamingFoodies | Turn Up the Heat",
+  title: "FlamingFoodies | Flavor-First Spicy Food",
   description:
-    "Recipes, hot sauce reviews, and spicy food culture for people who like their meals with a serious kick.",
+    "Flavor-first spicy food for real kitchens and mixed tables. Browse approachable recipes, practical reviews, and sharper how-to guides.",
   path: "/"
 });
 

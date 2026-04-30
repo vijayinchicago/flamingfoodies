@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const title = searchParams.get("title") || "FlamingFoodies";
   const eyebrow = searchParams.get("eyebrow") || "FlamingFoodies";
-  const subtitle = searchParams.get("subtitle") || "Turn Up the Heat";
+  const subtitle = searchParams.get("subtitle") || "Recipes, reviews, and guides for real kitchens";
 
   return new ImageResponse(
     (
