@@ -52,7 +52,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/peppers", lastModified: "2026-04-18" },
     { path: "/brands", lastModified: "2026-04-18" },
     { path: "/how-to", lastModified: "2026-04-18" },
-    { path: "/new-releases", lastModified: "2026-04-18" }
+    { path: "/new-releases", lastModified: "2026-04-18" },
+    { path: "/flame-club", lastModified: "2026-05-02" }
   ];
 
   return staticRoutes

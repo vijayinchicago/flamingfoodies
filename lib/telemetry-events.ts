@@ -17,7 +17,9 @@ export const ANALYTICS_EVENTS = {
   searchPerformed: "search_performed",
   adSlotRendered: "ad_slot_rendered",
   heatScoreMilestone: "heat_score_milestone",
-  scrollDepth: "scroll_depth"
+  scrollDepth: "scroll_depth",
+  referralLinkCopied: "referral_link_copied",
+  referralShareClicked: "referral_share_clicked"
 } as const;
 
 export type EventName = (typeof ANALYTICS_EVENTS)[keyof typeof ANALYTICS_EVENTS];

@@ -336,34 +336,226 @@ async function syncCampaignToKit({
   };
 }
 
+// Referral milestones: hitting a threshold adds a Kit tag that triggers
+// the matching reward Sequence. Order matters — first match wins per signup.
+const REFERRAL_TIERS: Array<{ tier: number; threshold: number; tag: string }> = [
+  { tier: 1, threshold: 3, tag: "referrer-tier-1" },
+  { tier: 2, threshold: 5, tag: "referrer-tier-2" },
+  { tier: 3, threshold: 10, tag: "referrer-tier-3" }
+];
+
+async function syncSubscriberToKit(payload: {
+  email_address: string;
+  first_name?: string;
+  tags: string[];
+  fields: Record<string, unknown>;
+}) {
+  if (!flags.hasConvertKit) {
+    return;
+  }
+
+  const response = await fetch(
+    `https://api.convertkit.com/v3/forms/${env.CONVERTKIT_FORM_ID}/subscribe`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_key: env.CONVERTKIT_API_KEY,
+        ...payload
+      })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("ConvertKit subscription failed.");
+  }
+}
+
+let cachedMailerLiteGroupMap: Record<string, string> | null = null;
+
+function getMailerLiteGroupMap(): Record<string, string> {
+  if (cachedMailerLiteGroupMap) return cachedMailerLiteGroupMap;
+  const raw = env.MAILERLITE_GROUPS?.trim();
+  if (!raw) {
+    cachedMailerLiteGroupMap = {};
+    return cachedMailerLiteGroupMap;
+  }
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      cachedMailerLiteGroupMap = Object.fromEntries(
+        Object.entries(parsed)
+          .filter(([, value]) => typeof value === "string" && value.length > 0)
+          .map(([key, value]) => [key, value as string])
+      );
+      return cachedMailerLiteGroupMap;
+    }
+  } catch {
+    // fall through
+  }
+  cachedMailerLiteGroupMap = {};
+  return cachedMailerLiteGroupMap;
+}
+
+async function syncSubscriberToMailerLite(payload: {
+  email: string;
+  firstName?: string;
+  tags: string[];
+  fields: Record<string, unknown>;
+}) {
+  if (!flags.hasMailerLite) return;
+
+  const groupMap = getMailerLiteGroupMap();
+  const groupIds = payload.tags
+    .map((tag) => groupMap[tag])
+    .filter((id): id is string => Boolean(id));
+
+  // MailerLite "fields" use snake_case keys mapped to your account's custom
+  // field aliases. `name` is built-in. Custom fields must exist in MailerLite
+  // under Subscribers → Fields with matching aliases or this is a no-op.
+  const mailerLiteFields: Record<string, unknown> = {};
+  if (payload.firstName) mailerLiteFields.name = payload.firstName;
+  for (const [key, value] of Object.entries(payload.fields)) {
+    if (value !== undefined && value !== null && value !== "") {
+      mailerLiteFields[key] = value;
+    }
+  }
+
+  const response = await fetch("https://connect.mailerlite.com/api/subscribers", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      Authorization: `Bearer ${env.MAILERLITE_API_KEY}`
+    },
+    body: JSON.stringify({
+      email: payload.email,
+      fields: mailerLiteFields,
+      groups: groupIds,
+      status: "active"
+    })
+  });
+
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    throw new Error(`MailerLite subscription failed (${response.status}): ${detail}`);
+  }
+}
+
+async function syncSubscriberToProvider(payload: {
+  email: string;
+  firstName?: string;
+  tags: string[];
+  fields: Record<string, unknown>;
+}) {
+  // MailerLite takes precedence if configured. ConvertKit remains as a
+  // fallback so existing deployments keep working until the env is swapped.
+  if (flags.hasMailerLite) {
+    await syncSubscriberToMailerLite(payload);
+    return;
+  }
+  if (flags.hasConvertKit) {
+    await syncSubscriberToKit({
+      email_address: payload.email,
+      first_name: payload.firstName,
+      tags: payload.tags,
+      fields: payload.fields
+    });
+  }
+}
+
+async function recordReferralAndMaybeReward(input: {
+  supabase: AdminClient;
+  refereeEmail: string;
+  referrerToken: string;
+  source?: string;
+}) {
+  const { supabase, refereeEmail, referrerToken, source } = input;
+
+  const { data: referrer } = await supabase
+    .from("newsletter_subscribers")
+    .select("id, email, tags, referral_count, referral_tier, first_name")
+    .eq("referral_token", referrerToken)
+    .maybeSingle();
+
+  if (!referrer || referrer.email === refereeEmail) {
+    return;
+  }
+
+  // Insert audit row; UNIQUE on referee_email prevents double-credit if the
+  // same person signs up twice with the same ref token.
+  const { error: insertError } = await supabase
+    .from("newsletter_referrals")
+    .insert({
+      referrer_token: referrerToken,
+      referrer_email: referrer.email,
+      referee_email: refereeEmail,
+      source: source ?? null
+    });
+
+  if (insertError) {
+    return;
+  }
+
+  const newCount = (referrer.referral_count ?? 0) + 1;
+  const previousTier = referrer.referral_tier ?? 0;
+  const reachedTier = REFERRAL_TIERS.filter(
+    (tier) => newCount >= tier.threshold && tier.tier > previousTier
+  ).pop();
+
+  const updatedTags = reachedTier
+    ? Array.from(new Set([...(referrer.tags ?? []), reachedTier.tag]))
+    : referrer.tags ?? [];
+
+  await supabase
+    .from("newsletter_subscribers")
+    .update({
+      referral_count: newCount,
+      referral_tier: reachedTier ? reachedTier.tier : previousTier,
+      tags: updatedTags
+    })
+    .eq("id", referrer.id);
+
+  // Re-sync the referrer to the email provider so the new tier group/tag
+  // flows over and the matching reward Automation can fire. Failures are
+  // non-fatal — the next signup-related sync will catch up.
+  if (reachedTier && (flags.hasMailerLite || flags.hasConvertKit)) {
+    try {
+      await syncSubscriberToProvider({
+        email: referrer.email,
+        firstName: referrer.first_name ?? undefined,
+        tags: updatedTags,
+        fields: { referral_count: newCount, referral_tier: reachedTier.tier }
+      });
+    } catch {
+      // swallow — provider retry will happen on the referrer's next signup-related event
+    }
+  }
+}
+
 export async function subscribeToNewsletter({
   email,
   firstName,
   source,
   tag,
-  tags
+  tags,
+  referrerToken
 }: {
   email: string;
   firstName?: string;
   source?: string;
   tag?: string;
   tags?: string[];
+  referrerToken?: string;
 }) {
   const mergedInputTags = normalizeNewsletterSegmentTags([
     ...(tags ?? []),
     ...(tag ? [tag] : [])
   ]);
 
-  const payload = {
-    email_address: email,
-    first_name: firstName,
-    tags: mergedInputTags,
-    fields: {
-      source
-    }
-  };
-
   let subscriberCount = sampleSubscribers.length + 1;
+  let referralToken: string | undefined;
+  let isNewSubscriber = false;
 
   if (flags.hasSupabaseAdmin) {
     const supabase = createSupabaseAdminClient();
@@ -371,61 +563,109 @@ export async function subscribeToNewsletter({
     if (supabase) {
       const { data: existing } = await supabase
         .from("newsletter_subscribers")
-        .select("id, tags")
+        .select("id, tags, referral_token")
         .eq("email", email)
         .maybeSingle();
+
+      isNewSubscriber = !existing;
 
       const mergedTags = Array.from(
         new Set([...(existing?.tags ?? []), ...mergedInputTags].filter(Boolean))
       );
 
-      const { error } = await supabase.from("newsletter_subscribers").upsert(
-        {
-          id: existing?.id,
-          email,
-          first_name: firstName || null,
-          status: "active",
-          source: source || null,
-          tags: mergedTags,
-          unsubscribed_at: null
-        },
-        {
-          onConflict: "email"
-        }
-      );
+      const { data: upserted, error } = await supabase
+        .from("newsletter_subscribers")
+        .upsert(
+          {
+            id: existing?.id,
+            email,
+            first_name: firstName || null,
+            status: "active",
+            source: source || null,
+            tags: mergedTags,
+            referrer_token: existing ? undefined : referrerToken ?? null,
+            unsubscribed_at: null
+          },
+          { onConflict: "email" }
+        )
+        .select("referral_token")
+        .single();
 
       if (error) {
         throw new Error(error.message);
+      }
+
+      referralToken = upserted?.referral_token ?? existing?.referral_token ?? undefined;
+
+      if (isNewSubscriber && referrerToken) {
+        await recordReferralAndMaybeReward({
+          supabase,
+          refereeEmail: email,
+          referrerToken,
+          source
+        });
       }
 
       subscriberCount = await getActiveRecipientCount(supabase);
     }
   }
 
-  if (flags.hasConvertKit) {
-    const response = await fetch(
-      `https://api.convertkit.com/v3/forms/${env.CONVERTKIT_FORM_ID}/subscribe`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          api_key: env.CONVERTKIT_API_KEY,
-          ...payload
-        })
-      }
-    );
+  const providerFields: Record<string, unknown> = { source };
+  if (referralToken) {
+    providerFields.referral_token = referralToken;
+  }
 
-    if (!response.ok) {
-      throw new Error("ConvertKit subscription failed.");
+  await syncSubscriberToProvider({
+    email,
+    firstName,
+    tags: mergedInputTags,
+    fields: providerFields
+  });
+
+  const hasProvider = flags.hasMailerLite || flags.hasConvertKit;
+
+  return {
+    mode: flags.hasSupabaseAdmin || hasProvider ? "live" : "mock",
+    subscriberCount,
+    referralToken,
+    isNewSubscriber,
+    payload: {
+      email,
+      firstName,
+      tags: mergedInputTags,
+      fields: providerFields
     }
+  };
+}
+
+export async function getReferralStats(referralToken: string) {
+  if (!flags.hasSupabaseAdmin) {
+    return null;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return null;
+  }
+
+  const { data } = await supabase
+    .from("newsletter_subscribers")
+    .select("first_name, referral_count, referral_tier")
+    .eq("referral_token", referralToken)
+    .maybeSingle();
+
+  if (!data) {
+    return null;
   }
 
   return {
-    mode: flags.hasSupabaseAdmin || flags.hasConvertKit ? "live" : "mock",
-    subscriberCount,
-    payload
+    firstName: data.first_name as string | null,
+    referralCount: (data.referral_count ?? 0) as number,
+    referralTier: (data.referral_tier ?? 0) as number,
+    tiers: REFERRAL_TIERS.map((tier) => ({
+      tier: tier.tier,
+      threshold: tier.threshold
+    }))
   };
 }
 

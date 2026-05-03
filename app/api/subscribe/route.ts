@@ -8,14 +8,22 @@ const bodySchema = z.object({
   firstName: z.string().optional(),
   source: z.string().optional(),
   tag: z.string().optional(),
-  tags: z.array(z.string()).optional()
+  tags: z.array(z.string()).optional(),
+  referrerToken: z.string().trim().min(1).max(64).optional()
 });
 
 export async function POST(request: Request) {
   try {
     const body = bodySchema.parse(await request.json());
-    const result = await subscribeToNewsletter(body);
-    return jsonResponse({ ok: true, ...result });
+    const { mode, subscriberCount, referralToken, isNewSubscriber } =
+      await subscribeToNewsletter(body);
+    return jsonResponse({
+      ok: true,
+      mode,
+      subscriberCount,
+      referralToken,
+      isNewSubscriber
+    });
   } catch (error) {
     return jsonResponse(
       { ok: false, error: error instanceof Error ? error.message : "Subscription failed." },

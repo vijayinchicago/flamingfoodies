@@ -19,6 +19,8 @@ const envSchema = z.object({
   CONVERTKIT_API_KEY: z.string().optional(),
   CONVERTKIT_API_SECRET: z.string().optional(),
   CONVERTKIT_FORM_ID: z.string().optional(),
+  MAILERLITE_API_KEY: z.string().optional(),
+  MAILERLITE_GROUPS: z.string().optional(),
   NEXT_PUBLIC_AMAZON_TAG: z.string().optional(),
   NEXT_PUBLIC_GA4_ID: z.string().optional(),
   NEXT_PUBLIC_CLARITY_ID: z.string().optional(),
@@ -84,6 +86,7 @@ export const flags = {
     hasConfiguredEnvValue(env.CONVERTKIT_API_KEY) &&
     hasConfiguredEnvValue(env.CONVERTKIT_FORM_ID),
   hasConvertKitBroadcast: hasConfiguredEnvValue(env.CONVERTKIT_API_SECRET),
+  hasMailerLite: hasConfiguredEnvValue(env.MAILERLITE_API_KEY),
   hasAnthropic: hasConfiguredEnvValue(env.ANTHROPIC_API_KEY),
   hasUpstash:
     hasConfiguredEnvValue(env.KV_REST_API_URL) &&

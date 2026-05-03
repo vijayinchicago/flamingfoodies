@@ -1,11 +1,17 @@
 import { createWeeklyDigest } from "@/lib/services/automation";
 import { runCronAutomationTask } from "@/lib/services/automation-control";
 import { processScheduledNewsletterCampaigns } from "@/lib/services/newsletter";
+import { runAutonomousFridayDigest } from "@/lib/services/newsletter-friday-digest";
+import type { FridayDigestRunResult } from "@/lib/services/newsletter-friday-digest";
 import { jsonResponse } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
-type NewsletterRequestMode = "draft" | "send_due" | "draft_and_send_due";
+type NewsletterRequestMode =
+  | "draft"
+  | "send_due"
+  | "draft_and_send_due"
+  | "autonomous_friday";
 type NewsletterDraftResult = Awaited<ReturnType<typeof createWeeklyDigest>>;
 type NewsletterSendingResult = Awaited<ReturnType<typeof processScheduledNewsletterCampaigns>>;
 type NewsletterCronResult =
@@ -19,13 +25,20 @@ type NewsletterCronResult =
       requestMode: "draft_and_send_due";
       digest: NewsletterDraftResult;
       sending: NewsletterSendingResult;
-    };
+    }
+  | ({
+      requestMode: "autonomous_friday";
+    } & FridayDigestRunResult);
 
 async function handleRequest(request: Request) {
   const { pathname, searchParams } = new URL(request.url);
   const rawMode = searchParams.get("mode");
   const mode: NewsletterRequestMode =
-    rawMode === "send_due" || rawMode === "draft_and_send_due" ? rawMode : "draft";
+    rawMode === "send_due"
+      || rawMode === "draft_and_send_due"
+      || rawMode === "autonomous_friday"
+      ? rawMode
+      : "draft";
   const task = await runCronAutomationTask({
     request,
     agentId: "newsletter-digest-agent",
@@ -34,6 +47,13 @@ async function handleRequest(request: Request) {
       mode
     },
     execute: async (): Promise<NewsletterCronResult> => {
+      if (mode === "autonomous_friday") {
+        return {
+          requestMode: mode,
+          ...(await runAutonomousFridayDigest())
+        };
+      }
+
       if (mode === "send_due") {
         return {
           requestMode: mode,
@@ -60,6 +80,19 @@ async function handleRequest(request: Request) {
       };
     },
     summarize: (result) => {
+      if (result.requestMode === "autonomous_friday") {
+        if (result.mode === "live") {
+          return {
+            summary: `Autonomous Friday digest sent to ${result.recipientCount ?? 0} subscriber(s): "${result.subject ?? ""}".`,
+            rowsCreated: 1,
+            rowsSent: 1
+          };
+        }
+        return {
+          summary: `Autonomous Friday digest skipped: ${result.reason ?? "unknown reason"}.`
+        };
+      }
+
       if (result.requestMode === "draft_and_send_due") {
         return {
           summary: `Drafted newsletter digest and processed ${result.sending.processed} due campaign(s).`,
