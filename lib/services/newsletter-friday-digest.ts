@@ -166,7 +166,19 @@ function renderEmailHtml(input: {
   const buyLine = affiliateUrl
     ? `<p style="margin:0.5em 0;"><a href="${affiliateUrl}">Buy the bottle</a></p>`
     : "";
-  return `<div style="max-width:560px;font-family:Georgia,serif;line-height:1.55;color:#1f1410;">
+  // MailerLite requires a complete HTML document with their compliance
+  // placeholders ({$unsubscribe}, {$url}). Without these the API may accept
+  // the campaign but flag it before send. Personalization tokens
+  // ({$name}, {$referral_token}) are evaluated per-subscriber by MailerLite.
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${digest.subject}</title>
+</head>
+<body style="margin:0;padding:0;background:#f6f1ea;font-family:Georgia,serif;color:#1f1410;">
+<div style="max-width:560px;margin:0 auto;padding:24px;line-height:1.55;">
 <p>Hey {$name|default:"friend"},</p>
 <p>Welcome to your Flame Club Friday. The format is always the same: one recipe, one bottle, one thing worth knowing. Three minutes, three picks, then we're out of your inbox.</p>
 <hr style="border:none;border-top:1px solid #e7d4c5;margin:1.5em 0;" />
@@ -188,7 +200,11 @@ ${buyLine}
 <p>That's the whole thing. See you next Friday.</p>
 <p>— Vijay</p>
 <p style="font-size:0.9em;color:#5a4a3f;margin-top:2em;">P.S. — One ask: if you know one person who'd love Flame Club, send them this:<br /><a href="https://flamingfoodies.com/flame-club?ref={$referral_token}">https://flamingfoodies.com/flame-club?ref={$referral_token}</a><br />After 3 friends sign up, I send you our printable Pepper Dossier — 40 pages, free, no catch.</p>
-</div>`;
+<hr style="border:none;border-top:1px solid #e7d4c5;margin:2em 0 1em;" />
+<p style="font-size:0.78em;color:#7a6a5e;text-align:center;">FlamingFoodies · Flavor-first spicy food<br />View this email in your browser: <a href="{$url}" style="color:#c0411f;">{$url}</a><br /><a href="{$unsubscribe}" style="color:#c0411f;">Unsubscribe</a></p>
+</div>
+</body>
+</html>`;
 }
 
 function renderEmailText(input: {
@@ -289,15 +305,14 @@ async function sendMailerLiteCampaign(input: {
     },
     body: JSON.stringify({
       name: input.subject,
+      language_id: 4,
       type: "regular",
       emails: [
         {
           subject: input.subject,
           from_name: input.fromName,
           from: input.fromEmail,
-          content: input.htmlContent,
-          plain_text: input.textContent,
-          preheader: input.previewText
+          content: input.htmlContent
         }
       ],
       groups: [input.groupId]
