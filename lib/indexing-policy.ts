@@ -11,6 +11,7 @@ const ADSENSE_REVIEW_HOLDOUT_PREFIXES = [
   "/new-releases",
   "/peppers",
   "/quiz",
+  "/rewards",
   "/search",
   "/seasonal",
   "/shop",
