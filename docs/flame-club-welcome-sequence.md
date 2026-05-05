@@ -7,6 +7,10 @@ so future edits don't strip out what's load-bearing.
 
 > **MailerLite template variables:** `{$name|default:"friend"}` falls back to "friend" if no first name is set. `{$referral_token}` is the custom field we add to every subscriber. If MailerLite's editor shows variables as `{{name}}` instead of `{$name}`, both syntaxes are supported — pick whichever the editor inserts when you click the personalization menu.
 
+> **Two MailerLite gotchas to know about before you paste anything:**
+> 1. **Variables inside link URLs:** the editor auto-detects URLs and converts them to hyperlinks, but stops at the `{` character. So `https://flamingfoodies.com/flame-club?ref={$referral_token}` becomes a link to `https://flamingfoodies.com/flame-club?ref=` (token missing from the href, even though it shows in the visible text). For every URL containing a variable, you must manually create the link via the **Insert link** toolbar button and paste the full URL with the variable into the URL field.
+> 2. **No calendar-day promises in the welcome series.** Email 1 fires on signup (any day) and Email 2 fires 3 days later (also any day). Don't write "see you Friday" or "Friday's email" — it's wrong for ~5 of 7 signup days. Save the Friday cadence reference for the actual Friday Broadcast (which always lands Friday because the cron runs Friday 13:00 UTC).
+
 ## Behavioral framework applied
 
 We're using two complementary models:
@@ -41,7 +45,7 @@ Hey {$name|default:"friend"},
 Welcome to Flame Club. You're now in a small, weirdly enthusiastic group of
 home cooks who like real spice and useful reviews — not stunts.
 
-Before Friday's email lands, here's something you can use tonight:
+Before your weekly pick lands, here's something you can use tonight:
 
 🌶️ TONIGHT'S RECIPE
 [Korean Gochujang Glazed Salmon — 25 minutes, scales mild→hot]
@@ -63,7 +67,7 @@ WHAT'S YOUR HEAT TOLERANCE?
 
 (One click. No form. I'll see your answer instantly.)
 
-See you Friday with the next pick,
+See you soon with the next pick,
 Vijay
 FlamingFoodies
 
@@ -83,13 +87,13 @@ Your personal share link: https://flamingfoodies.com/flame-club?ref={$referral_t
 ## Email 2 — sent on Day 3
 
 **Behavioral logic:**
-- Trigger: anticipatory — primes them to look for the Friday email (Zeigarnik effect; open loops in memory get higher recall).
+- Trigger: anticipatory — opens a curiosity loop (Zeigarnik effect) that gets resolved by the next Friday Broadcast.
 - Action: light read, no click required. Re-establishes the relationship.
-- Variable Reward: a behind-the-scenes story (curiosity gap).
-- Reinforces specificity of the Friday delivery slot — habit formation requires consistent timing (Hook Model: stable triggers).
+- Variable Reward: a behind-the-scenes story.
+- **Day-agnostic by design.** Day 3 lands on a different weekday for every signup; calendar promises ("Friday's coming") would be wrong for ~5 of 7 signup days. The recurring Friday Broadcast handles weekday anchoring instead.
 
 **Subject line:**
-`What's coming Friday (and why I almost killed it)`
+`The next pick (and why I almost killed it)`
 
 **Preview text:**
 `A weeknight dinner that nearly didn't make the cut, plus a sauce I changed my mind about.`
@@ -99,28 +103,33 @@ Your personal share link: https://flamingfoodies.com/flame-club?ref={$referral_t
 ```
 Hey {$name|default:"friend"},
 
-Friday's pick almost didn't ship.
+The next pick almost didn't ship.
 
 I tested the recipe four times last weekend. The first version was too sweet.
 The second was too salty. The third was so good I thought I'd faked it. The
-fourth — a small tweak that makes it weeknight-doable — is what's hitting
-your inbox in 48 hours.
+fourth — a small tweak that makes it weeknight-doable — is what's headed
+your way.
 
-Here's the one-line tease: it's a one-pan dinner, under 35 minutes, that
-tastes like it took an hour. The heat dial goes from "your toddler can eat
-it" to "you'll need water." Same pan.
+One-line tease: it's a one-pan dinner, under 35 minutes, that tastes like it
+took an hour. The heat dial goes from "your toddler can eat it" to "you'll
+need water." Same pan.
 
-The bottle pick is something I publicly skeptical of last year and quietly
-changed my mind on after three months on my shelf. I'll explain why on Friday.
+The bottle pick is something I was publicly skeptical of last year and
+quietly changed my mind on after three months on my shelf. I'll explain why
+when you get it.
 
-That's it for today. No clicks, no homework. Just a heads up: Friday morning,
-8am ET, the email lands.
+That's it for today. No clicks, no homework. Just a heads up so it doesn't
+catch you mid-meeting when it lands.
 
 — Vijay
 
-P.S. — If you didn't tell me your heat level yet, here's the quick poll
-again. Takes one click and personalizes everything I send you:
-{{ link back to email 1's heat poll }}
+P.S. — If you didn't tell me your heat level yet, one click and it
+personalizes everything I send you:
+
+🌶️ Mild → https://flamingfoodies.com/recipes?heat=mild
+🌶️🌶️ Medium → https://flamingfoodies.com/recipes?heat=medium
+🌶️🌶️🌶️ Hot → https://flamingfoodies.com/recipes?heat=hot
+🌶️🌶️🌶️🌶️ Inferno → https://flamingfoodies.com/recipes?heat=inferno
 ```
 
 > **Why no big CTA:** at Day 3, the goal is to *show up* and reinforce the brand voice. A heavy ask here breaks rapport. The P.S. catches anyone who skipped the first email's poll.
