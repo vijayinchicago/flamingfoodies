@@ -22,7 +22,10 @@ export type AutomationAgentId =
   | "release-monitor"
   | "brand-monitor"
   | "tutorial-generator"
-  | "content-shop-sync";
+  | "content-shop-sync"
+  | "mailerlite-stats-collector"
+  | "subscriber-sync-reconciler"
+  | "referral-attribution-evaluator";
 
 export type AutomationTriggerSource =
   | "cron"

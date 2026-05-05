@@ -34,6 +34,23 @@ type EditorialPerformanceMetrics = {
   ratings: number;
   comments: number;
   affiliateClicks: number;
+  // Site-wide newsletter signups during this evaluation window, attributed
+  // to the candidate's content TYPE (not specific path). Coarse signal — see
+  // attribution mapping below for source-string conventions. Useful as
+  // contextual data; not a primary scoring driver until per-page attribution
+  // is wired through the email-capture component.
+  newsletterSignupsForType: number;
+};
+
+// Maps newsletter_subscribers.source values to editorial content types.
+// Update if EmailCapture's `source` prop conventions change.
+const NEWSLETTER_SOURCE_TO_CONTENT_TYPE: Record<string, EditorialPublishedContentType> = {
+  "recipe-page": "recipe",
+  "recipe_page": "recipe",
+  "review-page": "review",
+  "review_page": "review",
+  "blog-page": "blog_post",
+  "blog_page": "blog_post"
 };
 
 type EditorialPerformanceVerdict = {
@@ -161,6 +178,13 @@ function buildEditorialPerformanceVerdict(input: {
   const { candidate, metrics } = input;
   const interactions = metrics.saves + metrics.ratings + metrics.comments;
 
+  // Soft nudge: a healthy site-wide signup volume in the same window for this
+  // content type suggests the lane is still earning audience attention, even
+  // when individual interaction signals are mixed.
+  const signupContext = metrics.newsletterSignupsForType >= 5
+    ? ` Site-wide ${candidate.type.replace("_", " ")} pages drove ${formatNumber(metrics.newsletterSignupsForType)} newsletter signup(s) in the same window.`
+    : "";
+
   if (
     metrics.affiliateClicks >= 2
     || metrics.views >= 80
@@ -173,7 +197,7 @@ function buildEditorialPerformanceVerdict(input: {
       notes:
         `${candidate.title} showed healthy early traction in the first ${input.evaluationWindowDays} day(s): ` +
         `${formatNumber(metrics.views)} views, ${formatNumber(interactions)} interactions, ` +
-        `${formatNumber(metrics.shareEvents)} share event(s), and ${formatNumber(metrics.affiliateClicks)} affiliate click(s).`,
+        `${formatNumber(metrics.shareEvents)} share event(s), and ${formatNumber(metrics.affiliateClicks)} affiliate click(s).${signupContext}`,
       observedPayload: {
         path: candidate.path,
         contentType: candidate.type,
@@ -217,7 +241,7 @@ function buildEditorialPerformanceVerdict(input: {
     notes:
       `${candidate.title} has mixed early signals after publication: ${formatNumber(metrics.views)} views, ` +
       `${formatNumber(interactions)} interactions, ${formatNumber(metrics.shareEvents)} share event(s), and ` +
-      `${formatNumber(metrics.affiliateClicks)} affiliate click(s). Keep watching before changing the lane policy.`,
+      `${formatNumber(metrics.affiliateClicks)} affiliate click(s). Keep watching before changing the lane policy.${signupContext}`,
     observedPayload: {
       path: candidate.path,
       contentType: candidate.type,
@@ -352,7 +376,7 @@ export async function runEditorialPerformanceEvaluator(options?: {
         .map((candidate) => candidate.slug)
     );
 
-    const [pageViewRows, shareRows, saveRows, ratingRows, commentRows, affiliateRows] = await Promise.all([
+    const [pageViewRows, shareRows, saveRows, ratingRows, commentRows, affiliateRows, signupRows] = await Promise.all([
       supabase
         .from("telemetry_events")
         .select("path")
@@ -398,7 +422,15 @@ export async function runEditorialPerformanceEvaluator(options?: {
             .gte("clicked_at", completedAt.toISOString())
             .lt("clicked_at", windowEnd.toISOString())
             .in("source_page", candidatePaths)
-        : Promise.resolve({ data: [], error: null })
+        : Promise.resolve({ data: [], error: null }),
+      // Coarse-grained newsletter signal: count signups in window grouped by
+      // source. Mapped to content type for per-candidate enrichment. See
+      // NEWSLETTER_SOURCE_TO_CONTENT_TYPE for the mapping conventions.
+      supabase
+        .from("newsletter_subscribers")
+        .select("source")
+        .gte("subscribed_at", completedAt.toISOString())
+        .lt("subscribed_at", windowEnd.toISOString())
     ]);
 
     const errors = [
@@ -407,7 +439,8 @@ export async function runEditorialPerformanceEvaluator(options?: {
       saveRows.error,
       ratingRows.error,
       commentRows.error,
-      affiliateRows.error
+      affiliateRows.error,
+      signupRows.error
     ].filter(Boolean);
     if (errors.length) {
       throw new Error(
@@ -421,6 +454,15 @@ export async function runEditorialPerformanceEvaluator(options?: {
     const ratingCounts = new Map<number, number>();
     const commentCounts = new Map<string, number>();
     const affiliateCounts = new Map<string, number>();
+    const signupsByContentType = new Map<EditorialPublishedContentType, number>();
+
+    for (const row of signupRows.data ?? []) {
+      const source = typeof row.source === "string" ? row.source : null;
+      if (!source) continue;
+      const contentType = NEWSLETTER_SOURCE_TO_CONTENT_TYPE[source];
+      if (!contentType) continue;
+      signupsByContentType.set(contentType, (signupsByContentType.get(contentType) ?? 0) + 1);
+    }
 
     for (const row of pageViewRows.data ?? []) {
       const path = String(row.path ?? "");
@@ -503,7 +545,8 @@ export async function runEditorialPerformanceEvaluator(options?: {
         saves: candidate.type === "recipe" ? saveCounts.get(candidate.id) ?? 0 : 0,
         ratings: candidate.type === "recipe" ? ratingCounts.get(candidate.id) ?? 0 : 0,
         comments: commentCounts.get(`${candidate.type}:${candidate.id}`) ?? 0,
-        affiliateClicks: affiliateCounts.get(candidate.path) ?? 0
+        affiliateClicks: affiliateCounts.get(candidate.path) ?? 0,
+        newsletterSignupsForType: signupsByContentType.get(candidate.type) ?? 0
       };
 
       let verdict = buildEditorialPerformanceVerdict({
