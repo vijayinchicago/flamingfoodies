@@ -41,7 +41,7 @@ export async function generateMetadata({
     description: post.seoDescription || post.description,
     path: `/blog/${post.slug}`,
     images: post.imageUrl ? [post.imageUrl] : undefined,
-    noIndex: post.source === "ai_generated" || isReviewHoldBlogSlug(post.slug)
+    noIndex: isReviewHoldBlogSlug(post.slug)
   });
 }
 
