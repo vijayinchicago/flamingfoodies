@@ -337,8 +337,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
   },
   "amazon-gochujang-paste": {
     partner: "amazon",
-    product: "Korean Gochujang Paste",
-    url: buildAmazonSearchUrl("gochujang paste"),
+    product: "Chung Jung One Gochujang Paste",
+    url: buildAmazonProductUrl("B00ESK1IU4"),
     category: "ingredient",
     badge: "Flavor builder",
     description: "Fermented chili paste for noodles, wings, marinades, and that sweet-savory Korean backbone.",
@@ -477,8 +477,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
   },
   "amazon-peri-peri-sauce": {
     partner: "amazon",
-    product: "Peri-Peri Sauce",
-    url: buildAmazonSearchUrl("peri peri sauce"),
+    product: "Nando's Medium Peri-Peri Sauce",
+    url: buildAmazonProductUrl("B0001590NW"),
     category: "ingredient",
     badge: "Char-ready marinade",
     description: "The bottle to grab when chicken needs acid, garlic, and real heat before it hits the grill or broiler.",
@@ -491,8 +491,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
   },
   "amazon-sambal-oelek": {
     partner: "amazon",
-    product: "Sambal Oelek",
-    url: buildAmazonSearchUrl("sambal oelek"),
+    product: "Huy Fong Sambal Oelek",
+    url: buildAmazonProductUrl("B000F865ZQ"),
     category: "ingredient",
     badge: "Clean chile hit",
     description: "Straight chili paste for fried rice, noodle sauces, mayo mixes, and dishes that want heat without sweetness.",
@@ -505,8 +505,8 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
   },
   "amazon-tajin-clasico": {
     partner: "amazon",
-    product: "Tajin Clasico",
-    url: buildAmazonSearchUrl("tajin clasico seasoning"),
+    product: "Tajin Clasico Seasoning",
+    url: buildAmazonProductUrl("B00X538Y7K"),
     category: "ingredient",
     badge: "Bright finisher",
     description: "Citrusy chile seasoning for fruit, grilled corn, rims, cucumbers, and the kind of summer snacks that disappear fast.",
@@ -879,9 +879,9 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     seasonalMoments: ["game_day", "tailgate", "weeknight"]
   },
   "amazon-torchbearer-garlic-reaper": {
-    partner: "amazon",
+    partner: "heatonist",
     product: "Torchbearer Garlic Reaper",
-    url: buildAmazonSearchUrl("Torchbearer Garlic Reaper sauce"),
+    url: "https://heatonist.com/products/torchbearer-sauces-garlic-reaper-hot-sauce",
     category: "hot_sauce",
     badge: "Heavy hitter",
     description: "Garlic-forward, punishingly hot, and best used when you want real reaper-level commitment.",
@@ -919,9 +919,9 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     seasonalMoments: ["summer_fresh", "seafood_night", "grill_season"]
   },
   "amazon-secret-aardvark-habanero": {
-    partner: "amazon",
+    partner: "heatonist",
     product: "Secret Aardvark Habanero Sauce",
-    url: buildAmazonSearchUrl("Secret Aardvark Habanero sauce"),
+    url: "https://heatonist.com/products/secret-aardvark-habanero-hot-sauce",
     category: "hot_sauce",
     badge: "Cookout all-rounder",
     description: "One of the easiest all-purpose bottles for tacos, burgers, breakfast potatoes, and fast dinners that need a save.",
@@ -984,9 +984,9 @@ export const AFFILIATE_LINKS: Record<string, AffiliateLinkDefinition> = {
     seasonalMoments: ["weeknight", "game_day", "brunch", "tailgate"]
   },
   "amazon-bravado-black-garlic-reaper": {
-    partner: "amazon",
+    partner: "heatonist",
     product: "Bravado Black Garlic Carolina Reaper",
-    url: buildAmazonSearchUrl("Bravado black garlic carolina reaper sauce"),
+    url: "https://heatonist.com/products/bravado-spice-co-black-garlic-carolina-reaper-hot-sauce",
     category: "hot_sauce",
     badge: "Gift flex",
     description: "A bold, savory superhot that feels more like a niche recommendation than a default bottle, which makes it good for gifting.",
