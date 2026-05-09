@@ -21,12 +21,10 @@ const secondaryNav = [
 
 export function HeaderClient({
   profileHref,
-  showLogin,
-  showAdmin
+  showLogin
 }: {
   profileHref?: string;
   showLogin: boolean;
-  showAdmin: boolean;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -79,14 +77,6 @@ export function HeaderClient({
                 className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream/85 hover:border-white/30 hover:text-white"
               >
                 Login
-              </Link>
-            ) : null}
-            {showAdmin ? (
-              <Link
-                href="/admin"
-                className="rounded-full bg-gradient-to-r from-flame to-ember px-4 py-2 text-sm font-semibold text-white"
-              >
-                Admin
               </Link>
             ) : null}
           </div>
@@ -176,15 +166,6 @@ export function HeaderClient({
                   className="inline-flex justify-center rounded-full border border-white/15 px-4 py-3 text-sm font-semibold text-cream/85"
                 >
                   Login
-                </Link>
-              ) : null}
-              {showAdmin ? (
-                <Link
-                  href="/admin"
-                  onClick={() => setMobileOpen(false)}
-                  className="inline-flex justify-center rounded-full bg-gradient-to-r from-flame to-ember px-4 py-3 text-sm font-semibold text-white"
-                >
-                  Admin
                 </Link>
               ) : null}
             </div>

@@ -1,3 +1,7 @@
+import {
+  clearAffiliateLinkOverrideAction,
+  saveAffiliateLinkOverrideAction
+} from "@/lib/actions/admin-affiliates";
 import { AdminPage } from "@/components/admin/admin-page";
 import { getAffiliateDestinationKind } from "@/lib/affiliates";
 import { getAffiliateRegistryHealth } from "@/lib/services/analytics";
@@ -33,7 +37,98 @@ function getHealthClasses(exactAmazonProduct: boolean) {
     : "bg-amber-50 text-amber-700 border border-amber-200";
 }
 
-export default async function AdminAffiliateSettingsPage() {
+function renderOverrideEditor(link: {
+  key: string;
+  partner: string;
+  product: string;
+  destinationUrl: string;
+  hasOverride: boolean;
+  override?: {
+    url: string;
+    partner?: string;
+    product?: string;
+    note?: string;
+  } | null;
+}) {
+  return (
+    <div className="mt-5 rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.03] p-4">
+      <p className="text-xs uppercase tracking-[0.18em] text-ember">Runtime override</p>
+      <p className="mt-2 text-sm text-charcoal/60">
+        Paste an exact product page URL here to override the fallback destination without a code deploy.
+      </p>
+      <form action={saveAffiliateLinkOverrideAction} className="mt-4 grid gap-3">
+        <input type="hidden" name="affiliateKey" value={link.key} />
+        <label className="grid gap-2">
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-charcoal/45">
+            Exact product URL
+          </span>
+          <input
+            name="overrideUrl"
+            type="url"
+            required
+            defaultValue={link.override?.url ?? ""}
+            placeholder={link.destinationUrl}
+            className="rounded-2xl border border-charcoal/10 bg-white px-4 py-3 text-sm text-charcoal outline-none focus:border-ember"
+          />
+        </label>
+        <div className="grid gap-3 md:grid-cols-2">
+          <label className="grid gap-2">
+            <span className="text-xs font-semibold uppercase tracking-[0.16em] text-charcoal/45">
+              Partner override
+            </span>
+            <input
+              name="partnerOverride"
+              defaultValue={link.override?.partner ?? ""}
+              placeholder={link.partner}
+              className="rounded-2xl border border-charcoal/10 bg-white px-4 py-3 text-sm text-charcoal outline-none focus:border-ember"
+            />
+          </label>
+          <label className="grid gap-2">
+            <span className="text-xs font-semibold uppercase tracking-[0.16em] text-charcoal/45">
+              Product name override
+            </span>
+            <input
+              name="productOverride"
+              defaultValue={link.override?.product ?? ""}
+              placeholder={link.product}
+              className="rounded-2xl border border-charcoal/10 bg-white px-4 py-3 text-sm text-charcoal outline-none focus:border-ember"
+            />
+          </label>
+        </div>
+        <label className="grid gap-2">
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-charcoal/45">
+            Note
+          </span>
+          <input
+            name="note"
+            defaultValue={link.override?.note ?? ""}
+            placeholder="Optional note about the chosen exact link"
+            className="rounded-2xl border border-charcoal/10 bg-white px-4 py-3 text-sm text-charcoal outline-none focus:border-ember"
+          />
+        </label>
+        <div className="flex flex-wrap gap-3">
+          <button className="rounded-full bg-charcoal px-4 py-2 text-sm font-semibold text-white">
+            Save exact link
+          </button>
+          {link.hasOverride ? (
+            <button
+              formAction={clearAffiliateLinkOverrideAction}
+              className="rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal/75"
+            >
+              Clear override
+            </button>
+          ) : null}
+        </div>
+      </form>
+    </div>
+  );
+}
+
+export default async function AdminAffiliateSettingsPage({
+  searchParams
+}: {
+  searchParams?: { updated?: string; cleared?: string; error?: string };
+}) {
   const report = await getAffiliateRegistryHealth(30);
   const searchRiskCount = report.entries.filter((entry) => !entry.exactAmazonProduct).length;
 
@@ -42,6 +137,21 @@ export default async function AdminAffiliateSettingsPage() {
       title="Affiliate registry"
       description="Real link health, recent click pressure, and exact-product coverage across the commerce registry."
     >
+      {searchParams?.error ? (
+        <p className="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {searchParams.error}
+        </p>
+      ) : null}
+      {searchParams?.updated ? (
+        <p className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          Affiliate override updated.
+        </p>
+      ) : null}
+      {searchParams?.cleared ? (
+        <p className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+          Affiliate override cleared.
+        </p>
+      ) : null}
       <div className="mb-6 grid gap-4 md:grid-cols-3">
         <article className="panel-light p-5">
           <p className="text-xs uppercase tracking-[0.2em] text-charcoal/45">Catalog size</p>
@@ -116,11 +226,13 @@ export default async function AdminAffiliateSettingsPage() {
                 <p className="mt-3 text-sm text-charcoal/65">
                   Destination: {getDestinationLabel(item.destinationKind)}
                 </p>
+                <p className="mt-1 break-all text-sm text-charcoal/50">{item.destinationUrl}</p>
                 {item.topSourcePage ? (
                   <p className="mt-1 text-sm text-charcoal/55">
                     Top source: {item.topSourcePage}
                   </p>
                 ) : null}
+                {renderOverrideEditor(item)}
               </article>
             ))}
           </div>
@@ -146,6 +258,11 @@ export default async function AdminAffiliateSettingsPage() {
                 >
                   {link.exactAmazonProduct ? "Exact product page" : "Needs exact link"}
                 </div>
+                {link.hasOverride ? (
+                  <div className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-sky-700">
+                    Runtime override
+                  </div>
+                ) : null}
               </div>
             </div>
             <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -171,9 +288,15 @@ export default async function AdminAffiliateSettingsPage() {
               </div>
             </div>
             <p className="mt-4 text-sm text-charcoal/55 break-all">{link.destinationUrl}</p>
+            {link.hasOverride ? (
+              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-charcoal/45">
+                Base destination: {link.baseDestinationUrl}
+              </p>
+            ) : null}
             <p className="mt-3 text-xs uppercase tracking-[0.18em] text-charcoal/45">
               Partner: {link.partner} · Last clicked: {formatTimestamp(link.lastClickedAt)}
             </p>
+            {(!link.exactAmazonProduct || link.hasOverride) ? renderOverrideEditor(link) : null}
           </article>
         ))}
       </div>

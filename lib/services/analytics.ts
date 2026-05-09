@@ -7,6 +7,7 @@ import {
 } from "@/lib/affiliates";
 import { classifyAcquisitionSource } from "@/lib/pirate-metrics";
 import { buildShareAnalytics } from "@/lib/share-analytics";
+import { getAffiliateRegistryWithOverrides } from "@/lib/services/affiliate-link-overrides";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 const PARTNER_EPC: Record<string, number> = {
@@ -271,19 +272,30 @@ export async function getAffiliateAnalytics(windowDays = 30) {
 }
 
 export async function getAffiliateRegistryHealth(windowDays = 30) {
-  const registry = getAffiliateRegistry();
-  const baseEntries = registry.map((entry) => ({
-    key: entry.key,
-    partner: entry.partner,
-    product: entry.product,
-    monetizationLabel: entry.monetizationLabel,
-    destinationUrl: buildAffiliateDestinationUrl(entry),
-    destinationKind: getAffiliateDestinationKind(entry),
-    exactAmazonProduct: isExactAmazonProductDestination(entry),
-    clicks: 0,
-    lastClickedAt: null as string | null,
-    topSourcePage: null as string | null
-  }));
+  const staticRegistry = getAffiliateRegistry();
+  const runtimeRegistry = await getAffiliateRegistryWithOverrides();
+  const runtimeByKey = new Map(runtimeRegistry.map((entry) => [entry.key, entry]));
+  const baseEntries = staticRegistry.map((entry) => {
+    const runtime = runtimeByKey.get(entry.key);
+
+    return {
+      key: entry.key,
+      partner: runtime?.partner ?? entry.partner,
+      product: runtime?.product ?? entry.product,
+      basePartner: runtime?.basePartner ?? entry.partner,
+      baseProduct: runtime?.baseProduct ?? entry.product,
+      monetizationLabel: runtime?.monetizationLabel ?? entry.monetizationLabel,
+      destinationUrl: runtime?.destinationUrl ?? buildAffiliateDestinationUrl(entry),
+      baseDestinationUrl: runtime?.baseDestinationUrl ?? buildAffiliateDestinationUrl(entry),
+      destinationKind: runtime?.destinationKind ?? getAffiliateDestinationKind(entry),
+      exactAmazonProduct: runtime?.exactAmazonProduct ?? isExactAmazonProductDestination(entry),
+      hasOverride: runtime?.hasOverride ?? false,
+      override: runtime?.override ?? null,
+      clicks: 0,
+      lastClickedAt: null as string | null,
+      topSourcePage: null as string | null
+    };
+  });
 
   if (!flags.hasSupabaseAdmin) {
     const topRisks = baseEntries
@@ -353,16 +365,36 @@ export async function getAffiliateRegistryHealth(windowDays = 30) {
 
   const entries = baseEntries
     .map((entry) => {
-      const metricKey = `${entry.partner}::${entry.product}`;
-      const pageCounts = sourcePageCounts.get(metricKey);
-      const topSourcePage = pageCounts
-        ? Array.from(pageCounts.entries()).sort((left, right) => right[1] - left[1])[0]?.[0] ?? null
+      const metricKeys = Array.from(
+        new Set([
+          `${entry.partner}::${entry.product}`,
+          `${entry.basePartner}::${entry.baseProduct}`
+        ])
+      );
+      const mergedPageCounts = new Map<string, number>();
+
+      for (const metricKey of metricKeys) {
+        const pageCounts = sourcePageCounts.get(metricKey);
+        if (!pageCounts) continue;
+
+        for (const [path, count] of pageCounts.entries()) {
+          mergedPageCounts.set(path, (mergedPageCounts.get(path) ?? 0) + count);
+        }
+      }
+
+      const lastClickedAt = metricKeys
+        .map((metricKey) => lastClicked.get(metricKey))
+        .filter((value): value is string => Boolean(value))
+        .sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0] ?? null;
+
+      const topSourcePage = mergedPageCounts.size
+        ? Array.from(mergedPageCounts.entries()).sort((left, right) => right[1] - left[1])[0]?.[0] ?? null
         : null;
 
       return {
         ...entry,
-        clicks: clickCounts.get(metricKey) ?? 0,
-        lastClickedAt: lastClicked.get(metricKey) ?? null,
+        clicks: metricKeys.reduce((sum, metricKey) => sum + (clickCounts.get(metricKey) ?? 0), 0),
+        lastClickedAt,
         topSourcePage
       };
     })

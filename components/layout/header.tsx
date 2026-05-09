@@ -10,7 +10,6 @@ export async function Header() {
     <HeaderClient
       profileHref={profileHref}
       showLogin={!profile}
-      showAdmin={profile?.role === "admin"}
     />
   );
 }

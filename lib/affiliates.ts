@@ -139,7 +139,7 @@ export function getAffiliateCtaLabel(
   }
 
   if (destinationKind === "amazon_search") {
-    return "Search on Amazon";
+    return "View on Amazon";
   }
 
   return `View at ${getAffiliatePartnerLabel(entry.partner)}`;

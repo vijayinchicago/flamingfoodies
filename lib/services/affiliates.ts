@@ -1,6 +1,6 @@
-import { AFFILIATE_LINKS } from "@/lib/affiliates";
-import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { flags } from "@/lib/env";
+import { getAffiliateLinkEntryWithOverride } from "@/lib/services/affiliate-link-overrides";
+import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export async function logAffiliateClick({
   partnerKey,
@@ -17,7 +17,7 @@ export async function logAffiliateClick({
   sourcePage?: string | null;
   position?: string | null;
 }) {
-  const link = partnerKey ? AFFILIATE_LINKS[partnerKey] : null;
+  const link = partnerKey ? await getAffiliateLinkEntryWithOverride(partnerKey) : null;
   const partner = link?.partner || partnerName;
   const product = link?.product || productName;
   const targetUrl = link?.url || url;
