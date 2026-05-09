@@ -37,6 +37,24 @@ function getHealthClasses(exactAmazonProduct: boolean) {
     : "bg-amber-50 text-amber-700 border border-amber-200";
 }
 
+function renderCopyableUrlField(label: string, value: string, muted = false) {
+  return (
+    <label className="grid gap-2">
+      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-charcoal/45">
+        {label}
+      </span>
+      <input
+        readOnly
+        value={value}
+        spellCheck={false}
+        className={`rounded-2xl border border-charcoal/10 bg-white px-4 py-3 text-sm outline-none ${
+          muted ? "text-charcoal/55" : "text-charcoal"
+        }`}
+      />
+    </label>
+  );
+}
+
 function renderOverrideEditor(link: {
   key: string;
   partner: string;
@@ -226,7 +244,18 @@ export default async function AdminAffiliateSettingsPage({
                 <p className="mt-3 text-sm text-charcoal/65">
                   Destination: {getDestinationLabel(item.destinationKind)}
                 </p>
-                <p className="mt-1 break-all text-sm text-charcoal/50">{item.destinationUrl}</p>
+                <div className="mt-3">
+                  {renderCopyableUrlField("Current destination URL", item.destinationUrl)}
+                </div>
+                {item.hasOverride ? (
+                  <div className="mt-3">
+                    {renderCopyableUrlField(
+                      "Base destination URL",
+                      item.baseDestinationUrl,
+                      true
+                    )}
+                  </div>
+                ) : null}
                 {item.topSourcePage ? (
                   <p className="mt-1 text-sm text-charcoal/55">
                     Top source: {item.topSourcePage}
@@ -287,11 +316,13 @@ export default async function AdminAffiliateSettingsPage({
                 <p className="mt-2 text-sm text-charcoal">{link.topSourcePage || "No recent source"}</p>
               </div>
             </div>
-            <p className="mt-4 text-sm text-charcoal/55 break-all">{link.destinationUrl}</p>
+            <div className="mt-4">
+              {renderCopyableUrlField("Current destination URL", link.destinationUrl)}
+            </div>
             {link.hasOverride ? (
-              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-charcoal/45">
-                Base destination: {link.baseDestinationUrl}
-              </p>
+              <div className="mt-3">
+                {renderCopyableUrlField("Base destination URL", link.baseDestinationUrl, true)}
+              </div>
             ) : null}
             <p className="mt-3 text-xs uppercase tracking-[0.18em] text-charcoal/45">
               Partner: {link.partner} · Last clicked: {formatTimestamp(link.lastClickedAt)}
