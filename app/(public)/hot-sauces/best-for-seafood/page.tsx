@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { AffiliateLink } from "@/components/content/affiliate-link";
 import { ShareBar } from "@/components/content/share-bar";
+import { EmailCapture } from "@/components/forms/email-capture";
 import { RecipeCard } from "@/components/cards/recipe-card";
 import { ReviewCard } from "@/components/cards/review-card";
 import { HotSauceComparisonTable } from "@/components/hot-sauces/hot-sauce-comparison-table";
@@ -202,6 +203,18 @@ export default async function BestHotSaucesForSeafoodPage() {
         copy={pageOptimization.faqCopy || ""}
         faqs={pageOptimization.faqs ?? seafoodFaqs}
       />
+
+      <div className="mt-12 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-8">
+        <EmailCapture
+          source="hot-sauce-best-for-seafood"
+          tag="best-for-seafood"
+          variant="email-only"
+          defaultSegments={["hot-sauce-shelf"]}
+          heading="Get better bottle picks every Friday."
+          buttonLabel="Join Flame Club"
+          description="One honest sauce review, one useful guide, and one bottle worth buying."
+        />
+      </div>
 
       <ShareBar
         title="Best Hot Sauces for Seafood and Fish"

@@ -16,6 +16,8 @@ type SegmentOption = {
   description: string;
 };
 
+type EmailCaptureVariant = "full" | "email-only";
+
 export function EmailCapture({
   source = "homepage",
   tag = "homepage-hero",
@@ -24,7 +26,8 @@ export function EmailCapture({
   successMessage = "You’re in. Expect weekly heat, not inbox sludge.",
   description,
   defaultSegments = ["weekly-roundup"],
-  segmentOptions = []
+  segmentOptions = [],
+  variant = "full"
 }: {
   source?: string;
   tag?: string;
@@ -34,12 +37,14 @@ export function EmailCapture({
   description?: string;
   defaultSegments?: NewsletterSegmentTag[];
   segmentOptions?: SegmentOption[];
+  variant?: EmailCaptureVariant;
 }) {
   const [state, setState] = useState<"idle" | "saving" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
   const [selectedSegments, setSelectedSegments] = useState<NewsletterSegmentTag[]>(
     normalizeNewsletterSegmentTags(defaultSegments)
   );
+  const showsExpandedFields = variant === "full";
 
   const availableOptions = useMemo(() => {
     if (segmentOptions.length) {
@@ -91,7 +96,8 @@ export function EmailCapture({
       path: window.location.pathname,
       source,
       tag,
-      segments: selectedSegments.join(",")
+      segments: selectedSegments.join(","),
+      captureVariant: variant
     });
     event.currentTarget.reset();
   }
@@ -105,7 +111,7 @@ export function EmailCapture({
             <p className="mt-3 max-w-3xl text-sm leading-7 text-cream/70">{description}</p>
           ) : null}
         </div>
-        {availableOptions.length ? (
+        {showsExpandedFields && availableOptions.length ? (
           <div className="grid gap-3 md:grid-cols-2">
             {availableOptions.map((option) => {
               const active = selectedSegments.includes(option.tag);
@@ -130,18 +136,26 @@ export function EmailCapture({
             })}
           </div>
         ) : null}
-        <div className="grid gap-4 md:grid-cols-[0.8fr_1.2fr_auto] md:items-end">
-          <div>
-            <label htmlFor={`${source}-firstName`} className="mb-2 block text-sm text-cream/70">
-              First name
-            </label>
-            <input
-              id={`${source}-firstName`}
-              name="firstName"
-              className="w-full rounded-2xl border border-white/15 bg-charcoal/50 px-4 py-3 text-cream outline-none placeholder:text-cream/40 focus:border-ember"
-              placeholder="Mara"
-            />
-          </div>
+        <div
+          className={`grid gap-4 ${
+            showsExpandedFields
+              ? "md:grid-cols-[0.8fr_1.2fr_auto] md:items-end"
+              : "sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"
+          }`}
+        >
+          {showsExpandedFields ? (
+            <div>
+              <label htmlFor={`${source}-firstName`} className="mb-2 block text-sm text-cream/70">
+                First name
+              </label>
+              <input
+                id={`${source}-firstName`}
+                name="firstName"
+                className="w-full rounded-2xl border border-white/15 bg-charcoal/50 px-4 py-3 text-cream outline-none placeholder:text-cream/40 focus:border-ember"
+                placeholder="Mara"
+              />
+            </div>
+          ) : null}
           <div>
             <label htmlFor={`${source}-email`} className="mb-2 block text-sm text-cream/70">
               Email
@@ -158,7 +172,7 @@ export function EmailCapture({
           <button
             type="submit"
             disabled={state === "saving"}
-            className="rounded-full bg-gradient-to-r from-flame to-ember px-6 py-3 font-semibold text-white disabled:opacity-60"
+            className="w-full rounded-full bg-gradient-to-r from-flame to-ember px-6 py-3 font-semibold text-white disabled:opacity-60 sm:w-auto"
           >
             {state === "saving" ? "Joining..." : buttonLabel}
           </button>

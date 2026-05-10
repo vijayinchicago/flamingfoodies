@@ -294,9 +294,11 @@ export default async function HomePage() {
           <EmailCapture
             source="homepage"
             tag="homepage-hero"
-            heading="Choose the newsletter lane that matches how you use the site."
-            description="Choose a full weekly roundup, more recipes, or more review-focused notes."
-            defaultSegments={["weekly-roundup", "recipe-club"]}
+            variant="email-only"
+            heading="Get one useful spicy-food email every Friday."
+            buttonLabel="Join Flame Club"
+            description="One standout recipe, one honest bottle pick, and one guide worth keeping."
+            defaultSegments={["weekly-roundup"]}
           />
         </div>
       </section>

@@ -1068,9 +1068,11 @@ export default async function RecipePage({
               <EmailCapture
                 source="recipe-page"
                 tag={recipe.cuisineType}
+                variant="email-only"
                 defaultSegments={["recipe-club"]}
-                heading="Get more recipes like this."
-                description="Weekly spicy picks matched to how you cook."
+                heading="Get more recipes like this every Friday."
+                buttonLabel="Join Flame Club"
+                description="One good spicy dinner, one honest bottle pick, and no inbox sludge."
               />
             </section>
           </div>

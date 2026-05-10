@@ -239,9 +239,11 @@ export default async function HotSaucesHubPage() {
       <div className="mt-14 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-8">
         <EmailCapture
           source="hot-sauce-hub"
+          variant="email-only"
           defaultSegments={["hot-sauce-shelf"]}
-          heading="Weekly sauce picks, reviews, and bottle guides."
-          description="New hot sauces reviewed every week. Join the shelf."
+          heading="Get better bottle picks every Friday."
+          buttonLabel="Join Flame Club"
+          description="One honest sauce review, one sharp bottle guide, and one pick worth trying."
         />
       </div>
     </section>
