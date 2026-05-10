@@ -28,6 +28,7 @@ import {
   type SearchRecommendation
 } from "@/lib/search-performance";
 import { env, flags, hasConfiguredEnvValue } from "@/lib/env";
+import { shouldNoIndexPath } from "@/lib/indexing-policy";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type { RecipeFaq } from "@/lib/types";
 
@@ -121,6 +122,11 @@ type SearchExecutorRunRow = {
 type AutomationEvaluationLookupRow = {
   source_run_id: number;
   subject_key: string;
+};
+
+type SearchRecommendationLike = {
+  targetPath?: string;
+  relatedPaths?: string[];
 };
 
 export type SearchRecommendationEvaluationBaseline = {
@@ -433,6 +439,41 @@ function mapMetricRow(row: SearchConsoleApiRow) {
     ctr: Number(row.ctr ?? 0),
     position: Number(row.position ?? 0)
   };
+}
+
+function uniquePathCandidates(paths: Array<string | undefined>) {
+  return [...new Set(paths.map((entry) => entry?.trim()).filter(Boolean) as string[])];
+}
+
+function getRecommendationTrackedPaths(recommendation: SearchRecommendationLike) {
+  return uniquePathCandidates([
+    recommendation.targetPath,
+    ...(recommendation.relatedPaths ?? [])
+  ]);
+}
+
+function getSearchRecommendationHoldoutPaths(recommendation: SearchRecommendationLike) {
+  return getRecommendationTrackedPaths(recommendation).filter((path) => shouldNoIndexPath(path));
+}
+
+function isSearchRecommendationIndexable(recommendation: SearchRecommendationLike) {
+  return getSearchRecommendationHoldoutPaths(recommendation).length === 0;
+}
+
+function buildSearchRecommendationHoldoutReason(recommendation: SearchRecommendationLike) {
+  const holdoutPaths = getSearchRecommendationHoldoutPaths(recommendation);
+  if (!holdoutPaths.length) {
+    return null;
+  }
+
+  const pathLabel =
+    holdoutPaths.length === 1 ? holdoutPaths[0] : `${holdoutPaths[0]} and ${holdoutPaths.length - 1} more holdout path(s)`;
+
+  return `Inactive while ${pathLabel} is noindex during the current editorial review posture.`;
+}
+
+function filterIndexableSearchRecommendations(recommendations: SearchRecommendation[]) {
+  return recommendations.filter((recommendation) => isSearchRecommendationIndexable(recommendation));
 }
 
 function mapQueryRows(rows: SearchConsoleApiRow[]): SearchQueryRow[] {
@@ -826,6 +867,53 @@ async function upsertSearchRecommendationQueue(input: {
     newRecommendationCount: mutations.newRecommendationKeys.length,
     summary
   };
+}
+
+async function deactivateSearchRecommendationHoldouts(input: {
+  property: string;
+  queue: SearchQueuedRecommendation[];
+}) {
+  if (!flags.hasSupabaseAdmin) {
+    return [];
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    return [];
+  }
+
+  const holdouts = input.queue
+    .filter((entry) => entry.isActive)
+    .map((entry) => ({
+      recommendationKey: entry.recommendationKey,
+      reason: buildSearchRecommendationHoldoutReason(entry)
+    }))
+    .filter((entry): entry is { recommendationKey: string; reason: string } => Boolean(entry.reason));
+
+  if (!holdouts.length) {
+    return [];
+  }
+
+  const updates = holdouts.map((entry) =>
+    supabase
+      .from("search_recommendations")
+      .update({
+        is_active: false,
+        status: "dismissed",
+        decision_reason: entry.reason,
+        updated_at: new Date().toISOString()
+      })
+      .eq("property", input.property)
+      .eq("recommendation_key", entry.recommendationKey)
+  );
+
+  const results = await Promise.all(updates);
+  const failedResult = results.find((result) => result.error);
+  if (failedResult?.error) {
+    throw new Error(`Failed to deactivate noindex search recommendations: ${failedResult.error.message}`);
+  }
+
+  return holdouts;
 }
 
 function toFiniteNumber(value: unknown) {
@@ -1728,9 +1816,34 @@ export async function runSearchRecommendationExecutor(): Promise<SearchRecommend
     };
   }
 
-  const queue = queueRows
+  let queue = queueRows
     .map(parseQueuedRecommendation)
     .filter((entry): entry is SearchQueuedRecommendation => Boolean(entry));
+
+  const deactivatedHoldouts = await deactivateSearchRecommendationHoldouts({
+    property,
+    queue
+  });
+
+  if (deactivatedHoldouts.length) {
+    const holdoutReasons = new Map(
+      deactivatedHoldouts.map((entry) => [entry.recommendationKey, entry.reason])
+    );
+    queue = queue.map((entry) => {
+      const reason = holdoutReasons.get(entry.recommendationKey);
+      if (!reason) {
+        return entry;
+      }
+
+      return {
+        ...entry,
+        isActive: false,
+        status: "dismissed",
+        decisionReason: reason,
+        updatedAt: new Date().toISOString()
+      };
+    });
+  }
 
   const execution = executeSearchRecommendationQueue(queue, window);
   const previousByKey = new Map(queue.map((entry) => [entry.recommendationKey, entry]));
@@ -2200,7 +2313,7 @@ export async function runSearchInsightsAutomation(): Promise<SearchInsightsAutom
   }
 
   const { snapshot, window } = await fetchSnapshot(config, refreshToken);
-  const recommendations = buildSearchRecommendations(snapshot);
+  const recommendations = filterIndexableSearchRecommendations(buildSearchRecommendations(snapshot));
   const currentRuntime = await getSearchRuntimeOptimizations();
 
   const runId = await saveSearchInsightRun({

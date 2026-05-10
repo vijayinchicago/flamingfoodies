@@ -6,6 +6,8 @@ It is meant to sit next to [docs/autonomous-agents.md](/Users/vijaysingh/apps/fl
 
 `docs/autonomous-agents.md` explains the operating vision.
 
+For the current live technical inventory of registered agents, cron routes, and orchestration, see [docs/live-agent-inventory.md](/Users/vijaysingh/apps/flamingfoodies/docs/live-agent-inventory.md).
+
 This file explains:
 
 - which automations exist today

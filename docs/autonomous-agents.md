@@ -5,6 +5,7 @@ FlamingFoodies can run as a small coordinated set of autonomous agents instead o
 Implementation follow-up:
 
 - For the concrete control-plane, approvals, run-ledger, and rollout plan, see [docs/autonomous-system-governance-plan.md](/Users/vijaysingh/apps/flamingfoodies/docs/autonomous-system-governance-plan.md).
+- For the current technical inventory of live agents, cron routes, and orchestration, see [docs/live-agent-inventory.md](/Users/vijaysingh/apps/flamingfoodies/docs/live-agent-inventory.md).
 
 ## 1. Editorial Autopublisher
 
