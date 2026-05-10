@@ -313,6 +313,67 @@ export default async function RecipePage({
       fallbackAffiliateHref: buildAmazonSearchUrl(pairing.review.productName)
     };
   });
+  const primaryRecipeOffers = [
+    saucePairingCards[0]
+      ? {
+          kind: "Sauce" as const,
+          title: saucePairingCards[0].review.productName,
+          supportingLabel: `${saucePairingCards[0].review.brand} · ${getHotSauceIntentLabel(
+            saucePairingCards[0].review
+          )}`,
+          copy: saucePairingCards[0].reason,
+          href: saucePairingCards[0].resolvedOffer?.href || saucePairingCards[0].fallbackAffiliateHref,
+          partnerKey: saucePairingCards[0].resolvedOffer?.key,
+          partnerName: saucePairingCards[0].review.brand,
+          productName: saucePairingCards[0].review.productName,
+          trackingMode: saucePairingCards[0].resolvedOffer?.trackingMode || "client_beacon",
+          position: "recipe-primary-sauce",
+          ctaLabel: "Get the sauce used here"
+        }
+      : null,
+    resolvedPantryLinks[0]
+      ? {
+          kind: "Pantry" as const,
+          title: resolvedPantryLinks[0].link.product,
+          supportingLabel: resolvedPantryLinks[0].link.badge,
+          copy: `${resolvedPantryLinks[0].link.bestFor}. ${resolvedPantryLinks[0].link.description}`,
+          href: resolvedPantryLinks[0].resolved.href,
+          partnerKey: resolvedPantryLinks[0].resolved.key,
+          partnerName: resolvedPantryLinks[0].link.partner,
+          productName: resolvedPantryLinks[0].link.product,
+          trackingMode: resolvedPantryLinks[0].resolved.trackingMode,
+          position: "recipe-primary-pantry",
+          ctaLabel: "Grab the pantry staple"
+        }
+      : null,
+    resolvedGearLinks[0]
+      ? {
+          kind: "Gear" as const,
+          title: resolvedGearLinks[0].link.product,
+          supportingLabel: resolvedGearLinks[0].link.badge,
+          copy: `${resolvedGearLinks[0].link.bestFor}. ${resolvedGearLinks[0].link.description}`,
+          href: resolvedGearLinks[0].resolved.href,
+          partnerKey: resolvedGearLinks[0].resolved.key,
+          partnerName: resolvedGearLinks[0].link.partner,
+          productName: resolvedGearLinks[0].link.product,
+          trackingMode: resolvedGearLinks[0].resolved.trackingMode,
+          position: "recipe-primary-gear",
+          ctaLabel: "Use this tool"
+        }
+      : null
+  ].filter(Boolean) as Array<{
+    kind: "Sauce" | "Pantry" | "Gear";
+    title: string;
+    supportingLabel: string;
+    copy: string;
+    href: string;
+    partnerKey?: string;
+    partnerName: string;
+    productName: string;
+    trackingMode: "client_beacon" | "server_redirect";
+    position: "recipe-primary-sauce" | "recipe-primary-pantry" | "recipe-primary-gear";
+    ctaLabel: string;
+  }>;
   const projectCard = getProjectCard(recipe);
   const occasionCard = getOccasionCard(recipe);
   const printNoteBlocks = getPrintNoteBlocks(recipe, substitutions, servingSuggestions);
@@ -618,6 +679,59 @@ export default async function RecipePage({
             </div>
           </div>
         </section>
+
+        {primaryRecipeOffers.length ? (
+          <section className="recipe-core-panel rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 sm:p-7 print-hidden">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <p className="eyebrow">Cook this with</p>
+                <h2 className="mt-3 font-display text-4xl text-cream">
+                  Three useful buys before you start
+                </h2>
+              </div>
+              <Link
+                href="/shop"
+                className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+              >
+                Browse all picks
+              </Link>
+            </div>
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/68">
+              These are the highest-signal buys for this specific recipe: one sauce, one pantry
+              staple, and one tool that genuinely makes the dish easier to repeat.
+            </p>
+            <div className="mt-6 grid gap-4 lg:grid-cols-3">
+              {primaryRecipeOffers.map((offer) => (
+                <article
+                  key={`${recipe.slug}-${offer.position}`}
+                  className="rounded-[1.6rem] border border-white/10 bg-white/[0.04] p-5"
+                >
+                  <p className="text-xs uppercase tracking-[0.22em] text-ember">{offer.kind}</p>
+                  <h3 className="mt-3 font-display text-3xl text-cream">{offer.title}</h3>
+                  <p className="mt-2 text-xs uppercase tracking-[0.18em] text-cream/50">
+                    {offer.supportingLabel}
+                  </p>
+                  <p className="mt-4 text-sm leading-7 text-cream/72">{offer.copy}</p>
+                  <AffiliateLink
+                    href={offer.href}
+                    partnerKey={offer.partnerKey}
+                    partnerName={offer.partnerName}
+                    productName={offer.productName}
+                    trackingMode={offer.trackingMode}
+                    sourcePage={`/recipes/${recipe.slug}`}
+                    position={offer.position}
+                    contentType="recipe"
+                    contentId={recipe.id}
+                    contentSlug={recipe.slug}
+                    className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
+                  >
+                    {offer.ctaLabel}
+                  </AffiliateLink>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4 print-hidden">
           <article className="recipe-core-panel rounded-[2rem] border border-white/10 bg-white/[0.05] p-6">
