@@ -10,7 +10,8 @@ const affiliateClickSchema = z
     productName: z.string().min(1).optional(),
     url: z.string().url().optional(),
     sourcePage: z.string().optional(),
-    position: z.string().optional()
+    position: z.string().optional(),
+    sessionId: z.string().min(1).max(128).optional()
   })
   .refine(
     (payload) =>
@@ -29,7 +30,8 @@ export async function POST(request: Request) {
       productName: payload.productName,
       url: payload.url,
       sourcePage: payload.sourcePage,
-      position: payload.position
+      position: payload.position,
+      sessionId: payload.sessionId
     });
 
     return NextResponse.json({ ok: true });

@@ -1,5 +1,6 @@
 import { getAutomatedShopPickEntries } from "@/lib/affiliates";
 import { flags } from "@/lib/env";
+import { dedupeAffiliateClickRows } from "@/lib/services/affiliate-click-metrics";
 import { parseShopShelfSnapshot } from "@/lib/services/shop-automation";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
@@ -414,7 +415,7 @@ export async function runShopPerformanceEvaluator(options?: {
     const [clickRowsResult, shopPageViewsResult] = await Promise.all([
       supabase
         .from("affiliate_clicks")
-        .select("partner, product, source_page")
+        .select("partner, product, url, source_page, position, session_id, clicked_at")
         .gte("clicked_at", completedAt.toISOString())
         .lt("clicked_at", windowEnd.toISOString())
         .in("partner", partners)
@@ -439,7 +440,7 @@ export async function runShopPerformanceEvaluator(options?: {
     const shopPageClickCounts = new Map<string, number>();
     const sourcePagesByMetricKey = new Map<string, Set<string>>();
 
-    for (const row of clickRowsResult.data ?? []) {
+    for (const row of dedupeAffiliateClickRows(clickRowsResult.data ?? [])) {
       const metricKey = buildAffiliateMetricKey(String(row.partner ?? ""), String(row.product ?? ""));
       if (!metricKeys.includes(metricKey)) {
         continue;

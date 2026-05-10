@@ -1,4 +1,5 @@
 import { flags } from "@/lib/env";
+import { dedupeAffiliateClickRows } from "@/lib/services/affiliate-click-metrics";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
@@ -418,7 +419,7 @@ export async function runEditorialPerformanceEvaluator(options?: {
       candidatePaths.length
         ? supabase
             .from("affiliate_clicks")
-            .select("source_page")
+            .select("partner, product, url, source_page, position, session_id, clicked_at")
             .gte("clicked_at", completedAt.toISOString())
             .lt("clicked_at", windowEnd.toISOString())
             .in("source_page", candidatePaths)
@@ -521,7 +522,7 @@ export async function runEditorialPerformanceEvaluator(options?: {
       commentCounts.set(commentKey, (commentCounts.get(commentKey) ?? 0) + 1);
     }
 
-    for (const row of affiliateRows.data ?? []) {
+    for (const row of dedupeAffiliateClickRows(affiliateRows.data ?? [])) {
       const sourcePage = String(row.source_page ?? "");
       if (!sourcePage) {
         continue;

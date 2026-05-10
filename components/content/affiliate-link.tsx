@@ -1,6 +1,6 @@
 "use client";
 
-import { trackEvent } from "@/lib/analytics";
+import { getOrCreateClientAnalyticsIdentity, trackEvent } from "@/lib/analytics";
 import { ANALYTICS_EVENTS } from "@/lib/telemetry-events";
 import type { AffiliateClickTrackingMode } from "@/lib/affiliates";
 
@@ -26,6 +26,7 @@ function sendAffiliateClickBeacon(payload: {
   url?: string;
   sourcePage?: string;
   position?: string;
+  sessionId?: string;
 }) {
   const body = JSON.stringify(payload);
 
@@ -65,7 +66,21 @@ export function AffiliateLink({
       target="_blank"
       rel="sponsored noopener noreferrer"
       className={className}
-      onClick={() => {
+      onClick={(event) => {
+        const identity = getOrCreateClientAnalyticsIdentity();
+
+        if (partnerKey && trackingMode === "server_redirect" && identity.sessionId) {
+          try {
+            const redirectUrl = new URL(event.currentTarget.href, window.location.origin);
+            if (redirectUrl.origin === window.location.origin && redirectUrl.pathname.startsWith("/go/")) {
+              redirectUrl.searchParams.set("sid", identity.sessionId);
+              event.currentTarget.href = redirectUrl.toString();
+            }
+          } catch {
+            // Keep the original href if URL rewriting fails.
+          }
+        }
+
         trackEvent(ANALYTICS_EVENTS.affiliateClick, {
           path: sourcePage,
           sourcePage,
@@ -85,7 +100,8 @@ export function AffiliateLink({
             productName,
             url: href,
             sourcePage,
-            position
+            position,
+            sessionId: identity.sessionId
           });
         }
       }}

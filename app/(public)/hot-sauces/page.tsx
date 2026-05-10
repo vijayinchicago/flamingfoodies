@@ -32,6 +32,7 @@ export const metadata = buildMetadata({
 
 export default async function HotSaucesHubPage() {
   const [reviews, posts] = await Promise.all([getReviews(), getBlogPosts()]);
+  const popularSearchGuides = HOT_SAUCE_LANDING_LINKS.slice(0, 6);
   const topPicks = getTopHotSaucePicks(reviews, 4);
   const topPickOffers = topPicks.map((review, index) => {
     const offer = findAffiliateLinkByUrl(review.affiliateUrl);
@@ -63,19 +64,19 @@ export default async function HotSaucesHubPage() {
       />
       <SectionHeading
         eyebrow="Hot sauce hub"
-        title="Find the right bottle for tacos, eggs, wings, gifts, and more."
-        copy="Start with everyday pours, giftable sets, taco-night bottles, and the sauces serious heat lovers keep reaching for."
+        title="Find the right hot sauce for tacos, eggs, wings, gifts, and more."
+        copy="Start with the exact bottle question you have, then open the reviews and comparison notes when you want more buying detail."
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="panel p-6 sm:p-8">
-          <p className="eyebrow">Start here</p>
+          <p className="eyebrow">Search by meal</p>
           <h2 className="mt-3 font-display text-3xl text-cream sm:text-4xl">
-            Find the bottles that fit how you actually cook.
+            Open the page that matches the food on your table.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
-            Browse everyday favorites, approachable starter bottles, gift sets, and bigger-heat
-            picks, then open the full reviews when you want more detail.
+            The best entry point is usually meal-first: tacos, eggs, wings, fried chicken,
+            seafood, pizza, or a hard budget cap. Use the search-style guides first, then go deeper.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
@@ -117,7 +118,7 @@ export default async function HotSaucesHubPage() {
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {HOT_SAUCE_LANDING_LINKS.map((item) => (
+          {popularSearchGuides.map((item) => (
             <article key={item.href} className="panel p-5 sm:p-6">
               <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.eyebrow}</p>
               <h2 className="mt-3 font-display text-2xl text-cream sm:text-3xl">{item.title}</h2>
@@ -131,6 +132,19 @@ export default async function HotSaucesHubPage() {
             </article>
           ))}
         </div>
+      </div>
+
+      <div className="mt-10 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {HOT_SAUCE_LANDING_LINKS.slice(6).map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="rounded-[1.35rem] border border-white/10 bg-white/5 px-4 py-4 text-sm text-cream/78 transition hover:border-white/20 hover:bg-white/[0.08]"
+          >
+            <span className="text-xs uppercase tracking-[0.18em] text-ember">{item.eyebrow}</span>
+            <span className="mt-2 block font-semibold text-cream">{item.title}</span>
+          </Link>
+        ))}
       </div>
 
       <div className="mt-12">

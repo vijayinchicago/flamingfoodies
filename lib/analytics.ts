@@ -37,6 +37,20 @@ function ensureStorageId(storage: Storage, key: string) {
   return value;
 }
 
+export function getOrCreateClientAnalyticsIdentity() {
+  if (typeof window === "undefined") {
+    return {
+      anonymousId: undefined,
+      sessionId: undefined
+    };
+  }
+
+  return {
+    anonymousId: ensureStorageId(window.localStorage, STORAGE_KEYS.anonymousId),
+    sessionId: ensureStorageId(window.sessionStorage, STORAGE_KEYS.sessionId)
+  };
+}
+
 function getExternalReferrer() {
   if (typeof document === "undefined" || typeof window === "undefined" || !document.referrer) {
     return undefined;

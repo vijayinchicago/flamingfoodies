@@ -23,7 +23,8 @@ export async function GET(
   await logAffiliateClick({
     partnerKey: params.partner,
     sourcePage: url.searchParams.get("source"),
-    position: url.searchParams.get("position")
+    position: url.searchParams.get("position"),
+    sessionId: url.searchParams.get("sid")
   });
 
   return NextResponse.redirect(buildAffiliateDestinationUrl(link), {

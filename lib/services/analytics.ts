@@ -7,6 +7,7 @@ import {
 } from "@/lib/affiliates";
 import { classifyAcquisitionSource } from "@/lib/pirate-metrics";
 import { buildShareAnalytics } from "@/lib/share-analytics";
+import { dedupeAffiliateClickRows } from "@/lib/services/affiliate-click-metrics";
 import { getAffiliateRegistryWithOverrides } from "@/lib/services/affiliate-link-overrides";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
@@ -182,7 +183,7 @@ export async function getAffiliateAnalytics(windowDays = 30) {
 
   const { data } = await supabase
     .from("affiliate_clicks")
-    .select("partner, product, source_page, position, clicked_at")
+    .select("partner, product, url, source_page, position, session_id, clicked_at")
     .gte("clicked_at", isoDaysAgo(windowDays));
 
   if (!data?.length) {
@@ -200,14 +201,15 @@ export async function getAffiliateAnalytics(windowDays = 30) {
     };
   }
 
-  const totalClicks = data.length;
+  const dedupedClicks = dedupeAffiliateClickRows(data);
+  const totalClicks = dedupedClicks.length;
   const byPartner = new Map<string, { clicks: number; products: Map<string, number> }>();
   const productCounts = new Map<string, { partner: string; product: string; clicks: number }>();
   const sourcePageCounts = new Map<string, number>();
   const positionCounts = new Map<string, number>();
   let estimatedRevenueValue = 0;
 
-  for (const row of data) {
+  for (const row of dedupedClicks) {
     const group = byPartner.get(row.partner) ?? {
       clicks: 0,
       products: new Map<string, number>()
@@ -338,14 +340,14 @@ export async function getAffiliateRegistryHealth(windowDays = 30) {
 
   const { data } = await supabase
     .from("affiliate_clicks")
-    .select("partner, product, source_page, clicked_at")
+    .select("partner, product, url, source_page, position, session_id, clicked_at")
     .gte("clicked_at", isoDaysAgo(windowDays));
 
   const clickCounts = new Map<string, number>();
   const lastClicked = new Map<string, string>();
   const sourcePageCounts = new Map<string, Map<string, number>>();
 
-  for (const row of data ?? []) {
+  for (const row of dedupeAffiliateClickRows(data ?? [])) {
     const key = `${row.partner}::${row.product}`;
     clickCounts.set(key, (clickCounts.get(key) ?? 0) + 1);
 

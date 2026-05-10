@@ -6,6 +6,7 @@ import { ReviewCard } from "@/components/cards/review-card";
 import { EmailCapture } from "@/components/forms/email-capture";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { OrganizationSchema } from "@/components/schema/organization-schema";
+import { HOT_SAUCE_LANDING_LINKS } from "@/lib/hot-sauces";
 import { getFeaturedCollection } from "@/lib/services/content";
 import { getGuides } from "@/lib/content/guides";
 import { getEditorialFranchises } from "@/lib/editorial-franchises";
@@ -25,6 +26,7 @@ export default async function HomePage() {
   const featuredRecipeHero = featuredRecipe ? getRecipeHeroFields(featuredRecipe) : null;
   const featuredGuide = guides[0] ?? null;
   const mobileRecipePreviewCount = 4;
+  const popularBottleGuides = HOT_SAUCE_LANDING_LINKS.slice(0, 6);
 
   return (
     <>
@@ -187,6 +189,26 @@ export default async function HomePage() {
           >
             See all recipes
           </Link>
+        </div>
+      </section>
+
+      <section className="container-shell py-10">
+        <SectionHeading
+          eyebrow="Popular searches"
+          title="Start with the bottle question you actually have."
+          copy="These are the strongest search-intent guides on the site right now: meal-specific bottle picks, value shelves, and the pages most likely to save you a bad buy."
+        />
+        <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {popularBottleGuides.map((guide) => (
+            <Link key={guide.href} href={guide.href} className="panel p-7 transition hover:bg-white/[0.08]">
+              <p className="eyebrow">{guide.eyebrow}</p>
+              <h3 className="mt-3 font-display text-4xl text-cream">{guide.title}</h3>
+              <p className="mt-4 text-sm leading-7 text-cream/72">{guide.description}</p>
+              <span className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream">
+                Open guide
+              </span>
+            </Link>
+          ))}
         </div>
       </section>
 

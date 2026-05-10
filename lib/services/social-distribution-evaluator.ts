@@ -1,5 +1,6 @@
 import { classifyAcquisitionSource, isSocialSource } from "@/lib/pirate-metrics";
 import { flags } from "@/lib/env";
+import { dedupeAffiliateClickRows } from "@/lib/services/affiliate-click-metrics";
 import {
   extractInternalPathFromUrl,
   isMissingSocialAutomationContextError,
@@ -59,7 +60,13 @@ type SocialTelemetryRow = {
 };
 
 type SocialAffiliateRow = {
+  partner?: string | null;
+  product?: string | null;
+  url?: string | null;
   source_page: string | null;
+  position?: string | null;
+  session_id?: string | null;
+  clicked_at?: string | null;
 };
 
 type SocialContentTitleRow = {
@@ -517,7 +524,7 @@ export async function runSocialDistributionEvaluator(options?: {
       candidatePaths.length
         ? supabase
             .from("affiliate_clicks")
-            .select("source_page")
+            .select("partner, product, url, source_page, position, session_id, clicked_at")
             .gte("clicked_at", completedAt.toISOString())
             .lt("clicked_at", windowEnd.toISOString())
             .in("source_page", candidatePaths)
@@ -563,7 +570,9 @@ export async function runSocialDistributionEvaluator(options?: {
       }
     }
 
-    for (const row of affiliateResult.data ?? []) {
+    for (const row of dedupeAffiliateClickRows<SocialAffiliateRow>(
+      (affiliateResult.data ?? []) as SocialAffiliateRow[]
+    )) {
       const sourcePage = normalizeString(row.source_page);
       if (!sourcePage) {
         continue;

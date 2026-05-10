@@ -10,6 +10,7 @@ import {
   sampleSubscribers
 } from "@/lib/sample-data";
 import { classifyAcquisitionSource } from "@/lib/pirate-metrics";
+import { dedupeAffiliateClickRows } from "@/lib/services/affiliate-click-metrics";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type {
   AdminAuditEntry,
@@ -212,7 +213,7 @@ export async function getAdminDashboard() {
     { count: scheduledSocialCount },
     { count: subscriberCount },
     { count: recentSubscriberCount },
-    { count: affiliateClicks },
+    { data: affiliateClickRows },
     { data: recipeRows },
     { data: recipePageViews }
   ] = await Promise.all([
@@ -236,7 +237,10 @@ export async function getAdminDashboard() {
       .from("newsletter_subscribers")
       .select("*", { count: "exact", head: true })
       .gte("subscribed_at", cutoff),
-    supabase.from("affiliate_clicks").select("*", { count: "exact", head: true }),
+    supabase
+      .from("affiliate_clicks")
+      .select("partner, product, url, source_page, position, session_id, clicked_at")
+      .gte("clicked_at", cutoff),
     supabase
       .from("recipes")
       .select("title, slug")
@@ -250,6 +254,7 @@ export async function getAdminDashboard() {
 
   const totalPublished = (blogCount ?? 0) + (recipeCount ?? 0) + (reviewCount ?? 0);
   const moderationCount = (pendingCommunityCount ?? 0) + (pendingEntryCount ?? 0);
+  const affiliateClicks = dedupeAffiliateClickRows(affiliateClickRows ?? []).length;
   const topRecipeByPath = new Map<string, number>();
 
   for (const row of recipePageViews ?? []) {

@@ -5,6 +5,7 @@ import {
   type PirateOperationalSignals,
   type TelemetryEventRow
 } from "@/lib/pirate-metrics";
+import { dedupeAffiliateClickRows } from "@/lib/services/affiliate-click-metrics";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { ANALYTICS_EVENTS } from "@/lib/telemetry-events";
 
@@ -108,7 +109,7 @@ export async function getPirateMetrics(windowDays = 30) {
       .order("occurred_at", { ascending: true }),
     supabase
       .from("affiliate_clicks")
-      .select("partner, clicked_at")
+      .select("partner, product, url, source_page, position, session_id, clicked_at")
       .gte("clicked_at", cutoff)
       .order("clicked_at", { ascending: true }),
     supabase
@@ -167,7 +168,9 @@ export async function getPirateMetrics(windowDays = 30) {
     metadata: row.metadata ?? {}
   }));
 
-  const affiliateClicks: AffiliateClickRow[] = (affiliateClicksResult.data ?? []).map((row) => ({
+  const affiliateClicks: AffiliateClickRow[] = dedupeAffiliateClickRows(
+    affiliateClicksResult.data ?? []
+  ).map((row) => ({
     partner: row.partner,
     clickedAt: row.clicked_at
   }));
