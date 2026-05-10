@@ -18,8 +18,11 @@ async function handleRequest(request: Request) {
           summary: `Subscriber reconcile skipped: ${result.reason ?? "unknown"}.`
         };
       }
+      const pushContext = result.pushSkippedReason
+        ? ` ${result.pushSkippedReason}`
+        : "";
       return {
-        summary: `Reconciled subscribers: Supabase=${result.supabaseActiveCount}, MailerLite=${result.mailerLiteActiveCount}, pushed=${result.pushedToMailerLite}, marked-inactive=${result.markedInactiveInSupabase}, failures=${result.failures}.`,
+        summary: `Reconciled subscribers: Supabase=${result.supabaseActiveCount}, MailerLite=${result.mailerLiteActiveCount}, pushed=${result.pushedToMailerLite}, marked-inactive=${result.markedInactiveInSupabase}, failures=${result.failures}.${pushContext}`,
         rowsUpdated: result.pushedToMailerLite + result.markedInactiveInSupabase
       };
     }

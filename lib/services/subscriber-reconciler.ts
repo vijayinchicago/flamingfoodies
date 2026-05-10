@@ -3,6 +3,8 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 const MAILERLITE_API_BASE = "https://connect.mailerlite.com/api";
 const MAX_PAGES = 25; // protects against runaway loops; ~6,250 subs at 250/page
+const MAILERLITE_AUDIENCE_GROUP_KEY = "weekly-roundup";
+const MAILERLITE_WELCOME_GROUP_KEY = "welcome-sequence";
 
 export type ReconcilerRunResult = {
   mode: "live" | "skipped";
@@ -12,6 +14,7 @@ export type ReconcilerRunResult = {
   pushedToMailerLite: number;
   markedInactiveInSupabase: number;
   failures: number;
+  pushSkippedReason?: string;
 };
 
 let cachedMailerLiteGroupMap: Record<string, string> | null = null;
@@ -142,11 +145,11 @@ export async function reconcileNewsletterSubscribers(): Promise<ReconcilerRunRes
   }
 
   const groupMap = getMailerLiteGroupMap();
-  const groupId = groupMap["weekly-roundup"];
+  const groupId = groupMap[MAILERLITE_AUDIENCE_GROUP_KEY];
   if (!groupId) {
     return {
       mode: "skipped",
-      reason: "MAILERLITE_GROUPS missing 'weekly-roundup' key.",
+      reason: `MAILERLITE_GROUPS missing '${MAILERLITE_AUDIENCE_GROUP_KEY}' key.`,
       supabaseActiveCount: 0,
       mailerLiteActiveCount: 0,
       pushedToMailerLite: 0,
@@ -185,24 +188,31 @@ export async function reconcileNewsletterSubscribers(): Promise<ReconcilerRunRes
   const { emails: mailerLiteActive, inactiveEmails: mailerLiteInactive } =
     await fetchAllMailerLiteSubscribersInGroup(groupId);
 
+  const hasDedicatedWelcomeGroup = Boolean(groupMap[MAILERLITE_WELCOME_GROUP_KEY]);
+  const pushSkippedReason = hasDedicatedWelcomeGroup
+    ? undefined
+    : `Skipping MailerLite re-adds until '${MAILERLITE_WELCOME_GROUP_KEY}' is configured to avoid retriggering the welcome automation from '${MAILERLITE_AUDIENCE_GROUP_KEY}'.`;
+
   // Direction A: Supabase active but missing from MailerLite → push to MailerLite
   let pushed = 0;
   let failures = 0;
   const supabaseActiveEntries = Array.from(supabaseActive.entries());
-  for (const [email, fields] of supabaseActiveEntries) {
-    if (mailerLiteActive.has(email)) continue;
-    if (mailerLiteInactive.has(email)) continue; // they unsubscribed; respect that
-    try {
-      const resp = await pushSubscriberToMailerLite({
-        email,
-        firstName: fields.firstName,
-        referralToken: fields.referralToken,
-        groupId
-      });
-      if (resp.ok) pushed += 1;
-      else failures += 1;
-    } catch {
-      failures += 1;
+  if (hasDedicatedWelcomeGroup) {
+    for (const [email, fields] of supabaseActiveEntries) {
+      if (mailerLiteActive.has(email)) continue;
+      if (mailerLiteInactive.has(email)) continue; // they unsubscribed; respect that
+      try {
+        const resp = await pushSubscriberToMailerLite({
+          email,
+          firstName: fields.firstName,
+          referralToken: fields.referralToken,
+          groupId
+        });
+        if (resp.ok) pushed += 1;
+        else failures += 1;
+      } catch {
+        failures += 1;
+      }
     }
   }
 
@@ -231,6 +241,7 @@ export async function reconcileNewsletterSubscribers(): Promise<ReconcilerRunRes
     mailerLiteActiveCount: mailerLiteActive.size,
     pushedToMailerLite: pushed,
     markedInactiveInSupabase: markedInactive,
-    failures
+    failures,
+    pushSkippedReason
   };
 }

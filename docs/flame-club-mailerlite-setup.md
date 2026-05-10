@@ -64,7 +64,7 @@ Once approved, configure these:
 
 ## Step 4 — Create the Groups
 
-In MailerLite, **Groups** = Kit's "Tags." Each subscriber can belong to many groups. Our system uses 7 groups.
+In MailerLite, **Groups** = Kit's "Tags." Each subscriber can belong to many groups. Our system uses 8 groups.
 
 **Subscribers → Groups → Create new group** — create each of these. Spelling and casing matter — the codebase writes these names verbatim and they're keyed in your env var (step 9).
 
@@ -76,6 +76,12 @@ Segmentation groups (the four newsletter lanes already used by the existing sign
 | `Flame Club — Recipe Club` | `recipe-club` | 186408230235145839
 | `Flame Club — Hot Sauce Shelf` | `hot-sauce-shelf` | 186408240792208520
 | `Flame Club — Cook / Shop` | `cook-shop` | 186408251815888443
+
+Onboarding group (used only to trigger the welcome series):
+
+| Group name | Internal key |
+| --- | --- |
+| `Flame Club — Welcome Sequence` | `welcome-sequence` |
 
 Referral milestone groups (joined automatically by our app when a subscriber hits the threshold):
 
@@ -117,7 +123,7 @@ Automation → **Create automation** → **Build from scratch**
 
 - Name: `Welcome — Flame Club`
 - **Trigger:** `When a subscriber joins a group`
-- **Group:** select `Flame Club — Weekly Roundup` (this is the default group every signup joins)
+- **Group:** select `Flame Club — Welcome Sequence`
 - **Steps:**
   1. **Email** — paste Email #1 from [`flame-club-welcome-sequence.md`](./flame-club-welcome-sequence.md). Subject + content as documented. Send: **immediately** (no delay).
   2. **Delay** — `3 days`
@@ -127,6 +133,11 @@ Automation → **Create automation** → **Build from scratch**
 - Workflow settings:
   - Allow re-entry: **No** (a subscriber should not get the welcome series twice)
 - Save → **Start** the automation (it stays in Draft until you start it — automations in Draft do not fire)
+
+Important:
+- Do **not** trigger the welcome automation from `Flame Club — Weekly Roundup`.
+- `weekly-roundup` is the ongoing audience group used for newsletter delivery and reconciliation.
+- Using `weekly-roundup` as the welcome trigger can resend Email #1 when existing subscribers are re-added to the audience group later.
 
 ---
 
@@ -162,7 +173,7 @@ In Vercel → Project → Settings → Environment Variables, add for **Producti
 
 ```
 MAILERLITE_API_KEY=ml_xxxxxxxxxxxxxxxxxxxxxx
-MAILERLITE_GROUPS={"weekly-roundup":"123456","recipe-club":"123457","hot-sauce-shelf":"123458","cook-shop":"123459","referrer-tier-1":"123460","referrer-tier-2":"123461","referrer-tier-3":"123462"}
+MAILERLITE_GROUPS={"weekly-roundup":"123456","recipe-club":"123457","hot-sauce-shelf":"123458","cook-shop":"123459","welcome-sequence":"123460","referrer-tier-1":"123461","referrer-tier-2":"123462","referrer-tier-3":"123463"}
 ```
 
 Replace each `123456` placeholder with the real Group ID from step 4.

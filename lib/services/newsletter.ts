@@ -372,6 +372,8 @@ async function syncSubscriberToKit(payload: {
 }
 
 let cachedMailerLiteGroupMap: Record<string, string> | null = null;
+const MAILERLITE_AUDIENCE_GROUP_KEY = "weekly-roundup";
+const MAILERLITE_WELCOME_GROUP_KEY = "welcome-sequence";
 
 function getMailerLiteGroupMap(): Record<string, string> {
   if (cachedMailerLiteGroupMap) return cachedMailerLiteGroupMap;
@@ -397,16 +399,35 @@ function getMailerLiteGroupMap(): Record<string, string> {
   return cachedMailerLiteGroupMap;
 }
 
+function hasDedicatedMailerLiteWelcomeGroup(groupMap: Record<string, string>) {
+  return Boolean(groupMap[MAILERLITE_WELCOME_GROUP_KEY]);
+}
+
 async function syncSubscriberToMailerLite(payload: {
   email: string;
   firstName?: string;
   tags: string[];
   fields: Record<string, unknown>;
+  isNewSubscriber?: boolean;
 }) {
   if (!flags.hasMailerLite) return;
 
   const groupMap = getMailerLiteGroupMap();
-  const groupIds = payload.tags
+  const groupKeys = Array.from(new Set(payload.tags.filter(Boolean)));
+  const hasDedicatedWelcomeGroup = hasDedicatedMailerLiteWelcomeGroup(groupMap);
+
+  if (payload.isNewSubscriber && hasDedicatedWelcomeGroup) {
+    groupKeys.push(MAILERLITE_WELCOME_GROUP_KEY);
+  }
+
+  // If onboarding still uses the legacy weekly-roundup trigger, avoid
+  // re-adding existing subscribers to that group during profile / referral
+  // syncs. That retriggers the first welcome email in MailerLite.
+  const safeGroupKeys = !payload.isNewSubscriber && !hasDedicatedWelcomeGroup
+    ? groupKeys.filter((key) => key !== MAILERLITE_AUDIENCE_GROUP_KEY)
+    : groupKeys;
+
+  const groupIds = safeGroupKeys
     .map((tag) => groupMap[tag])
     .filter((id): id is string => Boolean(id));
 
@@ -447,6 +468,7 @@ async function syncSubscriberToProvider(payload: {
   firstName?: string;
   tags: string[];
   fields: Record<string, unknown>;
+  isNewSubscriber?: boolean;
 }) {
   // MailerLite takes precedence if configured. ConvertKit remains as a
   // fallback so existing deployments keep working until the env is swapped.
@@ -525,7 +547,8 @@ async function recordReferralAndMaybeReward(input: {
         email: referrer.email,
         firstName: referrer.first_name ?? undefined,
         tags: updatedTags,
-        fields: { referral_count: newCount, referral_tier: reachedTier.tier }
+        fields: { referral_count: newCount, referral_tier: reachedTier.tier },
+        isNewSubscriber: false
       });
     } catch {
       // swallow — provider retry will happen on the referrer's next signup-related event
@@ -619,7 +642,8 @@ export async function subscribeToNewsletter({
     email,
     firstName,
     tags: mergedInputTags,
-    fields: providerFields
+    fields: providerFields,
+    isNewSubscriber
   });
 
   const hasProvider = flags.hasMailerLite || flags.hasConvertKit;
