@@ -562,15 +562,6 @@ export default async function RecipePage({
                 >
                   Community notes
                 </a>
-                <div className="hidden sm:contents">
-                  <RecipeDisplayControls
-                    targetId="recipe-detail-shell"
-                    recipeTitle={recipe.title}
-                    recipeUrl={absoluteUrl(`/recipes/${recipe.slug}`)}
-                    contentId={recipe.id}
-                    contentSlug={recipe.slug}
-                  />
-                </div>
               </div>
 
               <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-5">
@@ -611,20 +602,6 @@ export default async function RecipePage({
                 ))}
               </div>
 
-              <div className="mt-8 max-w-3xl print-hidden">
-                <ShareBar
-                  title={recipe.title}
-                  description={recipe.description}
-                  url={absoluteUrl(`/recipes/${recipe.slug}`)}
-                  imageUrl={hero.imageUrl}
-                  contentType="recipe"
-                  contentId={recipe.id}
-                  contentSlug={recipe.slug}
-                />
-              </div>
-              <div className="mt-4 max-w-3xl print-hidden">
-                <AffiliateDisclosure compact />
-              </div>
             </div>
 
             <div className="recipe-hero-media relative hidden min-w-0 min-h-[260px] border-t border-white/10 sm:min-h-[340px] xl:block xl:min-h-full xl:border-l xl:border-t-0">
@@ -666,6 +643,32 @@ export default async function RecipePage({
             </div>
           </div>
         </section>
+
+        <div className="print-hidden flex flex-wrap items-center gap-3">
+          <RecipeDisplayControls
+            targetId="recipe-detail-shell"
+            recipeTitle={recipe.title}
+            recipeUrl={absoluteUrl(`/recipes/${recipe.slug}`)}
+            contentId={recipe.id}
+            contentSlug={recipe.slug}
+          />
+        </div>
+
+        <div className="print-hidden">
+          <ShareBar
+            title={recipe.title}
+            description={recipe.description}
+            url={absoluteUrl(`/recipes/${recipe.slug}`)}
+            imageUrl={hero.imageUrl}
+            contentType="recipe"
+            contentId={recipe.id}
+            contentSlug={recipe.slug}
+          />
+        </div>
+
+        <div className="print-hidden">
+          <AffiliateDisclosure compact />
+        </div>
 
         {primaryRecipeOffers.length ? (
           <section className="recipe-core-panel rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6 sm:p-7 print-hidden">
