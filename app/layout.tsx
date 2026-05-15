@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Inter } from "next/font/google";
 import Script from "next/script";
 import { Suspense } from "react";
 
@@ -7,16 +7,10 @@ import "@/app/globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-body",
+  variable: "--font-sans",
   display: "swap"
 });
 
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-display",
-  display: "swap",
-  axes: ["SOFT", "opsz"]
-});
 import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -39,7 +33,7 @@ export default function RootLayout({
   const adsenseClientId = sanitizeAdsenseClientId(env.NEXT_PUBLIC_ADSENSE_ID);
 
   return (
-    <html lang="en" className={`${inter.variable} ${fraunces.variable}`}>
+    <html lang="en" className={inter.variable}>
       <head>
         {adsenseClientId ? (
           <>
