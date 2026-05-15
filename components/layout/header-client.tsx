@@ -8,14 +8,11 @@ import { SearchForm } from "@/components/search/search-form";
 
 const primaryNav = [
   { href: "/recipes", label: "Recipes" },
-  { href: "/blog", label: "Blog" },
   { href: "/reviews", label: "Reviews" },
-  { href: "/how-to", label: "How-To" }
-];
-
-const secondaryNav = [
   { href: "/hot-sauces", label: "Hot Sauces" },
   { href: "/peppers", label: "Peppers" },
+  { href: "/how-to", label: "How-To" },
+  { href: "/blog", label: "Blog" },
   { href: "/shop", label: "Shop" }
 ];
 
@@ -42,12 +39,12 @@ export function HeaderClient({
             subtitleClassName="tracking-[0.16em]"
             onClick={() => setMobileOpen(false)}
           />
-          <nav className="hidden items-center gap-5 lg:flex xl:gap-6">
+          <nav className="hidden items-center gap-3 lg:flex xl:gap-5">
             {primaryNav.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-sm font-semibold text-charcoal/75 hover:text-charcoal"
+                className="whitespace-nowrap text-sm font-semibold text-charcoal/75 hover:text-charcoal"
               >
                 {item.label}
               </Link>
@@ -116,31 +113,13 @@ export function HeaderClient({
             id="mobile-header-nav"
             className="mt-4 rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-4 lg:hidden"
           >
-            <div>
-              <p className="text-xs uppercase tracking-[0.22em] text-ember">Primary paths</p>
-            </div>
-            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <div className="grid gap-2 sm:grid-cols-2">
               {primaryNav.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className="rounded-[1.1rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-3 text-sm font-semibold text-charcoal/80"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-            <div className="mt-5">
-              <p className="text-xs uppercase tracking-[0.22em] text-ember">Explore more</p>
-            </div>
-            <div className="mt-3 grid gap-2 sm:grid-cols-3">
-              {secondaryNav.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-[1.1rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-3 text-sm font-semibold text-charcoal/75"
                 >
                   {item.label}
                 </Link>

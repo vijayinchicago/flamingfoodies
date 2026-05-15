@@ -45,39 +45,12 @@ export default async function HomePage() {
                 Cook approachable dinners, read practical reviews, and get sharper spicy-food
                 guidance without turning every meal into a stunt.
               </p>
-              <div className="mt-6 flex flex-col gap-4 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center">
+              <div className="mt-6 sm:mt-8">
                 <Link
                   href="/recipes"
                   className="inline-flex w-full justify-center rounded-full bg-gradient-to-r from-flame to-ember px-6 py-3 font-semibold text-white sm:w-auto"
                 >
                   Browse recipes
-                </Link>
-                <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-cream/85">
-                  <Link href="/reviews" className="underline-offset-4 hover:text-cream hover:underline">
-                    Read reviews
-                  </Link>
-                  <Link href="/how-to" className="underline-offset-4 hover:text-cream hover:underline">
-                    Open how-to guides
-                  </Link>
-                </div>
-              </div>
-
-              <div className="mt-8 hidden gap-4 text-sm text-cream/85 sm:grid sm:grid-cols-2">
-                <Link
-                  href="/recipes?maxTime=45&sort=quickest"
-                  className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 transition hover:bg-white/[0.08]"
-                >
-                  <p className="text-xs uppercase tracking-[0.2em] text-ember">Dinner tonight</p>
-                  <p className="mt-2 font-display text-3xl text-cream">Quick recipes</p>
-                  <p className="mt-2 leading-6">Jump straight into 45-minute dinners instead of digging through the full archive first.</p>
-                </Link>
-                <Link
-                  href="/recipes?heat=mild&maxTime=45&sort=quickest"
-                  className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 transition hover:bg-white/[0.08]"
-                >
-                  <p className="text-xs uppercase tracking-[0.2em] text-ember">New to spice?</p>
-                  <p className="mt-2 font-display text-3xl text-cream">Start mild</p>
-                  <p className="mt-2 leading-6">Use the gentler recipe lane if you want flavor first and less risk on the first pass.</p>
                 </Link>
               </div>
             </div>
