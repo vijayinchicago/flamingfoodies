@@ -100,7 +100,7 @@ export function RecipeMethodSection({
               }}
               className={`w-full rounded-[1.25rem] px-4 py-3 text-left text-sm font-semibold leading-snug transition xl:w-auto xl:rounded-full xl:py-2 ${
                 activeStep === step.step
-                  ? "bg-charcoal text-charcoal"
+                  ? "bg-charcoal text-cream"
                   : "border border-charcoal/10 text-charcoal"
               }`}
             >

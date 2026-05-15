@@ -175,7 +175,7 @@ export function RecipeBrowseClient({
   const filterFieldClass =
     "rounded-2xl border border-charcoal/15 bg-white px-4 py-3 text-sm text-charcoal outline-none transition focus:border-ember focus:ring-2 focus:ring-ember/15";
   const chipBase = "rounded-full border px-4 py-2 text-sm font-semibold transition";
-  const chipActive = "border-charcoal bg-charcoal text-charcoal shadow-sm";
+  const chipActive = "border-charcoal bg-charcoal text-cream shadow-sm";
   const chipInactive =
     "border-charcoal/15 bg-charcoal/[0.04] text-charcoal/80 hover:border-charcoal/20 hover:bg-charcoal/[0.06]";
   const chipHeatActive = "border-ember bg-ember text-white shadow-sm";
@@ -187,24 +187,12 @@ export function RecipeBrowseClient({
         <div className="mt-10 space-y-10">
           {editorialSections.map((section) => (
             <div key={section.key}>
-              <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-                <div>
-                  <p className="eyebrow">{section.eyebrow}</p>
-                  <h2 className="mt-3 font-display text-4xl text-charcoal">{section.title}</h2>
-                  <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/70">
-                    {section.description}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const anchor = document.getElementById("recipe-browse");
-                    anchor?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                  className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
-                >
-                  Browse the full archive
-                </button>
+              <div>
+                <p className="eyebrow">{section.eyebrow}</p>
+                <h2 className="mt-3 font-display text-4xl text-charcoal">{section.title}</h2>
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/70">
+                  {section.description}
+                </p>
               </div>
               <div className="mt-6 grid gap-6 lg:grid-cols-3 xl:grid-cols-4">
                 {section.items.map((recipe) => (
@@ -384,7 +372,7 @@ export function RecipeBrowseClient({
             <button
               type="button"
               onClick={() => setPage((p) => p + 1)}
-              className="rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-charcoal"
+              className="rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-cream"
             >
               Next page
             </button>
@@ -406,7 +394,7 @@ export function RecipeBrowseClient({
             </p>
             <Link
               href="/shop"
-              className="mt-6 inline-flex rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-charcoal"
+              className="mt-6 inline-flex rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-cream"
             >
               Shop sauces and gear
             </Link>

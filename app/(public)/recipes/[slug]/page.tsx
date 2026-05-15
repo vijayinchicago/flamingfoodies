@@ -1119,7 +1119,7 @@ export default async function RecipePage({
                               {review.productName}
                             </h4>
                             <div className="mt-3 flex flex-wrap gap-2 text-sm">
-                              <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 font-semibold text-amber-700">
+                              <span className="rounded-full border border-amber-500/40 bg-amber-100 px-3 py-1 font-semibold text-amber-800">
                                 {review.rating.toFixed(1)}/5
                               </span>
                               {review.heatLevel ? (

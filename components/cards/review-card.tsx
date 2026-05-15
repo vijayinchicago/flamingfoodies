@@ -57,7 +57,7 @@ export function ReviewCard({ review }: { review: Review }) {
           </p>
         </div>
         <div className="mt-5 flex flex-wrap items-center gap-3">
-          <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 text-sm font-semibold text-amber-100">
+          <span className="rounded-full border border-amber-500/40 bg-amber-100 px-3 py-1 text-sm font-semibold text-amber-800">
             {review.rating.toFixed(1)}/5
           </span>
           {review.priceUsd ? (

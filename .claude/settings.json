@@ -19,12 +19,25 @@
       "Bash(ls /Users/vijaysingh/apps/flamingfoodies/lib/structured-data*)",
       "Bash(npm run *)",
       "Bash(sed -i '' 's/View on Amazon ↗/Check price ↗/g' 'app/\\(public\\)/brands/[slug]/page.tsx' 'app/\\(public\\)/festivals/[slug]/page.tsx' 'app/\\(public\\)/how-to/[slug]/page.tsx' 'app/\\(public\\)/peppers/[slug]/page.tsx')",
-      "Bash(sed -i '' 's/View on Amazon/Check price on Amazon/g' 'app/\\(public\\)/page.tsx' 'app/\\(public\\)/recipes/[slug]/page.tsx' 'app/\\(public\\)/reviews/[slug]/page.tsx' 'app/\\(public\\)/reviews/page.tsx' 'app/\\(public\\)/subscriptions/page.tsx' components/recipes/recipe-browse-client.tsx)"
+      "Bash(sed -i '' 's/View on Amazon/Check price on Amazon/g' 'app/\\(public\\)/page.tsx' 'app/\\(public\\)/recipes/[slug]/page.tsx' 'app/\\(public\\)/reviews/[slug]/page.tsx' 'app/\\(public\\)/reviews/page.tsx' 'app/\\(public\\)/subscriptions/page.tsx' components/recipes/recipe-browse-client.tsx)",
+      "Bash(git -C /Users/vijaysingh/apps/flamingfoodies log --oneline --all)",
+      "Bash(echo \"EXIT: $?\")",
+      "Bash(npx next *)",
+      "Bash(npx vitest *)",
+      "Bash(grep -E \"^\\(tsx|ts-node|esbuild-runner\\)$\")",
+      "Bash(vercel --version)",
+      "Bash(vercel env *)",
+      "Read(//private/tmp/**)",
+      "Bash(awk -F= '{print $1 \"=\" \\(length\\($2\\)>10 ? \"<set, length \" length\\($2\\) \">\" : \"<empty>\"\\)}')",
+      "Bash(npx --yes supabase@latest --version)",
+      "Bash(brew --version)",
+      "Bash(/Users/vijaysingh/.nvm/versions/node/v20.19.4/bin/npx --yes supabase@latest --version)"
     ],
     "additionalDirectories": [
       "/Users/vijaysingh/apps/flamingfoodies/app/(public)/seasonal",
       "/Users/vijaysingh/apps/flamingfoodies/app/(public)/festivals",
-      "/Users/vijaysingh/apps/flamingfoodies/app/(public)/peppers"
+      "/Users/vijaysingh/apps/flamingfoodies/app/(public)/peppers",
+      "/private/tmp"
     ]
   }
 }
