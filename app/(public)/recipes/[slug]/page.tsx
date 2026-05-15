@@ -15,6 +15,7 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { RecipeBrowseStrip } from "@/components/recipes/recipe-browse-strip";
 import { RecipeIngredientRail } from "@/components/recipes/recipe-ingredient-rail";
 import { RecipeMethodSection } from "@/components/recipes/recipe-method-section";
+import { RecipeStickyBar } from "@/components/recipes/recipe-sticky-bar";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { FaqSchema } from "@/components/schema/faq-schema";
 import { RecipeSchema } from "@/components/schema/recipe-schema";
@@ -516,39 +517,8 @@ export default async function RecipePage({
               <h1 className="mt-5 max-w-4xl font-display text-4xl leading-[0.98] text-cream sm:text-5xl lg:text-7xl">
                 {recipe.title}
               </h1>
-              <p className="mt-5 max-w-3xl text-base leading-7 text-cream/74 sm:text-lg sm:leading-8 lg:text-xl">
-                {recipe.description}
-              </p>
 
-              <div className="mt-8 flex flex-col gap-3 text-sm sm:flex-row sm:flex-wrap">
-                <a
-                  href="#ingredients"
-                  className="inline-flex justify-center rounded-full bg-white px-5 py-3 font-semibold text-charcoal"
-                >
-                  Jump to ingredients
-                </a>
-                <a
-                  href="#method"
-                  className="inline-flex justify-center rounded-full border border-white/15 px-5 py-3 font-semibold text-cream"
-                >
-                  Jump to method
-                </a>
-                <a
-                  href="#comments"
-                  className="inline-flex justify-center rounded-full border border-white/15 px-5 py-3 font-semibold text-cream"
-                >
-                  Community notes
-                </a>
-                <RecipeDisplayControls
-                  targetId="recipe-detail-shell"
-                  recipeTitle={recipe.title}
-                  recipeUrl={absoluteUrl(`/recipes/${recipe.slug}`)}
-                  contentId={recipe.id}
-                  contentSlug={recipe.slug}
-                />
-              </div>
-
-              <div className="recipe-hero-media relative mt-8 min-h-[260px] overflow-hidden rounded-[2rem] border border-white/10 sm:min-h-[340px] xl:hidden">
+              <div className="recipe-hero-media relative mt-6 min-h-[260px] overflow-hidden rounded-[2rem] border border-white/10 sm:min-h-[340px] xl:hidden">
                 <PinterestSaveButton
                   title={recipe.title}
                   description={recipe.description}
@@ -567,6 +537,40 @@ export default async function RecipePage({
                   className="object-cover"
                   priority
                 />
+              </div>
+
+              <p className="mt-6 max-w-3xl text-base leading-7 text-cream/85 sm:text-lg sm:leading-8 lg:text-xl">
+                {recipe.description}
+              </p>
+
+              <div className="mt-6 flex flex-col gap-3 text-sm sm:flex-row sm:flex-wrap">
+                <a
+                  href="#ingredients"
+                  className="inline-flex w-full justify-center rounded-full bg-white px-5 py-3 font-semibold text-charcoal sm:w-auto"
+                >
+                  Jump to ingredients
+                </a>
+                <a
+                  href="#method"
+                  className="hidden justify-center rounded-full border border-white/15 px-5 py-3 font-semibold text-cream sm:inline-flex"
+                >
+                  Jump to method
+                </a>
+                <a
+                  href="#comments"
+                  className="hidden justify-center rounded-full border border-white/15 px-5 py-3 font-semibold text-cream sm:inline-flex"
+                >
+                  Community notes
+                </a>
+                <div className="hidden sm:contents">
+                  <RecipeDisplayControls
+                    targetId="recipe-detail-shell"
+                    recipeTitle={recipe.title}
+                    recipeUrl={absoluteUrl(`/recipes/${recipe.slug}`)}
+                    contentId={recipe.id}
+                    contentSlug={recipe.slug}
+                  />
+                </div>
               </div>
 
               <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-5">
@@ -646,8 +650,8 @@ export default async function RecipePage({
               <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
                 <div className="rounded-[2rem] border border-white/10 bg-charcoal/75 p-6 backdrop-blur-md">
                   <p className="text-xs uppercase tracking-[0.24em] text-ember">Why this one lands</p>
-                  <p className="mt-3 text-base leading-7 text-cream/78">{heroSummary}</p>
-                  <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-cream/72">
+                  <p className="mt-3 text-base leading-7 text-cream/85">{heroSummary}</p>
+                  <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-cream/85">
                     <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
                       <p className="text-xs uppercase tracking-[0.2em] text-ember">Heat</p>
                       <p className="mt-2 font-semibold text-cream">{heatNotes[recipe.heatLevel].title}</p>
@@ -679,7 +683,7 @@ export default async function RecipePage({
                 Browse all picks
               </Link>
             </div>
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/68">
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/85">
               These are the highest-signal buys for this specific recipe: one sauce, one pantry
               staple, and one tool that genuinely makes the dish easier to repeat.
             </p>
@@ -694,7 +698,7 @@ export default async function RecipePage({
                   <p className="mt-2 text-xs uppercase tracking-[0.18em] text-cream/50">
                     {offer.supportingLabel}
                   </p>
-                  <p className="mt-4 text-sm leading-7 text-cream/72">{offer.copy}</p>
+                  <p className="mt-4 text-sm leading-7 text-cream/85">{offer.copy}</p>
                   <AffiliateLink
                     href={offer.href}
                     partnerKey={offer.partnerKey}
@@ -720,22 +724,22 @@ export default async function RecipePage({
           <article className="recipe-core-panel rounded-[2rem] border border-white/10 bg-white/[0.05] p-6">
             <p className="text-xs uppercase tracking-[0.24em] text-ember">Heat profile</p>
             <h2 className="mt-3 font-display text-3xl text-cream">{heatNotes[recipe.heatLevel].title}</h2>
-            <p className="mt-3 text-sm leading-7 text-cream/72">{heatNotes[recipe.heatLevel].copy}</p>
+            <p className="mt-3 text-sm leading-7 text-cream/85">{heatNotes[recipe.heatLevel].copy}</p>
           </article>
           <article className="recipe-core-panel rounded-[2rem] border border-white/10 bg-white/[0.05] p-6">
             <p className="text-xs uppercase tracking-[0.24em] text-ember">Skill level</p>
             <h2 className="mt-3 font-display text-3xl text-cream">{formatLabel(recipe.difficulty)}</h2>
-            <p className="mt-3 text-sm leading-7 text-cream/72">{difficultyNotes[recipe.difficulty]}</p>
+            <p className="mt-3 text-sm leading-7 text-cream/85">{difficultyNotes[recipe.difficulty]}</p>
           </article>
           <article className="recipe-core-panel rounded-[2rem] border border-white/10 bg-white/[0.05] p-6">
             <p className="text-xs uppercase tracking-[0.24em] text-ember">Cooking mode</p>
             <h2 className="mt-3 font-display text-3xl text-cream">{projectCard.title}</h2>
-            <p className="mt-3 text-sm leading-7 text-cream/72">{projectCard.copy}</p>
+            <p className="mt-3 text-sm leading-7 text-cream/85">{projectCard.copy}</p>
           </article>
           <article className="recipe-core-panel rounded-[2rem] border border-white/10 bg-white/[0.05] p-6">
             <p className="text-xs uppercase tracking-[0.24em] text-ember">Best moment</p>
             <h2 className="mt-3 font-display text-3xl text-cream">{occasionCard.title}</h2>
-            <p className="mt-3 text-sm leading-7 text-cream/72">{occasionCard.copy}</p>
+            <p className="mt-3 text-sm leading-7 text-cream/85">{occasionCard.copy}</p>
           </article>
         </section>
 
@@ -789,7 +793,7 @@ export default async function RecipePage({
                   return (
                     <span
                       key={item}
-                      className="rounded-full border border-white/12 bg-white/[0.05] px-4 py-2 text-sm text-cream/72"
+                      className="rounded-full border border-white/12 bg-white/[0.05] px-4 py-2 text-sm text-cream/85"
                     >
                       {item}
                     </span>
@@ -799,7 +803,7 @@ export default async function RecipePage({
               {recipe.makeAheadNotes ? (
                 <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
                   <p className="text-xs uppercase tracking-[0.22em] text-ember">Make ahead</p>
-                  <p className="mt-3 text-sm leading-7 text-cream/68">{recipe.makeAheadNotes}</p>
+                  <p className="mt-3 text-sm leading-7 text-cream/85">{recipe.makeAheadNotes}</p>
                 </div>
               ) : null}
             </section>
@@ -807,7 +811,7 @@ export default async function RecipePage({
             <section className="recipe-core-panel panel print-hidden p-6 sm:p-7">
               <p className="eyebrow">Cook along</p>
               <h2 className="mt-3 font-display text-4xl text-cream">Save and rate</h2>
-              <p className="mt-3 text-sm leading-7 text-cream/72">
+              <p className="mt-3 text-sm leading-7 text-cream/85">
                 Keep this one in your recipe box, then leave a quick note after you cook it.
               </p>
               <div className="mt-6 space-y-4">
@@ -862,8 +866,8 @@ export default async function RecipePage({
               <h2 className="mt-3 font-display text-5xl text-cream">Editorial notes before you cook</h2>
               <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_0.8fr]">
                 <div>
-                  <p className="text-base leading-8 text-cream/78">{recipe.intro || heroSummary}</p>
-                  <p className="mt-4 text-base leading-8 text-cream/62">
+                  <p className="text-base leading-8 text-cream/85">{recipe.intro || heroSummary}</p>
+                  <p className="mt-4 text-base leading-8 text-cream/80">
                     The goal here is not just heat. It is contrast, pacing, and texture: enough
                     richness to feel satisfying, enough brightness to keep the plate moving, and
                     enough chile character that the spice actually tastes like something.
@@ -895,7 +899,7 @@ export default async function RecipePage({
                   >
                     <p className="eyebrow">{block.eyebrow}</p>
                     <h3 className="mt-3 font-display text-4xl text-cream">{block.title}</h3>
-                    <p className="mt-4 text-sm leading-7 text-cream/72">{block.copy}</p>
+                    <p className="mt-4 text-sm leading-7 text-cream/85">{block.copy}</p>
                   </article>
                 ))}
               </section>
@@ -925,7 +929,7 @@ export default async function RecipePage({
                     {recipe.tips.map((tip) => (
                       <li
                         key={tip}
-                        className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4 text-sm leading-7 text-cream/72"
+                        className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4 text-sm leading-7 text-cream/85"
                       >
                         {tip}
                       </li>
@@ -942,7 +946,7 @@ export default async function RecipePage({
                     {substitutions.map((substitution) => (
                       <div
                         key={substitution}
-                        className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4 text-sm leading-7 text-cream/72"
+                        className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4 text-sm leading-7 text-cream/85"
                       >
                         {substitution}
                       </div>
@@ -950,7 +954,7 @@ export default async function RecipePage({
                     {recipe.variations.map((variation) => (
                       <div
                         key={variation}
-                        className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4 text-sm leading-7 text-cream/72"
+                        className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4 text-sm leading-7 text-cream/85"
                       >
                         {variation}
                       </div>
@@ -967,19 +971,19 @@ export default async function RecipePage({
                     {recipe.makeAheadNotes ? (
                       <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
                         <p className="text-xs uppercase tracking-[0.18em] text-ember">Make ahead</p>
-                        <p className="mt-3 text-sm leading-7 text-cream/72">{recipe.makeAheadNotes}</p>
+                        <p className="mt-3 text-sm leading-7 text-cream/85">{recipe.makeAheadNotes}</p>
                       </div>
                     ) : null}
                     {recipe.storageNotes ? (
                       <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
                         <p className="text-xs uppercase tracking-[0.18em] text-ember">Storage</p>
-                        <p className="mt-3 text-sm leading-7 text-cream/72">{recipe.storageNotes}</p>
+                        <p className="mt-3 text-sm leading-7 text-cream/85">{recipe.storageNotes}</p>
                       </div>
                     ) : null}
                     {recipe.reheatNotes ? (
                       <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
                         <p className="text-xs uppercase tracking-[0.18em] text-ember">Reheat</p>
-                        <p className="mt-3 text-sm leading-7 text-cream/72">{recipe.reheatNotes}</p>
+                        <p className="mt-3 text-sm leading-7 text-cream/85">{recipe.reheatNotes}</p>
                       </div>
                     ) : null}
                   </div>
@@ -994,7 +998,7 @@ export default async function RecipePage({
                     {servingSuggestions.map((suggestion) => (
                       <li
                         key={suggestion}
-                        className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4 text-sm leading-7 text-cream/72"
+                        className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4 text-sm leading-7 text-cream/85"
                       >
                         {suggestion}
                       </li>
@@ -1017,7 +1021,7 @@ export default async function RecipePage({
                       <summary className="cursor-pointer list-none text-base font-semibold text-cream">
                         {faq.question}
                       </summary>
-                      <p className="mt-4 text-sm leading-7 text-cream/72">{faq.answer}</p>
+                      <p className="mt-4 text-sm leading-7 text-cream/85">{faq.answer}</p>
                     </details>
                   ))}
                 </div>
@@ -1124,7 +1128,7 @@ export default async function RecipePage({
                                 </span>
                               ) : null}
                             </div>
-                            <p className="mt-4 text-sm leading-7 text-cream/72">{reason}</p>
+                            <p className="mt-4 text-sm leading-7 text-cream/85">{reason}</p>
                             <p className="mt-3 text-sm leading-7 text-cream/56">
                               {review.description}
                             </p>
@@ -1192,7 +1196,7 @@ export default async function RecipePage({
                             <h4 className="mt-3 font-display text-3xl text-cream">
                               {link.product}
                             </h4>
-                            <p className="mt-3 text-sm leading-7 text-cream/72">
+                            <p className="mt-3 text-sm leading-7 text-cream/85">
                               {link.bestFor}. {link.description}
                             </p>
                             <AffiliateLink
@@ -1237,7 +1241,7 @@ export default async function RecipePage({
                             <h4 className="mt-3 font-display text-3xl text-cream">
                               {link.product}
                             </h4>
-                            <p className="mt-3 text-sm leading-7 text-cream/72">
+                            <p className="mt-3 text-sm leading-7 text-cream/85">
                               {link.bestFor}. {link.description}
                             </p>
                             <AffiliateLink
@@ -1308,7 +1312,7 @@ export default async function RecipePage({
                             {item.badge}
                           </p>
                           <h4 className="mt-3 font-display text-3xl text-cream">{item.name}</h4>
-                          <p className="mt-3 text-sm leading-7 text-cream/72">
+                          <p className="mt-3 text-sm leading-7 text-cream/85">
                             {item.description}
                           </p>
                           <Link
@@ -1327,6 +1331,7 @@ export default async function RecipePage({
           </div>
         ) : null}
       </div>
+      <RecipeStickyBar targetId="recipe-detail-shell" />
     </article>
   );
 }

@@ -40,7 +40,7 @@ export default async function HomePage() {
               <h1 className="mt-3 max-w-4xl font-display text-[1.75rem] leading-[1.05] text-cream sm:mt-4 sm:text-6xl sm:leading-[0.98] xl:text-[5.35rem]">
                 Flavor-first spicy food for real kitchens and mixed tables.
               </h1>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-cream/78 sm:mt-6 sm:text-lg sm:leading-8">
+              <p className="mt-4 max-w-2xl text-base leading-7 text-cream/85 sm:mt-6 sm:text-lg sm:leading-8">
                 Cook approachable dinners, read practical reviews, and get sharper spicy-food
                 guidance without turning every meal into a stunt.
               </p>
@@ -51,7 +51,7 @@ export default async function HomePage() {
                 >
                   Browse recipes
                 </Link>
-                <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-cream/72">
+                <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-cream/85">
                   <Link href="/reviews" className="underline-offset-4 hover:text-cream hover:underline">
                     Read reviews
                   </Link>
@@ -61,7 +61,7 @@ export default async function HomePage() {
                 </div>
               </div>
 
-              <div className="mt-8 hidden gap-4 text-sm text-cream/72 sm:grid sm:grid-cols-2">
+              <div className="mt-8 hidden gap-4 text-sm text-cream/85 sm:grid sm:grid-cols-2">
                 <Link
                   href="/recipes?maxTime=45&sort=quickest"
                   className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 transition hover:bg-white/[0.08]"
@@ -101,7 +101,7 @@ export default async function HomePage() {
                     <div className="rounded-[2rem] border border-white/10 bg-charcoal/78 p-6 backdrop-blur-md">
                       <p className="text-xs uppercase tracking-[0.24em] text-ember">Tonight&apos;s pick</p>
                       <h2 className="mt-3 font-display text-4xl text-cream">{featuredRecipe.title}</h2>
-                      <p className="mt-4 text-sm leading-7 text-cream/78">{featuredRecipe.description}</p>
+                      <p className="mt-4 text-sm leading-7 text-cream/85">{featuredRecipe.description}</p>
                       <div className="mt-5 flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-cream/58">
                         <span>{featuredRecipe.totalTimeMinutes} min</span>
                         <span>{featuredRecipe.heatLevel} heat</span>
@@ -116,7 +116,7 @@ export default async function HomePage() {
               <div className="panel p-7">
                 <p className="eyebrow">Review path</p>
                 <h2 className="mt-3 font-display text-4xl text-cream">Find the right bottle faster.</h2>
-                <p className="mt-4 text-sm leading-7 text-cream/70">
+                <p className="mt-4 text-sm leading-7 text-cream/85">
                   Start with practical reviews that separate everyday pours, starter bottles, and
                   high-heat outliers before you buy anything.
                 </p>
@@ -166,7 +166,7 @@ export default async function HomePage() {
             <Link key={guide.href} href={guide.href} className="panel p-7 transition hover:bg-white/[0.08]">
               <p className="eyebrow">{guide.eyebrow}</p>
               <h3 className="mt-3 font-display text-4xl text-cream">{guide.title}</h3>
-              <p className="mt-4 text-sm leading-7 text-cream/72">{guide.description}</p>
+              <p className="mt-4 text-sm leading-7 text-cream/85">{guide.description}</p>
               <span className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream">
                 Open guide
               </span>
@@ -186,7 +186,7 @@ export default async function HomePage() {
             <div key={post.id} className="panel p-7">
               <p className="eyebrow">{post.category}</p>
               <h3 className="mt-4 font-display text-4xl text-cream">{post.title}</h3>
-              <p className="mt-4 text-sm leading-7 text-cream/72">{post.description}</p>
+              <p className="mt-4 text-sm leading-7 text-cream/85">{post.description}</p>
               <Link
                 href={`/blog/${post.slug}`}
                 className="mt-6 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
@@ -214,7 +214,7 @@ export default async function HomePage() {
             <article key={occasion.slug} className="panel p-7">
               <p className="eyebrow">In season now</p>
               <h3 className="mt-3 font-display text-4xl text-cream">{occasion.title}</h3>
-              <p className="mt-4 text-sm leading-7 text-cream/72">{occasion.tagline}</p>
+              <p className="mt-4 text-sm leading-7 text-cream/85">{occasion.tagline}</p>
               <Link
                 href={`/seasonal/${occasion.slug}`}
                 className="mt-5 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-4 py-2 text-sm font-semibold text-white"
@@ -226,7 +226,7 @@ export default async function HomePage() {
           {editorialFranchises.map((franchise) => (
             <article key={franchise.key} className="panel p-7">
               <p className="eyebrow">{franchise.title}</p>
-              <p className="mt-4 text-sm leading-7 text-cream/72">{franchise.description}</p>
+              <p className="mt-4 text-sm leading-7 text-cream/85">{franchise.description}</p>
               {franchise.posts[0] ? (
                 <Link
                   href={`/blog/${franchise.posts[0].slug}`}

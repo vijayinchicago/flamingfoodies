@@ -16,8 +16,8 @@ const config: Config = {
         ash: "#2D2926"
       },
       fontFamily: {
-        display: ['"Avenir Next"', '"Segoe UI"', "Helvetica", "Arial", "sans-serif"],
-        body: ['"Avenir Next"', '"Segoe UI"', "Helvetica", "Arial", "sans-serif"]
+        display: ["var(--font-display)", "Georgia", "serif"],
+        body: ["var(--font-body)", '"Avenir Next"', '"Segoe UI"', "Helvetica", "Arial", "sans-serif"]
       },
       backgroundImage: {
         "flame-gradient":
