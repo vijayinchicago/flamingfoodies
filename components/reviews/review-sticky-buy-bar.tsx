@@ -16,9 +16,9 @@ export function ReviewStickyBuyBar({
   reviewId
 }: ReviewStickyBuyBarProps) {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-white/10 bg-charcoal/95 px-4 py-3 backdrop-blur-xl print:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-charcoal/10 bg-white/85 px-4 py-3 backdrop-blur-xl print:hidden">
       <div className="mx-auto flex max-w-2xl items-center justify-between gap-4">
-        <p className="truncate text-sm font-semibold text-cream">{productName}</p>
+        <p className="truncate text-sm font-semibold text-charcoal">{productName}</p>
         <AffiliateLink
           href={affiliateUrl}
           productName={productName}

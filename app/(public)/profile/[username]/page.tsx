@@ -56,20 +56,20 @@ export default async function ProfilePage({
               alt={profile.displayName}
               width={112}
               height={112}
-              className="h-28 w-28 rounded-full object-cover ring-4 ring-white/10"
+              className="h-28 w-28 rounded-full object-cover ring-4 ring-charcoal/10"
             />
           ) : (
-            <div className="flex h-28 w-28 items-center justify-center rounded-full bg-white/10 text-4xl font-semibold text-cream">
+            <div className="flex h-28 w-28 items-center justify-center rounded-full bg-charcoal/10 text-4xl font-semibold text-charcoal">
               {profile.displayName.slice(0, 1).toUpperCase()}
             </div>
           )}
           <div>
             <p className="eyebrow">Profile</p>
-            <h1 className="mt-4 font-display text-5xl text-cream">{profile.displayName}</h1>
+            <h1 className="mt-4 font-display text-5xl text-charcoal">{profile.displayName}</h1>
           </div>
         </div>
-        <p className="mt-3 max-w-2xl text-sm leading-7 text-cream/75">{profile.bio}</p>
-        <div className="mt-6 flex flex-wrap gap-6 text-sm text-cream/60">
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-charcoal/75">{profile.bio}</p>
+        <div className="mt-6 flex flex-wrap gap-6 text-sm text-charcoal/60">
           <span>Heat score: {profile.heatScore}</span>
           <span>Followers: {profile.followerCount || 0}</span>
           <span>Following: {profile.followingCount || 0}</span>

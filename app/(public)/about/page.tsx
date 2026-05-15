@@ -23,8 +23,8 @@ export default function AboutPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         <article className="panel p-6">
           <p className="eyebrow">What we publish</p>
-          <h2 className="mt-3 font-display text-3xl text-cream">Recipes that hold up in a real kitchen.</h2>
-          <p className="mt-4 text-sm leading-7 text-cream/75">
+          <h2 className="mt-3 font-display text-3xl text-charcoal">Recipes that hold up in a real kitchen.</h2>
+          <p className="mt-4 text-sm leading-7 text-charcoal/75">
             FlamingFoodies focuses on spicy dinners, sauces, sides, and comfort-food lanes that
             still taste complete. The goal is not shock value. The goal is repeatable food with a
             real point of view.
@@ -32,8 +32,8 @@ export default function AboutPage() {
         </article>
         <article className="panel p-6">
           <p className="eyebrow">How we recommend</p>
-          <h2 className="mt-3 font-display text-3xl text-cream">Usefulness beats empty hype.</h2>
-          <p className="mt-4 text-sm leading-7 text-cream/75">
+          <h2 className="mt-3 font-display text-3xl text-charcoal">Usefulness beats empty hype.</h2>
+          <p className="mt-4 text-sm leading-7 text-charcoal/75">
             On the hot sauce side, we care about what a bottle is actually good on, how hot it
             feels in context, and whether it earns space on a real shelf. That is why our reviews
             lean on “best for,” “skip if,” and comparison language instead of generic praise.
@@ -41,8 +41,8 @@ export default function AboutPage() {
         </article>
         <article className="panel p-6">
           <p className="eyebrow">What guides it</p>
-          <h2 className="mt-3 font-display text-3xl text-cream">Built around practical editorial standards.</h2>
-          <p className="mt-4 text-sm leading-7 text-cream/75">
+          <h2 className="mt-3 font-display text-3xl text-charcoal">Built around practical editorial standards.</h2>
+          <p className="mt-4 text-sm leading-7 text-charcoal/75">
             FlamingFoodies is steered with a simple bias: make the site useful to weeknight cooks,
             curious beginners, and gift shoppers, not only people chasing maximum heat. That
             standard shapes what gets published and what gets recommended.
@@ -53,14 +53,14 @@ export default function AboutPage() {
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="panel p-8">
           <p className="eyebrow">Editorial standards</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Warm, practical, and clear about what we know.</h2>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Warm, practical, and clear about what we know.</h2>
           <div className="mt-5 grid gap-5 md:grid-cols-2">
-            <p className="text-sm leading-7 text-cream/75">
+            <p className="text-sm leading-7 text-charcoal/75">
               We publish original recipes, reviews, and food stories built around a family-table
               tone: welcoming, specific, and grounded in what people actually cook and eat. We aim
               for a voice that feels generous and useful, not performative or content-farm generic.
             </p>
-            <p className="text-sm leading-7 text-cream/75">
+            <p className="text-sm leading-7 text-charcoal/75">
               When we recommend products, we try to explain why a pick is strong, who it is for,
               and when a different bottle would be smarter. Where a draft needs extra review before
               publish, we use editorial checks to tighten imagery, clarity, and category fit.
@@ -70,8 +70,8 @@ export default function AboutPage() {
 
         <div className="panel p-8">
           <p className="eyebrow">How reviews get checked</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Method beats hype.</h2>
-          <div className="mt-5 space-y-4 text-sm leading-7 text-cream/75">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Method beats hype.</h2>
+          <div className="mt-5 space-y-4 text-sm leading-7 text-charcoal/75">
             <p>We look for practical signals first: what a bottle is good on, where the heat actually lands, and whether the recommendation makes sense for the person clicking it.</p>
             <p>When a review or recipe carries QA notes, image review, or fact review, we surface that on-page so readers can see the confidence signals instead of guessing.</p>
             <p>Questions or corrections are welcome. If a claim changes or a better fit emerges, we would rather update the page than leave stale certainty in place.</p>
@@ -81,8 +81,8 @@ export default function AboutPage() {
 
       <div className="panel p-8">
         <p className="eyebrow">Keep in touch</p>
-        <h2 className="mt-3 font-display text-4xl text-cream">Questions, corrections, and brand inquiries all have a place.</h2>
-        <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/75">
+        <h2 className="mt-3 font-display text-4xl text-charcoal">Questions, corrections, and brand inquiries all have a place.</h2>
+        <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/75">
           If you need to reach FlamingFoodies directly, the contact page is the best place to
           start. If you just want the strongest recipes, bottle picks, and guides without hunting
           through the archive, the newsletter is the easier route.
@@ -96,25 +96,25 @@ export default function AboutPage() {
           </Link>
           <Link
             href="/editorial-policy"
-            className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
           >
             Editorial policy
           </Link>
           <Link
             href="/review-methodology"
-            className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
           >
             Review methodology
           </Link>
           <Link
             href="/corrections"
-            className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
           >
             Corrections policy
           </Link>
           <Link
             href="/subscriptions"
-            className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
           >
             Choose newsletter lanes
           </Link>

@@ -38,16 +38,16 @@ export default async function NewReleasesPage() {
       <AffiliateDisclosure className="mt-8 max-w-3xl" compact />
 
       {releases.length === 0 ? (
-        <div className="mt-12 rounded-[2rem] border border-white/10 bg-white/[0.03] p-12 text-center">
-          <p className="font-display text-3xl text-cream">First scan coming soon.</p>
-          <p className="mt-4 text-sm text-cream/55 max-w-md mx-auto">
+        <div className="mt-12 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.03] p-12 text-center">
+          <p className="font-display text-3xl text-charcoal">First scan coming soon.</p>
+          <p className="mt-4 text-sm text-charcoal/55 max-w-md mx-auto">
             Check back after the first update cycle and this feed will start filling in with fresh launches and restocks.
           </p>
           <div className="mt-8 flex justify-center flex-wrap gap-3">
-            <Link href="/reviews" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+            <Link href="/reviews" className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-white">
               Read our reviews
             </Link>
-            <Link href="/brands" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+            <Link href="/brands" className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-white">
               Browse brands
             </Link>
           </div>
@@ -62,21 +62,21 @@ export default async function NewReleasesPage() {
             return (
               <div
                 key={release.slug}
-                className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-6 transition hover:border-white/15"
+                className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.03] p-6 transition hover:border-charcoal/15"
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <span className={`text-xs uppercase tracking-[0.22em] ${typeColor}`}>
                       {RELEASE_TYPE_LABELS[release.type]}
                     </span>
-                    <span className="text-xs text-cream/40">{release.brand}</span>
+                    <span className="text-xs text-charcoal/40">{release.brand}</span>
                   </div>
-                  <span className="text-xs text-cream/35">
+                  <span className="text-xs text-charcoal/35">
                     {formatDate(release.publishedAt)}
                   </span>
                 </div>
-                <h2 className="mt-3 font-display text-2xl text-cream">{release.title}</h2>
-                <p className="mt-2 text-sm leading-7 text-cream/70">{release.description}</p>
+                <h2 className="mt-3 font-display text-2xl text-charcoal">{release.title}</h2>
+                <p className="mt-2 text-sm leading-7 text-charcoal/70">{release.description}</p>
                 <div className="mt-4 flex flex-wrap gap-3">
                   {resolved && (
                     <AffiliateLink
@@ -95,7 +95,7 @@ export default async function NewReleasesPage() {
                       href={release.sourceUrl}
                       rel="noopener noreferrer"
                       target="_blank"
-                      className="inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30"
+                      className="inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal hover:border-charcoal/30"
                     >
                       Read more ↗
                     </a>
@@ -108,13 +108,13 @@ export default async function NewReleasesPage() {
       )}
 
       <div className="mt-12 flex flex-wrap gap-3">
-        <Link href="/brands" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+        <Link href="/brands" className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-white">
           Brand directory
         </Link>
-        <Link href="/reviews" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+        <Link href="/reviews" className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-white">
           Sauce reviews
         </Link>
-        <Link href="/shop" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+        <Link href="/shop" className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-white">
           Shop picks
         </Link>
       </div>

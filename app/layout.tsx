@@ -50,7 +50,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <PageViewTracker />
         </Suspense>
-        <div className="min-h-screen bg-flame-gradient">
+        <div className="min-h-screen">
           <Header />
           <main>{children}</main>
           <Footer />

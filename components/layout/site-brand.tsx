@@ -40,13 +40,13 @@ export function SiteBrand({
         />
       </span>
       <span className="min-w-0">
-        <span className={cn("block font-display text-xl text-cream sm:text-2xl", titleClassName)}>
+        <span className={cn("block font-display text-xl text-charcoal sm:text-2xl", titleClassName)}>
           FlamingFoodies
         </span>
         {subtitle ? (
           <span
             className={cn(
-              "hidden text-xs uppercase tracking-[0.28em] text-cream/55 sm:block",
+              "hidden text-xs uppercase tracking-[0.28em] text-charcoal/55 sm:block",
               subtitleClassName
             )}
           >

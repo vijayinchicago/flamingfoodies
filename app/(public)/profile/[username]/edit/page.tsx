@@ -48,7 +48,7 @@ export default async function EditProfilePage({
               className="h-22 w-22 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-22 w-22 items-center justify-center rounded-full bg-charcoal text-2xl font-semibold text-white">
+            <div className="flex h-22 w-22 items-center justify-center rounded-full bg-white text-2xl font-semibold text-white">
               {profile.displayName.slice(0, 1).toUpperCase()}
             </div>
           )}
@@ -74,7 +74,7 @@ export default async function EditProfilePage({
             name="avatarFile"
             type="file"
             accept="image/*"
-            className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 text-sm outline-none file:mr-4 file:rounded-full file:border-0 file:bg-charcoal file:px-4 file:py-2 file:text-white"
+            className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 text-sm outline-none file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-white"
           />
         </div>
         <input

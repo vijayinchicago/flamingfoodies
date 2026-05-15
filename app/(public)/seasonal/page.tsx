@@ -46,9 +46,9 @@ export default function SeasonalHubPage() {
                     In season
                   </span>
                 </div>
-                <h2 className="mt-3 font-display text-3xl text-cream">{occasion.title}</h2>
-                <p className="mt-2 text-sm leading-7 text-cream/70">{occasion.tagline}</p>
-                <p className="mt-4 text-sm font-semibold text-cream/70 group-hover:text-white">
+                <h2 className="mt-3 font-display text-3xl text-charcoal">{occasion.title}</h2>
+                <p className="mt-2 text-sm leading-7 text-charcoal/70">{occasion.tagline}</p>
+                <p className="mt-4 text-sm font-semibold text-charcoal/70 group-hover:text-white">
                   Open the guide →
                 </p>
               </Link>
@@ -74,32 +74,32 @@ export default function SeasonalHubPage() {
                 className={`group overflow-hidden rounded-[2rem] border p-6 transition hover:-translate-y-1 ${
                   isActive
                     ? "border-ember/25 bg-ember/8"
-                    : "border-white/10 bg-white/[0.04] hover:border-white/20 hover:bg-white/[0.07]"
+                    : "border-charcoal/10 bg-charcoal/[0.04] hover:border-charcoal/20 hover:bg-charcoal/[0.07]"
                 }`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-xs uppercase tracking-[0.22em] text-ember">
                     {occasion.eyebrow}
                   </p>
-                  <span className="shrink-0 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs text-cream/50">
+                  <span className="shrink-0 rounded-full border border-charcoal/10 bg-charcoal/[0.05] px-3 py-1 text-xs text-charcoal/50">
                     {months}
                   </span>
                 </div>
-                <h2 className="mt-3 font-display text-3xl text-cream leading-tight">
+                <h2 className="mt-3 font-display text-3xl text-charcoal leading-tight">
                   {occasion.title}
                 </h2>
-                <p className="mt-2 text-sm leading-7 text-cream/65">{occasion.tagline}</p>
+                <p className="mt-2 text-sm leading-7 text-charcoal/65">{occasion.tagline}</p>
                 <div className="mt-5 flex flex-wrap gap-2">
                   {occasion.guideLinks.slice(0, 2).map((link) => (
                     <span
                       key={link.href}
-                      className="rounded-full border border-white/10 px-3 py-1 text-xs text-cream/55"
+                      className="rounded-full border border-charcoal/10 px-3 py-1 text-xs text-charcoal/55"
                     >
                       {link.label}
                     </span>
                   ))}
                 </div>
-                <p className="mt-4 text-sm font-semibold text-cream/55 group-hover:text-cream/80">
+                <p className="mt-4 text-sm font-semibold text-charcoal/55 group-hover:text-charcoal/80">
                   Open the guide →
                 </p>
               </Link>
@@ -112,19 +112,19 @@ export default function SeasonalHubPage() {
       <div className="mt-12 flex flex-wrap gap-3">
         <Link
           href="/recipes"
-          className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+          className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
         >
           Browse all recipes
         </Link>
         <Link
           href="/hot-sauces"
-          className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+          className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
         >
           Hot sauce hub
         </Link>
         <Link
           href="/shop"
-          className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+          className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
         >
           Shop picks
         </Link>

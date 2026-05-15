@@ -106,7 +106,7 @@ export default async function BlogIndexPage({
         title="Search spicy food stories by topic, cuisine, and heat lane."
         copy="Longer reads on spicy food culture, shelf-building, gear, ingredients, and the ideas that make the rest of the site more useful."
       />
-      <div className="mt-6 flex flex-wrap gap-3 text-sm text-cream/70">
+      <div className="mt-6 flex flex-wrap gap-3 text-sm text-charcoal/70">
         <Link href="/editorial-policy" className="underline underline-offset-4">
           Editorial policy
         </Link>
@@ -121,27 +121,27 @@ export default async function BlogIndexPage({
         {franchises.map((franchise) => (
           <article key={franchise.key} className="panel p-6">
             <p className="eyebrow">{franchise.eyebrow}</p>
-            <h2 className="mt-3 font-display text-4xl text-cream">{franchise.title}</h2>
-            <p className="mt-4 text-sm leading-7 text-cream/72">{franchise.description}</p>
+            <h2 className="mt-3 font-display text-4xl text-charcoal">{franchise.title}</h2>
+            <p className="mt-4 text-sm leading-7 text-charcoal/70">{franchise.description}</p>
             {franchise.posts.length ? (
               <div className="mt-5 space-y-3">
                 {franchise.posts.map((post) => (
                   <Link
                     key={post.id}
                     href={`/blog/${post.slug}`}
-                    className="block rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-4 text-sm text-cream/78 transition hover:bg-white/[0.08]"
+                    className="block rounded-[1.25rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-4 text-sm text-charcoal/75 transition hover:bg-charcoal/[0.06]"
                   >
                     <span className="text-xs uppercase tracking-[0.18em] text-ember">
                       Recent angle
                     </span>
-                    <span className="mt-2 block font-semibold text-cream">{post.title}</span>
+                    <span className="mt-2 block font-semibold text-charcoal">{post.title}</span>
                   </Link>
                 ))}
               </div>
             ) : null}
             <Link
               href={franchise.href}
-              className="mt-5 inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="mt-5 inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               {franchise.ctaLabel}
             </Link>
@@ -236,7 +236,7 @@ export default async function BlogIndexPage({
             className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
               category === option
                 ? "border-white bg-white text-charcoal shadow-sm"
-                : "border-white/15 bg-white/[0.04] text-cream/90 hover:border-white/30 hover:bg-white/[0.07]"
+                : "border-charcoal/15 bg-charcoal/[0.04] text-charcoal/80 hover:border-charcoal/30 hover:bg-charcoal/[0.06]"
             }`}
           >
             {formatBlogCategoryLabel(option)}
@@ -255,7 +255,7 @@ export default async function BlogIndexPage({
             className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
               cuisine === option
                 ? "border-ember bg-ember text-white shadow-sm"
-                : "border-white/15 bg-white/[0.04] text-cream/90 hover:border-white/30 hover:bg-white/[0.07]"
+                : "border-charcoal/15 bg-charcoal/[0.04] text-charcoal/80 hover:border-charcoal/30 hover:bg-charcoal/[0.06]"
             }`}
           >
             {formatBlogCuisineLabel(option)}
@@ -265,19 +265,19 @@ export default async function BlogIndexPage({
       <div className="mt-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="eyebrow">Editorial archive</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             {paginatedPosts.totalResults
               ? `Showing ${paginatedPosts.startResult}-${paginatedPosts.endResult} of ${paginatedPosts.totalResults}`
               : "No blog posts match those filters yet"}
           </h2>
-          <p className="mt-3 text-sm leading-7 text-cream/70">
+          <p className="mt-3 text-sm leading-7 text-charcoal/70">
             {paginatedPosts.totalResults
               ? "Sort for the newest reads or tighten the archive around one topic or cuisine."
               : "Try a broader search, clear one filter, or switch to another topic lane."}
           </p>
         </div>
         {paginatedPosts.totalPages > 1 ? (
-          <p className="text-sm text-cream/60">
+          <p className="text-sm text-charcoal/55">
             Page {paginatedPosts.currentPage} of {paginatedPosts.totalPages}
           </p>
         ) : null}
@@ -299,10 +299,10 @@ export default async function BlogIndexPage({
         ) : (
           <div className="panel p-8 lg:col-span-2">
             <p className="eyebrow">Blog</p>
-            <h3 className="mt-3 font-display text-4xl text-cream">
+            <h3 className="mt-3 font-display text-4xl text-charcoal">
               Fresh blog posts are on the way.
             </h3>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-cream/72">
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-charcoal/70">
               Check back soon for more spicy food culture, gear, and hot sauce guides.
             </p>
           </div>
@@ -320,7 +320,7 @@ export default async function BlogIndexPage({
                 sort,
                 page: paginatedPosts.currentPage - 1
               })}
-              className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Previous page
             </Link>

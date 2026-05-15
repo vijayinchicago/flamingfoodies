@@ -20,7 +20,7 @@ export default function PrivacyPage() {
     >
       <article className="panel p-8">
         <p className="eyebrow">What we collect</p>
-        <div className="mt-4 space-y-4 text-sm leading-7 text-cream/75">
+        <div className="mt-4 space-y-4 text-sm leading-7 text-charcoal/75">
           <p>
             FlamingFoodies may collect newsletter signup details such as email address and optional
             first name, basic analytics such as pages viewed and actions taken on the site, and
@@ -35,7 +35,7 @@ export default function PrivacyPage() {
 
       <article className="panel p-8">
         <p className="eyebrow">How the data is used</p>
-        <div className="mt-4 space-y-4 text-sm leading-7 text-cream/75">
+        <div className="mt-4 space-y-4 text-sm leading-7 text-charcoal/75">
           <p>
             We use data to run the site, deliver newsletters, understand which content is useful,
             improve discovery and navigation, and measure which recipes, reviews, guides, and shop
@@ -51,7 +51,7 @@ export default function PrivacyPage() {
 
       <article className="panel p-8">
         <p className="eyebrow">Third-party services</p>
-        <div className="mt-4 space-y-4 text-sm leading-7 text-cream/75">
+        <div className="mt-4 space-y-4 text-sm leading-7 text-charcoal/75">
           <p>
             FlamingFoodies uses third-party infrastructure and services to operate, which may
             include hosting, database/authentication, analytics, session insight tools, newsletter
@@ -68,7 +68,7 @@ export default function PrivacyPage() {
 
       <article className="panel p-8">
         <p className="eyebrow">Your choices</p>
-        <div className="mt-4 space-y-4 text-sm leading-7 text-cream/75">
+        <div className="mt-4 space-y-4 text-sm leading-7 text-charcoal/75">
           <p>
             You can choose not to sign up for the newsletter, clear browser storage or cookies, or
             stop using the site if you do not want analytics-style data captured.

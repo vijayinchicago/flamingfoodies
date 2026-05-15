@@ -75,10 +75,10 @@ export default async function BestHotSaucesPage() {
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="panel p-8">
           <p className="eyebrow">How we choose</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             A good bottle has to survive real weeknight use.
           </h2>
-          <p className="mt-4 text-sm leading-7 text-cream/72">
+          <p className="mt-4 text-sm leading-7 text-charcoal/70">
             We bias toward bottles that solve more than one meal: tacos, eggs, bowls, roast
             chicken, pizza, dumplings, grilled seafood. That means flavor, texture, and repeat-use
             matter more than heat stunts.
@@ -92,7 +92,7 @@ export default async function BestHotSaucesPage() {
             </Link>
             <Link
               href="/reviews"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               See all reviews
             </Link>
@@ -101,10 +101,10 @@ export default async function BestHotSaucesPage() {
 
         <div className="panel p-8">
           <p className="eyebrow">Starter guide</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             Build one balanced fridge shelf first.
           </h2>
-          <ul className="mt-5 space-y-3 text-sm leading-7 text-cream/72">
+          <ul className="mt-5 space-y-3 text-sm leading-7 text-charcoal/70">
             <li>Start with one everyday bottle you can pour generously.</li>
             <li>Add one brighter bottle for tacos, seafood, and eggs.</li>
             <li>Keep one higher-heat bottle for wings, pizza, or tiny doses.</li>
@@ -158,11 +158,11 @@ export default async function BestHotSaucesPage() {
       <div className="mt-12 grid gap-6 lg:grid-cols-2">
         <div className="panel p-6">
           <p className="eyebrow">Everyday winners</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Use these all week.</h2>
-          <div className="mt-5 space-y-3 text-sm text-cream/72">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Use these all week.</h2>
+          <div className="mt-5 space-y-3 text-sm text-charcoal/70">
             {everyday.map((review) => (
-              <div key={review.slug} className="flex items-center gap-3 rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3">
-                <Link href={`/reviews/${review.slug}`} className="flex-1 hover:text-cream">
+              <div key={review.slug} className="flex items-center gap-3 rounded-[1.25rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-3">
+                <Link href={`/reviews/${review.slug}`} className="flex-1 hover:text-charcoal">
                   {review.title}
                 </Link>
                 <AffiliateLink
@@ -170,7 +170,7 @@ export default async function BestHotSaucesPage() {
                   productName={review.productName}
                   sourcePage="/hot-sauces/best"
                   position="everyday-list"
-                  className="shrink-0 rounded-full border border-white/20 px-3 py-1 text-xs font-semibold text-cream hover:bg-white/10"
+                  className="shrink-0 rounded-full border border-charcoal/20 px-3 py-1 text-xs font-semibold text-charcoal hover:bg-charcoal/[0.06]"
                 >
                   Buy
                 </AffiliateLink>
@@ -181,11 +181,11 @@ export default async function BestHotSaucesPage() {
 
         <div className="panel p-6">
           <p className="eyebrow">When you want more fire</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Keep one bigger hitter.</h2>
-          <div className="mt-5 space-y-3 text-sm text-cream/72">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Keep one bigger hitter.</h2>
+          <div className="mt-5 space-y-3 text-sm text-charcoal/70">
             {bigHeat.map((review) => (
-              <div key={review.slug} className="flex items-center gap-3 rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3">
-                <Link href={`/reviews/${review.slug}`} className="flex-1 hover:text-cream">
+              <div key={review.slug} className="flex items-center gap-3 rounded-[1.25rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-3">
+                <Link href={`/reviews/${review.slug}`} className="flex-1 hover:text-charcoal">
                   {review.title}
                 </Link>
                 <AffiliateLink
@@ -193,7 +193,7 @@ export default async function BestHotSaucesPage() {
                   productName={review.productName}
                   sourcePage="/hot-sauces/best"
                   position="big-heat-list"
-                  className="shrink-0 rounded-full border border-white/20 px-3 py-1 text-xs font-semibold text-cream hover:bg-white/10"
+                  className="shrink-0 rounded-full border border-charcoal/20 px-3 py-1 text-xs font-semibold text-charcoal hover:bg-charcoal/[0.06]"
                 >
                   Buy
                 </AffiliateLink>
@@ -211,7 +211,7 @@ export default async function BestHotSaucesPage() {
         faqs={bestHotSaucesFaqs}
       />
 
-      <div className="mt-12 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-8">
+      <div className="mt-12 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6 sm:p-8">
         <EmailCapture
           source="hot-sauce-best"
           tag="best-hot-sauces"

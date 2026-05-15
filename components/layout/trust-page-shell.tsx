@@ -17,11 +17,11 @@ export function TrustPageShell({
     <section className="container-shell py-16">
       <div className="max-w-5xl">
         <p className="eyebrow">{eyebrow}</p>
-        <h1 className="mt-4 font-display text-5xl leading-tight text-cream sm:text-6xl">
+        <h1 className="mt-4 font-display text-5xl leading-tight text-charcoal sm:text-6xl">
           {title}
         </h1>
-        <p className="mt-5 max-w-3xl text-lg leading-8 text-cream/75">{description}</p>
-        <p className="mt-5 text-sm uppercase tracking-[0.18em] text-cream/45">
+        <p className="mt-5 max-w-3xl text-lg leading-8 text-charcoal/75">{description}</p>
+        <p className="mt-5 text-sm uppercase tracking-[0.18em] text-charcoal/45">
           Last updated {lastUpdated}
         </p>
       </div>

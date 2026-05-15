@@ -71,10 +71,10 @@ export default async function HotSaucesHubPage() {
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="panel p-6 sm:p-8">
           <p className="eyebrow">Search by meal</p>
-          <h2 className="mt-3 font-display text-3xl text-cream sm:text-4xl">
+          <h2 className="mt-3 font-display text-3xl text-charcoal sm:text-4xl">
             Open the page that matches the food on your table.
           </h2>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
             The best entry point is usually meal-first: tacos, eggs, wings, fried chicken,
             seafood, pizza, or a hard budget cap. Use the search-style guides first, then go deeper.
           </p>
@@ -87,31 +87,31 @@ export default async function HotSaucesHubPage() {
             </Link>
             <Link
               href="/shop"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Shop pantry and gear picks
             </Link>
             <Link
               href="/hot-sauces/under-15"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Best bottles under $15
             </Link>
             <Link
               href="/hot-sauces/best-for-fried-chicken"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Fried-chicken picks
             </Link>
             <Link
               href="/hot-sauces/gifts-under-50"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Gifts under $50
             </Link>
             <Link
               href="/hot-sauces/compare"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Compare two sauces
             </Link>
@@ -121,11 +121,11 @@ export default async function HotSaucesHubPage() {
           {popularSearchGuides.map((item) => (
             <article key={item.href} className="panel p-5 sm:p-6">
               <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.eyebrow}</p>
-              <h2 className="mt-3 font-display text-2xl text-cream sm:text-3xl">{item.title}</h2>
-              <p className="mt-3 text-sm leading-7 text-cream/72">{item.description}</p>
+              <h2 className="mt-3 font-display text-2xl text-charcoal sm:text-3xl">{item.title}</h2>
+              <p className="mt-3 text-sm leading-7 text-charcoal/70">{item.description}</p>
               <Link
                 href={item.href}
-                className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                className="mt-5 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
               >
                 Explore
               </Link>
@@ -139,10 +139,10 @@ export default async function HotSaucesHubPage() {
           <Link
             key={item.href}
             href={item.href}
-            className="rounded-[1.35rem] border border-white/10 bg-white/5 px-4 py-4 text-sm text-cream/78 transition hover:border-white/20 hover:bg-white/[0.08]"
+            className="rounded-[1.35rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-4 text-sm text-charcoal/75 transition hover:border-charcoal/20 hover:bg-charcoal/[0.06]"
           >
             <span className="text-xs uppercase tracking-[0.18em] text-ember">{item.eyebrow}</span>
-            <span className="mt-2 block font-semibold text-cream">{item.title}</span>
+            <span className="mt-2 block font-semibold text-charcoal">{item.title}</span>
           </Link>
         ))}
       </div>
@@ -166,7 +166,7 @@ export default async function HotSaucesHubPage() {
                   productName={review.productName}
                   sourcePage="/hot-sauces"
                   position={`hub-top-picks-${index + 1}`}
-                  className="inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                  className="inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
                 >
                   {resolved ? getAffiliateCtaLabel(resolved) : "View retailer offer"}
                 </AffiliateLink>
@@ -203,10 +203,10 @@ export default async function HotSaucesHubPage() {
       <div className="mt-12 grid gap-6 lg:grid-cols-3">
         <div className="panel p-6">
           <p className="eyebrow">Everyday pours</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Use it all week.</h2>
-          <div className="mt-5 space-y-3 text-sm text-cream/72">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Use it all week.</h2>
+          <div className="mt-5 space-y-3 text-sm text-charcoal/70">
             {everydayPours.map((review) => (
-              <Link key={review.slug} href={`/reviews/${review.slug}`} className="block rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3 hover:border-white/20">
+              <Link key={review.slug} href={`/reviews/${review.slug}`} className="block rounded-[1.25rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-3 hover:border-charcoal/20">
                 {review.title}
               </Link>
             ))}
@@ -214,10 +214,10 @@ export default async function HotSaucesHubPage() {
         </div>
         <div className="panel p-6">
           <p className="eyebrow">Giftable heat</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Safer buys for other people.</h2>
-          <div className="mt-5 space-y-3 text-sm text-cream/72">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Safer buys for other people.</h2>
+          <div className="mt-5 space-y-3 text-sm text-charcoal/70">
             {giftableHeat.map((review) => (
-              <Link key={review.slug} href={`/reviews/${review.slug}`} className="block rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3 hover:border-white/20">
+              <Link key={review.slug} href={`/reviews/${review.slug}`} className="block rounded-[1.25rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-3 hover:border-charcoal/20">
                 {review.title}
               </Link>
             ))}
@@ -225,10 +225,10 @@ export default async function HotSaucesHubPage() {
         </div>
         <div className="panel p-6">
           <p className="eyebrow">Big heat</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">When you really do want the bigger hit.</h2>
-          <div className="mt-5 space-y-3 text-sm text-cream/72">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">When you really do want the bigger hit.</h2>
+          <div className="mt-5 space-y-3 text-sm text-charcoal/70">
             {bigHeat.map((review) => (
-              <Link key={review.slug} href={`/reviews/${review.slug}`} className="block rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3 hover:border-white/20">
+              <Link key={review.slug} href={`/reviews/${review.slug}`} className="block rounded-[1.25rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-3 hover:border-charcoal/20">
                 {review.title}
               </Link>
             ))}
@@ -236,7 +236,7 @@ export default async function HotSaucesHubPage() {
         </div>
       </div>
 
-      <div className="mt-14 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-8">
+      <div className="mt-14 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6 sm:p-8">
         <EmailCapture
           source="hot-sauce-hub"
           variant="email-only"

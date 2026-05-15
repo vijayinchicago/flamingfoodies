@@ -67,10 +67,10 @@ export default async function FlameClubPage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(244,99,30,0.28),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(230,57,70,0.24),transparent_32%)]" />
           <div className="relative mx-auto max-w-3xl text-center">
             <p className="eyebrow">Flame Club · Free weekly newsletter</p>
-            <h1 className="mt-5 font-display text-4xl leading-[1.02] text-cream sm:text-6xl xl:text-[4.6rem]">
+            <h1 className="mt-5 font-display text-4xl leading-[1.02] text-charcoal sm:text-6xl xl:text-[4.6rem]">
               One spicy recipe.<br />One honest sauce pick.<br />Every Friday.
             </h1>
-            <p className="mt-6 text-base leading-7 text-cream/80 sm:text-lg sm:leading-8">
+            <p className="mt-6 text-base leading-7 text-charcoal/80 sm:text-lg sm:leading-8">
               Join thousands of home cooks who use Flame Club to find the next great
               weeknight dinner and the next bottle worth space on their shelf — without
               wading through hype, listicles, or pay-to-play reviews.
@@ -82,7 +82,7 @@ export default async function FlameClubPage() {
               </Suspense>
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs uppercase tracking-[0.22em] text-cream/55">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs uppercase tracking-[0.22em] text-charcoal/55">
               <span>Free forever</span>
               <span>·</span>
               <span>No sponsored picks</span>
@@ -96,7 +96,7 @@ export default async function FlameClubPage() {
       <section className="container-shell pb-12 sm:pb-20">
         <div className="text-center">
           <p className="eyebrow">What lands in your inbox</p>
-          <h2 className="mt-3 font-display text-3xl text-cream sm:text-5xl">
+          <h2 className="mt-3 font-display text-3xl text-charcoal sm:text-5xl">
             Three useful things, every week.
           </h2>
         </div>
@@ -104,8 +104,8 @@ export default async function FlameClubPage() {
           {PROMISES.map((item) => (
             <article key={item.title} className="panel p-6">
               <p className="text-xs uppercase tracking-[0.22em] text-ember">{item.eyebrow}</p>
-              <h3 className="mt-3 font-display text-2xl text-cream">{item.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-cream/75">{item.body}</p>
+              <h3 className="mt-3 font-display text-2xl text-charcoal">{item.title}</h3>
+              <p className="mt-3 text-sm leading-7 text-charcoal/75">{item.body}</p>
             </article>
           ))}
         </div>
@@ -115,10 +115,10 @@ export default async function FlameClubPage() {
         <section className="container-shell pb-12 sm:pb-20">
           <div className="text-center">
             <p className="eyebrow">A preview of this week</p>
-            <h2 className="mt-3 font-display text-3xl text-cream sm:text-5xl">
+            <h2 className="mt-3 font-display text-3xl text-charcoal sm:text-5xl">
               The kind of pick you&apos;ll get on Friday.
             </h2>
-            <p className="mt-4 text-sm leading-7 text-cream/70 sm:text-base">
+            <p className="mt-4 text-sm leading-7 text-charcoal/70 sm:text-base">
               These are pulled live from the site. The real Friday email goes deeper —
               with notes on why we picked them, what to swap, and where to buy.
             </p>
@@ -127,12 +127,12 @@ export default async function FlameClubPage() {
             {previewRecipe ? (
               <Link
                 href={`/recipes/${previewRecipe.slug}`}
-                className="panel block p-6 transition hover:border-white/20"
+                className="panel block p-6 transition hover:border-charcoal/20"
               >
                 <p className="text-xs uppercase tracking-[0.22em] text-ember">Recipe sample</p>
-                <h3 className="mt-3 font-display text-2xl text-cream">{previewRecipe.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-cream/75">{previewRecipe.description}</p>
-                <p className="mt-4 text-xs uppercase tracking-[0.18em] text-cream/55">
+                <h3 className="mt-3 font-display text-2xl text-charcoal">{previewRecipe.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-charcoal/75">{previewRecipe.description}</p>
+                <p className="mt-4 text-xs uppercase tracking-[0.18em] text-charcoal/55">
                   {previewRecipe.totalTimeMinutes} min · {previewRecipe.heatLevel} heat
                 </p>
               </Link>
@@ -140,11 +140,11 @@ export default async function FlameClubPage() {
             {previewReview ? (
               <Link
                 href={`/reviews/${previewReview.slug}`}
-                className="panel block p-6 transition hover:border-white/20"
+                className="panel block p-6 transition hover:border-charcoal/20"
               >
                 <p className="text-xs uppercase tracking-[0.22em] text-ember">Review sample</p>
-                <h3 className="mt-3 font-display text-2xl text-cream">{previewReview.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-cream/75">{previewReview.description}</p>
+                <h3 className="mt-3 font-display text-2xl text-charcoal">{previewReview.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-charcoal/75">{previewReview.description}</p>
               </Link>
             ) : null}
           </div>
@@ -154,11 +154,11 @@ export default async function FlameClubPage() {
       <section className="container-shell pb-12 sm:pb-20">
         <div className="panel mx-auto max-w-3xl p-6 sm:p-10">
           <p className="eyebrow text-center">Why people stay subscribed</p>
-          <blockquote className="mt-5 text-center font-display text-2xl leading-snug text-cream sm:text-3xl">
+          <blockquote className="mt-5 text-center font-display text-2xl leading-snug text-charcoal sm:text-3xl">
             “The only food newsletter I open every week. Real recipes I actually cook,
             and reviews that don&apos;t read like ad copy.”
           </blockquote>
-          <p className="mt-4 text-center text-xs uppercase tracking-[0.22em] text-cream/55">
+          <p className="mt-4 text-center text-xs uppercase tracking-[0.22em] text-charcoal/55">
             — Flame Club member
           </p>
         </div>
@@ -168,7 +168,7 @@ export default async function FlameClubPage() {
         <div className="mx-auto max-w-3xl">
           <div className="text-center">
             <p className="eyebrow">Common questions</p>
-            <h2 className="mt-3 font-display text-3xl text-cream sm:text-4xl">
+            <h2 className="mt-3 font-display text-3xl text-charcoal sm:text-4xl">
               Before you sign up.
             </h2>
           </div>
@@ -178,11 +178,11 @@ export default async function FlameClubPage() {
                 key={item.q}
                 className="panel group p-5 [&_summary::-webkit-details-marker]:hidden"
               >
-                <summary className="flex cursor-pointer items-center justify-between gap-4 text-left font-display text-lg text-cream">
+                <summary className="flex cursor-pointer items-center justify-between gap-4 text-left font-display text-lg text-charcoal">
                   {item.q}
                   <span className="text-ember transition group-open:rotate-45">+</span>
                 </summary>
-                <p className="mt-3 text-sm leading-7 text-cream/75">{item.a}</p>
+                <p className="mt-3 text-sm leading-7 text-charcoal/75">{item.a}</p>
               </details>
             ))}
           </div>
@@ -193,10 +193,10 @@ export default async function FlameClubPage() {
         <div className="panel relative overflow-hidden px-5 py-10 sm:px-10 sm:py-14">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(244,99,30,0.22),transparent_45%)]" />
           <div className="relative mx-auto max-w-2xl text-center">
-            <h2 className="font-display text-3xl text-cream sm:text-5xl">
+            <h2 className="font-display text-3xl text-charcoal sm:text-5xl">
               Friday&apos;s recipe is already in the oven.
             </h2>
-            <p className="mt-4 text-sm leading-7 text-cream/75 sm:text-base">
+            <p className="mt-4 text-sm leading-7 text-charcoal/75 sm:text-base">
               Drop your email below to get it. No spam, no stunts, no newsletter sludge.
             </p>
             <div className="mt-8">

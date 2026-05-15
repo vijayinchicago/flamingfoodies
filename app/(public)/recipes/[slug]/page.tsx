@@ -500,7 +500,7 @@ export default async function RecipePage({
       />
       <RecipeBrowseStrip recipe={recipe} browseOptions={browseOptions} />
 
-        <section className="recipe-hero-shell recipe-core-panel relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#140b09] shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
+        <section className="dark-scope recipe-hero-shell recipe-core-panel relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-[#140b09] shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
           <div className="recipe-hero-bg absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(230,57,70,0.28),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(244,162,97,0.18),transparent_30%)]" />
           <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_460px]">
             <div className="min-w-0 p-6 sm:p-8 lg:p-10 xl:p-12">
@@ -668,22 +668,22 @@ export default async function RecipePage({
         </section>
 
         {primaryRecipeOffers.length ? (
-          <section className="recipe-core-panel rounded-[2rem] border border-white/10 bg-white/[0.05] p-6 sm:p-7 print-hidden">
+          <section className="recipe-core-panel rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6 sm:p-7 print-hidden">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <p className="eyebrow">Cook this with</p>
-                <h2 className="mt-3 font-display text-4xl text-cream">
+                <h2 className="mt-3 font-display text-4xl text-charcoal">
                   Three useful buys before you start
                 </h2>
               </div>
               <Link
                 href="/shop"
-                className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                className="rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
               >
                 Browse all picks
               </Link>
             </div>
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/85">
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/80">
               These are the highest-signal buys for this specific recipe: one sauce, one pantry
               staple, and one tool that genuinely makes the dish easier to repeat.
             </p>
@@ -691,14 +691,14 @@ export default async function RecipePage({
               {primaryRecipeOffers.map((offer) => (
                 <article
                   key={`${recipe.slug}-${offer.position}`}
-                  className="rounded-[1.6rem] border border-white/10 bg-white/[0.04] p-5"
+                  className="rounded-[1.6rem] border border-charcoal/10 bg-charcoal/[0.04] p-5"
                 >
                   <p className="text-xs uppercase tracking-[0.22em] text-ember">{offer.kind}</p>
-                  <h3 className="mt-3 font-display text-3xl text-cream">{offer.title}</h3>
-                  <p className="mt-2 text-xs uppercase tracking-[0.18em] text-cream/50">
+                  <h3 className="mt-3 font-display text-3xl text-charcoal">{offer.title}</h3>
+                  <p className="mt-2 text-xs uppercase tracking-[0.18em] text-charcoal/55">
                     {offer.supportingLabel}
                   </p>
-                  <p className="mt-4 text-sm leading-7 text-cream/85">{offer.copy}</p>
+                  <p className="mt-4 text-sm leading-7 text-charcoal/80">{offer.copy}</p>
                   <AffiliateLink
                     href={offer.href}
                     partnerKey={offer.partnerKey}
@@ -710,7 +710,7 @@ export default async function RecipePage({
                     contentType="recipe"
                     contentId={recipe.id}
                     contentSlug={recipe.slug}
-                    className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
+                    className="mt-5 inline-flex rounded-full bg-charcoal px-4 py-2 text-sm font-semibold text-cream"
                   >
                     {offer.ctaLabel}
                   </AffiliateLink>
@@ -721,25 +721,25 @@ export default async function RecipePage({
         ) : null}
 
         <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4 print-hidden">
-          <article className="recipe-core-panel rounded-[2rem] border border-white/10 bg-white/[0.05] p-6">
+          <article className="recipe-core-panel rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6">
             <p className="text-xs uppercase tracking-[0.24em] text-ember">Heat profile</p>
-            <h2 className="mt-3 font-display text-3xl text-cream">{heatNotes[recipe.heatLevel].title}</h2>
-            <p className="mt-3 text-sm leading-7 text-cream/85">{heatNotes[recipe.heatLevel].copy}</p>
+            <h2 className="mt-3 font-display text-3xl text-charcoal">{heatNotes[recipe.heatLevel].title}</h2>
+            <p className="mt-3 text-sm leading-7 text-charcoal/80">{heatNotes[recipe.heatLevel].copy}</p>
           </article>
-          <article className="recipe-core-panel rounded-[2rem] border border-white/10 bg-white/[0.05] p-6">
+          <article className="recipe-core-panel rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6">
             <p className="text-xs uppercase tracking-[0.24em] text-ember">Skill level</p>
-            <h2 className="mt-3 font-display text-3xl text-cream">{formatLabel(recipe.difficulty)}</h2>
-            <p className="mt-3 text-sm leading-7 text-cream/85">{difficultyNotes[recipe.difficulty]}</p>
+            <h2 className="mt-3 font-display text-3xl text-charcoal">{formatLabel(recipe.difficulty)}</h2>
+            <p className="mt-3 text-sm leading-7 text-charcoal/80">{difficultyNotes[recipe.difficulty]}</p>
           </article>
-          <article className="recipe-core-panel rounded-[2rem] border border-white/10 bg-white/[0.05] p-6">
+          <article className="recipe-core-panel rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6">
             <p className="text-xs uppercase tracking-[0.24em] text-ember">Cooking mode</p>
-            <h2 className="mt-3 font-display text-3xl text-cream">{projectCard.title}</h2>
-            <p className="mt-3 text-sm leading-7 text-cream/85">{projectCard.copy}</p>
+            <h2 className="mt-3 font-display text-3xl text-charcoal">{projectCard.title}</h2>
+            <p className="mt-3 text-sm leading-7 text-charcoal/80">{projectCard.copy}</p>
           </article>
-          <article className="recipe-core-panel rounded-[2rem] border border-white/10 bg-white/[0.05] p-6">
+          <article className="recipe-core-panel rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6">
             <p className="text-xs uppercase tracking-[0.24em] text-ember">Best moment</p>
-            <h2 className="mt-3 font-display text-3xl text-cream">{occasionCard.title}</h2>
-            <p className="mt-3 text-sm leading-7 text-cream/85">{occasionCard.copy}</p>
+            <h2 className="mt-3 font-display text-3xl text-charcoal">{occasionCard.title}</h2>
+            <p className="mt-3 text-sm leading-7 text-charcoal/80">{occasionCard.copy}</p>
           </article>
         </section>
 
@@ -773,7 +773,7 @@ export default async function RecipePage({
 
             <section className="recipe-core-panel panel p-6 sm:p-7">
               <p className="eyebrow">Planning tools</p>
-              <h2 className="mt-3 font-display text-4xl text-cream">Equipment and setup</h2>
+              <h2 className="mt-3 font-display text-4xl text-charcoal">Equipment and setup</h2>
               <div className="mt-6 flex flex-wrap gap-3">
                 {recipe.equipment.map((item) => {
                   const affiliateKey = findEquipmentAffiliate(item);
@@ -784,7 +784,7 @@ export default async function RecipePage({
                         href={`/go/${encodeURIComponent(affiliateKey)}?source=/recipes/${recipe.slug}&position=equipment`}
                         rel="sponsored noopener"
                         target="_blank"
-                        className="rounded-full border border-ember/40 bg-white/[0.05] px-4 py-2 text-sm text-ember/90 transition hover:border-ember/70 hover:text-ember"
+                        className="rounded-full border border-ember/40 bg-charcoal/[0.04] px-4 py-2 text-sm text-ember/90 transition hover:border-ember/70 hover:text-ember"
                       >
                         {item} ↗
                       </a>
@@ -793,7 +793,7 @@ export default async function RecipePage({
                   return (
                     <span
                       key={item}
-                      className="rounded-full border border-white/12 bg-white/[0.05] px-4 py-2 text-sm text-cream/85"
+                      className="rounded-full border border-charcoal/10 bg-charcoal/[0.04] px-4 py-2 text-sm text-charcoal/80"
                     >
                       {item}
                     </span>
@@ -801,17 +801,17 @@ export default async function RecipePage({
                 })}
               </div>
               {recipe.makeAheadNotes ? (
-                <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+                <div className="mt-6 rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-4">
                   <p className="text-xs uppercase tracking-[0.22em] text-ember">Make ahead</p>
-                  <p className="mt-3 text-sm leading-7 text-cream/85">{recipe.makeAheadNotes}</p>
+                  <p className="mt-3 text-sm leading-7 text-charcoal/80">{recipe.makeAheadNotes}</p>
                 </div>
               ) : null}
             </section>
 
             <section className="recipe-core-panel panel print-hidden p-6 sm:p-7">
               <p className="eyebrow">Cook along</p>
-              <h2 className="mt-3 font-display text-4xl text-cream">Save and rate</h2>
-              <p className="mt-3 text-sm leading-7 text-cream/85">
+              <h2 className="mt-3 font-display text-4xl text-charcoal">Save and rate</h2>
+              <p className="mt-3 text-sm leading-7 text-charcoal/80">
                 Keep this one in your recipe box, then leave a quick note after you cook it.
               </p>
               <div className="mt-6 space-y-4">
@@ -820,7 +820,7 @@ export default async function RecipePage({
                     <form action={toggleRecipeSaveAction}>
                       <input type="hidden" name="recipeId" value={recipe.id} />
                       <input type="hidden" name="recipeSlug" value={recipe.slug} />
-                      <button className="w-full rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal">
+                      <button className="w-full rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-cream">
                         {userState.saved ? "Saved to your recipe box" : "Save this recipe"}
                       </button>
                     </form>
@@ -830,7 +830,7 @@ export default async function RecipePage({
                       <select
                         name="rating"
                         defaultValue={String(userState.rating || 5)}
-                        className="w-full rounded-2xl border border-white/15 bg-transparent px-4 py-3 text-sm font-semibold text-cream"
+                        className="w-full rounded-2xl border border-charcoal/15 bg-transparent px-4 py-3 text-sm font-semibold text-charcoal"
                       >
                         <option value="5">5 stars</option>
                         <option value="4">4 stars</option>
@@ -841,9 +841,9 @@ export default async function RecipePage({
                       <input
                         name="reviewText"
                         placeholder="What worked, what you tweaked, what you would make again"
-                        className="w-full rounded-2xl border border-white/15 bg-transparent px-4 py-3 text-sm text-cream placeholder:text-cream/40"
+                        className="w-full rounded-2xl border border-charcoal/15 bg-transparent px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/45"
                       />
-                      <button className="w-full rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream">
+                      <button className="w-full rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal">
                         {userState.rating ? "Update your rating" : "Rate this recipe"}
                       </button>
                     </form>
@@ -851,7 +851,7 @@ export default async function RecipePage({
                 ) : (
                   <Link
                     href="/login"
-                    className="inline-flex w-full justify-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
+                    className="inline-flex w-full justify-center rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-cream"
                   >
                     Log in to save and rate
                   </Link>
@@ -863,28 +863,28 @@ export default async function RecipePage({
           <div className="min-w-0 space-y-8">
             <section className="recipe-print-section recipe-core-panel panel p-6 sm:p-8">
               <p className="eyebrow">Why this recipe works</p>
-              <h2 className="mt-3 font-display text-5xl text-cream">Editorial notes before you cook</h2>
+              <h2 className="mt-3 font-display text-5xl text-charcoal">Editorial notes before you cook</h2>
               <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_0.8fr]">
                 <div>
-                  <p className="text-base leading-8 text-cream/85">{recipe.intro || heroSummary}</p>
-                  <p className="mt-4 text-base leading-8 text-cream/80">
+                  <p className="text-base leading-8 text-charcoal/80">{recipe.intro || heroSummary}</p>
+                  <p className="mt-4 text-base leading-8 text-charcoal/80">
                     The goal here is not just heat. It is contrast, pacing, and texture: enough
                     richness to feel satisfying, enough brightness to keep the plate moving, and
                     enough chile character that the spice actually tastes like something.
                   </p>
                 </div>
                 <div className="grid gap-4">
-                <div className="recipe-print-keep rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
+                <div className="recipe-print-keep rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-5">
                     <p className="text-xs uppercase tracking-[0.22em] text-ember">Best use</p>
-                    <p className="mt-2 font-display text-3xl text-cream">
+                    <p className="mt-2 font-display text-3xl text-charcoal">
                       {recipe.totalTimeMinutes >= 90 ? "Slow meal, big payoff" : "Fast table win"}
                     </p>
-                    <p className="mt-2 text-sm leading-7 text-cream/65">{projectCard.copy}</p>
+                    <p className="mt-2 text-sm leading-7 text-charcoal/65">{projectCard.copy}</p>
                   </div>
-                  <div className="recipe-print-keep rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
+                  <div className="recipe-print-keep rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-5">
                     <p className="text-xs uppercase tracking-[0.22em] text-ember">Why readers stick with it</p>
-                    <p className="mt-2 font-display text-3xl text-cream">{occasionCard.title}</p>
-                    <p className="mt-2 text-sm leading-7 text-cream/65">{occasionCard.copy}</p>
+                    <p className="mt-2 font-display text-3xl text-charcoal">{occasionCard.title}</p>
+                    <p className="mt-2 text-sm leading-7 text-charcoal/65">{occasionCard.copy}</p>
                   </div>
                 </div>
               </div>
@@ -898,8 +898,8 @@ export default async function RecipePage({
                     className="recipe-print-section recipe-core-panel panel p-6 sm:p-7"
                   >
                     <p className="eyebrow">{block.eyebrow}</p>
-                    <h3 className="mt-3 font-display text-4xl text-cream">{block.title}</h3>
-                    <p className="mt-4 text-sm leading-7 text-cream/85">{block.copy}</p>
+                    <h3 className="mt-3 font-display text-4xl text-charcoal">{block.title}</h3>
+                    <p className="mt-4 text-sm leading-7 text-charcoal/80">{block.copy}</p>
                   </article>
                 ))}
               </section>
@@ -924,12 +924,12 @@ export default async function RecipePage({
               {recipe.tips.length ? (
                 <div className="recipe-print-section recipe-core-panel panel p-6 sm:p-7">
                   <p className="eyebrow">Troubleshooting</p>
-                  <h3 className="mt-3 font-display text-4xl text-cream">Tips that matter</h3>
+                  <h3 className="mt-3 font-display text-4xl text-charcoal">Tips that matter</h3>
                   <ul className="mt-6 space-y-4">
                     {recipe.tips.map((tip) => (
                       <li
                         key={tip}
-                        className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4 text-sm leading-7 text-cream/85"
+                        className="rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-4 text-sm leading-7 text-charcoal/80"
                       >
                         {tip}
                       </li>
@@ -941,12 +941,12 @@ export default async function RecipePage({
               {(substitutions.length || recipe.variations.length) ? (
                 <div className="recipe-print-section recipe-core-panel panel p-6 sm:p-7">
                   <p className="eyebrow">Substitutions and variations</p>
-                  <h3 className="mt-3 font-display text-4xl text-cream">Remix without losing the point</h3>
+                  <h3 className="mt-3 font-display text-4xl text-charcoal">Remix without losing the point</h3>
                   <div className="mt-6 space-y-4">
                     {substitutions.map((substitution) => (
                       <div
                         key={substitution}
-                        className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4 text-sm leading-7 text-cream/85"
+                        className="rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-4 text-sm leading-7 text-charcoal/80"
                       >
                         {substitution}
                       </div>
@@ -954,7 +954,7 @@ export default async function RecipePage({
                     {recipe.variations.map((variation) => (
                       <div
                         key={variation}
-                        className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4 text-sm leading-7 text-cream/85"
+                        className="rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-4 text-sm leading-7 text-charcoal/80"
                       >
                         {variation}
                       </div>
@@ -966,24 +966,24 @@ export default async function RecipePage({
               {(recipe.storageNotes || recipe.reheatNotes || recipe.makeAheadNotes) ? (
                 <div className="recipe-print-section recipe-core-panel panel p-6 sm:p-7">
                   <p className="eyebrow">Storage and leftovers</p>
-                  <h3 className="mt-3 font-display text-4xl text-cream">Plan ahead and reheat well</h3>
+                  <h3 className="mt-3 font-display text-4xl text-charcoal">Plan ahead and reheat well</h3>
                   <div className="mt-6 space-y-4">
                     {recipe.makeAheadNotes ? (
-                      <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+                      <div className="rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-4">
                         <p className="text-xs uppercase tracking-[0.18em] text-ember">Make ahead</p>
-                        <p className="mt-3 text-sm leading-7 text-cream/85">{recipe.makeAheadNotes}</p>
+                        <p className="mt-3 text-sm leading-7 text-charcoal/80">{recipe.makeAheadNotes}</p>
                       </div>
                     ) : null}
                     {recipe.storageNotes ? (
-                      <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+                      <div className="rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-4">
                         <p className="text-xs uppercase tracking-[0.18em] text-ember">Storage</p>
-                        <p className="mt-3 text-sm leading-7 text-cream/85">{recipe.storageNotes}</p>
+                        <p className="mt-3 text-sm leading-7 text-charcoal/80">{recipe.storageNotes}</p>
                       </div>
                     ) : null}
                     {recipe.reheatNotes ? (
-                      <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+                      <div className="rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-4">
                         <p className="text-xs uppercase tracking-[0.18em] text-ember">Reheat</p>
-                        <p className="mt-3 text-sm leading-7 text-cream/85">{recipe.reheatNotes}</p>
+                        <p className="mt-3 text-sm leading-7 text-charcoal/80">{recipe.reheatNotes}</p>
                       </div>
                     ) : null}
                   </div>
@@ -993,12 +993,12 @@ export default async function RecipePage({
               {servingSuggestions.length ? (
                 <div className="recipe-print-section recipe-core-panel panel p-6 sm:p-7">
                   <p className="eyebrow">Serve it like you mean it</p>
-                  <h3 className="mt-3 font-display text-4xl text-cream">Finish, pair, and plate</h3>
+                  <h3 className="mt-3 font-display text-4xl text-charcoal">Finish, pair, and plate</h3>
                   <ul className="mt-6 space-y-4">
                     {servingSuggestions.map((suggestion) => (
                       <li
                         key={suggestion}
-                        className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4 text-sm leading-7 text-cream/85"
+                        className="rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-4 text-sm leading-7 text-charcoal/80"
                       >
                         {suggestion}
                       </li>
@@ -1011,17 +1011,17 @@ export default async function RecipePage({
             {faqs.length ? (
               <section id="faqs" className="recipe-print-section recipe-core-panel panel p-6 sm:p-7">
                 <p className="eyebrow">FAQ</p>
-                <h3 className="mt-3 font-display text-4xl text-cream">The repeat questions</h3>
+                <h3 className="mt-3 font-display text-4xl text-charcoal">The repeat questions</h3>
                 <div className="mt-6 space-y-4">
                   {faqs.map((faq) => (
                     <details
                       key={faq.question}
-                      className="recipe-print-keep rounded-[1.5rem] border border-white/10 bg-white/[0.04] px-4 py-4"
+                      className="recipe-print-keep rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-4"
                     >
-                      <summary className="cursor-pointer list-none text-base font-semibold text-cream">
+                      <summary className="cursor-pointer list-none text-base font-semibold text-charcoal">
                         {faq.question}
                       </summary>
-                      <p className="mt-4 text-sm leading-7 text-cream/85">{faq.answer}</p>
+                      <p className="mt-4 text-sm leading-7 text-charcoal/80">{faq.answer}</p>
                     </details>
                   ))}
                 </div>
@@ -1051,7 +1051,7 @@ export default async function RecipePage({
               />
             </section>
 
-            <section className="recipe-core-panel print-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-7">
+            <section className="recipe-core-panel print-hidden rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6 sm:p-7">
               <EmailCapture
                 source="recipe-page"
                 tag={recipe.cuisineType}
@@ -1080,18 +1080,18 @@ export default async function RecipePage({
                     <div className="flex flex-wrap items-center justify-between gap-4">
                       <div>
                         <p className="eyebrow">Pair this with</p>
-                        <h3 className="mt-3 font-display text-4xl text-cream">
+                        <h3 className="mt-3 font-display text-4xl text-charcoal">
                           The right bottle for this recipe
                         </h3>
                       </div>
                       <Link
                         href="/hot-sauces"
-                        className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                        className="rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
                       >
                         Browse hot sauces
                       </Link>
                     </div>
-                    <p className="mt-3 max-w-2xl text-sm leading-7 text-cream/64">
+                    <p className="mt-3 max-w-2xl text-sm leading-7 text-charcoal/65">
                       These sauce picks are matched to the dish itself, not dropped in at random.
                       Use them to finish, sharpen, or push the heat where it helps.
                     </p>
@@ -1099,7 +1099,7 @@ export default async function RecipePage({
                       {saucePairingCards.map(({ review, reason, hero, resolvedOffer, fallbackAffiliateHref }) => (
                         <article
                           key={review.slug}
-                          className="overflow-hidden rounded-[1.9rem] border border-white/10 bg-white/[0.05]"
+                          className="overflow-hidden rounded-[1.9rem] border border-charcoal/10 bg-charcoal/[0.04]"
                         >
                           <div className="relative aspect-[4/3]">
                             <Image
@@ -1115,27 +1115,27 @@ export default async function RecipePage({
                               <span>{review.brand}</span>
                               <span>{getHotSauceIntentLabel(review)}</span>
                             </div>
-                            <h4 className="mt-3 font-display text-3xl text-cream">
+                            <h4 className="mt-3 font-display text-3xl text-charcoal">
                               {review.productName}
                             </h4>
                             <div className="mt-3 flex flex-wrap gap-2 text-sm">
-                              <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 font-semibold text-amber-100">
+                              <span className="rounded-full border border-amber-300/30 bg-amber-300/10 px-3 py-1 font-semibold text-amber-700">
                                 {review.rating.toFixed(1)}/5
                               </span>
                               {review.heatLevel ? (
-                                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-cream/70">
+                                <span className="rounded-full border border-charcoal/10 bg-charcoal/[0.04] px-3 py-1 text-charcoal/70">
                                   {formatLabel(review.heatLevel)} heat
                                 </span>
                               ) : null}
                             </div>
-                            <p className="mt-4 text-sm leading-7 text-cream/85">{reason}</p>
-                            <p className="mt-3 text-sm leading-7 text-cream/56">
+                            <p className="mt-4 text-sm leading-7 text-charcoal/80">{reason}</p>
+                            <p className="mt-3 text-sm leading-7 text-charcoal/55">
                               {review.description}
                             </p>
                             <div className="mt-5 flex flex-wrap gap-3">
                               <Link
                                 href={`/reviews/${review.slug}`}
-                                className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                                className="rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
                               >
                                 Read review
                               </Link>
@@ -1150,7 +1150,7 @@ export default async function RecipePage({
                                 contentType="recipe"
                                 contentId={recipe.id}
                                 contentSlug={recipe.slug}
-                                className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
+                                className="rounded-full bg-charcoal px-4 py-2 text-sm font-semibold text-cream"
                               >
                                 Check price on Amazon
                               </AffiliateLink>
@@ -1168,13 +1168,13 @@ export default async function RecipePage({
                       <div className="flex flex-wrap items-center justify-between gap-4">
                         <div>
                           <p className="eyebrow">Shop the pantry</p>
-                          <h3 className="mt-3 font-display text-4xl text-cream">
+                          <h3 className="mt-3 font-display text-4xl text-charcoal">
                             Staples for this flavor lane
                           </h3>
                         </div>
                         <Link
                           href="/shop"
-                          className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                          className="rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
                         >
                           Visit the shop
                         </Link>
@@ -1183,20 +1183,20 @@ export default async function RecipePage({
                         {resolvedPantryLinks.map(({ link, resolved }) => (
                           <article
                             key={link.key}
-                            className="rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-5"
+                            className="rounded-[1.6rem] border border-charcoal/10 bg-charcoal/[0.04] p-5"
                           >
                             <div className="flex items-center justify-between gap-3">
                               <p className="text-xs uppercase tracking-[0.22em] text-ember">
                                 {link.badge}
                               </p>
                               {link.priceLabel ? (
-                                <span className="text-xs text-cream/52">{link.priceLabel}</span>
+                                <span className="text-xs text-charcoal/55">{link.priceLabel}</span>
                               ) : null}
                             </div>
-                            <h4 className="mt-3 font-display text-3xl text-cream">
+                            <h4 className="mt-3 font-display text-3xl text-charcoal">
                               {link.product}
                             </h4>
-                            <p className="mt-3 text-sm leading-7 text-cream/85">
+                            <p className="mt-3 text-sm leading-7 text-charcoal/80">
                               {link.bestFor}. {link.description}
                             </p>
                             <AffiliateLink
@@ -1208,7 +1208,7 @@ export default async function RecipePage({
                               contentType="recipe"
                               contentId={recipe.id}
                               contentSlug={recipe.slug}
-                              className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                              className="mt-5 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
                             >
                               Check price on Amazon
                             </AffiliateLink>
@@ -1221,27 +1221,27 @@ export default async function RecipePage({
                   {resolvedGearLinks.length ? (
                     <div className="panel p-6 sm:p-7">
                       <p className="eyebrow">Gear that pays off</p>
-                      <h3 className="mt-3 font-display text-4xl text-cream">
+                      <h3 className="mt-3 font-display text-4xl text-charcoal">
                         Tools that make this easier to repeat
                       </h3>
                       <div className="mt-6 space-y-4">
                         {resolvedGearLinks.map(({ link, resolved }) => (
                           <article
                             key={link.key}
-                            className="rounded-[1.6rem] border border-white/10 bg-white/[0.05] p-5"
+                            className="rounded-[1.6rem] border border-charcoal/10 bg-charcoal/[0.04] p-5"
                           >
                             <div className="flex items-center justify-between gap-3">
                               <p className="text-xs uppercase tracking-[0.22em] text-ember">
                                 {link.badge}
                               </p>
                               {link.priceLabel ? (
-                                <span className="text-xs text-cream/52">{link.priceLabel}</span>
+                                <span className="text-xs text-charcoal/55">{link.priceLabel}</span>
                               ) : null}
                             </div>
-                            <h4 className="mt-3 font-display text-3xl text-cream">
+                            <h4 className="mt-3 font-display text-3xl text-charcoal">
                               {link.product}
                             </h4>
-                            <p className="mt-3 text-sm leading-7 text-cream/85">
+                            <p className="mt-3 text-sm leading-7 text-charcoal/80">
                               {link.bestFor}. {link.description}
                             </p>
                             <AffiliateLink
@@ -1253,7 +1253,7 @@ export default async function RecipePage({
                               contentType="recipe"
                               contentId={recipe.id}
                               contentSlug={recipe.slug}
-                              className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                              className="mt-5 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
                             >
                               Check price on Amazon
                             </AffiliateLink>
@@ -1273,18 +1273,18 @@ export default async function RecipePage({
                     <div className="flex flex-wrap items-center justify-between gap-4">
                       <div>
                         <p className="eyebrow">Cook next</p>
-                        <h3 className="mt-3 font-display text-4xl text-cream">
+                        <h3 className="mt-3 font-display text-4xl text-charcoal">
                           Stay in the same heat lane
                         </h3>
                       </div>
                       <Link
                         href="/recipes"
-                        className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                        className="rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
                       >
                         Browse recipes
                       </Link>
                     </div>
-                    <p className="mt-3 max-w-2xl text-sm leading-7 text-cream/64">
+                    <p className="mt-3 max-w-2xl text-sm leading-7 text-charcoal/65">
                       These are the next recipes most likely to fit the same mood, pantry, or heat
                       level once this one is in your rotation.
                     </p>
@@ -1299,25 +1299,25 @@ export default async function RecipePage({
                 {merchPreview.length ? (
                   <div className="panel p-6 sm:p-7">
                     <p className="eyebrow">FlamingFoodies picks</p>
-                    <h3 className="mt-3 font-display text-4xl text-cream">
+                    <h3 className="mt-3 font-display text-4xl text-charcoal">
                       Pantry, gear, and bottle picks that fit this meal
                     </h3>
                     <div className="mt-6 space-y-4">
                       {merchPreview.map((item) => (
                         <article
                           key={item.slug}
-                          className={`rounded-[1.75rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-5`}
+                          className={`rounded-[1.75rem] border border-charcoal/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-5`}
                         >
                           <p className="text-xs uppercase tracking-[0.24em] text-ember">
                             {item.badge}
                           </p>
-                          <h4 className="mt-3 font-display text-3xl text-cream">{item.name}</h4>
-                          <p className="mt-3 text-sm leading-7 text-cream/85">
+                          <h4 className="mt-3 font-display text-3xl text-charcoal">{item.name}</h4>
+                          <p className="mt-3 text-sm leading-7 text-charcoal/80">
                             {item.description}
                           </p>
                           <Link
                             href={item.href}
-                            className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-charcoal"
+                            className="mt-5 inline-flex rounded-full bg-charcoal px-4 py-2 text-sm font-semibold text-cream"
                           >
                             {item.ctaLabel}
                           </Link>

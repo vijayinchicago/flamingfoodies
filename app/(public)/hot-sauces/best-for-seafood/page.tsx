@@ -117,10 +117,10 @@ export default async function BestHotSaucesForSeafoodPage() {
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="panel p-8">
           <p className="eyebrow">What works on seafood</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             Lighter proteins want cleaner, brighter heat.
           </h2>
-          <p className="mt-4 text-sm leading-7 text-cream/72">
+          <p className="mt-4 text-sm leading-7 text-charcoal/70">
             Seafood-friendly bottles tend to lean citrusy, gingery, or fruit-forward. If the sauce tastes muddy or too smoky, it can bury the fish instead of sharpening it, especially in ceviche or on flaky white fish.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
@@ -132,7 +132,7 @@ export default async function BestHotSaucesForSeafoodPage() {
             </Link>
             <Link
               href="/hot-sauces/under-15"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Budget-friendly picks
             </Link>
@@ -140,8 +140,8 @@ export default async function BestHotSaucesForSeafoodPage() {
         </div>
         <div className="panel p-8">
           <p className="eyebrow">Quick buying rule</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Reach for brightness first.</h2>
-          <ul className="mt-5 space-y-3 text-sm leading-7 text-cream/72">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Reach for brightness first.</h2>
+          <ul className="mt-5 space-y-3 text-sm leading-7 text-charcoal/70">
             <li>Use brighter bottles for grilled shrimp, fish tacos, flaky fish, and ceviche.</li>
             <li>Ginger and citrus usually outperform dense smoke on seafood.</li>
             <li>Save heavy reaper sauces for wings and pizza instead of delicate proteins.</li>
@@ -204,7 +204,7 @@ export default async function BestHotSaucesForSeafoodPage() {
         faqs={pageOptimization.faqs ?? seafoodFaqs}
       />
 
-      <div className="mt-12 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-8">
+      <div className="mt-12 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6 sm:p-8">
         <EmailCapture
           source="hot-sauce-best-for-seafood"
           tag="best-for-seafood"

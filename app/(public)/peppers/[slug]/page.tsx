@@ -98,23 +98,23 @@ export default async function PepperPage({ params }: { params: { slug: string } 
           <span className={`rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wider ${tierMeta.bgClass} ${tierMeta.textClass}`}>
             {tierMeta.label}
           </span>
-          <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs text-cream/55">
+          <span className="rounded-full border border-charcoal/10 bg-charcoal/[0.04] px-3 py-1 text-xs text-charcoal/55">
             {formatScoville(pepper.scovilleMin, pepper.scovilleMax)}
           </span>
-          <span className="rounded-full border border-white/8 px-3 py-1 text-xs text-cream/40">
+          <span className="rounded-full border border-charcoal/10 px-3 py-1 text-xs text-charcoal/45">
             {pepper.origin.replace(/-/g, " ")}
           </span>
         </div>
-        <h1 className="mt-6 font-display text-5xl leading-tight text-cream sm:text-6xl lg:text-7xl">
+        <h1 className="mt-6 font-display text-5xl leading-tight text-charcoal sm:text-6xl lg:text-7xl">
           {pepper.name}
         </h1>
         {pepper.aliases.length > 0 && (
-          <p className="mt-2 text-sm text-cream/45">
+          <p className="mt-2 text-sm text-charcoal/45">
             Also known as: {pepper.aliases.join(", ")}
           </p>
         )}
-        <p className="mt-5 max-w-3xl text-lg leading-8 text-cream/75">{pepper.description}</p>
-        <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-cream/72">
+        <p className="mt-5 max-w-3xl text-lg leading-8 text-charcoal/75">{pepper.description}</p>
+        <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 text-sm leading-7 text-charcoal/70">
           <p className="eyebrow">Field guide note</p>
           <p className="mt-3">
             Pepper pages are meant to help you understand heat range, flavor, and cooking use
@@ -122,10 +122,10 @@ export default async function PepperPage({ params }: { params: { slug: string } 
             examples rather than part of the core reference.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link href="/editorial-policy" className="font-semibold text-cream underline underline-offset-4">
+            <Link href="/editorial-policy" className="font-semibold text-charcoal underline underline-offset-4">
               Editorial policy
             </Link>
-            <Link href="/corrections" className="font-semibold text-cream underline underline-offset-4">
+            <Link href="/corrections" className="font-semibold text-charcoal underline underline-offset-4">
               Corrections
             </Link>
           </div>
@@ -136,22 +136,22 @@ export default async function PepperPage({ params }: { params: { slug: string } 
       <div className="mt-12 grid gap-6 lg:grid-cols-3">
         <div className="panel p-8 lg:col-span-2">
           <p className="eyebrow">The full profile</p>
-          <p className="mt-4 text-sm leading-8 text-cream/75">{pepper.editorialNote}</p>
+          <p className="mt-4 text-sm leading-8 text-charcoal/75">{pepper.editorialNote}</p>
         </div>
         <div className="space-y-4">
           <div className="panel p-6">
             <p className="eyebrow">Flavor</p>
-            <p className="mt-3 text-sm leading-7 text-cream/75">{pepper.flavorProfile}</p>
+            <p className="mt-3 text-sm leading-7 text-charcoal/75">{pepper.flavorProfile}</p>
           </div>
           <div className="panel p-6">
             <p className="eyebrow">Color</p>
-            <p className="mt-3 text-sm text-cream/75">{pepper.color}</p>
+            <p className="mt-3 text-sm text-charcoal/75">{pepper.color}</p>
           </div>
-          <div className={`rounded-[1.75rem] border p-6 ${tierMeta.bgClass} border-white/10`}>
+          <div className={`rounded-[1.75rem] border p-6 ${tierMeta.bgClass} border-charcoal/10`}>
             <p className={`text-xs uppercase tracking-[0.22em] ${tierMeta.textClass}`}>Heat level</p>
-            <p className="mt-2 font-display text-3xl text-cream">{tierMeta.label}</p>
-            <p className="mt-1 text-sm text-cream/60">{formatScoville(pepper.scovilleMin, pepper.scovilleMax)}</p>
-            <p className="mt-2 text-xs text-cream/45">{tierMeta.range}</p>
+            <p className="mt-2 font-display text-3xl text-charcoal">{tierMeta.label}</p>
+            <p className="mt-1 text-sm text-charcoal/60">{formatScoville(pepper.scovilleMin, pepper.scovilleMax)}</p>
+            <p className="mt-2 text-xs text-charcoal/45">{tierMeta.range}</p>
           </div>
         </div>
       </div>
@@ -159,7 +159,7 @@ export default async function PepperPage({ params }: { params: { slug: string } 
       {/* Fun fact */}
       <div className="mt-6 rounded-[2rem] border border-ember/20 bg-ember/8 p-8">
         <p className="eyebrow">Did you know</p>
-        <p className="mt-3 text-base leading-8 text-cream/80">{pepper.funFact}</p>
+        <p className="mt-3 text-base leading-8 text-charcoal/80">{pepper.funFact}</p>
       </div>
 
       {/* Culinary uses */}
@@ -168,7 +168,7 @@ export default async function PepperPage({ params }: { params: { slug: string } 
           <p className="eyebrow">How to use it</p>
           <ul className="mt-4 space-y-3">
             {pepper.culinaryUses.map((use) => (
-              <li key={use} className="flex gap-3 text-sm leading-7 text-cream/75">
+              <li key={use} className="flex gap-3 text-sm leading-7 text-charcoal/75">
                 <span className="mt-0.5 shrink-0 text-ember">—</span>
                 <span>{use}</span>
               </li>
@@ -181,7 +181,7 @@ export default async function PepperPage({ params }: { params: { slug: string } 
             {pepper.pairsWith.map((pair) => (
               <span
                 key={pair}
-                className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-sm text-cream/70"
+                className="rounded-full border border-charcoal/10 bg-charcoal/[0.05] px-3 py-1.5 text-sm text-charcoal/70"
               >
                 {pair}
               </span>
@@ -194,7 +194,7 @@ export default async function PepperPage({ params }: { params: { slug: string } 
       {displayRecipes.length > 0 && (
         <div className="mt-14">
           <p className="eyebrow">Cook with it</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             Recipes that use {pepper.name.toLowerCase()}.
           </h2>
           <div className="mt-8 grid gap-6 lg:grid-cols-3">
@@ -202,7 +202,7 @@ export default async function PepperPage({ params }: { params: { slug: string } 
               <RecipeCard key={recipe.id} recipe={recipe} />
             ))}
           </div>
-          <Link href="/recipes" className="mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+          <Link href="/recipes" className="mt-6 inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-charcoal">
             Browse all recipes
           </Link>
         </div>
@@ -210,21 +210,21 @@ export default async function PepperPage({ params }: { params: { slug: string } 
 
       {/* Same heat tier */}
       {nearbyPeppers.length > 0 && (
-        <div className="mt-16 rounded-[2rem] border border-white/10 bg-white/[0.04] p-8">
+        <div className="mt-16 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-8">
           <p className="eyebrow">Same heat tier</p>
-          <h2 className="mt-3 font-display text-3xl text-cream">Other {tierMeta.label.toLowerCase()} peppers.</h2>
+          <h2 className="mt-3 font-display text-3xl text-charcoal">Other {tierMeta.label.toLowerCase()} peppers.</h2>
           <div className="mt-6 flex flex-wrap gap-3">
             {nearbyPeppers.map((p) => (
               <Link
                 key={p.slug}
                 href={`/peppers/${p.slug}`}
-                className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-cream hover:border-white/20 hover:text-white"
+                className="rounded-full border border-charcoal/10 bg-charcoal/[0.04] px-4 py-2 text-sm font-semibold text-charcoal hover:border-charcoal/20 hover:text-charcoal"
               >
                 {p.name}
               </Link>
             ))}
           </div>
-          <Link href="/peppers" className="mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+          <Link href="/peppers" className="mt-6 inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-charcoal">
             Full pepper encyclopedia
           </Link>
         </div>
@@ -235,21 +235,21 @@ export default async function PepperPage({ params }: { params: { slug: string } 
         <div className="mt-12">
           <AffiliateDisclosure className="max-w-3xl" compact />
           <p className="mt-6 eyebrow">Pantry examples</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             If you want to taste {pepper.name.toLowerCase()} in a bottle or pantry product.
           </h2>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/72">
             These are optional examples of how this pepper shows up in real products. The profile
             above should still stand on its own even if you never shop from this section.
           </p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {affiliateItems.map(({ key, entry, resolved }) => (
-              <article key={key} className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
+              <article key={key} className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-5">
                 <p className="text-xs uppercase tracking-[0.22em] text-ember">
                   {"badge" in entry ? String(entry.badge) : "Example"}
                 </p>
-                <h3 className="mt-2 font-display text-2xl text-cream">{entry.product}</h3>
-                <p className="mt-2 text-sm leading-6 text-cream/65">
+                <h3 className="mt-2 font-display text-2xl text-charcoal">{entry.product}</h3>
+                <p className="mt-2 text-sm leading-6 text-charcoal/65">
                   {"description" in entry ? String(entry.description) : ""}
                 </p>
                 <AffiliateLink
@@ -258,7 +258,7 @@ export default async function PepperPage({ params }: { params: { slug: string } 
                   trackingMode={resolved.trackingMode}
                   sourcePage={sourcePage}
                   position="pepper-affiliate"
-                  className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
+                  className="mt-4 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-charcoal"
                 >
                   View example ↗
                 </AffiliateLink>
@@ -268,7 +268,7 @@ export default async function PepperPage({ params }: { params: { slug: string } 
         </div>
       )}
 
-      <div className="mt-14 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-8">
+      <div className="mt-14 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6 sm:p-8">
         <EmailCapture
           source="pepper-page"
           tag={pepper.slug}

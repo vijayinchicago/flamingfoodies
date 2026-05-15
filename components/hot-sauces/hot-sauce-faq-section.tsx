@@ -24,8 +24,8 @@ export function HotSauceFaqSection({
       <div className="mt-8 grid gap-4 lg:grid-cols-3">
         {faqs.map((faq) => (
           <article key={faq.question} className="panel p-6">
-            <h3 className="font-display text-3xl text-cream">{faq.question}</h3>
-            <p className="mt-4 text-sm leading-7 text-cream/72">{faq.answer}</p>
+            <h3 className="font-display text-3xl text-charcoal">{faq.question}</h3>
+            <p className="mt-4 text-sm leading-7 text-charcoal/75">{faq.answer}</p>
           </article>
         ))}
       </div>

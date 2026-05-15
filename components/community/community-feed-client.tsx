@@ -25,10 +25,10 @@ function formatHeatLevel(value: string) {
 
 function CommunityPostCard({ post }: { post: CommunityPost }) {
   return (
-    <article className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 transition hover:border-white/20">
+    <article className="overflow-hidden rounded-[2rem] border border-charcoal/10 bg-white transition hover:border-charcoal/20">
       {/* Media */}
       {post.mediaUrl ? (
-        <div className="relative h-64">
+        <div className="dark-scope relative h-64">
           <Image
             src={post.mediaUrl}
             alt={post.title || post.caption}
@@ -47,7 +47,7 @@ function CommunityPostCard({ post }: { post: CommunityPost }) {
         </div>
       ) : (
         <div className="relative flex h-20 items-center justify-between bg-gradient-to-br from-flame/20 via-ember/15 to-transparent px-6">
-          <span className="rounded-full border border-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-cream/80">
+          <span className="rounded-full border border-charcoal/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-charcoal/75">
             {formatPostType(post.type)}
           </span>
           {post.isPinned ? (
@@ -66,7 +66,7 @@ function CommunityPostCard({ post }: { post: CommunityPost }) {
             className="group flex min-w-0 items-center gap-3"
           >
             {post.user.avatarUrl ? (
-              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/15">
+              <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-charcoal/15">
                 <Image
                   src={post.user.avatarUrl}
                   alt={post.user.displayName}
@@ -75,31 +75,31 @@ function CommunityPostCard({ post }: { post: CommunityPost }) {
                 />
               </div>
             ) : (
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/15 bg-gradient-to-br from-flame/40 to-ember/40 text-sm font-bold text-cream">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-charcoal/15 bg-gradient-to-br from-flame/40 to-ember/40 text-sm font-bold text-white">
                 {post.user.displayName.charAt(0).toUpperCase()}
               </div>
             )}
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-cream group-hover:text-white">
+              <p className="truncate text-sm font-semibold text-charcoal group-hover:text-ember">
                 {post.user.displayName}
               </p>
-              <p className="truncate text-xs text-cream/50">
+              <p className="truncate text-xs text-charcoal/55">
                 @{post.user.username}
                 {post.user.heatScore > 0 ? ` · ${post.user.heatScore} heat pts` : ""}
               </p>
             </div>
           </Link>
-          <p className="shrink-0 text-xs text-cream/45">{formatDate(post.createdAt)}</p>
+          <p className="shrink-0 text-xs text-charcoal/45">{formatDate(post.createdAt)}</p>
         </div>
 
         {/* Content */}
         <div>
           {post.title ? (
-            <h3 className="font-display text-2xl leading-tight text-cream sm:text-3xl">
+            <h3 className="font-display text-2xl leading-tight text-charcoal sm:text-3xl">
               {post.title}
             </h3>
           ) : null}
-          <p className="mt-2 text-sm leading-7 text-cream/75 line-clamp-3">{post.caption}</p>
+          <p className="mt-2 text-sm leading-7 text-charcoal/75 line-clamp-3">{post.caption}</p>
         </div>
 
         {/* Metadata badges */}
@@ -111,7 +111,7 @@ function CommunityPostCard({ post }: { post: CommunityPost }) {
               </span>
             ) : null}
             {post.cuisineType ? (
-              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-cream/65">
+              <span className="rounded-full border border-charcoal/10 bg-charcoal/[0.04] px-3 py-1 text-xs text-charcoal/70">
                 {post.cuisineType.replace(/_/g, " ")}
               </span>
             ) : null}
@@ -120,8 +120,8 @@ function CommunityPostCard({ post }: { post: CommunityPost }) {
 
         {/* Structured recipe preview */}
         {post.structuredRecipe ? (
-          <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
-            <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.18em] text-cream/55">
+          <div className="rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-4">
+            <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.18em] text-charcoal/55">
               <span>Recipe</span>
               <span>{post.structuredRecipe.heatLevel}</span>
               <span>{post.structuredRecipe.cuisineType.replace(/_/g, " ")}</span>
@@ -129,7 +129,7 @@ function CommunityPostCard({ post }: { post: CommunityPost }) {
                 <span>{post.structuredRecipe.prepTimeMinutes}min prep</span>
               ) : null}
             </div>
-            <p className="mt-2 text-sm leading-6 text-cream/70 line-clamp-2">
+            <p className="mt-2 text-sm leading-6 text-charcoal/70 line-clamp-2">
               {post.structuredRecipe.description}
             </p>
           </div>
@@ -141,7 +141,7 @@ function CommunityPostCard({ post }: { post: CommunityPost }) {
             {post.tags.slice(0, 4).map((tag) => (
               <span
                 key={tag}
-                className="rounded-full border border-white/10 px-3 py-1 text-xs text-cream/60"
+                className="rounded-full border border-charcoal/10 px-3 py-1 text-xs text-charcoal/55"
               >
                 #{tag}
               </span>
@@ -150,15 +150,15 @@ function CommunityPostCard({ post }: { post: CommunityPost }) {
         ) : null}
 
         {/* Stats + profile link */}
-        <div className="flex items-center justify-between gap-4 border-t border-white/8 pt-4">
-          <div className="flex gap-5 text-sm text-cream/55">
+        <div className="flex items-center justify-between gap-4 border-t border-charcoal/10 pt-4">
+          <div className="flex gap-5 text-sm text-charcoal/55">
             <span>{post.likeCount} likes</span>
             <span>{post.commentCount} notes</span>
             <span>{post.viewCount} views</span>
           </div>
           <Link
             href={`/profile/${post.user.username}`}
-            className="rounded-full border border-white/12 px-3 py-1.5 text-xs font-semibold text-cream/70 hover:border-white/25 hover:text-white"
+            className="rounded-full border border-charcoal/10 px-3 py-1.5 text-xs font-semibold text-charcoal/70 hover:border-charcoal/20 hover:text-charcoal"
           >
             View profile
           </Link>
@@ -226,7 +226,7 @@ export function CommunityFeedClient({
       {/* Tab + filter row */}
       <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         {/* Tabs */}
-        <div className="flex gap-1 rounded-2xl border border-white/10 bg-white/[0.03] p-1">
+        <div className="flex gap-1 rounded-2xl border border-charcoal/10 bg-charcoal/[0.04] p-1">
           {tabs.map((tab) => (
             <button
               key={tab.key}
@@ -234,8 +234,8 @@ export function CommunityFeedClient({
               onClick={() => setActiveTab(tab.key)}
               className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
                 activeTab === tab.key
-                  ? "bg-white text-charcoal shadow-sm"
-                  : "text-cream/70 hover:text-white"
+                  ? "bg-charcoal text-cream shadow-sm"
+                  : "text-charcoal/70 hover:text-charcoal"
               }`}
             >
               {tab.label}
@@ -244,7 +244,7 @@ export function CommunityFeedClient({
           {isLoggedIn ? (
             <button
               type="button"
-              className="rounded-xl px-5 py-2.5 text-sm font-semibold text-cream/70 hover:text-white"
+              className="rounded-xl px-5 py-2.5 text-sm font-semibold text-charcoal/70 hover:text-charcoal"
               onClick={() => {/* Following feed — requires social graph */}}
             >
               Following
@@ -252,7 +252,7 @@ export function CommunityFeedClient({
           ) : (
             <Link
               href="/login"
-              className="rounded-xl px-5 py-2.5 text-sm font-semibold text-cream/45 transition hover:text-cream/70"
+              className="rounded-xl px-5 py-2.5 text-sm font-semibold text-charcoal/45 transition hover:text-charcoal/70"
               title="Log in to see posts from people you follow"
             >
               Following
@@ -270,7 +270,7 @@ export function CommunityFeedClient({
               className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
                 typeFilter === f.key
                   ? "border-ember bg-ember text-white"
-                  : "border-white/15 text-cream/75 hover:border-white/30 hover:text-white"
+                  : "border-charcoal/15 text-charcoal/75 hover:border-charcoal/20 hover:text-charcoal"
               }`}
             >
               {f.label}
@@ -280,7 +280,7 @@ export function CommunityFeedClient({
       </div>
 
       {/* Results count */}
-      <p className="mt-4 text-sm text-cream/50">
+      <p className="mt-4 text-sm text-charcoal/55">
         {filtered.length} post{filtered.length === 1 ? "" : "s"}
         {typeFilter !== "all" ? ` · ${formatPostType(typeFilter as CommunityPost["type"])}s only` : ""}
       </p>
@@ -293,9 +293,9 @@ export function CommunityFeedClient({
           ))}
         </div>
       ) : (
-        <div className="mt-8 rounded-[2rem] border border-white/10 bg-white/[0.03] p-10 text-center">
-          <p className="font-display text-3xl text-cream">Nothing here yet</p>
-          <p className="mt-3 text-sm text-cream/60">
+        <div className="mt-8 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-10 text-center">
+          <p className="font-display text-3xl text-charcoal">Nothing here yet</p>
+          <p className="mt-3 text-sm text-charcoal/55">
             {typeFilter !== "all"
               ? "Try a different post type or switch to All."
               : "Be the first to post in this feed."}

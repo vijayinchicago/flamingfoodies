@@ -80,18 +80,18 @@ export default async function TutorialPage({ params }: { params: { slug: string 
           <span className="rounded-full border border-ember/30 bg-ember/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-ember">
             {CATEGORY_LABELS[tutorial.category]}
           </span>
-          <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs text-cream/55">
+          <span className="rounded-full border border-charcoal/10 bg-charcoal/[0.04] px-3 py-1 text-xs text-charcoal/55">
             {DIFFICULTY_LABELS[tutorial.difficulty]}
           </span>
-          <span className="rounded-full border border-white/8 px-3 py-1 text-xs text-cream/40">
+          <span className="rounded-full border border-charcoal/10 px-3 py-1 text-xs text-charcoal/45">
             {tutorial.timeEstimate}
           </span>
         </div>
-        <h1 className="mt-6 max-w-4xl font-display text-4xl leading-tight text-cream sm:text-5xl lg:text-6xl">
+        <h1 className="mt-6 max-w-4xl font-display text-4xl leading-tight text-charcoal sm:text-5xl lg:text-6xl">
           {tutorial.title}
         </h1>
-        <p className="mt-5 max-w-3xl text-base leading-8 text-cream/75">{tutorial.intro}</p>
-        <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-cream/72">
+        <p className="mt-5 max-w-3xl text-base leading-8 text-charcoal/75">{tutorial.intro}</p>
+        <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 text-sm leading-7 text-charcoal/70">
           <p className="eyebrow">Guide note</p>
           <p className="mt-3">
             These how-to pages are written to help you cook or troubleshoot first. Any optional
@@ -99,10 +99,10 @@ export default async function TutorialPage({ params }: { params: { slug: string 
             gear list.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link href="/editorial-policy" className="font-semibold text-cream underline underline-offset-4">
+            <Link href="/editorial-policy" className="font-semibold text-charcoal underline underline-offset-4">
               Editorial policy
             </Link>
-            <Link href="/corrections" className="font-semibold text-cream underline underline-offset-4">
+            <Link href="/corrections" className="font-semibold text-charcoal underline underline-offset-4">
               Corrections
             </Link>
           </div>
@@ -118,8 +118,8 @@ export default async function TutorialPage({ params }: { params: { slug: string 
                 {i + 1}
               </span>
               <div>
-                <h2 className="font-display text-2xl text-cream">{step.heading}</h2>
-                <p className="mt-3 text-sm leading-8 text-cream/75">{step.body}</p>
+                <h2 className="font-display text-2xl text-charcoal">{step.heading}</h2>
+                <p className="mt-3 text-sm leading-8 text-charcoal/75">{step.body}</p>
               </div>
             </div>
           </div>
@@ -132,7 +132,7 @@ export default async function TutorialPage({ params }: { params: { slug: string 
           <p className="eyebrow">Pro tips</p>
           <ul className="mt-4 space-y-3">
             {tutorial.proTips.map((tip) => (
-              <li key={tip} className="flex gap-3 text-sm leading-7 text-cream/80">
+              <li key={tip} className="flex gap-3 text-sm leading-7 text-charcoal/75">
                 <span className="mt-0.5 shrink-0 text-ember">—</span>
                 <span>{tip}</span>
               </li>
@@ -146,19 +146,19 @@ export default async function TutorialPage({ params }: { params: { slug: string 
         <div className="mt-12">
           <AffiliateDisclosure className="max-w-3xl" compact />
           <p className="mt-6 eyebrow">Optional tools</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Helpful gear if you&apos;re stocking the setup.</h2>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Helpful gear if you&apos;re stocking the setup.</h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
             None of these are required to follow the guide. They are here for readers who want a
             cleaner, more repeatable setup after trying the method.
           </p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {affiliateItems.map(({ key, entry, resolved }) => (
-              <article key={key} className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
+              <article key={key} className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-5">
                 <p className="text-xs uppercase tracking-[0.22em] text-ember">
                   {"badge" in entry ? String(entry.badge) : "Tool"}
                 </p>
-                <h3 className="mt-2 font-display text-2xl text-cream">{entry.product}</h3>
-                <p className="mt-2 text-sm leading-6 text-cream/65">
+                <h3 className="mt-2 font-display text-2xl text-charcoal">{entry.product}</h3>
+                <p className="mt-2 text-sm leading-6 text-charcoal/70">
                   {"description" in entry ? String(entry.description) : ""}
                 </p>
                 <AffiliateLink
@@ -167,7 +167,7 @@ export default async function TutorialPage({ params }: { params: { slug: string 
                   trackingMode={resolved.trackingMode}
                   sourcePage={sourcePage}
                   position="how-to-tool"
-                  className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
+                  className="mt-4 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-charcoal"
                 >
                   View option ↗
                 </AffiliateLink>
@@ -179,19 +179,19 @@ export default async function TutorialPage({ params }: { params: { slug: string 
 
       {/* Related guides */}
       {related.length > 0 && (
-        <div className="mt-16 rounded-[2rem] border border-white/10 bg-white/[0.04] p-8">
+        <div className="mt-16 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-8">
           <p className="eyebrow">Related guides</p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {related.map((t) => (
               <Link key={t.slug} href={`/how-to/${t.slug}`}
-                className="group rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4 transition hover:border-white/20">
-                <p className="text-xs text-cream/40">{t.timeEstimate}</p>
-                <h3 className="mt-2 font-display text-xl text-cream leading-tight">{t.title}</h3>
-                <p className="mt-2 text-xs font-semibold text-cream/40 group-hover:text-cream/65">Read →</p>
+                className="group rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-4 transition hover:border-charcoal/20">
+                <p className="text-xs text-charcoal/45">{t.timeEstimate}</p>
+                <h3 className="mt-2 font-display text-xl text-charcoal leading-tight">{t.title}</h3>
+                <p className="mt-2 text-xs font-semibold text-charcoal/45 group-hover:text-charcoal/70">Read →</p>
               </Link>
             ))}
           </div>
-          <Link href="/how-to" className="mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+          <Link href="/how-to" className="mt-6 inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-charcoal">
             All how-to guides
           </Link>
         </div>

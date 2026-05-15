@@ -38,7 +38,7 @@ export default async function PeppersPage() {
       />
 
       {/* Heat scale visual */}
-      <div className="mt-12 rounded-[2rem] border border-white/10 bg-white/[0.03] p-8">
+      <div className="mt-12 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-8">
         <p className="eyebrow">The heat scale</p>
         <div className="mt-6 flex flex-col gap-3">
           {tierOrder.map((tier) => {
@@ -51,7 +51,7 @@ export default async function PeppersPage() {
                 >
                   {meta.label}
                 </div>
-                <div className="hidden text-xs text-cream/40 sm:block w-36 shrink-0">
+                <div className="hidden text-xs text-charcoal/45 sm:block w-36 shrink-0">
                   {meta.range}
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -59,13 +59,13 @@ export default async function PeppersPage() {
                     <Link
                       key={p.slug}
                       href={`/peppers/${p.slug}`}
-                      className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-cream/70 transition hover:border-white/20 hover:text-cream"
+                      className="rounded-full border border-charcoal/10 bg-charcoal/[0.04] px-3 py-1 text-xs text-charcoal/70 transition hover:border-charcoal/20 hover:text-charcoal"
                     >
                       {p.name}
                     </Link>
                   ))}
                   {tieredPeppers.length === 0 && (
-                    <span className="text-xs text-cream/25">No peppers yet</span>
+                    <span className="text-xs text-charcoal/45">No peppers yet</span>
                   )}
                 </div>
               </div>
@@ -86,34 +86,34 @@ export default async function PeppersPage() {
                 <span className={`rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wider ${meta.bgClass} ${meta.textClass}`}>
                   {meta.label}
                 </span>
-                <p className="text-sm text-cream/40">{meta.range}</p>
-                <div className="h-px flex-1 bg-white/8" />
+                <p className="text-sm text-charcoal/45">{meta.range}</p>
+                <div className="h-px flex-1 bg-charcoal/10" />
               </div>
               <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {tieredPeppers.map((pepper) => (
                   <Link
                     key={pepper.slug}
                     href={`/peppers/${pepper.slug}`}
-                    className="group rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-5 transition hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/[0.06]"
+                    className="group rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 transition hover:-translate-y-0.5 hover:border-charcoal/20 hover:bg-charcoal/[0.06]"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <p className={`text-xs uppercase tracking-[0.2em] ${meta.textClass}`}>
                         {pepper.origin.replace(/-/g, " ")}
                       </p>
-                      <span className="shrink-0 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-0.5 text-[11px] text-cream/45">
+                      <span className="shrink-0 rounded-full border border-charcoal/10 bg-charcoal/[0.04] px-2.5 py-0.5 text-[11px] text-charcoal/45">
                         {formatScoville(pepper.scovilleMin, pepper.scovilleMax)}
                       </span>
                     </div>
-                    <h2 className="mt-2 font-display text-2xl leading-tight text-cream">
+                    <h2 className="mt-2 font-display text-2xl leading-tight text-charcoal">
                       {pepper.name}
                     </h2>
                     {pepper.aliases.length > 0 && (
-                      <p className="mt-0.5 text-xs text-cream/40">
+                      <p className="mt-0.5 text-xs text-charcoal/45">
                         Also: {pepper.aliases.slice(0, 2).join(", ")}
                       </p>
                     )}
-                    <p className="mt-3 text-sm leading-6 text-cream/65">{pepper.flavorProfile}</p>
-                    <p className="mt-3 text-xs font-semibold text-cream/40 group-hover:text-cream/65">
+                    <p className="mt-3 text-sm leading-6 text-charcoal/70">{pepper.flavorProfile}</p>
+                    <p className="mt-3 text-xs font-semibold text-charcoal/45 group-hover:text-charcoal/70">
                       Full profile →
                     </p>
                   </Link>
@@ -125,35 +125,35 @@ export default async function PeppersPage() {
       </div>
 
       {/* Stats */}
-      <div className="mt-16 grid gap-4 rounded-[2rem] border border-white/10 bg-white/[0.03] p-8 sm:grid-cols-3">
+      <div className="mt-16 grid gap-4 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-8 sm:grid-cols-3">
         <div>
-          <p className="font-display text-5xl text-cream">{peppers.length}</p>
-          <p className="mt-2 text-sm text-cream/60">Peppers documented</p>
+          <p className="font-display text-5xl text-charcoal">{peppers.length}</p>
+          <p className="mt-2 text-sm text-charcoal/55">Peppers documented</p>
         </div>
         <div>
-          <p className="font-display text-5xl text-cream">{tierOrder.length}</p>
-          <p className="mt-2 text-sm text-cream/60">Heat tiers</p>
+          <p className="font-display text-5xl text-charcoal">{tierOrder.length}</p>
+          <p className="mt-2 text-sm text-charcoal/55">Heat tiers</p>
         </div>
         <div>
-          <p className="font-display text-5xl text-cream">
+          <p className="font-display text-5xl text-charcoal">
             {new Set(peppers.map((p) => p.origin)).size}
           </p>
-          <p className="mt-2 text-sm text-cream/60">Origins worldwide</p>
+          <p className="mt-2 text-sm text-charcoal/55">Origins worldwide</p>
         </div>
       </div>
 
       {/* Bottom nav */}
       <div className="mt-12 flex flex-wrap gap-3">
-        <Link href="/hot-sauces" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+        <Link href="/hot-sauces" className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-charcoal">
           Hot sauce hub
         </Link>
-        <Link href="/reviews" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+        <Link href="/reviews" className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-charcoal">
           Sauce reviews
         </Link>
-        <Link href="/recipes" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+        <Link href="/recipes" className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-charcoal">
           Browse recipes
         </Link>
-        <Link href="/brands" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+        <Link href="/brands" className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-charcoal">
           Brand directory
         </Link>
       </div>

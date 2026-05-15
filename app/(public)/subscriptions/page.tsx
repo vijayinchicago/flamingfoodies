@@ -43,9 +43,9 @@ export default function SubscriptionsPage() {
         {resolvedSubscriptions.map(({ link, resolved }) => (
           <article key={link.key} className="panel p-8">
             <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
-            <h2 className="mt-3 font-display text-4xl text-cream">{link.product}</h2>
-            <p className="mt-4 text-sm leading-7 text-cream/75">{link.description}</p>
-            <p className="mt-4 text-xs uppercase tracking-[0.2em] text-cream/45">
+            <h2 className="mt-3 font-display text-4xl text-charcoal">{link.product}</h2>
+            <p className="mt-4 text-sm leading-7 text-charcoal/75">{link.description}</p>
+            <p className="mt-4 text-xs uppercase tracking-[0.2em] text-charcoal/45">
               Best for: {link.bestFor}
             </p>
             <AffiliateLink
@@ -64,12 +64,12 @@ export default function SubscriptionsPage() {
       <div className="mt-10 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="panel p-8">
           <p className="eyebrow">Next best action</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Stay close to the gift and gear picks.</h2>
-          <p className="mt-4 text-sm leading-7 text-cream/75">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Stay close to the gift and gear picks.</h2>
+          <p className="mt-4 text-sm leading-7 text-charcoal/75">
             We do not need to force a merch story at launch. This signup keeps people warm for new
             gift guides, recurring boxes, and the next strong store recommendations.
           </p>
-          <Link href="/shop" className="mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream">
+          <Link href="/shop" className="mt-6 inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal">
             Browse the shop
           </Link>
         </div>

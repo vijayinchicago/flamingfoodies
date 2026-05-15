@@ -67,10 +67,10 @@ export default async function BestHotSaucesForEggsPage() {
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="panel p-8">
           <p className="eyebrow">What works on eggs</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             Breakfast wants lift, not punishment.
           </h2>
-          <p className="mt-4 text-sm leading-7 text-cream/72">
+          <p className="mt-4 text-sm leading-7 text-charcoal/70">
             Eggs do best with sauces you can pour generously, spoon crisps into, or finish with a little sweetness and crunch. This is a lane for everyday bottles, not one-drop stunt sauces.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
@@ -82,7 +82,7 @@ export default async function BestHotSaucesForEggsPage() {
             </Link>
             <Link
               href="/hot-sauces/best-for-tacos"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Best for breakfast tacos
             </Link>
@@ -91,8 +91,8 @@ export default async function BestHotSaucesForEggsPage() {
 
         <div className="panel p-8">
           <p className="eyebrow">Quick buying rule</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Pick one pour, one topper.</h2>
-          <ul className="mt-5 space-y-3 text-sm leading-7 text-cream/72">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Pick one pour, one topper.</h2>
+          <ul className="mt-5 space-y-3 text-sm leading-7 text-charcoal/70">
             <li>Keep one pourable bottle for eggs, tacos, and hash.</li>
             <li>Add one textural topper like chili crisp or hot honey for contrast.</li>
             <li>Bright habanero and balanced reds usually beat smoky superhots at breakfast.</li>
@@ -140,7 +140,7 @@ export default async function BestHotSaucesForEggsPage() {
         faqs={eggFaqs}
       />
 
-      <div className="mt-12 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-8">
+      <div className="mt-12 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6 sm:p-8">
         <EmailCapture
           source="hot-sauce-best-for-eggs"
           tag="best-for-eggs"

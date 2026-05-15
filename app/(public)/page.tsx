@@ -31,9 +31,10 @@ export default async function HomePage() {
   return (
     <>
       <OrganizationSchema />
-      <section className="container-shell py-8 sm:py-24">
+      <section className="dark-scope bg-flame-gradient">
+        <div className="container-shell py-8 sm:py-24">
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="panel relative overflow-hidden px-5 py-7 sm:px-8 sm:py-12 lg:px-12 lg:py-16">
+          <div className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] px-5 py-7 backdrop-blur-sm sm:px-8 sm:py-12 lg:px-12 lg:py-16">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(244,99,30,0.22),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(230,57,70,0.22),transparent_30%)]" />
             <div className="relative">
               <p className="eyebrow">Flavor-first spicy food</p>
@@ -130,6 +131,7 @@ export default async function HomePage() {
             ) : null}
           </div>
         </div>
+        </div>
       </section>
 
       <section className="container-shell py-10">
@@ -148,7 +150,7 @@ export default async function HomePage() {
         <div className="mt-6 lg:hidden">
           <Link
             href="/recipes"
-            className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
           >
             See all recipes
           </Link>
@@ -163,11 +165,11 @@ export default async function HomePage() {
         />
         <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {popularBottleGuides.map((guide) => (
-            <Link key={guide.href} href={guide.href} className="panel p-7 transition hover:bg-white/[0.08]">
+            <Link key={guide.href} href={guide.href} className="panel p-7 transition hover:bg-charcoal/[0.03]">
               <p className="eyebrow">{guide.eyebrow}</p>
-              <h3 className="mt-3 font-display text-4xl text-cream">{guide.title}</h3>
-              <p className="mt-4 text-sm leading-7 text-cream/85">{guide.description}</p>
-              <span className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream">
+              <h3 className="mt-3 font-display text-4xl text-charcoal">{guide.title}</h3>
+              <p className="mt-4 text-sm leading-7 text-charcoal/75">{guide.description}</p>
+              <span className="mt-5 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal">
                 Open guide
               </span>
             </Link>
@@ -185,11 +187,11 @@ export default async function HomePage() {
           {blogPosts.map((post) => (
             <div key={post.id} className="panel p-7">
               <p className="eyebrow">{post.category}</p>
-              <h3 className="mt-4 font-display text-4xl text-cream">{post.title}</h3>
-              <p className="mt-4 text-sm leading-7 text-cream/85">{post.description}</p>
+              <h3 className="mt-4 font-display text-4xl text-charcoal">{post.title}</h3>
+              <p className="mt-4 text-sm leading-7 text-charcoal/75">{post.description}</p>
               <Link
                 href={`/blog/${post.slug}`}
-                className="mt-6 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                className="mt-6 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
               >
                 Read post
               </Link>
@@ -213,8 +215,8 @@ export default async function HomePage() {
           {seasonalNow.slice(0, 1).map((occasion) => (
             <article key={occasion.slug} className="panel p-7">
               <p className="eyebrow">In season now</p>
-              <h3 className="mt-3 font-display text-4xl text-cream">{occasion.title}</h3>
-              <p className="mt-4 text-sm leading-7 text-cream/85">{occasion.tagline}</p>
+              <h3 className="mt-3 font-display text-4xl text-charcoal">{occasion.title}</h3>
+              <p className="mt-4 text-sm leading-7 text-charcoal/75">{occasion.tagline}</p>
               <Link
                 href={`/seasonal/${occasion.slug}`}
                 className="mt-5 inline-flex rounded-full bg-gradient-to-r from-flame to-ember px-4 py-2 text-sm font-semibold text-white"
@@ -226,19 +228,19 @@ export default async function HomePage() {
           {editorialFranchises.map((franchise) => (
             <article key={franchise.key} className="panel p-7">
               <p className="eyebrow">{franchise.title}</p>
-              <p className="mt-4 text-sm leading-7 text-cream/85">{franchise.description}</p>
+              <p className="mt-4 text-sm leading-7 text-charcoal/75">{franchise.description}</p>
               {franchise.posts[0] ? (
                 <Link
                   href={`/blog/${franchise.posts[0].slug}`}
-                  className="mt-5 block rounded-[1.35rem] border border-white/10 bg-white/5 px-4 py-4 text-sm text-cream/80 transition hover:bg-white/[0.08]"
+                  className="mt-5 block rounded-[1.35rem] border border-charcoal/10 bg-charcoal/[0.03] px-4 py-4 text-sm text-charcoal/75 transition hover:bg-charcoal/[0.06]"
                 >
                   <span className="text-xs uppercase tracking-[0.18em] text-ember">Recent post</span>
-                  <span className="mt-2 block font-semibold text-cream">{franchise.posts[0].title}</span>
+                  <span className="mt-2 block font-semibold text-charcoal">{franchise.posts[0].title}</span>
                 </Link>
               ) : null}
               <Link
                 href={franchise.href}
-                className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                className="mt-5 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
               >
                 {franchise.ctaLabel}
               </Link>

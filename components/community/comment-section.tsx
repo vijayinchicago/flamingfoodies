@@ -24,8 +24,8 @@ export async function CommentSection({
   return (
     <section id="comments" className="space-y-6">
       <div className="panel p-6">
-        <h2 className="font-display text-3xl text-cream">{title}</h2>
-        <p className="mt-3 text-sm leading-7 text-cream/65">
+        <h2 className="font-display text-3xl text-charcoal">{title}</h2>
+        <p className="mt-3 text-sm leading-7 text-charcoal/70">
           Reader discussion is shared across recipes, reviews, and editorial pieces.
         </p>
         {profile ? (
@@ -37,7 +37,7 @@ export async function CommentSection({
               name="body"
               rows={4}
               placeholder="Add a useful note, tweak, question, or warning."
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-cream outline-none placeholder:text-cream/40 focus:border-ember"
+              className="w-full rounded-2xl border border-charcoal/15 bg-white px-4 py-3 text-charcoal outline-none placeholder:text-charcoal/45 focus:border-ember"
             />
             <button className="rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 font-semibold text-white">
               Post comment
@@ -46,7 +46,7 @@ export async function CommentSection({
         ) : (
           <Link
             href="/login"
-            className="mt-6 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+            className="mt-6 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
           >
             Log in to comment
           </Link>
@@ -59,20 +59,20 @@ export async function CommentSection({
             <article key={comment.id} className="panel p-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-semibold text-cream">
+                  <p className="text-sm font-semibold text-charcoal">
                     {comment.user.displayName}
                   </p>
-                  <p className="text-xs uppercase tracking-[0.2em] text-cream/45">
+                  <p className="text-xs uppercase tracking-[0.2em] text-charcoal/45">
                     @{comment.user.username}
                   </p>
                 </div>
-                <p className="text-xs text-cream/50">{formatDate(comment.createdAt)}</p>
+                <p className="text-xs text-charcoal/55">{formatDate(comment.createdAt)}</p>
               </div>
-              <p className="mt-4 text-sm leading-7 text-cream/75">{comment.body}</p>
+              <p className="mt-4 text-sm leading-7 text-charcoal/75">{comment.body}</p>
             </article>
           ))
         ) : (
-          <div className="panel p-6 text-sm text-cream/60">
+          <div className="panel p-6 text-sm text-charcoal/55">
             No comments yet. Be the first useful voice in the room.
           </div>
         )}

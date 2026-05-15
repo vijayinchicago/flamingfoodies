@@ -78,12 +78,12 @@ export function QuizForm() {
     <div className="space-y-8">
       {questions.map((question, index) => (
         <section key={question.prompt} className="panel p-6">
-          <h2 className="font-display text-3xl text-cream">{question.prompt}</h2>
+          <h2 className="font-display text-3xl text-charcoal">{question.prompt}</h2>
           <div className="mt-5 grid gap-3">
             {question.options.map((option, optionIndex) => (
               <label
                 key={option}
-                className="flex cursor-pointer items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-sm text-cream/80"
+                className="flex cursor-pointer items-center gap-3 rounded-2xl border border-charcoal/10 bg-charcoal/[0.04] px-4 py-4 text-sm text-charcoal/75"
               >
                 <input
                   type="radio"
@@ -112,8 +112,8 @@ export function QuizForm() {
       ))}
       <div className="panel flex flex-col items-start gap-4 p-6">
         <p className="text-sm uppercase tracking-[0.24em] text-ember">Your heat lane so far</p>
-        <h2 className="font-display text-4xl text-cream">{formatResultLabel(result)}</h2>
-        <p className="text-sm text-cream/68">
+        <h2 className="font-display text-4xl text-charcoal">{formatResultLabel(result)}</h2>
+        <p className="text-sm text-charcoal/70">
           {allAnswered
             ? "All set. Open your result for recipes, bottle picks, and gift-safe next steps."
             : `Answer ${questions.length - answerCount} more question${questions.length - answerCount === 1 ? "" : "s"} to lock in a starting lane.`}
@@ -134,7 +134,7 @@ export function QuizForm() {
               value: answerCount
             });
           }}
-          className={`rounded-full px-6 py-3 font-semibold ${allAnswered ? "bg-gradient-to-r from-flame to-ember text-white" : "cursor-not-allowed border border-white/10 text-cream/45"}`}
+          className={`rounded-full px-6 py-3 font-semibold ${allAnswered ? "bg-gradient-to-r from-flame to-ember text-white" : "cursor-not-allowed border border-charcoal/10 text-charcoal/45"}`}
         >
           See your recipe + bottle plan
         </Link>

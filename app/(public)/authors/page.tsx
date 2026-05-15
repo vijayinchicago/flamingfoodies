@@ -27,16 +27,16 @@ export default function AuthorsPage() {
         {authors.map((author) => (
           <article key={author.slug} className="panel p-8">
             <p className="eyebrow">{author.role}</p>
-            <h2 className="mt-3 font-display text-4xl text-cream">{author.displayName}</h2>
-            <p className="mt-4 text-sm leading-7 text-cream/75">{author.shortBio}</p>
-            <ul className="mt-5 space-y-2 text-sm leading-7 text-cream/70">
+            <h2 className="mt-3 font-display text-4xl text-charcoal">{author.displayName}</h2>
+            <p className="mt-4 text-sm leading-7 text-charcoal/75">{author.shortBio}</p>
+            <ul className="mt-5 space-y-2 text-sm leading-7 text-charcoal/70">
               {author.focusAreas.map((area) => (
                 <li key={area}>{area}</li>
               ))}
             </ul>
             <Link
               href={`/authors/${author.slug}`}
-              className="mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="mt-6 inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               View contributor page
             </Link>

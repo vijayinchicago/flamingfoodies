@@ -93,19 +93,19 @@ export default async function BrandPage({ params }: { params: { slug: string } }
           <span className="rounded-full border border-ember/30 bg-ember/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-ember">
             {TIER_LABELS[brand.tier]}
           </span>
-          <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs text-cream/55">
+          <span className="rounded-full border border-charcoal/10 bg-charcoal/[0.05] px-3 py-1 text-xs text-charcoal/55">
             Est. {brand.founded}
           </span>
-          <span className="rounded-full border border-white/8 px-3 py-1 text-xs text-cream/40">
+          <span className="rounded-full border border-charcoal/8 px-3 py-1 text-xs text-charcoal/40">
             {brand.city}
           </span>
         </div>
-        <h1 className="mt-6 font-display text-5xl leading-tight text-cream sm:text-6xl lg:text-7xl">
+        <h1 className="mt-6 font-display text-5xl leading-tight text-charcoal sm:text-6xl lg:text-7xl">
           {brand.name}
         </h1>
-        <p className="mt-3 text-lg text-cream/55">{brand.tagline}</p>
-        <p className="mt-5 max-w-3xl text-base leading-8 text-cream/75">{brand.description}</p>
-        <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-cream/72">
+        <p className="mt-3 text-lg text-charcoal/55">{brand.tagline}</p>
+        <p className="mt-5 max-w-3xl text-base leading-8 text-charcoal/75">{brand.description}</p>
+        <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 text-sm leading-7 text-charcoal/72">
           <p className="eyebrow">Directory note</p>
           <p className="mt-3">
             Brand pages are meant to separate company background, tasting context, and our review
@@ -113,10 +113,10 @@ export default async function BrandPage({ params }: { params: { slug: string } }
             page after the editorial summary.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link href="/editorial-policy" className="font-semibold text-cream underline underline-offset-4">
+            <Link href="/editorial-policy" className="font-semibold text-charcoal underline underline-offset-4">
               Editorial policy
             </Link>
-            <Link href="/review-methodology" className="font-semibold text-cream underline underline-offset-4">
+            <Link href="/review-methodology" className="font-semibold text-charcoal underline underline-offset-4">
               Review methodology
             </Link>
           </div>
@@ -127,29 +127,29 @@ export default async function BrandPage({ params }: { params: { slug: string } }
       <div className="mt-12 grid gap-6 lg:grid-cols-2">
         <div className="panel p-8">
           <p className="eyebrow">The full story</p>
-          <p className="mt-4 text-sm leading-8 text-cream/75">{brand.editorialNote}</p>
+          <p className="mt-4 text-sm leading-8 text-charcoal/75">{brand.editorialNote}</p>
         </div>
         <div className="space-y-4">
           <div className="panel p-6">
             <p className="eyebrow">Why it matters</p>
-            <p className="mt-3 text-sm leading-7 text-cream/75">{brand.whyItMatters}</p>
+            <p className="mt-3 text-sm leading-7 text-charcoal/75">{brand.whyItMatters}</p>
           </div>
           <div className="rounded-[1.75rem] border border-ember/20 bg-ember/8 p-6">
             <p className="text-xs uppercase tracking-[0.22em] text-ember">Best for</p>
-            <p className="mt-3 text-sm leading-7 text-cream/80">{brand.bestFor}</p>
+            <p className="mt-3 text-sm leading-7 text-charcoal/80">{brand.bestFor}</p>
           </div>
           {brand.pepperSlug && (
             <Link
               href={`/peppers/${brand.pepperSlug}`}
-              className="flex items-center justify-between rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5 transition hover:border-white/20"
+              className="flex items-center justify-between rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 transition hover:border-charcoal/20"
             >
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-ember">Signature pepper</p>
-                <p className="mt-1 font-display text-xl text-cream capitalize">
+                <p className="mt-1 font-display text-xl text-charcoal capitalize">
                   {brand.pepperSlug.replace(/-/g, " ")}
                 </p>
               </div>
-              <span className="text-cream/40 group-hover:text-cream">→</span>
+              <span className="text-charcoal/40 group-hover:text-charcoal">→</span>
             </Link>
           )}
         </div>
@@ -159,11 +159,11 @@ export default async function BrandPage({ params }: { params: { slug: string } }
       {displayReviews.length > 0 && (
         <div className="mt-14">
           <p className="eyebrow">Read the reviews</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">What we think of {brand.name}.</h2>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">What we think of {brand.name}.</h2>
           <div className="mt-8 grid gap-6 lg:grid-cols-2">
             {displayReviews.map((review) => <ReviewCard key={review.id} review={review} />)}
           </div>
-          <Link href="/reviews" className="mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+          <Link href="/reviews" className="mt-6 inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-white">
             Browse all reviews
           </Link>
         </div>
@@ -174,16 +174,16 @@ export default async function BrandPage({ params }: { params: { slug: string } }
         <div className="mt-12">
           <AffiliateDisclosure className="max-w-3xl" compact />
           <p className="mt-6 eyebrow">Signature lineup</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">If you want to browse the bottles.</h2>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">If you want to browse the bottles.</h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/72">
             These links are here for readers who already know they want to explore the lineup after
             reading the brand profile or the reviews above.
           </p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {resolvedProducts.map(({ product, resolved }) => (
-              <article key={product.name} className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5">
-                <h3 className="font-display text-2xl text-cream">{product.name}</h3>
-                <p className="mt-2 text-sm leading-6 text-cream/65">{product.description}</p>
+              <article key={product.name} className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-5">
+                <h3 className="font-display text-2xl text-charcoal">{product.name}</h3>
+                <p className="mt-2 text-sm leading-6 text-charcoal/65">{product.description}</p>
                 {resolved ? (
                   <AffiliateLink
                     href={resolved.href}
@@ -191,12 +191,12 @@ export default async function BrandPage({ params }: { params: { slug: string } }
                     trackingMode={resolved.trackingMode}
                     sourcePage={sourcePage}
                     position="brand-product"
-                    className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
+                    className="mt-4 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-white"
                   >
                     View bottle ↗
                   </AffiliateLink>
                 ) : (
-                  <p className="mt-4 text-xs text-cream/35">Link coming soon</p>
+                  <p className="mt-4 text-xs text-charcoal/35">Link coming soon</p>
                 )}
               </article>
             ))}
@@ -206,17 +206,17 @@ export default async function BrandPage({ params }: { params: { slug: string } }
 
       {/* Same tier */}
       {sameTierBrands.length > 0 && (
-        <div className="mt-16 rounded-[2rem] border border-white/10 bg-white/[0.04] p-8">
+        <div className="mt-16 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-8">
           <p className="eyebrow">More {TIER_LABELS[brand.tier].toLowerCase()} brands</p>
           <div className="mt-4 flex flex-wrap gap-3">
             {sameTierBrands.map((b) => (
               <Link key={b.slug} href={`/brands/${b.slug}`}
-                className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-cream hover:border-white/20 hover:text-white">
+                className="rounded-full border border-charcoal/10 bg-charcoal/[0.04] px-4 py-2 text-sm font-semibold text-charcoal hover:border-charcoal/20 hover:text-white">
                 {b.name}
               </Link>
             ))}
           </div>
-          <Link href="/brands" className="mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+          <Link href="/brands" className="mt-6 inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-white">
             Full brand directory
           </Link>
         </div>

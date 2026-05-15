@@ -38,14 +38,14 @@ function StepTimer({ minutes }: { minutes: number }) {
   }, [running]);
 
   return (
-    <div className="recipe-timer rounded-[1.25rem] border border-white/10 bg-white/[0.04] p-4 print-hidden">
+    <div className="recipe-timer rounded-[1.25rem] border border-charcoal/10 bg-charcoal/[0.04] p-4 print-hidden">
       <p className="text-xs uppercase tracking-[0.22em] text-ember">Step timer</p>
-      <p className="mt-3 font-display text-3xl text-cream">{formatTimer(remainingSeconds)}</p>
+      <p className="mt-3 font-display text-3xl text-charcoal">{formatTimer(remainingSeconds)}</p>
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
           onClick={() => setRunning((value) => !value)}
-          className="rounded-full border border-white/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-cream"
+          className="rounded-full border border-charcoal/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-charcoal"
         >
           {running ? "Pause" : "Start"}
         </button>
@@ -55,7 +55,7 @@ function StepTimer({ minutes }: { minutes: number }) {
             setRunning(false);
             setRemainingSeconds(initialSeconds);
           }}
-          className="rounded-full border border-white/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-cream/70"
+          className="rounded-full border border-charcoal/10 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-charcoal/70"
         >
           Reset
         </button>
@@ -78,14 +78,14 @@ export function RecipeMethodSection({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow">Method</p>
-          <h2 className="mt-3 font-display text-5xl text-cream">How to cook it</h2>
+          <h2 className="mt-3 font-display text-5xl text-charcoal">How to cook it</h2>
         </div>
-        <p className="max-w-md text-sm leading-7 text-cream/58">
+        <p className="max-w-md text-sm leading-7 text-charcoal/70">
           Use the step navigator to move around, or stay in cook mode and work top to bottom.
         </p>
       </div>
 
-      <div className="recipe-step-nav mt-8 rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-3 print-hidden">
+      <div className="recipe-step-nav mt-8 rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-3 print-hidden">
         <div className="grid gap-3 sm:grid-cols-2 xl:flex xl:flex-wrap">
           {steps.map((step) => (
             <button
@@ -100,8 +100,8 @@ export function RecipeMethodSection({
               }}
               className={`w-full rounded-[1.25rem] px-4 py-3 text-left text-sm font-semibold leading-snug transition xl:w-auto xl:rounded-full xl:py-2 ${
                 activeStep === step.step
-                  ? "bg-white text-charcoal"
-                  : "border border-white/10 text-cream"
+                  ? "bg-charcoal text-charcoal"
+                  : "border border-charcoal/10 text-charcoal"
               }`}
             >
               {step.step}. {step.title}
@@ -118,7 +118,7 @@ export function RecipeMethodSection({
             <li
               key={step.step}
               id={`recipe-step-${step.step}`}
-              className="recipe-step-card recipe-print-keep rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 sm:p-6"
+              className="recipe-step-card recipe-print-keep rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 sm:p-6"
             >
               <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
                 <div className="min-w-0">
@@ -130,16 +130,16 @@ export function RecipeMethodSection({
                       <p className="text-xs uppercase tracking-[0.24em] text-ember">
                         Step {step.step} of {steps.length}
                       </p>
-                      <h3 className="mt-2 font-display text-4xl leading-tight text-cream">
+                      <h3 className="mt-2 font-display text-4xl leading-tight text-charcoal">
                         {step.title}
                       </h3>
                     </div>
                   </div>
-                  <p className="recipe-step-body mt-5 text-lg leading-8 text-cream/82">
+                  <p className="recipe-step-body mt-5 text-lg leading-8 text-charcoal/75">
                     {step.body}
                   </p>
                   {step.imageUrl ? (
-                    <div className="recipe-step-image relative mt-6 overflow-hidden rounded-[1.75rem] border border-white/10">
+                    <div className="recipe-step-image relative mt-6 overflow-hidden rounded-[1.75rem] border border-charcoal/10">
                       <div className="relative aspect-[16/9]">
                         <Image
                           src={step.imageUrl}
@@ -153,7 +153,7 @@ export function RecipeMethodSection({
                   ) : null}
                 </div>
 
-                <aside className="recipe-step-aside min-w-0 space-y-4 rounded-[1.75rem] border border-white/10 bg-charcoal/35 p-4">
+                <aside className="recipe-step-aside min-w-0 space-y-4 rounded-[1.75rem] border border-charcoal/10 bg-white p-4">
                   <div>
                     <p className="text-xs uppercase tracking-[0.22em] text-ember">You&apos;ll use</p>
                     {matchedIngredients.length ? (
@@ -161,30 +161,30 @@ export function RecipeMethodSection({
                         {matchedIngredients.map((ingredient) => (
                           <span
                             key={`${step.step}-${ingredient.item}`}
-                            className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs text-cream/72"
+                            className="rounded-full border border-charcoal/10 bg-charcoal/[0.04] px-3 py-1 text-xs text-charcoal/75"
                           >
                             {ingredient.item}
                           </span>
                         ))}
                       </div>
                     ) : (
-                      <p className="mt-3 text-sm leading-7 text-cream/58">
+                      <p className="mt-3 text-sm leading-7 text-charcoal/70">
                         This step is mostly about sequencing and control.
                       </p>
                     )}
                   </div>
 
                   {step.cue ? (
-                    <div className="rounded-[1.25rem] border border-white/10 bg-white/[0.04] p-4">
+                    <div className="rounded-[1.25rem] border border-charcoal/10 bg-charcoal/[0.04] p-4">
                       <p className="text-xs uppercase tracking-[0.22em] text-ember">What to watch for</p>
-                      <p className="mt-3 text-sm leading-7 text-cream/68">{step.cue}</p>
+                      <p className="mt-3 text-sm leading-7 text-charcoal/70">{step.cue}</p>
                     </div>
                   ) : null}
 
                   {step.tip ? (
-                    <div className="rounded-[1.25rem] border border-white/10 bg-white/[0.04] p-4">
+                    <div className="rounded-[1.25rem] border border-charcoal/10 bg-charcoal/[0.04] p-4">
                       <p className="text-xs uppercase tracking-[0.22em] text-ember">Editor tip</p>
-                      <p className="mt-3 text-sm leading-7 text-cream/68">{step.tip}</p>
+                      <p className="mt-3 text-sm leading-7 text-charcoal/70">{step.tip}</p>
                     </div>
                   ) : null}
 

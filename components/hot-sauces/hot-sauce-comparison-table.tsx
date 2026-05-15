@@ -28,30 +28,30 @@ export function HotSauceComparisonTable({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="eyebrow">Compare the short list</p>
-                <h3 className="mt-3 font-display text-3xl text-cream">{row.name}</h3>
+                <h3 className="mt-3 font-display text-3xl text-charcoal">{row.name}</h3>
               </div>
-              <span className="rounded-full border border-white/10 px-3 py-1 text-xs uppercase tracking-[0.24em] text-ember">
+              <span className="rounded-full border border-charcoal/10 px-3 py-1 text-xs uppercase tracking-[0.24em] text-ember">
                 {row.heat}
               </span>
             </div>
-            <dl className="mt-5 space-y-3 text-sm text-cream/72">
+            <dl className="mt-5 space-y-3 text-sm text-charcoal/75">
               <div>
-                <dt className="text-xs uppercase tracking-[0.2em] text-cream/45">Best for</dt>
+                <dt className="text-xs uppercase tracking-[0.2em] text-charcoal/45">Best for</dt>
                 <dd className="mt-1">{row.bestFor}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-[0.2em] text-cream/45">Flavor lane</dt>
+                <dt className="text-xs uppercase tracking-[0.2em] text-charcoal/45">Flavor lane</dt>
                 <dd className="mt-1">{row.flavorLane}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-[0.2em] text-cream/45">Price</dt>
+                <dt className="text-xs uppercase tracking-[0.2em] text-charcoal/45">Price</dt>
                 <dd className="mt-1">{row.priceLabel}</dd>
               </div>
             </dl>
-            <p className="mt-4 text-sm leading-7 text-cream/72">{row.whyBuy}</p>
+            <p className="mt-4 text-sm leading-7 text-charcoal/75">{row.whyBuy}</p>
             <Link
               href={row.href}
-              className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+              className="mt-5 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
             >
               Read review
             </Link>
@@ -61,8 +61,8 @@ export function HotSauceComparisonTable({
 
       <div className="panel mt-8 hidden overflow-hidden lg:block">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-white/10 text-left">
-            <thead className="bg-white/[0.04] text-xs uppercase tracking-[0.22em] text-cream/55">
+          <table className="min-w-full divide-y divide-charcoal/10 text-left">
+            <thead className="bg-charcoal/[0.04] text-xs uppercase tracking-[0.22em] text-charcoal/55">
               <tr>
                 <th className="px-6 py-4 font-medium">Bottle</th>
                 <th className="px-6 py-4 font-medium">Best for</th>
@@ -73,19 +73,19 @@ export function HotSauceComparisonTable({
                 <th className="px-6 py-4 font-medium sr-only">Review</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/10 text-sm text-cream/78">
+            <tbody className="divide-y divide-charcoal/10 text-sm text-charcoal/75">
               {rows.map((row) => (
                 <tr key={row.href} className="align-top">
-                  <td className="px-6 py-5 font-semibold text-cream">{row.name}</td>
+                  <td className="px-6 py-5 font-semibold text-charcoal">{row.name}</td>
                   <td className="px-6 py-5">{row.bestFor}</td>
                   <td className="px-6 py-5">{row.heat}</td>
                   <td className="px-6 py-5">{row.flavorLane}</td>
                   <td className="px-6 py-5">{row.priceLabel}</td>
-                  <td className="px-6 py-5 leading-7 text-cream/72">{row.whyBuy}</td>
+                  <td className="px-6 py-5 leading-7 text-charcoal/75">{row.whyBuy}</td>
                   <td className="px-6 py-5">
                     <Link
                       href={row.href}
-                      className="inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                      className="inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
                     >
                       Read review
                     </Link>

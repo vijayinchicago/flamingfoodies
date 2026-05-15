@@ -173,11 +173,11 @@ export function RecipeBrowseClient({
   }
 
   const filterFieldClass =
-    "rounded-2xl border border-charcoal/12 bg-white px-4 py-3 text-sm text-charcoal outline-none transition focus:border-ember focus:ring-2 focus:ring-ember/15";
+    "rounded-2xl border border-charcoal/15 bg-white px-4 py-3 text-sm text-charcoal outline-none transition focus:border-ember focus:ring-2 focus:ring-ember/15";
   const chipBase = "rounded-full border px-4 py-2 text-sm font-semibold transition";
-  const chipActive = "border-white bg-white text-charcoal shadow-sm";
+  const chipActive = "border-charcoal bg-charcoal text-charcoal shadow-sm";
   const chipInactive =
-    "border-white/18 bg-white/[0.04] text-cream/90 hover:border-white/30 hover:bg-white/[0.07]";
+    "border-charcoal/15 bg-charcoal/[0.04] text-charcoal/80 hover:border-charcoal/20 hover:bg-charcoal/[0.06]";
   const chipHeatActive = "border-ember bg-ember text-white shadow-sm";
 
   return (
@@ -190,8 +190,8 @@ export function RecipeBrowseClient({
               <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                 <div>
                   <p className="eyebrow">{section.eyebrow}</p>
-                  <h2 className="mt-3 font-display text-4xl text-cream">{section.title}</h2>
-                  <p className="mt-3 max-w-3xl text-sm leading-7 text-cream/70">
+                  <h2 className="mt-3 font-display text-4xl text-charcoal">{section.title}</h2>
+                  <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/70">
                     {section.description}
                   </p>
                 </div>
@@ -201,7 +201,7 @@ export function RecipeBrowseClient({
                     const anchor = document.getElementById("recipe-browse");
                     anchor?.scrollIntoView({ behavior: "smooth" });
                   }}
-                  className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+                  className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
                 >
                   Browse the full archive
                 </button>
@@ -325,19 +325,19 @@ export function RecipeBrowseClient({
       <div className="mt-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="eyebrow">Recipe archive</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             {paginated.totalResults > 0
               ? `Showing ${paginated.startResult}–${paginated.endResult} of ${paginated.totalResults}`
               : "No recipes match those filters yet"}
           </h2>
-          <p className="mt-3 text-sm leading-7 text-cream/70">
+          <p className="mt-3 text-sm leading-7 text-charcoal/70">
             {paginated.totalResults > 0
               ? "Tighten the filters to narrow the list, or sort for quickest dinners and hottest cooks."
               : "Try a broader search, clear one filter, or switch to another cuisine or heat level."}
           </p>
         </div>
         {paginated.totalPages > 1 ? (
-          <p className="text-sm text-cream/60">
+          <p className="text-sm text-charcoal/55">
             Page {paginated.currentPage} of {paginated.totalPages}
           </p>
         ) : null}
@@ -375,7 +375,7 @@ export function RecipeBrowseClient({
             <button
               type="button"
               onClick={() => setPage((p) => p - 1)}
-              className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Previous page
             </button>
@@ -384,7 +384,7 @@ export function RecipeBrowseClient({
             <button
               type="button"
               onClick={() => setPage((p) => p + 1)}
-              className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
+              className="rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Next page
             </button>
@@ -397,16 +397,16 @@ export function RecipeBrowseClient({
         <div className="mt-14 grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
           <div className="panel p-8">
             <p className="eyebrow">Cook better, not just hotter</p>
-            <h2 className="mt-3 font-display text-4xl text-cream">
+            <h2 className="mt-3 font-display text-4xl text-charcoal">
               A few good tools make spicy cooking easier to repeat.
             </h2>
-            <p className="mt-4 text-sm leading-7 text-cream/75">
+            <p className="mt-4 text-sm leading-7 text-charcoal/75">
               If a recipe earns a spot in your rotation, these are the pieces that help it come out
               the way it should without making the kitchen feel overbuilt.
             </p>
             <Link
               href="/shop"
-              className="mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
+              className="mt-6 inline-flex rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Shop sauces and gear
             </Link>
@@ -415,15 +415,15 @@ export function RecipeBrowseClient({
             {kitchenGear.map(({ link, resolved }) => (
               <article key={link.key} className="panel p-5">
                 <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
-                <h3 className="mt-3 font-display text-3xl text-cream">{link.product}</h3>
-                <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
+                <h3 className="mt-3 font-display text-3xl text-charcoal">{link.product}</h3>
+                <p className="mt-3 text-sm leading-7 text-charcoal/75">{link.description}</p>
                 <AffiliateLink
                   href={resolved.href}
                   partnerKey={resolved.key}
                   trackingMode={resolved.trackingMode}
                   sourcePage="/recipes"
                   position="index-callout"
-                  className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                  className="mt-4 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
                 >
                   Check price on Amazon
                 </AffiliateLink>

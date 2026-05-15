@@ -41,17 +41,17 @@ export default async function CommunityPage() {
 
       {/* Stats strip */}
       <div className="mt-8 grid grid-cols-3 gap-4 sm:grid-cols-3">
-        <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5 text-center">
-          <p className="font-display text-4xl text-cream">{posts.length}</p>
-          <p className="mt-1 text-xs uppercase tracking-[0.2em] text-cream/55">Posts</p>
+        <div className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 text-center">
+          <p className="font-display text-4xl text-charcoal">{posts.length}</p>
+          <p className="mt-1 text-xs uppercase tracking-[0.2em] text-charcoal/55">Posts</p>
         </div>
-        <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5 text-center">
-          <p className="font-display text-4xl text-cream">{recipeCount}</p>
-          <p className="mt-1 text-xs uppercase tracking-[0.2em] text-cream/55">Recipes shared</p>
+        <div className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 text-center">
+          <p className="font-display text-4xl text-charcoal">{recipeCount}</p>
+          <p className="mt-1 text-xs uppercase tracking-[0.2em] text-charcoal/55">Recipes shared</p>
         </div>
-        <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5 text-center">
-          <p className="font-display text-4xl text-cream">{totalLikes.toLocaleString()}</p>
-          <p className="mt-1 text-xs uppercase tracking-[0.2em] text-cream/55">Total likes</p>
+        <div className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 text-center">
+          <p className="font-display text-4xl text-charcoal">{totalLikes.toLocaleString()}</p>
+          <p className="mt-1 text-xs uppercase tracking-[0.2em] text-charcoal/55">Total likes</p>
         </div>
       </div>
 
@@ -59,12 +59,12 @@ export default async function CommunityPage() {
       <CommunityFeedClient posts={posts} isLoggedIn={Boolean(profile)} />
 
       {/* Bottom CTA */}
-      <div className="mt-16 rounded-[2rem] border border-white/10 bg-white/[0.04] p-8 text-center sm:p-12">
+      <div className="mt-16 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-8 text-center sm:p-12">
         <p className="eyebrow">Join the community</p>
-        <h2 className="mt-4 font-display text-4xl text-cream sm:text-5xl">
+        <h2 className="mt-4 font-display text-4xl text-charcoal sm:text-5xl">
           Share what you cooked.
         </h2>
-        <p className="mt-4 mx-auto max-w-xl text-sm leading-7 text-cream/70">
+        <p className="mt-4 mx-auto max-w-xl text-sm leading-7 text-charcoal/70">
           Post a photo, submit a spicy recipe, or drop a video. Heat scores go up with every cook
           you share and every like you earn.
         </p>
@@ -78,14 +78,14 @@ export default async function CommunityPage() {
           {!profile ? (
             <Link
               href="/signup"
-              className="rounded-full border border-white/15 px-8 py-3 font-semibold text-cream"
+              className="rounded-full border border-charcoal/15 px-8 py-3 font-semibold text-charcoal"
             >
               Create an account
             </Link>
           ) : (
             <Link
               href="/leaderboard"
-              className="rounded-full border border-white/15 px-8 py-3 font-semibold text-cream"
+              className="rounded-full border border-charcoal/15 px-8 py-3 font-semibold text-charcoal"
             >
               View the leaderboard
             </Link>

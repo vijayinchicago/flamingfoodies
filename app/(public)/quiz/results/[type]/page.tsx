@@ -115,8 +115,8 @@ export default function QuizResultPage({
     <section className="container-shell py-16">
       <div className="panel mx-auto max-w-3xl px-8 py-12 text-center">
         <p className="eyebrow">Quiz result</p>
-        <h1 className="mt-4 font-display text-6xl text-cream">{result.title}</h1>
-        <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-cream/75">
+        <h1 className="mt-4 font-display text-6xl text-charcoal">{result.title}</h1>
+        <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-charcoal/75">
           {result.description}
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-4">
@@ -128,7 +128,7 @@ export default function QuizResultPage({
           </Link>
           <Link
             href={result.shopHref}
-            className="rounded-full border border-white/15 px-6 py-3 font-semibold text-cream"
+            className="rounded-full border border-charcoal/15 px-6 py-3 font-semibold text-charcoal"
           >
             {result.shopLabel}
           </Link>
@@ -142,7 +142,7 @@ export default function QuizResultPage({
               trackingMode={resolvedOffer.trackingMode}
               sourcePage={`/quiz/results/${params.type}`}
               position="quiz-result"
-              className="rounded-full border border-white/15 px-6 py-3 font-semibold text-cream"
+              className="rounded-full border border-charcoal/15 px-6 py-3 font-semibold text-charcoal"
             >
               {productName} — {getAffiliateCtaLabel(resolvedOffer)}
             </AffiliateLink>
@@ -150,30 +150,30 @@ export default function QuizResultPage({
         ) : null}
         <AffiliateDisclosure className="mx-auto mt-8 max-w-2xl text-left" compact />
         <div className="mt-8 grid gap-4 text-left md:grid-cols-2">
-          <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-6">
+          <div className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-6">
             <p className="eyebrow">Start here</p>
-            <h2 className="mt-3 font-display text-3xl text-cream">Pick one dinner, then one bottle.</h2>
-            <p className="mt-4 text-sm leading-7 text-cream/75">
+            <h2 className="mt-3 font-display text-3xl text-charcoal">Pick one dinner, then one bottle.</h2>
+            <p className="mt-4 text-sm leading-7 text-charcoal/75">
               The easiest way to build confidence is to cook one recipe in your lane and pair it
               with one bottle you will actually reach for again next week.
             </p>
           </div>
-          <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-6">
+          <div className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-6">
             <p className="eyebrow">Buying for someone else?</p>
-            <h2 className="mt-3 font-display text-3xl text-cream">Start with gifts, not guesses.</h2>
-            <p className="mt-4 text-sm leading-7 text-cream/75">
+            <h2 className="mt-3 font-display text-3xl text-charcoal">Start with gifts, not guesses.</h2>
+            <p className="mt-4 text-sm leading-7 text-charcoal/75">
               If this quiz was really about another person, skip the guesswork and start with the
               safer gift-set and under-$50 lanes first.
             </p>
             <Link
               href="/hot-sauces/gifts-under-50"
-              className="mt-5 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+              className="mt-5 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
             >
               Open gift-friendly picks
             </Link>
           </div>
         </div>
-        <div className="mt-10 rounded-[2rem] border border-white/10 bg-white/[0.04] px-6 py-8 text-left">
+        <div className="mt-10 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] px-6 py-8 text-left">
           <EmailCapture
             source="quiz-result"
             tag={result.tag}

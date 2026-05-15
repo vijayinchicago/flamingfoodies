@@ -101,12 +101,12 @@ export default async function BlogPostPage({
         ]}
       />
       <p className="eyebrow mt-5">{post.category}</p>
-      <h1 className="mt-4 max-w-4xl font-display text-4xl leading-tight text-cream sm:text-5xl lg:text-6xl">
+      <h1 className="mt-4 max-w-4xl font-display text-4xl leading-tight text-charcoal sm:text-5xl lg:text-6xl">
         {post.title}
       </h1>
-      <p className="mt-4 max-w-3xl text-base leading-7 text-cream/75 sm:text-lg sm:leading-8">{post.description}</p>
+      <p className="mt-4 max-w-3xl text-base leading-7 text-charcoal/75 sm:text-lg sm:leading-8">{post.description}</p>
       {post.imageUrl ? (
-        <div className="relative mt-6 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05]">
+        <div className="dark-scope relative mt-6 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05]">
           <PinterestSaveButton
             title={post.title}
             description={post.description}
@@ -129,7 +129,7 @@ export default async function BlogPostPage({
           </div>
         </div>
       ) : null}
-      <div className="mt-4 flex flex-wrap gap-4 text-sm text-cream/55">
+      <div className="mt-4 flex flex-wrap gap-4 text-sm text-charcoal/55">
         {author ? (
           <Link href={getPublicAuthorHref(post.authorName)} className="underline underline-offset-4">
             By {author.displayName}
@@ -152,17 +152,17 @@ export default async function BlogPostPage({
             contentSlug={post.slug}
           />
         </div>
-        <aside className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-cream/72">
+        <aside className="rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 text-sm leading-7 text-charcoal/70">
           <p className="eyebrow">Editorial note</p>
           <p className="mt-3">
             Blog posts are meant to explain, contextualize, or report. They are kept separate from
             product-review scoring and buying-guide methodology.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link href="/editorial-policy" className="font-semibold text-cream underline underline-offset-4">
+            <Link href="/editorial-policy" className="font-semibold text-charcoal underline underline-offset-4">
               Editorial policy
             </Link>
-            <Link href="/corrections" className="font-semibold text-cream underline underline-offset-4">
+            <Link href="/corrections" className="font-semibold text-charcoal underline underline-offset-4">
               Corrections
             </Link>
           </div>
@@ -175,10 +175,10 @@ export default async function BlogPostPage({
       {relatedPosts.length ? (
         <div className="mt-14">
           <p className="eyebrow">Keep reading</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             More stories in this lane.
           </h2>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
             If this post helped, these are the next pieces most likely to keep the thread going.
           </p>
           <div className="mt-8 grid gap-6 lg:grid-cols-3">

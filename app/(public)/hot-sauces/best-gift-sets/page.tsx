@@ -89,10 +89,10 @@ export default async function BestHotSauceGiftSetsPage() {
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="panel p-8">
           <p className="eyebrow">Why gifts are different</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             Buying for someone else means lowering the risk.
           </h2>
-          <p className="mt-4 text-sm leading-7 text-cream/72">
+          <p className="mt-4 text-sm leading-7 text-charcoal/70">
             A single bottle can miss on heat level, flavor profile, or format. Gift sets and
             subscription boxes win because they feel curated, exploratory, and a lot less likely to
             sit unopened in the pantry.
@@ -106,7 +106,7 @@ export default async function BestHotSauceGiftSetsPage() {
             </Link>
             <Link
               href="/hot-sauces"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Visit the hot sauce hub
             </Link>
@@ -115,10 +115,10 @@ export default async function BestHotSauceGiftSetsPage() {
 
         <div className="panel p-8">
           <p className="eyebrow">Gift buying rule</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             Go broader before you go hotter.
           </h2>
-          <ul className="mt-5 space-y-3 text-sm leading-7 text-cream/72">
+          <ul className="mt-5 space-y-3 text-sm leading-7 text-charcoal/70">
             <li>Choose variety before raw heat unless you know their tolerance well.</li>
             <li>Hot Ones-style flights are great for gifting because they feel like an event.</li>
             <li>Subscriptions work best for people who already talk about sauces all year.</li>
@@ -127,14 +127,14 @@ export default async function BestHotSauceGiftSetsPage() {
         </div>
       </div>
 
-      <div className="mt-10 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6">
+      <div className="mt-10 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6">
         <p className="text-xs uppercase tracking-[0.22em] text-ember">Not sure about their heat tolerance?</p>
-        <p className="mt-2 text-sm leading-7 text-cream/75">
+        <p className="mt-2 text-sm leading-7 text-charcoal/75">
           Take our 2-minute quiz to get a personalized recommendation matched to how spicy they usually eat.
         </p>
         <Link
           href="/quiz"
-          className="mt-4 inline-flex rounded-full border border-white/15 px-5 py-2.5 text-sm font-semibold text-cream"
+          className="mt-4 inline-flex rounded-full border border-charcoal/15 px-5 py-2.5 text-sm font-semibold text-charcoal"
         >
           Take the heat tolerance quiz →
         </Link>
@@ -151,7 +151,7 @@ export default async function BestHotSauceGiftSetsPage() {
             {resolvedGiftPicks.map((pick) => (
               <div key={pick.key} className="panel p-5">
                 <p className="text-xs uppercase tracking-[0.22em] text-ember">{pick.label}</p>
-                <p className="mt-2 text-sm leading-6 text-cream/75">{pick.copy}</p>
+                <p className="mt-2 text-sm leading-6 text-charcoal/75">{pick.copy}</p>
                 <AffiliateLink
                   href={pick.resolved.href}
                   partnerKey={pick.resolved.key}
@@ -185,7 +185,7 @@ export default async function BestHotSauceGiftSetsPage() {
                   productName={review.productName}
                   sourcePage={sourcePage}
                   position="gift-sets-card"
-                  className="inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                  className="inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
                 >
                   Check price on Amazon
                 </AffiliateLink>

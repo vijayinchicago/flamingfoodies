@@ -20,7 +20,7 @@ type ShareBarProps = {
 };
 
 const buttonClasses =
-  "rounded-full border border-white/12 bg-white/[0.05] px-4 py-2 text-sm font-semibold text-cream transition hover:border-white/25 hover:bg-white/[0.1]";
+  "rounded-full border border-charcoal/10 bg-charcoal/[0.04] px-4 py-2 text-sm font-semibold text-charcoal transition hover:border-charcoal/20 hover:bg-charcoal/[0.06]";
 
 const shareOptions: Array<{ platform: SharePlatform; label: string }> = [
   { platform: "copy", label: "Copy link" },
@@ -104,7 +104,7 @@ export function ShareBar({
 
   return (
     <section
-      className={className || "rounded-[2rem] border border-white/10 bg-white/[0.04] p-5"}
+      className={className || "rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-5"}
       aria-label="Share this page"
     >
       <div className={imageUrl ? "grid gap-5 lg:grid-cols-[1.15fr_0.85fr]" : undefined}>
@@ -112,13 +112,13 @@ export function ShareBar({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs uppercase tracking-[0.24em] text-ember">Share this</p>
-              <h2 className="mt-2 font-display text-3xl text-cream">Pass it around</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-7 text-cream/62">
+              <h2 className="mt-2 font-display text-3xl text-charcoal">Pass it around</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-7 text-charcoal/70">
                 Use the quick-share options for chat and social, or save the hero image when the
                 page deserves a stronger Pinterest moment.
               </p>
             </div>
-            {feedback ? <p className="text-sm text-cream/62">{feedback}</p> : null}
+            {feedback ? <p className="text-sm text-charcoal/70">{feedback}</p> : null}
           </div>
 
           <div className="mt-5 flex flex-wrap gap-3">
@@ -149,7 +149,7 @@ export function ShareBar({
         </div>
 
         {imageUrl ? (
-          <div className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/[0.05]">
+          <div className="overflow-hidden rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04]">
             <div className="relative h-44 overflow-hidden">
               <Image
                 src={imageUrl}
@@ -161,8 +161,8 @@ export function ShareBar({
             </div>
             <div className="p-4">
               <p className="text-xs uppercase tracking-[0.22em] text-ember">Best share asset</p>
-              <h3 className="mt-2 font-display text-2xl text-cream">Save the visual, not just the link</h3>
-              <p className="mt-2 text-sm leading-6 text-cream/62">
+              <h3 className="mt-2 font-display text-2xl text-charcoal">Save the visual, not just the link</h3>
+              <p className="mt-2 text-sm leading-6 text-charcoal/70">
                 Pinterest tends to work best when the image travels with the recipe, review, or
                 article instead of just the URL.
               </p>
@@ -174,7 +174,7 @@ export function ShareBar({
                 contentType={contentType}
                 contentId={contentId}
                 contentSlug={contentSlug}
-                className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream transition hover:border-white/25 hover:bg-white/[0.08]"
+                className="mt-4 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal transition hover:border-charcoal/20 hover:bg-charcoal/[0.06]"
               />
             </div>
           </div>

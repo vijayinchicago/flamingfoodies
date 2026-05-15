@@ -67,10 +67,10 @@ export default async function BestHotSaucesForPizzaPage() {
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="panel p-8">
           <p className="eyebrow">What works on pizza</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             Rich cheese and crust can handle sweeter and heavier heat.
           </h2>
-          <p className="mt-4 text-sm leading-7 text-cream/72">
+          <p className="mt-4 text-sm leading-7 text-charcoal/70">
             Pizza is one of the few lanes where hot honey, garlic-heavy heat, and bigger reaper bottles can all make sense, as long as they still taste like something beyond capsaicin.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
@@ -82,7 +82,7 @@ export default async function BestHotSaucesForPizzaPage() {
             </Link>
             <Link
               href="/hot-sauces/under-15"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Best bottles under $15
             </Link>
@@ -91,8 +91,8 @@ export default async function BestHotSaucesForPizzaPage() {
 
         <div className="panel p-8">
           <p className="eyebrow">Quick buying rule</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Keep one drizzle and one hammer.</h2>
-          <ul className="mt-5 space-y-3 text-sm leading-7 text-cream/72">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Keep one drizzle and one hammer.</h2>
+          <ul className="mt-5 space-y-3 text-sm leading-7 text-charcoal/70">
             <li>Hot honey is the easiest pizza upgrade if you want immediate payoff.</li>
             <li>Garlic-reaper style bottles work best in tiny doses on fattier slices.</li>
             <li>Balanced reds and everyday habanero bottles are better on pizza than random novelty sauces.</li>
@@ -140,7 +140,7 @@ export default async function BestHotSaucesForPizzaPage() {
         faqs={pizzaFaqs}
       />
 
-      <div className="mt-12 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-8">
+      <div className="mt-12 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6 sm:p-8">
         <EmailCapture
           source="hot-sauce-best-for-pizza"
           tag="best-for-pizza"

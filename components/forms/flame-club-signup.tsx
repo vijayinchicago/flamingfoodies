@@ -85,8 +85,8 @@ export function FlameClubSignup({
 
   const inputCls =
     size === "lg"
-      ? "w-full rounded-2xl border border-white/15 bg-charcoal/60 px-5 py-4 text-base text-cream outline-none placeholder:text-cream/40 focus:border-ember sm:py-5 sm:text-lg"
-      : "w-full rounded-2xl border border-white/15 bg-charcoal/60 px-4 py-3 text-cream outline-none placeholder:text-cream/40 focus:border-ember";
+      ? "w-full rounded-2xl border border-charcoal/15 bg-white px-5 py-4 text-base text-charcoal caret-charcoal outline-none placeholder:text-charcoal/45 focus:border-ember sm:py-5 sm:text-lg"
+      : "w-full rounded-2xl border border-charcoal/15 bg-white px-4 py-3 text-charcoal caret-charcoal outline-none placeholder:text-charcoal/45 focus:border-ember";
 
   const buttonCls =
     size === "lg"
@@ -118,7 +118,7 @@ export function FlameClubSignup({
       {state === "error" ? (
         <p className="text-sm text-flame sm:col-span-2">{errorMessage}</p>
       ) : (
-        <p className="text-xs text-cream/55 sm:col-span-2">
+        <p className="text-xs text-charcoal/55 sm:col-span-2">
           One email a week. Unsubscribe anytime. We never sell your address.
         </p>
       )}

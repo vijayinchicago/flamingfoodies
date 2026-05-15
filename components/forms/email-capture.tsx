@@ -106,9 +106,9 @@ export function EmailCapture({
     <form onSubmit={onSubmit} className="panel p-5">
       <div className="grid gap-4">
         <div>
-          <h3 className="font-display text-4xl text-cream">{heading}</h3>
+          <h3 className="font-display text-4xl text-charcoal">{heading}</h3>
           {description ? (
-            <p className="mt-3 max-w-3xl text-sm leading-7 text-cream/70">{description}</p>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/70">{description}</p>
           ) : null}
         </div>
         {showsExpandedFields && availableOptions.length ? (
@@ -123,8 +123,8 @@ export function EmailCapture({
                   onClick={() => toggleSegment(option.tag)}
                   className={`rounded-[1.4rem] border p-4 text-left transition ${
                     active
-                      ? "border-ember bg-white text-charcoal shadow-sm"
-                      : "border-white/12 bg-white/[0.04] text-cream/82 hover:border-white/25 hover:bg-white/[0.07]"
+                      ? "border-ember bg-ember/[0.08] text-charcoal shadow-sm"
+                      : "border-charcoal/10 bg-charcoal/[0.04] text-charcoal/75 hover:border-charcoal/20 hover:bg-charcoal/[0.06]"
                   }`}
                 >
                   <p className="text-xs uppercase tracking-[0.22em] text-ember">{option.label}</p>
@@ -145,19 +145,19 @@ export function EmailCapture({
         >
           {showsExpandedFields ? (
             <div>
-              <label htmlFor={`${source}-firstName`} className="mb-2 block text-sm text-cream/70">
+              <label htmlFor={`${source}-firstName`} className="mb-2 block text-sm text-charcoal/70">
                 First name
               </label>
               <input
                 id={`${source}-firstName`}
                 name="firstName"
-                className="w-full rounded-2xl border border-white/15 bg-charcoal/50 px-4 py-3 text-cream outline-none placeholder:text-cream/40 focus:border-ember"
+                className="w-full rounded-2xl border border-charcoal/15 bg-white px-4 py-3 text-charcoal caret-charcoal outline-none placeholder:text-charcoal/45 focus:border-ember"
                 placeholder="Mara"
               />
             </div>
           ) : null}
           <div>
-            <label htmlFor={`${source}-email`} className="mb-2 block text-sm text-cream/70">
+            <label htmlFor={`${source}-email`} className="mb-2 block text-sm text-charcoal/70">
               Email
             </label>
             <input
@@ -165,7 +165,7 @@ export function EmailCapture({
               name="email"
               required
               type="email"
-              className="w-full rounded-2xl border border-white/15 bg-charcoal/50 px-4 py-3 text-cream outline-none placeholder:text-cream/40 focus:border-ember"
+              className="w-full rounded-2xl border border-charcoal/15 bg-white px-4 py-3 text-charcoal caret-charcoal outline-none placeholder:text-charcoal/45 focus:border-ember"
               placeholder="you@flameclub.com"
             />
           </div>
@@ -177,7 +177,7 @@ export function EmailCapture({
             {state === "saving" ? "Joining..." : buttonLabel}
           </button>
         </div>
-        {message ? <p className="text-sm text-cream/70">{message}</p> : null}
+        {message ? <p className="text-sm text-charcoal/70">{message}</p> : null}
       </div>
     </form>
   );

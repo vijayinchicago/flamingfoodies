@@ -112,10 +112,10 @@ export default async function BestHotSaucesForWingsPage() {
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="panel p-8">
           <p className="eyebrow">What works on wings</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             Rich food can carry more aggression, but it still needs flavor.
           </h2>
-          <p className="mt-4 text-sm leading-7 text-cream/72">
+          <p className="mt-4 text-sm leading-7 text-charcoal/70">
             Wings, fried chicken, and hot sandwiches can take bolder garlic, thicker texture, and higher heat than tacos or seafood. The trick is picking bottles that still taste distinct after the first hit.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
@@ -127,7 +127,7 @@ export default async function BestHotSaucesForWingsPage() {
             </Link>
             <Link
               href="/hot-sauces/under-15"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Budget-friendly picks
             </Link>
@@ -135,8 +135,8 @@ export default async function BestHotSaucesForWingsPage() {
         </div>
         <div className="panel p-8">
           <p className="eyebrow">Quick buying rule</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Pick cling, garlic, or smoke.</h2>
-          <ul className="mt-5 space-y-3 text-sm leading-7 text-cream/72">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Pick cling, garlic, or smoke.</h2>
+          <ul className="mt-5 space-y-3 text-sm leading-7 text-charcoal/70">
             <li>Garlic-forward sauces overperform on wings, fried chicken, and cheesy food.</li>
             <li>Thicker sauces cling better when you want a real coating instead of a disappearing drizzle.</li>
             <li>One reaper-level bottle is enough; most shelves do better with a single heavy hitter.</li>
@@ -197,7 +197,7 @@ export default async function BestHotSaucesForWingsPage() {
         faqs={pageOptimization.faqs ?? wingFaqs}
       />
 
-      <div className="mt-12 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-8">
+      <div className="mt-12 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6 sm:p-8">
         <EmailCapture
           source="hot-sauce-best-for-wings"
           tag="best-for-wings"

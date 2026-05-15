@@ -162,12 +162,12 @@ export default async function ReviewPage({
         ]}
       />
       <p className="eyebrow">{review.brand}</p>
-      <h1 className="mt-4 max-w-4xl font-display text-4xl leading-tight text-cream sm:text-5xl lg:text-6xl">
+      <h1 className="mt-4 max-w-4xl font-display text-4xl leading-tight text-charcoal sm:text-5xl lg:text-6xl">
         {review.title}
       </h1>
-      <p className="mt-4 max-w-3xl text-base leading-7 text-cream/75 sm:text-lg sm:leading-8">{review.description}</p>
+      <p className="mt-4 max-w-3xl text-base leading-7 text-charcoal/75 sm:text-lg sm:leading-8">{review.description}</p>
       {hero.imageUrl ? (
-        <div className="relative mt-6 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05]">
+        <div className="dark-scope relative mt-6 overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.05]">
           <PinterestSaveButton
             title={review.title}
             description={review.description}
@@ -189,7 +189,7 @@ export default async function ReviewPage({
           </div>
         </div>
       ) : null}
-      <div className="mt-6 flex flex-wrap gap-4 text-sm text-cream/60">
+      <div className="mt-6 flex flex-wrap gap-4 text-sm text-charcoal/55">
         <span>{review.rating.toFixed(1)}/5</span>
         <span>{review.heatLevel || "all heat levels"}</span>
         {(review.scovilleMin != null || review.scovilleMax != null) ? (
@@ -215,7 +215,7 @@ export default async function ReviewPage({
           {review.flavorNotes.map((note: string) => (
             <span
               key={note}
-              className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-cream/65"
+              className="rounded-full border border-charcoal/10 bg-charcoal/[0.04] px-3 py-1 text-xs text-charcoal/70"
             >
               {note}
             </span>
@@ -237,17 +237,17 @@ export default async function ReviewPage({
         <div className="max-w-3xl">
           <AffiliateDisclosure compact />
         </div>
-        <aside className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-cream/72">
+        <aside className="rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 text-sm leading-7 text-charcoal/70">
           <p className="eyebrow">Review method</p>
           <p className="mt-3">
             Review pages focus on flavor, heat behavior, repeat-use value, and whether the bottle
             fits the kind of cook or shopper it is pitched to.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link href="/review-methodology" className="font-semibold text-cream underline underline-offset-4">
+            <Link href="/review-methodology" className="font-semibold text-charcoal underline underline-offset-4">
               Review methodology
             </Link>
-            <Link href="/affiliate-disclosure" className="font-semibold text-cream underline underline-offset-4">
+            <Link href="/affiliate-disclosure" className="font-semibold text-charcoal underline underline-offset-4">
               Affiliate disclosure
             </Link>
           </div>
@@ -264,22 +264,22 @@ export default async function ReviewPage({
         <div className="prose-guide" dangerouslySetInnerHTML={{ __html: html }} />
         <aside className="space-y-6 lg:sticky lg:top-24 lg:self-start">
           <div className="panel p-6">
-            <h2 className="font-display text-3xl text-cream">Why this pick</h2>
-            <p className="mt-4 text-sm leading-7 text-cream/75">{whyThisPick}</p>
+            <h2 className="font-display text-3xl text-charcoal">Why this pick</h2>
+            <p className="mt-4 text-sm leading-7 text-charcoal/75">{whyThisPick}</p>
             <div className="mt-5 grid gap-4">
-              <div className="rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
+              <div className="rounded-[1.4rem] border border-charcoal/10 bg-charcoal/[0.04] p-4">
                 <p className="text-xs uppercase tracking-[0.22em] text-ember">Best for</p>
-                <p className="mt-2 text-sm leading-7 text-cream/78">{bestFor}</p>
+                <p className="mt-2 text-sm leading-7 text-charcoal/75">{bestFor}</p>
               </div>
-              <div className="rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
+              <div className="rounded-[1.4rem] border border-charcoal/10 bg-charcoal/[0.04] p-4">
                 <p className="text-xs uppercase tracking-[0.22em] text-ember">Skip if</p>
-                <p className="mt-2 text-sm leading-7 text-cream/78">{skipIf}</p>
+                <p className="mt-2 text-sm leading-7 text-charcoal/75">{skipIf}</p>
               </div>
             </div>
           </div>
           <div className="panel p-6">
-            <h2 className="font-display text-3xl text-cream">Pros</h2>
-            <ul className="mt-4 space-y-3 text-sm text-cream/75">
+            <h2 className="font-display text-3xl text-charcoal">Pros</h2>
+            <ul className="mt-4 space-y-3 text-sm text-charcoal/75">
               {review.pros.map((pro: string) => (
                 <li key={pro}>{pro}</li>
               ))}
@@ -287,47 +287,47 @@ export default async function ReviewPage({
           </div>
           <div className="panel p-6">
             <p className="eyebrow">How we checked this</p>
-            <h2 className="mt-3 font-display text-3xl text-cream">Review confidence</h2>
-            <ul className="mt-4 space-y-3 text-sm leading-7 text-cream/75">
+            <h2 className="mt-3 font-display text-3xl text-charcoal">Review confidence</h2>
+            <ul className="mt-4 space-y-3 text-sm leading-7 text-charcoal/75">
               {qaSignals.map((signal) => (
                 <li key={signal}>{signal}</li>
               ))}
             </ul>
             {review.qaReport ? (
-              <p className="mt-4 text-sm leading-7 text-cream/68">
+              <p className="mt-4 text-sm leading-7 text-charcoal/70">
                 {review.qaReport.warnings.length} warning
                 {review.qaReport.warnings.length === 1 ? "" : "s"} and {review.qaReport.blockers.length} blocker
                 {review.qaReport.blockers.length === 1 ? "" : "s"} are currently logged in the stored QA report.
               </p>
             ) : null}
             {review.qaNotes ? (
-              <p className="mt-4 text-sm leading-7 text-cream/68">{review.qaNotes}</p>
+              <p className="mt-4 text-sm leading-7 text-charcoal/70">{review.qaNotes}</p>
             ) : null}
-            <div className="mt-5 rounded-[1.4rem] border border-white/10 bg-white/5 p-4">
+            <div className="mt-5 rounded-[1.4rem] border border-charcoal/10 bg-charcoal/[0.04] p-4">
               <p className="text-xs uppercase tracking-[0.22em] text-ember">Editorial oversight</p>
-              <p className="mt-2 text-sm leading-7 text-cream/75">
+              <p className="mt-2 text-sm leading-7 text-charcoal/75">
                 FlamingFoodies reviews move through the site&apos;s editorial and QA workflow before
                 they are updated or promoted.
               </p>
               <Link
                 href="/about"
-                className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                className="mt-4 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
               >
                 Read our standards
               </Link>
             </div>
           </div>
           <div className="panel p-6">
-            <h2 className="font-display text-3xl text-cream">Cons</h2>
-            <ul className="mt-4 space-y-3 text-sm text-cream/75">
+            <h2 className="font-display text-3xl text-charcoal">Cons</h2>
+            <ul className="mt-4 space-y-3 text-sm text-charcoal/75">
               {review.cons.map((con: string) => (
                 <li key={con}>{con}</li>
               ))}
             </ul>
           </div>
           <div className="panel p-6">
-            <h2 className="font-display text-3xl text-cream">Buy this if</h2>
-            <p className="mt-4 text-sm leading-7 text-cream/75">
+            <h2 className="font-display text-3xl text-charcoal">Buy this if</h2>
+            <p className="mt-4 text-sm leading-7 text-charcoal/75">
               You want a bottle recommendation that maps cleanly to how you actually cook and eat.
             </p>
             {resolvedPrimaryOffer ? (
@@ -356,16 +356,16 @@ export default async function ReviewPage({
             )}
           </div>
           <div className="panel p-6">
-            <h2 className="font-display text-3xl text-cream">More shelf builders</h2>
+            <h2 className="font-display text-3xl text-charcoal">More shelf builders</h2>
             <div className="mt-4 space-y-4">
               {resolvedRelatedOffers.map(({ offer, resolved }) => (
                 <article
                   key={offer.key}
-                  className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4"
+                  className="rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-4"
                 >
                   <p className="text-xs uppercase tracking-[0.24em] text-ember">{offer.badge}</p>
-                  <h3 className="mt-2 font-display text-2xl text-cream">{offer.product}</h3>
-                  <p className="mt-2 text-sm leading-6 text-cream/72">{offer.description}</p>
+                  <h3 className="mt-2 font-display text-2xl text-charcoal">{offer.product}</h3>
+                  <p className="mt-2 text-sm leading-6 text-charcoal/70">{offer.description}</p>
                   <AffiliateLink
                     href={resolved.href}
                     partnerKey={resolved.key}
@@ -375,7 +375,7 @@ export default async function ReviewPage({
                     contentType="review"
                     contentId={review.id}
                     contentSlug={review.slug}
-                    className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                    className="mt-4 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
                   >
                     {getAffiliateCtaLabel(resolved)}
                   </AffiliateLink>
@@ -384,12 +384,12 @@ export default async function ReviewPage({
             </div>
           </div>
           <div className="panel p-6">
-            <h2 className="font-display text-3xl text-cream">FlamingFoodies picks</h2>
+            <h2 className="font-display text-3xl text-charcoal">FlamingFoodies picks</h2>
             <div className="mt-4 space-y-4">
               {merchPreview.map((item) => (
                 <article
                   key={item.slug}
-                  className={`rounded-[1.5rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-4`}
+                  className={`dark-scope rounded-[1.5rem] border border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)} p-4`}
                 >
                   <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
                   <h3 className="mt-2 font-display text-2xl text-cream">{item.name}</h3>
@@ -436,10 +436,10 @@ export default async function ReviewPage({
       {relatedReviews.length ? (
         <div className="mt-14">
           <p className="eyebrow">Read next</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             More reviews that fit this lane.
           </h2>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
             If this bottle was close but not quite right, these reviews are the next smartest places to compare.
           </p>
           <div className="mt-8 grid gap-6 lg:grid-cols-3">

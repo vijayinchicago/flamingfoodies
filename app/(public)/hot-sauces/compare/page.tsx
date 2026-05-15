@@ -86,7 +86,7 @@ function CompareCard({ review, sourcePage, position, highlight }: CompareCardPro
 
   return (
     <div
-      className={`overflow-hidden rounded-[2rem] border ${
+      className={`dark-scope overflow-hidden rounded-[2rem] border ${
         highlight
           ? "border-ember/40 shadow-[0_0_0_1px_rgba(244,99,30,0.15)]"
           : "border-white/10"
@@ -223,7 +223,7 @@ function CompareCard({ review, sourcePage, position, highlight }: CompareCardPro
           </AffiliateLink>
           <Link
             href={`/reviews/${review.slug}`}
-            className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
           >
             Full review
           </Link>
@@ -339,10 +339,10 @@ export default async function HotSauceComparePage({
           {winner ? (
             <div className="rounded-[2rem] border border-ember/30 bg-ember/10 p-6 text-center">
               <p className="text-xs uppercase tracking-[0.24em] text-ember">Our pick</p>
-              <p className="mt-2 font-display text-3xl text-cream">
+              <p className="mt-2 font-display text-3xl text-charcoal">
                 {winner.brand} — {winner.productName}
               </p>
-              <p className="mt-2 text-sm text-cream/70">
+              <p className="mt-2 text-sm text-charcoal/70">
                 Edges ahead on rating
                 {winner.recommended ? " and comes recommended" : ""}.
                 Both are worth buying — this one just has a slight edge overall.
@@ -359,9 +359,9 @@ export default async function HotSauceComparePage({
               </AffiliateLink>
             </div>
           ) : (
-            <div className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 text-center">
-              <p className="font-display text-3xl text-cream">A near-perfect tie.</p>
-              <p className="mt-2 text-sm text-cream/70">
+            <div className="rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6 text-center">
+              <p className="font-display text-3xl text-charcoal">A near-perfect tie.</p>
+              <p className="mt-2 text-sm text-charcoal/70">
                 Both sauces are closely matched. Read the pros and cons below to decide which fits your use case better.
               </p>
             </div>
@@ -384,27 +384,27 @@ export default async function HotSauceComparePage({
           </div>
 
           {/* Quick-compare table */}
-          <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04]">
-            <div className="border-b border-white/10 p-6">
+          <div className="overflow-hidden rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04]">
+            <div className="border-b border-charcoal/10 p-6">
               <p className="eyebrow">Quick compare</p>
-              <h2 className="mt-2 font-display text-3xl text-cream">At a glance</h2>
+              <h2 className="mt-2 font-display text-3xl text-charcoal">At a glance</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[480px] text-sm">
                 <thead>
-                  <tr className="border-b border-white/8">
-                    <th className="px-6 py-4 text-left text-xs uppercase tracking-[0.2em] text-cream/45">
+                  <tr className="border-b border-charcoal/10">
+                    <th className="px-6 py-4 text-left text-xs uppercase tracking-[0.2em] text-charcoal/45">
                       Attribute
                     </th>
-                    <th className="px-6 py-4 text-left text-xs uppercase tracking-[0.2em] text-cream/75">
+                    <th className="px-6 py-4 text-left text-xs uppercase tracking-[0.2em] text-charcoal/75">
                       {reviewA.productName}
                     </th>
-                    <th className="px-6 py-4 text-left text-xs uppercase tracking-[0.2em] text-cream/75">
+                    <th className="px-6 py-4 text-left text-xs uppercase tracking-[0.2em] text-charcoal/75">
                       {reviewB.productName}
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/8">
+                <tbody className="divide-y divide-charcoal/10">
                   {[
                     {
                       label: "Brand",
@@ -442,19 +442,19 @@ export default async function HotSauceComparePage({
                     }
                   ].map((row) => (
                     <tr key={row.label}>
-                      <td className="px-6 py-4 text-xs uppercase tracking-[0.18em] text-cream/45">
+                      <td className="px-6 py-4 text-xs uppercase tracking-[0.18em] text-charcoal/45">
                         {row.label}
                       </td>
                       <td
                         className={`px-6 py-4 font-semibold ${
-                          winner?.slug === reviewA.slug ? "text-ember" : "text-cream"
+                          winner?.slug === reviewA.slug ? "text-ember" : "text-charcoal"
                         }`}
                       >
                         {row.a}
                       </td>
                       <td
                         className={`px-6 py-4 font-semibold ${
-                          winner?.slug === reviewB.slug ? "text-ember" : "text-cream"
+                          winner?.slug === reviewB.slug ? "text-ember" : "text-charcoal"
                         }`}
                       >
                         {row.b}
@@ -471,10 +471,10 @@ export default async function HotSauceComparePage({
         <div className="mt-12">
           <div className="mb-8">
             <p className="eyebrow">Popular sauces to compare</p>
-            <h2 className="mt-3 font-display text-4xl text-cream">
+            <h2 className="mt-3 font-display text-4xl text-charcoal">
               Start with one of these.
             </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-cream/70">
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-charcoal/70">
               Pick two sauces from the dropdown above, or click any card below to jump-start a comparison.
             </p>
           </div>
@@ -485,7 +485,7 @@ export default async function HotSauceComparePage({
                 <Link
                   key={r.slug}
                   href={`/hot-sauces/compare?a=${r.slug}`}
-                  className="group overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] transition hover:border-white/25 hover:bg-white/[0.07]"
+                  className="dark-scope group overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.04] transition hover:border-white/25 hover:bg-white/[0.07]"
                 >
                   <div className="relative h-40">
                     <Image
@@ -519,13 +519,13 @@ export default async function HotSauceComparePage({
       <div className="mt-8 flex flex-wrap gap-3">
         <Link
           href="/hot-sauces"
-          className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+          className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
         >
           Back to hot sauce hub
         </Link>
         <Link
           href="/reviews"
-          className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+          className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
         >
           Browse all reviews
         </Link>

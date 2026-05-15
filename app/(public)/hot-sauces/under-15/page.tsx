@@ -42,10 +42,10 @@ export default async function HotSaucesUnderFifteenPage() {
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="panel p-8">
           <p className="eyebrow">What to optimize for</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             Cheap should still mean useful, not just tolerable.
           </h2>
-          <p className="mt-4 text-sm leading-7 text-cream/72">
+          <p className="mt-4 text-sm leading-7 text-charcoal/70">
             A good budget bottle should work across more than one meal. If it only makes sense on one challenge-food bite, it is not actually a better buy than a slightly pricier bottle you use all week.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
@@ -57,7 +57,7 @@ export default async function HotSaucesUnderFifteenPage() {
             </Link>
             <Link
               href="/shop#under-15"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Shop the under-$15 lane
             </Link>
@@ -66,8 +66,8 @@ export default async function HotSaucesUnderFifteenPage() {
 
         <div className="panel p-8">
           <p className="eyebrow">Budget shelf rule</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Buy one pour, one pantry helper.</h2>
-          <ul className="mt-5 space-y-3 text-sm leading-7 text-cream/72">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Buy one pour, one pantry helper.</h2>
+          <ul className="mt-5 space-y-3 text-sm leading-7 text-charcoal/70">
             <li>Start with one everyday bottle that covers tacos, eggs, and bowls.</li>
             <li>Add a pantry builder like gochujang or chili crisp before adding a novelty bottle.</li>
             <li>Only chase bigger heat once you know what you are actually using up.</li>
@@ -100,11 +100,11 @@ export default async function HotSaucesUnderFifteenPage() {
             <Link
               key={review.slug}
               href={`/reviews/${review.slug}`}
-              className="panel block p-6 hover:border-white/20"
+              className="panel block p-6 hover:border-charcoal/20"
             >
               <p className="text-xs uppercase tracking-[0.24em] text-ember">{review.brand}</p>
-              <h3 className="mt-3 font-display text-3xl text-cream">{review.title}</h3>
-              <p className="mt-3 text-sm leading-7 text-cream/72">{review.description}</p>
+              <h3 className="mt-3 font-display text-3xl text-charcoal">{review.title}</h3>
+              <p className="mt-3 text-sm leading-7 text-charcoal/70">{review.description}</p>
             </Link>
           ))}
         </div>

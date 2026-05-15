@@ -56,21 +56,21 @@ export function RecipeDisplayControls({
       <button
         type="button"
         onClick={() => setCookMode((value) => !value)}
-        className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream sm:w-auto"
+        className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal sm:w-auto"
       >
         {cookMode ? "Exit cook mode" : "Cook mode"}
       </button>
       <button
         type="button"
         onClick={() => window.print()}
-        className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream sm:w-auto"
+        className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal sm:w-auto"
       >
         Print recipe
       </button>
       <button
         type="button"
         onClick={emailRecipeToSelf}
-        className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream sm:w-auto"
+        className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal sm:w-auto"
       >
         Email this recipe
       </button>

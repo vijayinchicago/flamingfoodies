@@ -25,8 +25,8 @@ export default async function GuidesPage() {
         {guides.map((guide) => (
           <Link key={guide.slug} href={`/guides/${guide.slug}`} className="panel p-7">
             <p className="eyebrow">Guide</p>
-            <h2 className="mt-4 font-display text-4xl text-cream">{guide.title}</h2>
-            <p className="mt-4 text-sm leading-7 text-cream/75">{guide.description}</p>
+            <h2 className="mt-4 font-display text-4xl text-charcoal">{guide.title}</h2>
+            <p className="mt-4 text-sm leading-7 text-charcoal/75">{guide.description}</p>
           </Link>
         ))}
       </div>

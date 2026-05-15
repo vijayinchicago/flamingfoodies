@@ -124,10 +124,10 @@ export default async function BestHotSaucesForFriedChickenPage() {
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="panel p-8">
           <p className="eyebrow">What works on fried chicken</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             Crisp breading needs acid, aroma, or a little stick.
           </h2>
-          <p className="mt-4 text-sm leading-7 text-cream/72">
+          <p className="mt-4 text-sm leading-7 text-charcoal/70">
             The best fried-chicken bottles either cut through the crust with vinegar, hang on with
             a thicker texture, or bring the sweet-savory contrast that makes sandwiches and tenders
             more memorable.
@@ -141,7 +141,7 @@ export default async function BestHotSaucesForFriedChickenPage() {
             </Link>
             <Link
               href="/hot-sauces/best-for-wings"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Wings and fried chicken
             </Link>
@@ -149,8 +149,8 @@ export default async function BestHotSaucesForFriedChickenPage() {
         </div>
         <div className="panel p-8">
           <p className="eyebrow">Quick buying rule</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Start with vinegar, garlic, or hot honey.</h2>
-          <ul className="mt-5 space-y-3 text-sm leading-7 text-cream/72">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Start with vinegar, garlic, or hot honey.</h2>
+          <ul className="mt-5 space-y-3 text-sm leading-7 text-charcoal/70">
             <li>Vinegar-forward sauces cut rich breading fast and keep the plate moving.</li>
             <li>Garlic-heavy bottles work especially well on sandwiches, tenders, and fries.</li>
             <li>Hot honey is best when you want sweet heat, crisp edges, and late-night utility.</li>
@@ -217,7 +217,7 @@ export default async function BestHotSaucesForFriedChickenPage() {
         faqs={pageOptimization.faqs ?? friedChickenFaqs}
       />
 
-      <div className="mt-12 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-8">
+      <div className="mt-12 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6 sm:p-8">
         <EmailCapture
           source="hot-sauce-best-for-fried-chicken"
           tag="best-for-fried-chicken"

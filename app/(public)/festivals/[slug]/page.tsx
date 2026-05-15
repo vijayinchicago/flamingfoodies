@@ -134,29 +134,29 @@ export default async function FestivalPage({ params }: { params: { slug: string 
           <span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${regionBadgeClass}`}>
             {getRegionLabel(festival.region)}
           </span>
-          <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs text-cream/55">
+          <span className="rounded-full border border-charcoal/10 bg-charcoal/[0.05] px-3 py-1 text-xs text-charcoal/55">
             {getMonthName(festival.month)} · Annual
           </span>
           {festival.tags.slice(0, 2).map((tag) => (
             <span
               key={tag}
-              className="rounded-full border border-white/8 px-3 py-1 text-xs text-cream/40"
+              className="rounded-full border border-charcoal/8 px-3 py-1 text-xs text-charcoal/40"
             >
               {tag}
             </span>
           ))}
         </div>
 
-        <h1 className="mt-6 max-w-4xl font-display text-4xl leading-tight text-cream sm:text-5xl lg:text-6xl">
+        <h1 className="mt-6 max-w-4xl font-display text-4xl leading-tight text-charcoal sm:text-5xl lg:text-6xl">
           {festival.name}
         </h1>
-        <p className="mt-3 text-base text-cream/55 sm:text-lg">
+        <p className="mt-3 text-base text-charcoal/55 sm:text-lg">
           {festival.city}, {festival.state} · {festival.dateRange}
         </p>
-        <p className="mt-5 max-w-3xl text-base leading-8 text-cream/75 sm:text-lg">
+        <p className="mt-5 max-w-3xl text-base leading-8 text-charcoal/75 sm:text-lg">
           {festival.description}
         </p>
-        <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-cream/72">
+        <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 text-sm leading-7 text-charcoal/72">
           <p className="eyebrow">Festival guide note</p>
           <p className="mt-3">
             Festival pages are meant to help you decide whether an event fits your taste, travel
@@ -164,10 +164,10 @@ export default async function FestivalPage({ params }: { params: { slug: string 
             page after the event context.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link href="/editorial-policy" className="font-semibold text-cream underline underline-offset-4">
+            <Link href="/editorial-policy" className="font-semibold text-charcoal underline underline-offset-4">
               Editorial policy
             </Link>
-            <Link href="/corrections" className="font-semibold text-cream underline underline-offset-4">
+            <Link href="/corrections" className="font-semibold text-charcoal underline underline-offset-4">
               Corrections
             </Link>
           </div>
@@ -189,13 +189,13 @@ export default async function FestivalPage({ params }: { params: { slug: string 
       <div className="mt-12 grid gap-6 lg:grid-cols-2">
         <div className="panel p-8">
           <p className="eyebrow">Why it matters</p>
-          <p className="mt-4 text-sm leading-8 text-cream/75">{festival.editorialNote}</p>
+          <p className="mt-4 text-sm leading-8 text-charcoal/75">{festival.editorialNote}</p>
         </div>
         <div className="panel p-8">
           <p className="eyebrow">What to expect</p>
           <ul className="mt-4 space-y-3">
             {festival.whatToExpect.map((item) => (
-              <li key={item} className="flex gap-3 text-sm leading-7 text-cream/75">
+              <li key={item} className="flex gap-3 text-sm leading-7 text-charcoal/75">
                 <span className="mt-0.5 shrink-0 text-ember">—</span>
                 <span>{item}</span>
               </li>
@@ -207,17 +207,17 @@ export default async function FestivalPage({ params }: { params: { slug: string 
       {/* Best for */}
       <div className="mt-6 rounded-[2rem] border border-ember/20 bg-ember/8 p-8">
         <p className="eyebrow">Best for</p>
-        <p className="mt-3 text-base leading-8 text-cream/80">{festival.bestFor}</p>
+        <p className="mt-3 text-base leading-8 text-charcoal/80">{festival.bestFor}</p>
       </div>
 
       {/* Can't make it? Related reviews */}
       {displayReviews.length > 0 ? (
         <div className="mt-16">
           <p className="eyebrow">Flavor lane</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             If you want a taste of the festival at home.
           </h2>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/70">
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
             These reviews help map the bottle styles and sauce personalities you are likely to run
             into around {festival.shortName}, without treating shopping as the main reason the page
             exists.
@@ -230,7 +230,7 @@ export default async function FestivalPage({ params }: { params: { slug: string 
           <div className="mt-6">
             <Link
               href="/reviews"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-white"
             >
               Browse all hot sauce reviews
             </Link>
@@ -243,10 +243,10 @@ export default async function FestivalPage({ params }: { params: { slug: string 
         <div className="mt-12">
           <AffiliateDisclosure className="max-w-3xl" compact />
           <p className="mt-6 eyebrow">Optional prep picks</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             If you&apos;re packing ahead.
           </h2>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/70">
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
             These links are for readers who already know they want to prep a bag, cooler, or pantry
             backup before the trip. The festival guide above should still work without this section.
           </p>
@@ -254,13 +254,13 @@ export default async function FestivalPage({ params }: { params: { slug: string 
             {packItems.map(({ key, entry, resolved }) => (
               <article
                 key={key}
-                className="rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-5"
+                className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-5"
               >
                 <p className="text-xs uppercase tracking-[0.22em] text-ember">
                   {"badge" in entry && entry.badge ? String(entry.badge) : "Optional"}
                 </p>
-                <h3 className="mt-2 font-display text-2xl text-cream">{entry.product}</h3>
-                <p className="mt-2 text-sm leading-6 text-cream/65">
+                <h3 className="mt-2 font-display text-2xl text-charcoal">{entry.product}</h3>
+                <p className="mt-2 text-sm leading-6 text-charcoal/65">
                   {"description" in entry && entry.description ? String(entry.description) : ""}
                 </p>
                 <AffiliateLink
@@ -269,7 +269,7 @@ export default async function FestivalPage({ params }: { params: { slug: string 
                   trackingMode={resolved.trackingMode}
                   sourcePage={sourcePage}
                   position="festival-pack"
-                  className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
+                  className="mt-4 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-white"
                 >
                   View option ↗
                 </AffiliateLink>
@@ -283,10 +283,10 @@ export default async function FestivalPage({ params }: { params: { slug: string 
       {displayRecipes.length > 0 ? (
         <div className="mt-14">
           <p className="eyebrow">Cook the cuisine</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             Recipes that match the festival flavor.
           </h2>
-          <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/70">
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
             The best way to prepare for a hot sauce festival is to already be cooking with these
             flavors at home.
           </p>
@@ -298,7 +298,7 @@ export default async function FestivalPage({ params }: { params: { slug: string 
           <div className="mt-6">
             <Link
               href="/recipes"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-white"
             >
               Browse all recipes
             </Link>
@@ -308,9 +308,9 @@ export default async function FestivalPage({ params }: { params: { slug: string 
 
       {/* Other festivals */}
       {otherFestivals.length > 0 ? (
-        <div className="mt-16 rounded-[2rem] border border-white/10 bg-white/[0.04] p-8">
+        <div className="mt-16 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-8">
           <p className="eyebrow">More festivals</p>
-          <h2 className="mt-3 font-display text-3xl text-cream">
+          <h2 className="mt-3 font-display text-3xl text-charcoal">
             Keep the calendar going.
           </h2>
           <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -318,16 +318,16 @@ export default async function FestivalPage({ params }: { params: { slug: string 
               <Link
                 key={f.slug}
                 href={`/festivals/${f.slug}`}
-                className="group rounded-[1.5rem] border border-white/10 bg-white/[0.03] p-4 transition hover:border-white/20 hover:bg-white/[0.06]"
+                className="group rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.03] p-4 transition hover:border-charcoal/20 hover:bg-charcoal/[0.06]"
               >
                 <p className="text-xs uppercase tracking-[0.2em] text-ember">
                   {f.city}, {f.stateCode}
                 </p>
-                <h3 className="mt-2 font-display text-xl text-cream leading-tight">{f.name}</h3>
-                <p className="mt-1 text-xs text-cream/45">
+                <h3 className="mt-2 font-display text-xl text-charcoal leading-tight">{f.name}</h3>
+                <p className="mt-1 text-xs text-charcoal/45">
                   {getMonthName(f.month)} · {f.dateRange}
                 </p>
-                <p className="mt-2 text-xs font-semibold text-cream/40 group-hover:text-cream/65">
+                <p className="mt-2 text-xs font-semibold text-charcoal/40 group-hover:text-charcoal/65">
                   View guide →
                 </p>
               </Link>
@@ -336,7 +336,7 @@ export default async function FestivalPage({ params }: { params: { slug: string 
           <div className="mt-6">
             <Link
               href="/festivals"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-white"
             >
               Full festival calendar
             </Link>

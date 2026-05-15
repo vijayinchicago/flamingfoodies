@@ -133,17 +133,17 @@ export default async function ReviewsIndexPage({
       <div className="mt-10 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div className="panel p-6 sm:p-8">
           <p className="eyebrow">Hot sauce map</p>
-          <h2 className="mt-3 font-display text-3xl text-cream sm:text-4xl">
+          <h2 className="mt-3 font-display text-3xl text-charcoal sm:text-4xl">
             Find the right bottle faster, not just the loudest one.
           </h2>
-          <p className="mt-4 text-sm leading-7 text-cream/75">
+          <p className="mt-4 text-sm leading-7 text-charcoal/75">
             This page should help you tell, at a glance, which sauces are everyday staples, which
             ones hit harder, and which ones make the best gifts.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
               href="/hot-sauces"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Visit the hot sauce hub
             </Link>
@@ -155,7 +155,7 @@ export default async function ReviewsIndexPage({
             </Link>
             <Link
               href="/subscriptions"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Explore gift sets
             </Link>
@@ -165,15 +165,15 @@ export default async function ReviewsIndexPage({
           {resolvedHotSauceLinks.map(({ link, resolved }) => (
             <article key={link.key} className="panel p-5 sm:p-6">
               <p className="text-xs uppercase tracking-[0.24em] text-ember">{link.badge}</p>
-              <h3 className="mt-3 font-display text-2xl text-cream sm:text-3xl">{link.product}</h3>
-              <p className="mt-3 text-sm leading-7 text-cream/72">{link.description}</p>
+              <h3 className="mt-3 font-display text-2xl text-charcoal sm:text-3xl">{link.product}</h3>
+              <p className="mt-3 text-sm leading-7 text-charcoal/70">{link.description}</p>
               <AffiliateLink
                 href={resolved.href}
                 partnerKey={resolved.key}
                 trackingMode={resolved.trackingMode}
                 sourcePage="/reviews"
                 position="index-callout"
-                className="mt-4 inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                className="mt-4 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
               >
                 {getAffiliateCtaLabel(resolved)}
               </AffiliateLink>
@@ -185,10 +185,10 @@ export default async function ReviewsIndexPage({
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="eyebrow">Top picks</p>
-            <h2 className="mt-3 font-display text-3xl text-cream sm:text-4xl">
+            <h2 className="mt-3 font-display text-3xl text-charcoal sm:text-4xl">
               Start with the bottles we would hand someone first.
             </h2>
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
               Start with an everyday favorite, a giftable pick, and a bottle with a little more heat
               or personality.
             </p>
@@ -196,19 +196,19 @@ export default async function ReviewsIndexPage({
           <div className="flex flex-wrap gap-3">
             <Link
               href="/hot-sauces/best-for-tacos"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Best for tacos
             </Link>
             <Link
               href="/hot-sauces/under-15"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Best under $15
             </Link>
             <Link
               href="/hot-sauces/gifts-under-50"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Gifts under $50
             </Link>
@@ -222,7 +222,7 @@ export default async function ReviewsIndexPage({
                 <p className="text-xs uppercase tracking-[0.24em] text-ember">
                   {getHotSauceIntentLabel(review)}
                 </p>
-                <p className="mt-2 text-sm leading-7 text-cream/65">
+                <p className="mt-2 text-sm leading-7 text-charcoal/70">
                   {typeof review.priceUsd === "number"
                     ? `Quick take: ${review.brand} at $${review.priceUsd.toFixed(2)} is an easy bottle to start with.`
                     : `Quick take: ${review.brand} is an easy bottle to start with.`}
@@ -239,7 +239,7 @@ export default async function ReviewsIndexPage({
             slotId={ads.slotIds.reviewArchive}
             slotName="review_archive_feature"
             placement="review_archive"
-            className="bg-white/[0.04]"
+            className="bg-charcoal/[0.04]"
           />
         </div>
       ) : null}
@@ -316,14 +316,14 @@ export default async function ReviewsIndexPage({
           </p>
         </div>
       </form>
-      <div className="mt-6 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6">
+      <div className="mt-6 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="eyebrow">Browse by intent</p>
-            <h2 className="mt-3 font-display text-4xl text-cream">Browse reviews your way.</h2>
-            <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">
-              Showing <span className="font-semibold text-cream">{paginatedReviews.totalResults}</span>{" "}
-              results for <span className="font-semibold text-cream">{filterMeta.label}</span>.{" "}
+            <h2 className="mt-3 font-display text-4xl text-charcoal">Browse reviews your way.</h2>
+            <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
+              Showing <span className="font-semibold text-charcoal">{paginatedReviews.totalResults}</span>{" "}
+              results for <span className="font-semibold text-charcoal">{filterMeta.label}</span>.{" "}
               {filterMeta.description}
             </p>
           </div>
@@ -346,7 +346,7 @@ export default async function ReviewsIndexPage({
                 className={
                   isActive
                     ? "rounded-full border border-white bg-white px-4 py-2 text-sm font-semibold text-charcoal shadow-sm"
-                    : "rounded-full border border-white/15 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-cream/90 hover:border-white/30 hover:bg-white/[0.07]"
+                    : "rounded-full border border-charcoal/15 bg-charcoal/[0.04] px-4 py-2 text-sm font-semibold text-charcoal/80 hover:border-charcoal/30 hover:bg-charcoal/[0.06]"
                 }
               >
                 {filter.label}
@@ -358,19 +358,19 @@ export default async function ReviewsIndexPage({
       <div className="mt-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="eyebrow">Review archive</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             {paginatedReviews.totalResults
               ? `Showing ${paginatedReviews.startResult}-${paginatedReviews.endResult} of ${paginatedReviews.totalResults}`
               : "No reviews match those filters yet"}
           </h2>
-          <p className="mt-3 text-sm leading-7 text-cream/70">
+          <p className="mt-3 text-sm leading-7 text-charcoal/70">
             {paginatedReviews.totalResults
               ? "Narrow things down by best use, then sort for the bottles you want to compare."
               : "Try a broader search, switch the intent tab, or clear a filter to see more bottles."}
           </p>
         </div>
         {paginatedReviews.totalPages > 1 ? (
-          <p className="text-sm text-cream/60">
+          <p className="text-sm text-charcoal/55">
             Page {paginatedReviews.currentPage} of {paginatedReviews.totalPages}
           </p>
         ) : null}
@@ -379,9 +379,9 @@ export default async function ReviewsIndexPage({
         {paginatedReviews.items.length ? (
           paginatedReviews.items.map((review) => <ReviewCard key={review.id} review={review} />)
         ) : (
-          <div className="panel p-8 text-sm leading-7 text-cream/72 lg:col-span-2">
+          <div className="panel p-8 text-sm leading-7 text-charcoal/70 lg:col-span-2">
             No hot sauce reviews match that filter yet. Try another browse lane or head back to the{" "}
-            <Link href="/hot-sauces" className="font-semibold text-cream underline underline-offset-4">
+            <Link href="/hot-sauces" className="font-semibold text-charcoal underline underline-offset-4">
               hot sauce hub
             </Link>
             .
@@ -400,7 +400,7 @@ export default async function ReviewsIndexPage({
                 sort: activeSort,
                 page: paginatedReviews.currentPage - 1
               })}
-              className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Previous page
             </Link>

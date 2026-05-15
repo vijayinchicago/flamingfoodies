@@ -107,7 +107,7 @@ export default async function SeasonalPage({ params }: { params: { slug: string 
           title={occasion.title}
           copy={occasion.description}
         />
-        <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5 text-sm leading-7 text-cream/72">
+        <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 text-sm leading-7 text-charcoal/72">
           <p className="eyebrow">Seasonal note</p>
           <p className="mt-3">
             Seasonal pages are built to help you plan the menu, heat range, and flavor lane first.
@@ -115,10 +115,10 @@ export default async function SeasonalPage({ params }: { params: { slug: string 
             clearly separate from commercial decisions.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Link href="/editorial-policy" className="font-semibold text-cream underline underline-offset-4">
+            <Link href="/editorial-policy" className="font-semibold text-charcoal underline underline-offset-4">
               Editorial policy
             </Link>
-            <Link href="/review-methodology" className="font-semibold text-cream underline underline-offset-4">
+            <Link href="/review-methodology" className="font-semibold text-charcoal underline underline-offset-4">
               Review methodology
             </Link>
           </div>
@@ -129,14 +129,14 @@ export default async function SeasonalPage({ params }: { params: { slug: string 
       <div className="mt-10 grid gap-6 lg:grid-cols-2">
         <div className="panel p-8">
           <p className="eyebrow">Why this matters</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">{occasion.tagline}</h2>
-          <p className="mt-4 text-sm leading-7 text-cream/72">{occasion.editorialNote}</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">{occasion.tagline}</h2>
+          <p className="mt-4 text-sm leading-7 text-charcoal/72">{occasion.editorialNote}</p>
           <div className="mt-6 flex flex-wrap gap-3">
             {occasion.guideLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+                className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
               >
                 {link.label}
               </Link>
@@ -145,11 +145,11 @@ export default async function SeasonalPage({ params }: { params: { slug: string 
         </div>
         <div className="panel p-8">
           <p className="eyebrow">Planning tip</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">How to stock the table.</h2>
-          <p className="mt-4 text-sm leading-7 text-cream/72">{occasion.buyingTip}</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">How to stock the table.</h2>
+          <p className="mt-4 text-sm leading-7 text-charcoal/72">{occasion.buyingTip}</p>
           <Link
             href="/reviews"
-            className="mt-6 inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+            className="mt-6 inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
           >
             Browse hot sauce reviews
           </Link>
@@ -172,7 +172,7 @@ export default async function SeasonalPage({ params }: { params: { slug: string 
           <div className="mt-6">
             <Link
               href="/reviews"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Browse all hot sauce reviews
             </Link>
@@ -196,7 +196,7 @@ export default async function SeasonalPage({ params }: { params: { slug: string 
           <div className="mt-6">
             <Link
               href="/recipes"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Browse all recipes
             </Link>
@@ -205,7 +205,7 @@ export default async function SeasonalPage({ params }: { params: { slug: string 
       ) : null}
 
       {/* Nav to other occasions */}
-      <div className="mt-16 rounded-[2rem] border border-white/10 bg-white/[0.04] p-8">
+      <div className="mt-16 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-8">
         <p className="eyebrow">More seasonal guides</p>
         <div className="mt-4 flex flex-wrap gap-3">
           {SEASONAL_OCCASIONS
@@ -214,14 +214,14 @@ export default async function SeasonalPage({ params }: { params: { slug: string 
               <Link
                 key={o.slug}
                 href={`/seasonal/${o.slug}`}
-                className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
+                className="rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-white"
               >
                 {o.title}
               </Link>
             ))}
           <Link
             href="/seasonal"
-            className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream hover:border-white/30 hover:text-white"
+            className="rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-white"
           >
             All seasonal guides
           </Link>

@@ -12,10 +12,10 @@ export default function AffiliateDisclosurePage() {
     <section className="container-shell py-16">
       <div className="panel mx-auto max-w-4xl p-8 sm:p-10">
         <p className="eyebrow">Affiliate disclosure</p>
-        <h1 className="mt-4 font-display text-5xl text-cream sm:text-6xl">
+        <h1 className="mt-4 font-display text-5xl text-charcoal sm:text-6xl">
           How commerce links work on FlamingFoodies
         </h1>
-        <div className="mt-8 space-y-5 text-sm leading-8 text-cream/78 sm:text-base">
+        <div className="mt-8 space-y-5 text-sm leading-8 text-charcoal/75 sm:text-base">
           <p>
             FlamingFoodies may earn a commission when you buy through some outbound links on this
             site. Right now, those commerce links route through Amazon placements featured in

@@ -20,7 +20,7 @@ export default function TermsPage() {
     >
       <article className="panel p-8">
         <p className="eyebrow">Editorial content</p>
-        <div className="mt-4 space-y-4 text-sm leading-7 text-cream/75">
+        <div className="mt-4 space-y-4 text-sm leading-7 text-charcoal/75">
           <p>
             Recipes, reviews, guides, and other editorial content on FlamingFoodies are provided
             for general information and inspiration. They are not a substitute for your own
@@ -35,7 +35,7 @@ export default function TermsPage() {
 
       <article className="panel p-8">
         <p className="eyebrow">Recommendations and affiliate links</p>
-        <div className="mt-4 space-y-4 text-sm leading-7 text-cream/75">
+        <div className="mt-4 space-y-4 text-sm leading-7 text-charcoal/75">
           <p>
             Some outbound links on FlamingFoodies are affiliate links. If you choose to buy through
             one, FlamingFoodies may earn a commission at no additional cost to you.
@@ -49,7 +49,7 @@ export default function TermsPage() {
 
       <article className="panel p-8">
         <p className="eyebrow">Site use</p>
-        <div className="mt-4 space-y-4 text-sm leading-7 text-cream/75">
+        <div className="mt-4 space-y-4 text-sm leading-7 text-charcoal/75">
           <p>
             You agree not to abuse the site, interfere with its operation, scrape it in a way that
             harms normal use, or submit unlawful, fraudulent, or abusive content through any public
@@ -64,7 +64,7 @@ export default function TermsPage() {
 
       <article className="panel p-8">
         <p className="eyebrow">Ownership</p>
-        <div className="mt-4 space-y-4 text-sm leading-7 text-cream/75">
+        <div className="mt-4 space-y-4 text-sm leading-7 text-charcoal/75">
           <p>
             Unless otherwise stated, site copy, structure, branding, and original editorial content
             belong to FlamingFoodies. Please do not republish full content without permission.

@@ -116,30 +116,30 @@ function BundleLaneCard({ collection }: { collection: ResolvedBundle }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="eyebrow">Buying Path</p>
-          <h3 className="mt-3 font-display text-4xl text-cream">{collection.ctaLabel}</h3>
+          <h3 className="mt-3 font-display text-4xl text-charcoal">{collection.ctaLabel}</h3>
         </div>
-        <span className="rounded-full border border-white/12 bg-white/[0.06] px-3 py-2 text-xs uppercase tracking-[0.22em] text-cream/62">
+        <span className="rounded-full border border-charcoal/12 bg-charcoal/[0.06] px-3 py-2 text-xs uppercase tracking-[0.22em] text-charcoal/62">
           {collection.items.length} picks
         </span>
       </div>
-      <p className="mt-4 max-w-3xl text-sm leading-7 text-cream/72">{collection.description}</p>
+      <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/72">{collection.description}</p>
       <div className="mt-6 grid gap-4 md:grid-cols-3">
         {collection.items.map(({ link, resolved }, index) => (
           <article
             key={`${collection.key}-${link.key}`}
-            className="rounded-[1.5rem] border border-white/10 bg-white/[0.05] p-4"
+            className="rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.05] p-4"
           >
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs uppercase tracking-[0.24em] text-ember">
                 Step {index + 1}
               </p>
-              <span className="text-xs text-cream/55">{link.priceLabel}</span>
+              <span className="text-xs text-charcoal/55">{link.priceLabel}</span>
             </div>
-            <p className="mt-3 text-xs uppercase tracking-[0.2em] text-cream/55">
+            <p className="mt-3 text-xs uppercase tracking-[0.2em] text-charcoal/55">
               {link.badge}
             </p>
-            <h4 className="mt-2 font-display text-2xl text-cream">{link.product}</h4>
-            <p className="mt-3 text-sm leading-6 text-cream/70">{link.bestFor}</p>
+            <h4 className="mt-2 font-display text-2xl text-charcoal">{link.product}</h4>
+            <p className="mt-3 text-sm leading-6 text-charcoal/70">{link.bestFor}</p>
             <AffiliateLink
               href={resolved.href}
               partnerKey={resolved.key}
@@ -153,13 +153,13 @@ function BundleLaneCard({ collection }: { collection: ResolvedBundle }) {
           </article>
         ))}
       </div>
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-5">
-        <p className="text-sm text-cream/58">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-charcoal/10 pt-5">
+        <p className="text-sm text-charcoal/58">
           Shop by craving, budget, or occasion instead of digging through one long list.
         </p>
         <Link
           href={guide.href}
-          className="inline-flex rounded-full border border-white/12 px-4 py-2 text-sm font-semibold text-cream"
+          className="inline-flex rounded-full border border-charcoal/12 px-4 py-2 text-sm font-semibold text-charcoal"
         >
           {guide.label}
         </Link>
@@ -194,17 +194,17 @@ function CategorySpotlight({
   return (
     <article id={id} className="panel p-6 sm:p-7">
       <p className="eyebrow">{eyebrow}</p>
-      <h3 className="mt-3 font-display text-4xl text-cream">{title}</h3>
-      <p className="mt-4 text-sm leading-7 text-cream/72">{copy}</p>
+      <h3 className="mt-3 font-display text-4xl text-charcoal">{title}</h3>
+      <p className="mt-4 text-sm leading-7 text-charcoal/72">{copy}</p>
 
-      <div className="mt-6 rounded-[1.8rem] border border-white/12 bg-white/[0.06] p-5">
+      <div className="mt-6 rounded-[1.8rem] border border-charcoal/12 bg-charcoal/[0.06] p-5">
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs uppercase tracking-[0.24em] text-ember">{lead.link.badge}</p>
-          <span className="text-xs text-cream/55">{lead.link.priceLabel}</span>
+          <span className="text-xs text-charcoal/55">{lead.link.priceLabel}</span>
         </div>
-        <h4 className="mt-3 font-display text-3xl text-cream">{lead.link.product}</h4>
-        <p className="mt-3 text-sm leading-7 text-cream/72">{lead.link.description}</p>
-        <p className="mt-3 text-sm text-cream/55">
+        <h4 className="mt-3 font-display text-3xl text-charcoal">{lead.link.product}</h4>
+        <p className="mt-3 text-sm leading-7 text-charcoal/72">{lead.link.description}</p>
+        <p className="mt-3 text-sm text-charcoal/55">
           Best for {lead.link.bestFor.toLowerCase()}.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
@@ -220,7 +220,7 @@ function CategorySpotlight({
           </AffiliateLink>
           <Link
             href={guideHref}
-            className="inline-flex rounded-full border border-white/12 px-5 py-3 text-sm font-semibold text-cream"
+            className="inline-flex rounded-full border border-charcoal/12 px-5 py-3 text-sm font-semibold text-charcoal"
           >
             {guideLabel}
           </Link>
@@ -232,14 +232,14 @@ function CategorySpotlight({
           {supporting.map(({ link, resolved }, index) => (
             <div
               key={`${id}-${link.key}`}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-[1.3rem] border border-white/10 bg-white/[0.04] px-4 py-4"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-[1.3rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-4"
             >
               <div>
                 <p className="text-xs uppercase tracking-[0.22em] text-ember">
                   Backup Pick {index + 1}
                 </p>
-                <h5 className="mt-1 text-lg font-semibold text-cream">{link.product}</h5>
-                <p className="mt-1 text-sm text-cream/60">{link.bestFor}</p>
+                <h5 className="mt-1 text-lg font-semibold text-charcoal">{link.product}</h5>
+                <p className="mt-1 text-sm text-charcoal/60">{link.bestFor}</p>
               </div>
               <AffiliateLink
                 href={resolved.href}
@@ -247,7 +247,7 @@ function CategorySpotlight({
                 trackingMode={resolved.trackingMode}
                 sourcePage="/shop"
                 position={`${id}-backup-${index + 1}`}
-                className="inline-flex rounded-full border border-white/12 px-4 py-2 text-sm font-semibold text-cream"
+                className="inline-flex rounded-full border border-charcoal/12 px-4 py-2 text-sm font-semibold text-charcoal"
               >
                 View
               </AffiliateLink>
@@ -322,13 +322,13 @@ export default async function ShopPage() {
         <AffiliateDisclosure compact />
       </div>
       <div className="grid gap-6 xl:grid-cols-[1.18fr_0.82fr]">
-        <div className="relative overflow-hidden rounded-[2.4rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(255,199,79,0.22),transparent_42%),radial-gradient(circle_at_bottom_right,rgba(230,57,70,0.18),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-8 sm:p-10 lg:p-12">
+        <div className="relative overflow-hidden rounded-[2.4rem] border border-charcoal/10 bg-[radial-gradient(circle_at_top_left,rgba(255,199,79,0.22),transparent_42%),radial-gradient(circle_at_bottom_right,rgba(230,57,70,0.18),transparent_34%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-8 sm:p-10 lg:p-12">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-ember/70 to-transparent" />
           <p className="eyebrow">Shop Smarter</p>
-          <h1 className="mt-4 max-w-4xl font-display text-5xl leading-[0.92] text-cream sm:text-6xl xl:text-7xl">
+          <h1 className="mt-4 max-w-4xl font-display text-5xl leading-[0.92] text-charcoal sm:text-6xl xl:text-7xl">
             Buy the bottle, tool, or gift that actually changes dinner.
           </h1>
-          <p className="mt-6 max-w-3xl text-lg leading-8 text-cream/78">
+          <p className="mt-6 max-w-3xl text-lg leading-8 text-charcoal/78">
             Shop hot sauces, pantry staples, kitchen gear, and gift-ready picks chosen to make
             cooking easier and more fun. Start with a best seller, an under-$15 favorite, a great
             gift, or one reliable tool you will use every week.
@@ -343,7 +343,7 @@ export default async function ShopPage() {
             </Link>
             <Link
               href="#hot-right-now"
-              className="inline-flex rounded-full border border-white/15 px-6 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-6 py-3 text-sm font-semibold text-charcoal"
             >
               See today&apos;s winners
             </Link>
@@ -353,10 +353,10 @@ export default async function ShopPage() {
             {conversionStats.map((stat) => (
               <div
                 key={stat.label}
-                className="rounded-[1.4rem] border border-white/10 bg-white/[0.06] p-4"
+                className="rounded-[1.4rem] border border-charcoal/10 bg-charcoal/[0.06] p-4"
               >
                 <p className="text-xs uppercase tracking-[0.22em] text-ember">{stat.label}</p>
-                <p className="mt-2 font-display text-3xl text-cream">{stat.value}</p>
+                <p className="mt-2 font-display text-3xl text-charcoal">{stat.value}</p>
               </div>
             ))}
           </div>
@@ -366,7 +366,7 @@ export default async function ShopPage() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="rounded-full border border-white/10 bg-white/[0.04] px-4 py-2 text-sm font-semibold text-cream/82"
+                className="rounded-full border border-charcoal/10 bg-charcoal/[0.04] px-4 py-2 text-sm font-semibold text-charcoal/82"
               >
                 {link.label}
               </Link>
@@ -377,10 +377,10 @@ export default async function ShopPage() {
         <aside className="panel relative overflow-hidden p-6 sm:p-8">
           <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-ember/60 to-transparent" />
           <p className="eyebrow">Start Here</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             {heroBundle?.ctaLabel || "Build the first serious shelf"}
           </h2>
-          <p className="mt-4 text-sm leading-7 text-cream/72">
+          <p className="mt-4 text-sm leading-7 text-charcoal/72">
             {heroBundle?.description ||
               "One useful bottle, one pantry builder, and one tool upgrade."}
           </p>
@@ -389,16 +389,16 @@ export default async function ShopPage() {
             {(heroBundle?.items ?? []).map(({ link, resolved }, index) => (
               <div
                 key={`hero-${link.key}`}
-                className="rounded-[1.4rem] border border-white/10 bg-white/[0.05] p-4"
+                className="rounded-[1.4rem] border border-charcoal/10 bg-charcoal/[0.05] p-4"
               >
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-xs uppercase tracking-[0.22em] text-ember">
                     Step {index + 1}
                   </p>
-                  <span className="text-xs text-cream/55">{link.priceLabel}</span>
+                  <span className="text-xs text-charcoal/55">{link.priceLabel}</span>
                 </div>
-                <h3 className="mt-2 font-display text-2xl text-cream">{link.product}</h3>
-                <p className="mt-2 text-sm text-cream/65">{link.bestFor}</p>
+                <h3 className="mt-2 font-display text-2xl text-charcoal">{link.product}</h3>
+                <p className="mt-2 text-sm text-charcoal/65">{link.bestFor}</p>
                 <AffiliateLink
                   href={resolved.href}
                   partnerKey={resolved.key}
@@ -413,9 +413,9 @@ export default async function ShopPage() {
             ))}
           </div>
 
-          <div className="mt-6 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4">
+          <div className="mt-6 rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-4">
             <p className="text-xs uppercase tracking-[0.22em] text-ember">Start Here</p>
-            <p className="mt-3 text-sm leading-7 text-cream/70">
+            <p className="mt-3 text-sm leading-7 text-charcoal/70">
               Begin with one dependable bottle, one flavor booster, and one useful tool. You will
               get more out of every recipe without overthinking what to buy first.
             </p>
@@ -434,7 +434,7 @@ export default async function ShopPage() {
             {dailyShopPicks.map((item, index) => (
               <article
                 key={item.slug}
-                className={`panel relative overflow-hidden border-white/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)}`}
+                className={`panel relative overflow-hidden border-charcoal/10 bg-gradient-to-br ${getMerchThemeClasses(item.themeKey)}`}
               >
                 {/* Product image if available, else gradient header */}
                 {item.imageUrl ? (
@@ -447,25 +447,25 @@ export default async function ShopPage() {
                       className="object-cover transition duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-charcoal/60 to-transparent" />
-                    <div className="absolute right-4 top-4 rounded-full border border-white/12 bg-charcoal/60 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cream/90 backdrop-blur-sm">
+                    <div className="absolute right-4 top-4 rounded-full border border-white/20 bg-charcoal/65 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cream backdrop-blur-sm">
                       #{index + 1}
                     </div>
                   </div>
                 ) : (
                   <div className="relative h-20">
-                    <div className="absolute right-5 top-5 rounded-full border border-white/12 bg-charcoal/40 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cream/80">
+                    <div className="absolute right-5 top-5 rounded-full border border-charcoal/15 bg-charcoal/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-charcoal">
                       #{index + 1}
                     </div>
                   </div>
                 )}
                 <div className="p-6">
                   <p className="text-xs uppercase tracking-[0.24em] text-ember">{item.badge}</p>
-                  <h2 className="mt-3 font-display text-3xl text-cream">{item.name}</h2>
-                  <div className="mt-3 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-cream/55">
+                  <h2 className="mt-3 font-display text-3xl text-charcoal">{item.name}</h2>
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.18em] text-charcoal/55">
                     <span>{item.category}</span>
                     <span>{item.priceLabel}</span>
                   </div>
-                  <p className="mt-4 text-sm leading-7 text-cream/74">{item.description}</p>
+                  <p className="mt-4 text-sm leading-7 text-charcoal/74">{item.description}</p>
                   <Link
                     href={buildShopPickHref(item.href, `hot-right-now-${index + 1}`)}
                     className="mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-charcoal"
@@ -567,10 +567,10 @@ export default async function ShopPage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,199,79,0.12),transparent_42%),radial-gradient(circle_at_bottom_right,rgba(230,57,70,0.14),transparent_32%)]" />
           <div className="relative">
             <p className="eyebrow">Gift Mode</p>
-            <h2 className="mt-3 font-display text-5xl text-cream">
+            <h2 className="mt-3 font-display text-5xl text-charcoal">
               Make the gift feel smart, not random.
             </h2>
-            <p className="mt-4 text-sm leading-7 text-cream/74">
+            <p className="mt-4 text-sm leading-7 text-charcoal/74">
               If you are shopping for someone else, the highest-confidence path is still a curated
               set or a recurring discovery box.
             </p>
@@ -580,16 +580,16 @@ export default async function ShopPage() {
                 ({ link, resolved }, index) => (
                   <div
                     key={`gift-${link.key}`}
-                    className="rounded-[1.4rem] border border-white/10 bg-white/[0.05] p-4"
+                    className="rounded-[1.4rem] border border-charcoal/10 bg-charcoal/[0.05] p-4"
                   >
                     <div className="flex items-center justify-between gap-3">
                       <p className="text-xs uppercase tracking-[0.22em] text-ember">
                         Gift pick {index + 1}
                       </p>
-                      <span className="text-xs text-cream/55">{link.priceLabel}</span>
+                      <span className="text-xs text-charcoal/55">{link.priceLabel}</span>
                     </div>
-                    <h3 className="mt-2 font-display text-2xl text-cream">{link.product}</h3>
-                    <p className="mt-2 text-sm text-cream/65">{link.bestFor}</p>
+                    <h3 className="mt-2 font-display text-2xl text-charcoal">{link.product}</h3>
+                    <p className="mt-2 text-sm text-charcoal/65">{link.bestFor}</p>
                     <AffiliateLink
                       href={resolved.href}
                       partnerKey={resolved.key}
@@ -607,7 +607,7 @@ export default async function ShopPage() {
 
             <Link
               href="/hot-sauces/best-gift-sets"
-              className="mt-6 inline-flex rounded-full border border-white/12 px-5 py-3 text-sm font-semibold text-cream"
+              className="mt-6 inline-flex rounded-full border border-charcoal/12 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               See the full gift guide
             </Link>

@@ -72,10 +72,10 @@ export default async function BestHotSaucesForTacosPage() {
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="panel p-8">
           <p className="eyebrow">What works on tacos</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             Bright heat beats brute force most of the time.
           </h2>
-          <p className="mt-4 text-sm leading-7 text-cream/72">
+          <p className="mt-4 text-sm leading-7 text-charcoal/70">
             Taco-friendly bottles usually have one of three things: citrus lift, a spoonable
             everyday texture, or enough smoky depth to support grilled meat without turning the
             whole bite muddy. That is why Yellowbird, Los Calientes-style reds, and balanced
@@ -90,7 +90,7 @@ export default async function BestHotSaucesForTacosPage() {
             </Link>
             <Link
               href="/reviews"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               See all reviews
             </Link>
@@ -98,8 +98,8 @@ export default async function BestHotSaucesForTacosPage() {
         </div>
         <div className="panel p-8">
           <p className="eyebrow">Quick buying rule</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Match the taco, not the ego.</h2>
-          <ul className="mt-5 space-y-3 text-sm leading-7 text-cream/72">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Match the taco, not the ego.</h2>
+          <ul className="mt-5 space-y-3 text-sm leading-7 text-charcoal/70">
             <li>Birria and beef tacos want brightness or smoky tomato depth.</li>
             <li>Fish and shrimp tacos want citrus, ginger, or cleaner fruit notes.</li>
             <li>Breakfast tacos want an easy everyday pour, not a punishment sauce.</li>
@@ -160,7 +160,7 @@ export default async function BestHotSaucesForTacosPage() {
         faqs={tacoFaqs}
       />
 
-      <div className="mt-12 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 sm:p-8">
+      <div className="mt-12 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6 sm:p-8">
         <EmailCapture
           source="hot-sauce-best-for-tacos"
           tag="best-for-tacos"

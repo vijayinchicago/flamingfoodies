@@ -60,10 +60,10 @@ export default async function HowToPage() {
                     {DIFFICULTY_LABELS[tutorial.difficulty]}
                   </span>
                 </div>
-                <h2 className="mt-3 font-display text-2xl leading-tight text-cream">{tutorial.title}</h2>
-                <p className="mt-2 text-xs text-cream/50">{tutorial.timeEstimate}</p>
-                <p className="mt-3 text-sm leading-6 text-cream/70">{tutorial.description}</p>
-                <p className="mt-4 text-sm font-semibold text-cream/70 group-hover:text-white">
+                <h2 className="mt-3 font-display text-2xl leading-tight text-charcoal">{tutorial.title}</h2>
+                <p className="mt-2 text-xs text-charcoal/55">{tutorial.timeEstimate}</p>
+                <p className="mt-3 text-sm leading-6 text-charcoal/70">{tutorial.description}</p>
+                <p className="mt-4 text-sm font-semibold text-charcoal/70 group-hover:text-charcoal">
                   Read the guide →
                 </p>
               </Link>
@@ -80,25 +80,25 @@ export default async function HowToPage() {
           return (
             <div key={cat}>
               <div className="flex items-center gap-4">
-                <h2 className="font-display text-2xl text-cream">{CATEGORY_LABELS[cat]}</h2>
-                <div className="h-px flex-1 bg-white/10" />
+                <h2 className="font-display text-2xl text-charcoal">{CATEGORY_LABELS[cat]}</h2>
+                <div className="h-px flex-1 bg-charcoal/10" />
               </div>
               <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {catTutorials.map((tutorial) => (
                   <Link
                     key={tutorial.slug}
                     href={`/how-to/${tutorial.slug}`}
-                    className="group rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-5 transition hover:border-white/20 hover:bg-white/[0.06]"
+                    className="group rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 transition hover:border-charcoal/20 hover:bg-charcoal/[0.06]"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-0.5 text-[11px] text-cream/45">
+                      <span className="rounded-full border border-charcoal/10 bg-charcoal/[0.04] px-2.5 py-0.5 text-[11px] text-charcoal/45">
                         {DIFFICULTY_LABELS[tutorial.difficulty]}
                       </span>
-                      <span className="text-[11px] text-cream/35">{tutorial.timeEstimate}</span>
+                      <span className="text-[11px] text-charcoal/45">{tutorial.timeEstimate}</span>
                     </div>
-                    <h3 className="mt-3 font-display text-xl leading-tight text-cream">{tutorial.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-cream/60">{tutorial.description}</p>
-                    <p className="mt-3 text-xs font-semibold text-cream/40 group-hover:text-cream/65">
+                    <h3 className="mt-3 font-display text-xl leading-tight text-charcoal">{tutorial.title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-charcoal/55">{tutorial.description}</p>
+                    <p className="mt-3 text-xs font-semibold text-charcoal/45 group-hover:text-charcoal/70">
                       Read guide →
                     </p>
                   </Link>
@@ -110,13 +110,13 @@ export default async function HowToPage() {
       </div>
 
       <div className="mt-12 flex flex-wrap gap-3">
-        <Link href="/recipes" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+        <Link href="/recipes" className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-charcoal">
           Browse recipes
         </Link>
-        <Link href="/peppers" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+        <Link href="/peppers" className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-charcoal">
           Pepper encyclopedia
         </Link>
-        <Link href="/shop" className="rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream hover:border-white/30 hover:text-white">
+        <Link href="/shop" className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30 hover:text-charcoal">
           Shop the tools
         </Link>
       </div>

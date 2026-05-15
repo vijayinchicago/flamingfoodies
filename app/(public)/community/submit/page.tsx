@@ -83,7 +83,7 @@ export default async function CommunitySubmitPage({
           name="mediaFile"
           type="file"
           accept="image/*"
-          className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 text-sm outline-none file:mr-4 file:rounded-full file:border-0 file:bg-charcoal file:px-4 file:py-2 file:text-white"
+          className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 text-sm outline-none file:mr-4 file:rounded-full file:border-0 file:bg-white file:px-4 file:py-2 file:text-white"
         />
         <input
           name="videoUrl"

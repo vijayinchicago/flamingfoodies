@@ -29,7 +29,7 @@ export function HeaderClient({
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-charcoal/70 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-charcoal/10 bg-white/85 backdrop-blur-xl">
       <div className="container-shell py-3 sm:py-4">
         <div className="flex items-center justify-between gap-3 lg:gap-5 xl:gap-8">
           <SiteBrand
@@ -47,7 +47,7 @@ export function HeaderClient({
               <Link
                 key={item.href}
                 href={item.href}
-                className="text-sm font-semibold text-cream/80 hover:text-white"
+                className="text-sm font-semibold text-charcoal/75 hover:text-charcoal"
               >
                 {item.label}
               </Link>
@@ -59,14 +59,14 @@ export function HeaderClient({
           <div className="hidden items-center gap-3 lg:flex">
             <Link
               href="/search"
-              className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream/85 hover:border-white/30 hover:text-white xl:hidden"
+              className="rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal/75 hover:border-charcoal/20 hover:text-charcoal xl:hidden"
             >
               Search
             </Link>
             {profileHref ? (
               <Link
                 href={profileHref}
-                className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream/85 hover:border-white/30 hover:text-white"
+                className="rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal/75 hover:border-charcoal/20 hover:text-charcoal"
               >
                 Profile
               </Link>
@@ -74,7 +74,7 @@ export function HeaderClient({
             {showLogin ? (
               <Link
                 href="/login"
-                className="rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream/85 hover:border-white/30 hover:text-white"
+                className="rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal/75 hover:border-charcoal/20 hover:text-charcoal"
               >
                 Login
               </Link>
@@ -87,7 +87,7 @@ export function HeaderClient({
               aria-controls="mobile-header-nav"
               aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
               onClick={() => setMobileOpen((value) => !value)}
-              className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-2 text-sm font-semibold text-cream/85 hover:border-white/30 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-full border border-charcoal/15 px-3 py-2 text-sm font-semibold text-charcoal/75 hover:border-charcoal/20 hover:text-charcoal"
             >
               <span className="sr-only">{mobileOpen ? "Close menu" : "Open menu"}</span>
               <span className="relative flex h-5 w-5 items-center justify-center" aria-hidden="true">
@@ -114,7 +114,7 @@ export function HeaderClient({
         {mobileOpen ? (
           <div
             id="mobile-header-nav"
-            className="mt-4 rounded-[1.75rem] border border-white/10 bg-white/[0.04] p-4 lg:hidden"
+            className="mt-4 rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-4 lg:hidden"
           >
             <div>
               <p className="text-xs uppercase tracking-[0.22em] text-ember">Primary paths</p>
@@ -125,7 +125,7 @@ export function HeaderClient({
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-[1.1rem] border border-white/10 bg-white/[0.04] px-4 py-3 text-sm font-semibold text-cream/88"
+                  className="rounded-[1.1rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-3 text-sm font-semibold text-charcoal/80"
                 >
                   {item.label}
                 </Link>
@@ -140,7 +140,7 @@ export function HeaderClient({
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-[1.1rem] border border-white/10 bg-white/[0.02] px-4 py-3 text-sm font-semibold text-cream/78"
+                  className="rounded-[1.1rem] border border-charcoal/10 bg-charcoal/[0.04] px-4 py-3 text-sm font-semibold text-charcoal/75"
                 >
                   {item.label}
                 </Link>
@@ -154,7 +154,7 @@ export function HeaderClient({
                 <Link
                   href={profileHref}
                   onClick={() => setMobileOpen(false)}
-                  className="inline-flex justify-center rounded-full border border-white/15 px-4 py-3 text-sm font-semibold text-cream/85"
+                  className="inline-flex justify-center rounded-full border border-charcoal/15 px-4 py-3 text-sm font-semibold text-charcoal/75"
                 >
                   Profile
                 </Link>
@@ -163,7 +163,7 @@ export function HeaderClient({
                 <Link
                   href="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="inline-flex justify-center rounded-full border border-white/15 px-4 py-3 text-sm font-semibold text-cream/85"
+                  className="inline-flex justify-center rounded-full border border-charcoal/15 px-4 py-3 text-sm font-semibold text-charcoal/75"
                 >
                   Login
                 </Link>

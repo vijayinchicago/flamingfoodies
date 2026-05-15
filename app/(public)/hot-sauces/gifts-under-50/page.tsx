@@ -48,10 +48,10 @@ export default async function HotSauceGiftsUnderFiftyPage() {
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="panel p-8">
           <p className="eyebrow">What wins in this range</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
             Curated beats novelty almost every time.
           </h2>
-          <p className="mt-4 text-sm leading-7 text-cream/72">
+          <p className="mt-4 text-sm leading-7 text-charcoal/70">
             At this price point, you want something that looks like a real recommendation: a tasting set, a Hot Ones-style lineup, or a recurring box that feels like discovery instead of a prank.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
@@ -63,7 +63,7 @@ export default async function HotSauceGiftsUnderFiftyPage() {
             </Link>
             <Link
               href="/subscriptions"
-              className="inline-flex rounded-full border border-white/15 px-5 py-3 text-sm font-semibold text-cream"
+              className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               See subscriptions
             </Link>
@@ -72,8 +72,8 @@ export default async function HotSauceGiftsUnderFiftyPage() {
 
         <div className="panel p-8">
           <p className="eyebrow">Gift buying rule</p>
-          <h2 className="mt-3 font-display text-4xl text-cream">Give range, not just raw heat.</h2>
-          <ul className="mt-5 space-y-3 text-sm leading-7 text-cream/72">
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Give range, not just raw heat.</h2>
+          <ul className="mt-5 space-y-3 text-sm leading-7 text-charcoal/70">
             <li>One curated flight is usually a better gift than a single extreme bottle.</li>
             <li>Subscriptions are strongest for people who already talk about sauces all year.</li>
             <li>Giftability improves fast when the packaging and selection feel editorial instead of algorithmic.</li>
@@ -82,14 +82,14 @@ export default async function HotSauceGiftsUnderFiftyPage() {
         </div>
       </div>
 
-      <div className="mt-10 rounded-[2rem] border border-white/10 bg-white/[0.04] p-6">
+      <div className="mt-10 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6">
         <p className="text-xs uppercase tracking-[0.22em] text-ember">Not sure about their heat tolerance?</p>
-        <p className="mt-2 text-sm leading-7 text-cream/75">
+        <p className="mt-2 text-sm leading-7 text-charcoal/75">
           Take our 2-minute quiz to get a personalized recommendation matched to how spicy they usually eat.
         </p>
         <Link
           href="/quiz"
-          className="mt-4 inline-flex rounded-full border border-white/15 px-5 py-2.5 text-sm font-semibold text-cream"
+          className="mt-4 inline-flex rounded-full border border-charcoal/15 px-5 py-2.5 text-sm font-semibold text-charcoal"
         >
           Take the heat tolerance quiz →
         </Link>
@@ -98,8 +98,8 @@ export default async function HotSauceGiftsUnderFiftyPage() {
       {resolvedGiftBox ? (
         <div className="mt-10 panel p-6">
           <p className="eyebrow">Quick gift — ships Prime</p>
-          <h2 className="mt-3 font-display text-3xl text-cream">Hot Sauce Gift Box — $25–45</h2>
-          <p className="mt-3 text-sm leading-7 text-cream/72">
+          <h2 className="mt-3 font-display text-3xl text-charcoal">Hot Sauce Gift Box — $25–45</h2>
+          <p className="mt-3 text-sm leading-7 text-charcoal/70">
             A curated multi-bottle set that lands under budget and arrives ready to give. No wrapping gymnastics required.
           </p>
           <AffiliateLink
@@ -132,7 +132,7 @@ export default async function HotSauceGiftsUnderFiftyPage() {
                   productName={review.productName}
                   sourcePage={sourcePage}
                   position="gifts-under-50-card"
-                  className="inline-flex rounded-full border border-white/15 px-4 py-2 text-sm font-semibold text-cream"
+                  className="inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
                 >
                   Check price on Amazon
                 </AffiliateLink>

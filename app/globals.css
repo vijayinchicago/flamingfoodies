@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html {
@@ -11,7 +11,7 @@ html {
 }
 
 body {
-  @apply bg-charcoal text-cream font-body antialiased;
+  @apply bg-cream text-charcoal font-body antialiased;
 }
 
 a {
@@ -23,7 +23,7 @@ a {
 }
 
 .panel {
-  @apply rounded-[2rem] border border-white/10 bg-white/5 backdrop-blur-sm;
+  @apply rounded-[2rem] border border-charcoal/10 bg-white shadow-panel;
 }
 
 .panel-light {
@@ -53,15 +53,32 @@ a {
 }
 
 .section-title {
-  @apply font-display text-4xl leading-tight text-cream sm:text-5xl;
+  @apply font-display text-4xl leading-tight text-charcoal sm:text-5xl;
 }
 
 .section-copy {
-  @apply max-w-3xl text-base leading-7 text-cream/75;
+  @apply max-w-3xl text-base leading-7 text-charcoal/70;
 }
 
 .prose-guide {
-  @apply prose prose-invert prose-headings:font-display prose-headings:text-cream prose-p:text-cream/85 prose-li:text-cream/80 prose-strong:text-cream max-w-none;
+  @apply prose prose-headings:font-display prose-headings:text-charcoal prose-p:text-charcoal/80 prose-li:text-charcoal/75 prose-strong:text-charcoal max-w-none;
+}
+
+.dark-scope {
+  @apply bg-charcoal text-cream;
+  color-scheme: dark;
+}
+
+.dark-scope .panel {
+  @apply rounded-[2rem] border border-white/10 bg-white/5 shadow-none backdrop-blur-sm;
+}
+
+.dark-scope .section-title {
+  @apply text-cream;
+}
+
+.dark-scope .section-copy {
+  @apply text-cream/75;
 }
 
 /* Inline affiliate product links injected into prose content */

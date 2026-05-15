@@ -35,7 +35,7 @@ export function ReferralShare({ shareUrl }: { shareUrl: string }) {
           readOnly
           value={shareUrl}
           onFocus={(event) => event.currentTarget.select()}
-          className="flex-1 rounded-2xl border border-white/15 bg-charcoal/60 px-4 py-3 text-sm text-cream/90 outline-none"
+          className="flex-1 rounded-2xl border border-charcoal/15 bg-white px-4 py-3 text-sm text-charcoal caret-charcoal outline-none"
           aria-label="Your personal Flame Club share link"
         />
         <button
@@ -51,14 +51,14 @@ export function ReferralShare({ shareUrl }: { shareUrl: string }) {
         <a
           href={`sms:?&body=${encodedText}`}
           onClick={() => track("sms")}
-          className="rounded-2xl border border-white/15 bg-white/[0.04] px-3 py-3 text-center text-sm text-cream/85 transition hover:bg-white/[0.08]"
+          className="rounded-2xl border border-charcoal/15 bg-charcoal/[0.04] px-3 py-3 text-center text-sm text-charcoal/75 transition hover:bg-charcoal/[0.06]"
         >
           Text it
         </a>
         <a
           href={`mailto:?subject=${encodeURIComponent("Try Flame Club")}&body=${encodedText}`}
           onClick={() => track("email")}
-          className="rounded-2xl border border-white/15 bg-white/[0.04] px-3 py-3 text-center text-sm text-cream/85 transition hover:bg-white/[0.08]"
+          className="rounded-2xl border border-charcoal/15 bg-charcoal/[0.04] px-3 py-3 text-center text-sm text-charcoal/75 transition hover:bg-charcoal/[0.06]"
         >
           Email
         </a>
@@ -67,7 +67,7 @@ export function ReferralShare({ shareUrl }: { shareUrl: string }) {
           target="_blank"
           rel="noreferrer"
           onClick={() => track("whatsapp")}
-          className="rounded-2xl border border-white/15 bg-white/[0.04] px-3 py-3 text-center text-sm text-cream/85 transition hover:bg-white/[0.08]"
+          className="rounded-2xl border border-charcoal/15 bg-charcoal/[0.04] px-3 py-3 text-center text-sm text-charcoal/75 transition hover:bg-charcoal/[0.06]"
         >
           WhatsApp
         </a>
@@ -76,7 +76,7 @@ export function ReferralShare({ shareUrl }: { shareUrl: string }) {
           target="_blank"
           rel="noreferrer"
           onClick={() => track("twitter")}
-          className="rounded-2xl border border-white/15 bg-white/[0.04] px-3 py-3 text-center text-sm text-cream/85 transition hover:bg-white/[0.08]"
+          className="rounded-2xl border border-charcoal/15 bg-charcoal/[0.04] px-3 py-3 text-center text-sm text-charcoal/75 transition hover:bg-charcoal/[0.06]"
         >
           Twitter / X
         </a>
@@ -85,7 +85,7 @@ export function ReferralShare({ shareUrl }: { shareUrl: string }) {
           target="_blank"
           rel="noreferrer"
           onClick={() => track("facebook")}
-          className="rounded-2xl border border-white/15 bg-white/[0.04] px-3 py-3 text-center text-sm text-cream/85 transition hover:bg-white/[0.08]"
+          className="rounded-2xl border border-charcoal/15 bg-charcoal/[0.04] px-3 py-3 text-center text-sm text-charcoal/75 transition hover:bg-charcoal/[0.06]"
         >
           Facebook
         </a>

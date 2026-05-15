@@ -70,7 +70,7 @@ export function AdSlot({
   if (format === "in-article") {
     return (
       <div className={cn("not-prose print:hidden my-2", className)}>
-        <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-[0.24em] text-cream/40">
+        <p className="mb-2 text-center text-[11px] font-semibold uppercase tracking-[0.24em] text-charcoal/45">
           Sponsored
         </p>
         <ins
@@ -88,15 +88,15 @@ export function AdSlot({
   return (
     <div
       className={cn(
-        "not-prose print:hidden rounded-[1.75rem] border border-white/10 bg-white/[0.05] p-4",
+        "not-prose print:hidden rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-4",
         className
       )}
     >
       <div className="mb-3 flex items-center justify-between gap-3">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-cream/55">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-charcoal/55">
           Sponsored
         </p>
-        <p className="text-xs text-cream/45">Ads help keep recipes and reviews free.</p>
+        <p className="text-xs text-charcoal/45">Ads help keep recipes and reviews free.</p>
       </div>
       <ins
         className="adsbygoogle block min-h-[280px] w-full overflow-hidden rounded-[1.25rem]"
