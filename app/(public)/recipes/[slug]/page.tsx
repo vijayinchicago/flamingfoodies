@@ -567,23 +567,6 @@ export default async function RecipePage({
                   className="object-cover"
                   priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/35 to-transparent" />
-                <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
-                  <div className="rounded-[2rem] border border-white/10 bg-charcoal/75 p-5 backdrop-blur-md sm:p-6">
-                    <p className="text-xs uppercase tracking-[0.24em] text-ember">Why this one lands</p>
-                    <p className="mt-3 text-sm leading-7 text-cream/78 sm:text-base">{heroSummary}</p>
-                    <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-cream/72">
-                      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                        <p className="text-xs uppercase tracking-[0.2em] text-ember">Heat</p>
-                        <p className="mt-2 font-semibold text-cream">{heatNotes[recipe.heatLevel].title}</p>
-                      </div>
-                      <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                        <p className="text-xs uppercase tracking-[0.2em] text-ember">Difficulty</p>
-                        <p className="mt-2 font-semibold text-cream">{formatLabel(recipe.difficulty)}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-5">
