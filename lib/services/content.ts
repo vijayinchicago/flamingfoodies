@@ -69,10 +69,10 @@ function getSortableTimestamp(item: { publishedAt?: string; createdAt?: string }
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
+const HOUR_IN_MS = 60 * 60 * 1000;
+
 function getDailyRotationSeed(now = new Date()) {
-  return Math.floor(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()) / DAY_IN_MS
-  );
+  return Math.floor(now.getTime() / HOUR_IN_MS);
 }
 
 function rotateItems<T>(items: T[], offset: number) {

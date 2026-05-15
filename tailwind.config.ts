@@ -16,7 +16,7 @@ const config: Config = {
         ash: "#2D2926"
       },
       fontFamily: {
-        display: ['"Iowan Old Style"', '"Palatino Linotype"', '"Book Antiqua"', "Georgia", "serif"],
+        display: ['"Avenir Next"', '"Segoe UI"', "Helvetica", "Arial", "sans-serif"],
         body: ['"Avenir Next"', '"Segoe UI"', "Helvetica", "Arial", "sans-serif"]
       },
       backgroundImage: {

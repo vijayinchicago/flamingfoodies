@@ -13,7 +13,7 @@ import { getEditorialFranchises } from "@/lib/editorial-franchises";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import { getCurrentOccasions } from "@/lib/seasonal/occasions";
 
-export const revalidate = 3600;
+export const revalidate = 600;
 
 export default async function HomePage() {
   const [{ recipes, blogPosts, reviews }, guides] = await Promise.all([
@@ -31,74 +31,37 @@ export default async function HomePage() {
   return (
     <>
       <OrganizationSchema />
-      <section className="container-shell py-16 sm:py-24">
+      <section className="container-shell py-8 sm:py-24">
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-          <div className="panel relative overflow-hidden px-5 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-16">
+          <div className="panel relative overflow-hidden px-5 py-7 sm:px-8 sm:py-12 lg:px-12 lg:py-16">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(244,99,30,0.22),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(230,57,70,0.22),transparent_30%)]" />
             <div className="relative">
               <p className="eyebrow">Flavor-first spicy food</p>
-              <h1 className="mt-4 max-w-4xl font-display text-4xl leading-[0.98] text-cream sm:text-6xl xl:text-[5.35rem]">
+              <h1 className="mt-3 max-w-4xl font-display text-[1.75rem] leading-[1.05] text-cream sm:mt-4 sm:text-6xl sm:leading-[0.98] xl:text-[5.35rem]">
                 Flavor-first spicy food for real kitchens and mixed tables.
               </h1>
-              <p className="mt-6 max-w-2xl text-base leading-7 text-cream/78 sm:text-lg sm:leading-8">
+              <p className="mt-4 max-w-2xl text-base leading-7 text-cream/78 sm:mt-6 sm:text-lg sm:leading-8">
                 Cook approachable dinners, read practical reviews, and get sharper spicy-food
                 guidance without turning every meal into a stunt.
               </p>
-              <div className="mt-8 flex flex-wrap gap-4">
+              <div className="mt-6 flex flex-col gap-4 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center">
                 <Link
                   href="/recipes"
                   className="inline-flex w-full justify-center rounded-full bg-gradient-to-r from-flame to-ember px-6 py-3 font-semibold text-white sm:w-auto"
                 >
                   Browse recipes
                 </Link>
-                <Link
-                  href="/reviews"
-                  className="inline-flex w-full justify-center rounded-full bg-white px-6 py-3 font-semibold text-charcoal sm:w-auto"
-                >
-                  Read reviews
-                </Link>
-                <Link
-                  href="/how-to"
-                  className="inline-flex w-full justify-center rounded-full border border-white/15 px-6 py-3 font-semibold text-cream sm:w-auto"
-                >
-                  Open how-to guides
-                </Link>
+                <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm text-cream/72">
+                  <Link href="/reviews" className="underline-offset-4 hover:text-cream hover:underline">
+                    Read reviews
+                  </Link>
+                  <Link href="/how-to" className="underline-offset-4 hover:text-cream hover:underline">
+                    Open how-to guides
+                  </Link>
+                </div>
               </div>
 
-              {featuredRecipe && featuredRecipeHero ? (
-                <Link
-                  href={`/recipes/${featuredRecipe.slug}`}
-                  className="relative mt-8 block overflow-hidden rounded-[2rem] border border-white/10 bg-[#120b08] shadow-[0_22px_60px_rgba(0,0,0,0.28)] lg:hidden"
-                >
-                  <div className="relative min-h-[260px]">
-                    <Image
-                      src={featuredRecipeHero.imageUrl}
-                      alt={featuredRecipeHero.imageAlt}
-                      fill
-                      sizes="100vw"
-                      priority
-                      className="object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/45 to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 p-5">
-                      <div className="rounded-[1.6rem] border border-white/10 bg-charcoal/75 p-5 backdrop-blur-md">
-                        <p className="text-xs uppercase tracking-[0.24em] text-ember">Cook this first</p>
-                        <h2 className="mt-3 font-display text-3xl text-cream">{featuredRecipe.title}</h2>
-                        <p className="mt-3 text-sm leading-7 text-cream/78">
-                          {featuredRecipe.description}
-                        </p>
-                        <div className="mt-4 flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-cream/58">
-                          <span>{featuredRecipe.totalTimeMinutes} min</span>
-                          <span>{featuredRecipe.heatLevel} heat</span>
-                          <span>{featuredRecipe.saveCount} saves</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ) : null}
-
-              <div className="mt-8 grid gap-4 text-sm text-cream/72 sm:grid-cols-2">
+              <div className="mt-8 hidden gap-4 text-sm text-cream/72 sm:grid sm:grid-cols-2">
                 <Link
                   href="/recipes?maxTime=45&sort=quickest"
                   className="rounded-[1.5rem] border border-white/10 bg-white/5 px-4 py-4 transition hover:bg-white/[0.08]"
