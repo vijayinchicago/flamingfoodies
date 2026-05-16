@@ -1430,6 +1430,546 @@ export const PEPPERS: Pepper[] = [
           "Coarse gochugaru (굵은 고추가루) is large flakes — used for making kimchi, where the visible red pieces are part of the look, and for hearty stews. Fine gochugaru (고운 고추가루) is closer to a powder — used in sauces, soups, and seasoning blends where you want even distribution. Most Korean home cooks keep both on hand."
       }
     ]
+  },
+  {
+    slug: "pepper-x",
+    name: "Pepper X",
+    aliases: ["pepper-x", "X pepper"],
+    origin: "north-america",
+    scovilleMin: 2693000,
+    scovilleMax: 3180000,
+    heatTier: "superhot",
+    color: "Yellow-green to greenish-yellow",
+    flavorProfile: "Earthy, slightly tropical first note that vanishes into the most intense sustained heat of any verified pepper.",
+    description:
+      "Bred by Ed Currie of Puckerbutt Pepper Company in South Carolina, Pepper X became the world's hottest verified pepper in October 2023 at an average 2,693,000 Scoville Heat Units — surpassing his earlier Carolina Reaper by nearly half a million units. The pod is small, deeply wrinkled, and yellow-green when ripe.",
+    editorialNote:
+      "Pepper X is the current Guinness record holder and likely the practical ceiling of pepper heat for now. Currie spent over a decade selectively breeding it from a Carolina Reaper lineage, optimizing for a thicker placental wall — the white pith where capsaicin actually lives. The result delivers heat that builds and sustains in a way no previous pepper does. Like its predecessors it has a real, fleeting flavor (vaguely earthy and tropical) before the burn takes over. Seeds are not widely available — Currie holds cultivar rights and produces sauce in-house.",
+    culinaryUses: [
+      "Used in tiny quantities in extreme hot sauces (Puckerbutt's 'The Last Dab Apollo' line)",
+      "Powdered for spice blends sold by specialty hot sauce producers",
+      "Largely a sauce ingredient — not used in home cooking due to extreme heat",
+      "Competition pepper eating challenges"
+    ],
+    pairsWith: ["Managed with dairy", "Sweet fruit bases to balance", "Strictly micro-doses"],
+    funFact: "Pepper X was kept secret for ten years while Currie used it in Hot Ones' 'Last Dab' hot sauces — only revealed publicly when Guinness officially certified it as the new record holder in 2023.",
+    affiliateKeys: ["pepper-joe-superhot-seed-pack", "amazon-mad-dog-357"],
+    recipeTagMatch: ["american"],
+    featured: false,
+    source: "editorial",
+    species: "chinense",
+    pepperType: "superhot",
+    flavorNotes: ["earthy", "tropical", "floral"],
+    history: {
+      region: "Fort Mill, South Carolina, United States",
+      era: "Bred 2013–2023; certified by Guinness October 2023",
+      story:
+        "Ed Currie, the breeder behind the Carolina Reaper, spent more than a decade developing Pepper X as the spiritual successor — a pepper engineered for measurably more capsaicin. The strategy targeted the placental wall (the white pith holding the seeds) rather than the flesh, since that's where capsaicin actually concentrates. The pepper had been used commercially in Hot Ones' 'Last Dab' sauces since 2017 before being publicly revealed. Currie remains the sole legal seed source."
+    },
+    growing: {
+      usdaZones: "Perennial in 10–11, annual in 4–9 with greenhouse support",
+      daysToGerminate: "25–40",
+      daysToHarvest: 140,
+      plantHeight: "30–48 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "Officially unavailable as seed outside Puckerbutt Pepper Company; secondary-market 'Pepper X' seeds are usually mislabeled Reaper or 7-pot crosses. Even with authentic seed, germination is slow and inconsistent. For practical home growing, choose Reaper or 7 Pot Primo instead — Pepper X is currently a closed cultivar."
+    },
+    buying: {
+      freshAvailability: "Not sold fresh to the public. Currie keeps all production in-house for Puckerbutt sauces.",
+      driedAvailability: "Not commercially available outside Puckerbutt products. The pepper exists in hot sauces, not as a standalone ingredient.",
+      seedSources: ["Puckerbutt Pepper Company (official, limited)"],
+      seasonality: "n/a — closed cultivar",
+      notes:
+        "If you want to cook with Pepper X, the only path is buying sauces that feature it — primarily Puckerbutt's 'Reaper Squeezin's,' 'Pepper X Sauce,' and Hot Ones' 'Last Dab' editions. The pepper itself is not a retail product."
+    },
+    substitutes: [
+      {
+        slug: "carolina-reaper",
+        ratio: "Use 1.5–2 Carolina Reapers",
+        note: "The closest commercially-available substitute. Same lineage, roughly two-thirds the heat. Carolina Reaper is what most home cooks should be using when a recipe calls for 'maximum heat.'"
+      },
+      {
+        slug: "trinidad-moruga-scorpion",
+        ratio: "Use 1.5–2 scorpions",
+        note: "Similar superhot tier, different fruit profile. More floral and tropical than Pepper X's earthy character."
+      }
+    ],
+    faqs: [
+      {
+        question: "How hot is Pepper X really?",
+        answer:
+          "2,693,000 Scoville Heat Units on average — verified by Guinness in October 2023. Peaks have been measured over 3,180,000 SHU. That's about 400–600 times hotter than a jalapeño and 1.5–2× hotter than the Carolina Reaper, the previous record holder."
+      },
+      {
+        question: "Why is Pepper X hotter than the Carolina Reaper?",
+        answer:
+          "Ed Currie deliberately bred for thicker placental walls — the white pith inside the pepper where capsaicin actually concentrates. Most peppers store capsaicin in the pith rather than the flesh; Pepper X's pith is unusually dense, which packs more capsaicin into each pod."
+      },
+      {
+        question: "Can I buy Pepper X seeds?",
+        answer:
+          "Not really. Ed Currie / Puckerbutt Pepper Company hold the cultivar and have not released seeds for general sale. Most listings for 'Pepper X seeds' online are mislabeled Carolina Reaper or 7-pot crosses. If you want to cook with Pepper X, buy Puckerbutt's sauces — the pepper isn't sold as a stand-alone ingredient."
+      },
+      {
+        question: "What's the difference between Pepper X and Apollo?",
+        answer:
+          "Apollo is another Ed Currie cultivar — sometimes claimed to be a parent or sibling of Pepper X. Both are used in Hot Ones' 'Last Dab Apollo' sauce. Apollo's official Scoville rating has not been Guinness-verified, but it's reported to rival Pepper X. For practical purposes the two are interchangeable; only Pepper X holds the official record."
+      }
+    ]
+  },
+  {
+    slug: "7-pot-primo",
+    name: "7 Pot Primo",
+    aliases: ["7-pot primo", "7 pod primo", "primo pepper"],
+    origin: "north-america",
+    scovilleMin: 1400000,
+    scovilleMax: 1853000,
+    heatTier: "superhot",
+    color: "Red",
+    flavorProfile: "Sweet, slightly fruity entry that gives way to extreme sustained heat with a distinctive smoky finish.",
+    description:
+      "Bred by Troy 'Primo' Primeaux of Louisiana, the 7 Pot Primo is a cross between a Naga Morich and a Trinidad 7 Pot Yellow that produces an unmistakable elongated 'stinger tail' pod. It sits in the same heat tier as the Carolina Reaper but predates it as a serious superhot in the craft hot sauce world.",
+    editorialNote:
+      "The 7 Pot Primo arguably did more than any other pepper to establish that superhots could have flavor character, not just heat. Primeaux selected for both extreme capsaicin and the kind of fruit-and-smoke complexity that makes a pepper worth putting in a sauce instead of a challenge video. The distinctive stinger-tail pod is now widely imitated — many 'superhot' peppers sold commercially are unstable crosses that owe their look to Primo's work. For pepper hobbyists and serious sauce makers, this is one of the most respected cultivars in the world.",
+    culinaryUses: [
+      "Premium superhot hot sauces from craft producers",
+      "Dried and powdered for extreme spice blends",
+      "Fermented mash for long-aged superhot sauces",
+      "Small-quantity use in superhot Caribbean-style pepper sauces"
+    ],
+    pairsWith: ["Sweet bases to balance", "Tropical fruit", "Fermented condiments"],
+    funFact: "Troy Primeaux is a jazz musician by trade — his pepper-breeding nickname 'Primo' comes from his stage name, not his last name. The 7 Pot Primo is named after him.",
+    affiliateKeys: ["pepper-joe-superhot-seed-pack", "amazon-mad-dog-357"],
+    recipeTagMatch: ["caribbean", "american"],
+    featured: false,
+    source: "editorial",
+    species: "chinense",
+    pepperType: "superhot",
+    flavorNotes: ["fruity", "sweet", "smoky", "floral"],
+    history: {
+      region: "Lafayette, Louisiana, United States",
+      era: "Released in the early 2010s",
+      story:
+        "Troy Primeaux crossed a Naga Morich with a Trinidad 7 Pot Yellow in the late 2000s, stabilized the line over several growing seasons, and released seeds to the craft pepper community by 2010. The pepper was briefly considered the world's hottest before Carolina Reaper certification in 2013. It remains one of the most respected superhots among growers and craft sauce makers, partly because Primeaux openly shared seeds and breeding notes instead of holding the cultivar proprietary."
+    },
+    growing: {
+      usdaZones: "Perennial in 10–11, annual in 4–9 with greenhouse support",
+      daysToGerminate: "20–35",
+      daysToHarvest: 140,
+      plantHeight: "36–48 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "Behaves like other chinense superhots — slow to germinate, slow to fruit, needs sustained heat and a long growing season. Distinctive stinger-tail pods are diagnostic; if your Primos look smooth and round, your seed is probably crossed. Plants are productive once established (20–30 pods is typical) and tolerate Louisiana-style humidity well."
+    },
+    buying: {
+      freshAvailability: "Rare. Specialty pepper farms and online superhot vendors occasionally sell fresh in late season.",
+      driedAvailability: "Dried whole pods and powder available online through specialty hot sauce shops and pepper companies.",
+      seedSources: ["Puckerbutt Pepper Company", "Refining Fire Chiles", "Pepper Joe's", "Trinidad Scorpion Seed Co."],
+      seasonality: "Late season; fresh peak October–November in US growing.",
+      notes:
+        "Authentic Primo seeds are widely available because Primeaux shared the cultivar openly — unlike Pepper X or some other modern superhots that are kept proprietary. This makes Primo one of the most accessible superhots for home growers."
+    },
+    substitutes: [
+      {
+        slug: "carolina-reaper",
+        ratio: "1:1",
+        note: "Similar heat range and overall character. Carolina Reaper is fruitier; Primo is smokier. Largely interchangeable in superhot sauce recipes."
+      },
+      {
+        slug: "trinidad-moruga-scorpion",
+        ratio: "1:1",
+        note: "Same superhot tier with a similar fruit-driven flavor. Scorpion is rounder and more floral; Primo has more smoke depth."
+      }
+    ],
+    faqs: [
+      {
+        question: "What does '7 Pot' mean in the name?",
+        answer:
+          "Trinidadian folk shorthand — a pepper hot enough to season seven pots of stew with a single pod. The name predates Primo by decades; it's a category that includes 7 Pot Brain Strain, 7 Pot Douglah, 7 Pot Yellow, and other Trinidadian superhots. Primo crossed an existing 7 Pot Yellow with a Naga Morich to produce his cultivar."
+      },
+      {
+        question: "Is 7 Pot Primo hotter than Carolina Reaper?",
+        answer:
+          "Roughly the same heat tier. 7 Pot Primo runs 1.4–1.85 million Scoville Heat Units; Carolina Reaper averages 1.64 million. Individual pods of each can hit the high end of the other's range. Both predate the current record holder, Pepper X."
+      },
+      {
+        question: "Why does the 7 Pot Primo have a tail?",
+        answer:
+          "The elongated 'stinger tail' is the cultivar's signature, inherited from selective breeding. Most superhot pods are blocky or wrinkled-round; Primo's pod tapers into a thin, pointed stinger up to an inch long. The tail has no functional purpose — it's a visual signature."
+      },
+      {
+        question: "What does 7 Pot Primo taste like?",
+        answer:
+          "Sweet and slightly fruity in the first second — riper than reaper, less floral than scorpion — followed by a building smoky character that comes from the Naga Morich parent. Then the capsaicin takes over. The smoky-fruit complexity is why craft hot sauce makers prefer Primo over straight-heat superhots."
+      }
+    ]
+  },
+  {
+    slug: "7-pot-douglah",
+    name: "7 Pot Douglah",
+    aliases: ["chocolate 7 pot", "7 pod douglah", "douglah"],
+    origin: "caribbean",
+    scovilleMin: 853000,
+    scovilleMax: 1853000,
+    heatTier: "superhot",
+    color: "Chocolate brown",
+    flavorProfile: "Earthy, smoky, slightly sweet — among the most complex flavors in the superhot tier.",
+    description:
+      "The 7 Pot Douglah (also called Chocolate 7 Pot) is a Trinidadian superhot prized as much for its flavor as its heat. The deep brown ripe color is unusual among chinense peppers and signals the rich, earthy notes that have made it a favorite of craft hot sauce producers.",
+    editorialNote:
+      "If you ask serious pepper enthusiasts which superhot they would actually cook with, the Douglah is the answer that keeps coming up. The flavor depth — earthy, smoky, slightly sweet, distinctly cocoa-adjacent — gives it a usefulness that pure-heat superhots lack. Trinidadian cooks have used Douglahs in pepper sauces for generations; the international craft sauce scene caught up in the 2010s. Less famous than Reaper or Scorpion outside pepper circles, but more respected within them.",
+    culinaryUses: [
+      "Trinidadian pepper sauces with mustard, lime, and culantro",
+      "Premium craft superhot hot sauces emphasizing flavor",
+      "Fermented mash for long-aged complex superhot sauces",
+      "Smoked and dried for extreme spice blends"
+    ],
+    pairsWith: ["Caribbean", "Trinidadian", "Slow-cooked meats", "Cocoa and coffee notes", "Mustard-based sauces"],
+    funFact: "The name 'Douglah' comes from a Trinidadian term for mixed African and Indian heritage — the pepper's distinctive dark brown color earned it the name from local growers.",
+    affiliateKeys: ["pepper-joe-superhot-seed-pack", "amazon-mad-dog-357"],
+    recipeTagMatch: ["caribbean", "trinidadian"],
+    featured: false,
+    source: "editorial",
+    species: "chinense",
+    pepperType: "superhot",
+    flavorNotes: ["earthy", "smoky", "sweet", "nutty"],
+    history: {
+      region: "Trinidad and Tobago",
+      era: "Cultivated traditionally in Trinidad; gained international attention in the 2010s",
+      story:
+        "The Douglah is part of a family of Trinidadian 7-pot peppers that have been grown on the island for generations. Local pepper sauces — Matouk's, Walkerswood-adjacent Trinidadian brands — used them long before the global superhot craze. International growers and seed sellers began propagating the cultivar in the early 2010s, when the chocolate color and reputation for flavor depth caught the craft sauce scene's attention."
+    },
+    growing: {
+      usdaZones: "Perennial in 10–11, annual in 4–9 with greenhouse support",
+      daysToGerminate: "20–35",
+      daysToHarvest: 130,
+      plantHeight: "30–48 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "Like other chinense superhots, slow to germinate and slow to fruit — needs a long, warm growing season. The chocolate ripe color is diagnostic and develops late; peppers go through red and brown phases before reaching the final dark chocolate stage. Be patient and don't pick early."
+    },
+    buying: {
+      freshAvailability: "Rare. Specialty pepper farms and Trinidadian-import grocers occasionally have them in late season.",
+      driedAvailability: "Dried whole pods and chocolate Douglah powder available online from specialty hot sauce and pepper retailers.",
+      seedSources: ["Refining Fire Chiles", "Pepper Joe's", "Trinidad Scorpion Seed Co.", "Baker Creek"],
+      seasonality: "Late season; fresh peak October–November in US growing.",
+      notes:
+        "For sauce-making, the dried form retains more of the cocoa-earthy character than fresh, and is more available. Trinidadian-import pepper sauces (Matouk's Calypso, some Susie's varieties) feature Douglah and are easier to source than the pepper itself."
+    },
+    substitutes: [
+      {
+        slug: "trinidad-moruga-scorpion",
+        ratio: "1:1",
+        note: "Similar Caribbean superhot lineage. Scorpion is brighter and fruitier; Douglah is darker and earthier. Choose Scorpion when you want tropical, Douglah when you want depth."
+      },
+      {
+        slug: "ghost-pepper",
+        ratio: "Use 1.5 ghost peppers per Douglah",
+        note: "Both have earthy-smoky notes; ghost is about half the heat. Use more volume and you'll approximate the flavor at a slightly more manageable burn."
+      }
+    ],
+    faqs: [
+      {
+        question: "Why is the 7 Pot Douglah brown instead of red?",
+        answer:
+          "Genetic — it ripens through red and dark-red phases to a final chocolate brown color. The pigment comes from a different anthocyanin pathway than most chinense peppers, which is why other brown peppers (chocolate habanero, chocolate Bhut Jolokia) all trace back to similar genetic lines. The color signals the earthier, less fruity flavor."
+      },
+      {
+        question: "How does 7 Pot Douglah taste compared to other superhots?",
+        answer:
+          "Deeper and earthier than reaper or scorpion. Notes that come up consistently in tasting descriptions: cocoa, smoke, dried fruit, slight nuttiness. Less of the bright tropical-fruit character that defines habanero-lineage superhots. This complexity is why craft sauce makers favor it."
+      },
+      {
+        question: "Is Douglah hotter than Carolina Reaper?",
+        answer:
+          "Slightly lower on average — Douglah averages around 1 million Scoville Heat Units with peaks at 1.85 million; Reaper averages 1.64 million. Practical difference is small, especially in sauce-making where both will dominate. The flavor differences matter more than the heat differences at this level."
+      },
+      {
+        question: "Where can I find 7 Pot Douglah pepper sauce?",
+        answer:
+          "Trinidadian-import brands like Matouk's Calypso Sauce feature Douglah and are available at Caribbean grocers and online. Craft producers (Heatonist's rotating shelf, Bravado Spice, Mad Dog) also produce Douglah-based sauces. Easier to find the sauce than the fresh pepper outside Trinidad."
+      }
+    ]
+  },
+  {
+    slug: "naga-viper",
+    name: "Naga Viper",
+    aliases: ["naga viper pepper", "Cumbrian viper"],
+    origin: "europe",
+    scovilleMin: 1349000,
+    scovilleMax: 1382118,
+    heatTier: "superhot",
+    color: "Red",
+    flavorProfile: "Fruity, slightly sweet entry that yields rapidly to intense, near-immediate heat with little build-up.",
+    description:
+      "Bred in England by Gerald Fowler at the Chili Pepper Company in Cumbria, the Naga Viper held the Guinness record for hottest pepper briefly in 2011 at 1,382,118 Scoville Heat Units. It is a three-way cross between Naga Morich, Bhut Jolokia, and Trinidad Scorpion.",
+    editorialNote:
+      "The Naga Viper is interesting more for its history than for its current relevance. It was the first UK-bred pepper to hold the world record, and the first 'cross-bred' superhot widely recognized as a deliberate breeding project rather than a wild-collected cultivar. The pepper is an unstable hybrid, meaning seeds from a Viper pod don't reliably produce Viper plants — they often revert to one of the three parent peppers. This instability has limited its commercial appeal, and the Reaper, Scorpion, and Pepper X have eclipsed it. Still, the Viper marked the start of competitive Western pepper breeding.",
+    culinaryUses: [
+      "Used in specialty UK hot sauces and ready meals (Tesco famously featured a Naga Viper curry)",
+      "Dried and powdered for extreme heat seasoning",
+      "Competition pepper eating",
+      "Small quantities in superhot sauce-making"
+    ],
+    pairsWith: ["Slow-cooked curries", "Cream-based sauces to balance", "Indian and British-Indian fusion"],
+    funFact: "The Naga Viper held the Guinness world record for less than a year before being surpassed by the Trinidad Scorpion Butch T — making it one of the shortest-reigning record-holders in the pepper world.",
+    affiliateKeys: ["pepper-joe-superhot-seed-pack"],
+    recipeTagMatch: ["indian", "british"],
+    featured: false,
+    source: "editorial",
+    species: "chinense",
+    pepperType: "superhot",
+    flavorNotes: ["fruity", "sweet", "floral"],
+    history: {
+      region: "Cumbria, England",
+      era: "Bred 2010; certified by Guinness in 2011",
+      story:
+        "Gerald Fowler at the Chili Pepper Company in Bewcastle, Cumbria, crossed three of the era's hottest peppers (Naga Morich, Bhut Jolokia, Trinidad Scorpion) into the Naga Viper. The pepper achieved international attention in 2011 when Guinness certified it briefly as the world's hottest. The cross is genetically unstable — seeds don't breed true — which has prevented it from achieving the long-term commercial presence of later superhots."
+    },
+    growing: {
+      usdaZones: "Perennial in 10–11, annual in 4–9 with greenhouse support",
+      daysToGerminate: "25–40",
+      daysToHarvest: 140,
+      plantHeight: "30–48 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "Seeds from Viper pods are unreliable — many plants revert to one of the parent peppers (Naga Morich, Ghost, or Scorpion). For consistent Viper genetics, source seeds from the original Chili Pepper Company in Cumbria. Otherwise, expect 30–50% of seedlings to look like one of the parents instead."
+    },
+    buying: {
+      freshAvailability: "Rare outside the UK. The Chili Pepper Company sells fresh in season; otherwise very limited.",
+      driedAvailability: "Dried whole pods and powder available online, primarily from UK and US specialty pepper retailers.",
+      seedSources: ["The Chili Pepper Company (UK)", "Refining Fire Chiles", "Pepper Joe's"],
+      seasonality: "Fresh peak September–October in UK growing.",
+      notes:
+        "If you want stable superhot genetics, choose a non-Viper. Reaper, Primo, and Scorpion all breed true; Viper is an interesting historical pepper but unreliable for serious growers."
+    },
+    substitutes: [
+      {
+        slug: "ghost-pepper",
+        ratio: "Use 1.5 ghost peppers per Viper",
+        note: "Ghost is one of Viper's three parents — using more ghost gets you to a similar fruity superhot heat with stable genetics."
+      },
+      {
+        slug: "trinidad-moruga-scorpion",
+        ratio: "1:1",
+        note: "Another parent. Scorpion captures the tropical-fruit side of Viper at a similar heat level."
+      }
+    ],
+    faqs: [
+      {
+        question: "What three peppers were crossed to make the Naga Viper?",
+        answer:
+          "Naga Morich (Bangladeshi superhot), Bhut Jolokia (ghost pepper), and Trinidad Scorpion. Gerald Fowler crossed all three to produce the Viper in 2010. Because each parent is genetically distinct, the resulting hybrid is unstable — Viper seeds don't reliably grow into Vipers."
+      },
+      {
+        question: "Is the Naga Viper still relevant?",
+        answer:
+          "Mostly historical. It was the world's hottest pepper for less than a year in 2011. Since then, the Trinidad Moruga Scorpion, Carolina Reaper, and Pepper X have all surpassed it. Most pepper growers and craft sauce makers have moved on to the more stable, hotter cultivars."
+      },
+      {
+        question: "Why is the Naga Viper unstable?",
+        answer:
+          "Because it's a three-way cross between distinct parent cultivars, not a stabilized line. Stabilizing a pepper requires several generations of selective breeding to lock in the genetic traits. Fowler released the Viper before that stabilization was complete, which is why seeds can revert to parent forms."
+      },
+      {
+        question: "Where can I find Naga Viper seeds?",
+        answer:
+          "The Chili Pepper Company in Cumbria, UK is the original source. Some US specialty retailers (Refining Fire, Pepper Joe's) sell Viper seeds, but quality varies — buying directly from Fowler is the most reliable path. Expect inconsistent results regardless of source."
+      }
+    ]
+  },
+  {
+    slug: "komodo-dragon",
+    name: "Komodo Dragon",
+    aliases: ["komodo dragon pepper", "komodo dragon chili"],
+    origin: "europe",
+    scovilleMin: 1400000,
+    scovilleMax: 2200000,
+    heatTier: "superhot",
+    color: "Red",
+    flavorProfile: "Mild, almost sweet first impression that escalates into one of the most delayed and sustained heat profiles in the pepper world.",
+    description:
+      "Bred in the UK by Salvatore Genovese and released in 2015, the Komodo Dragon is notable for its slow-build heat — a characteristic delay of around 10 seconds between bite and burn that catches many superhot eaters off guard. Tesco famously sold it in supermarket aisles as a curiosity pepper.",
+    editorialNote:
+      "The Komodo Dragon is the superhot best known for its delayed reaction. Most peppers register heat almost immediately; the Komodo Dragon's capsaicin compounds activate more slowly, producing a roughly 10-second window where the eater might think the pepper isn't actually that hot — followed by an intense and sustained burn that can last 20+ minutes. This delay made it briefly famous as a UK supermarket challenge pepper. For sauce-making it behaves like other superhots once heat arrives, but the delay makes it a poor choice for fresh applications.",
+    culinaryUses: [
+      "Specialty UK hot sauces",
+      "Dried and powdered for extreme spice blends",
+      "Pepper eating challenges",
+      "Small quantities in superhot fermented mashes"
+    ],
+    pairsWith: ["Slow-cooked stews", "Cream-based sauces to balance", "Used carefully"],
+    funFact: "When the Komodo Dragon was first sold at UK Tesco stores in 2015, the packaging warned customers about the delayed onset of heat — multiple shoppers had needed medical attention from eating one fresh without expecting the delay.",
+    affiliateKeys: ["pepper-joe-superhot-seed-pack"],
+    recipeTagMatch: ["british"],
+    featured: false,
+    source: "editorial",
+    species: "chinense",
+    pepperType: "superhot",
+    flavorNotes: ["sweet", "fruity", "floral"],
+    history: {
+      region: "Bedfordshire, England",
+      era: "Bred and released 2015",
+      story:
+        "Salvatore Genovese, a UK pepper farmer, developed the Komodo Dragon over several years of selective breeding from Trinidad Scorpion stock. The pepper was released commercially in 2015 through a partnership with Tesco, which sold fresh pods in supermarket produce aisles — an unusual retail moment for a 2-million-Scoville pepper. The delayed-burn property became the pepper's signature."
+    },
+    growing: {
+      usdaZones: "Perennial in 10–11, annual in 4–9 with greenhouse support",
+      daysToGerminate: "20–35",
+      daysToHarvest: 130,
+      plantHeight: "30–48 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "Behaves like other chinense superhots in cultivation — slow to germinate, slow to fruit, needs sustained warmth. UK growers report good results in greenhouse conditions; outdoor cultivation in cooler climates is challenging. Genovese's farm uses heated polytunnels."
+    },
+    buying: {
+      freshAvailability: "Mostly UK availability via Tesco and specialty produce. Rare in the US outside specialty pepper farms.",
+      driedAvailability: "Dried whole pods and powder available online from UK and US specialty retailers.",
+      seedSources: ["Pepper Joe's", "Refining Fire Chiles", "specialty UK pepper seed sellers"],
+      seasonality: "UK greenhouse production is year-round; outdoor fresh peak August–October.",
+      notes:
+        "If you're in the UK and curious about superhots, the Komodo Dragon is uniquely accessible — sold directly at major grocers. Elsewhere, it requires specialty sourcing similar to other superhots."
+    },
+    substitutes: [
+      {
+        slug: "carolina-reaper",
+        ratio: "1:1",
+        note: "Same heat range. Reaper hits faster; Komodo Dragon delays. If you don't need the delayed onset, Reaper is more available and similar in cooking applications."
+      },
+      {
+        slug: "trinidad-moruga-scorpion",
+        ratio: "1:1",
+        note: "The Scorpion is one of the Komodo Dragon's breeding ancestors. Similar heat tier, more tropical fruit profile, immediate rather than delayed heat."
+      }
+    ],
+    faqs: [
+      {
+        question: "Why does the Komodo Dragon have delayed heat?",
+        answer:
+          "The pepper's capsaicin compounds appear to activate more slowly than other superhots — the typical 10-second delay catches eaters off guard. The exact biochemistry isn't fully understood, but it's consistent enough to be a known characteristic of the cultivar. Some growers speculate it's related to the thicker pith wall."
+      },
+      {
+        question: "How hot is the Komodo Dragon pepper?",
+        answer:
+          "1,400,000 to 2,200,000 Scoville Heat Units, putting it in the same tier as the Carolina Reaper and Trinidad Moruga Scorpion. Once the delay passes, the heat is comparable to any other superhot — intense, sustained, and slow to fade."
+      },
+      {
+        question: "Is the Komodo Dragon safe to eat?",
+        answer:
+          "In small culinary quantities, yes. Whole-pod challenges have caused medical incidents when the delayed onset misled eaters into thinking they could handle a second bite. Treat it like any other superhot: use small amounts, expect intense heat, and have dairy on hand."
+      },
+      {
+        question: "Where did the Komodo Dragon get its name?",
+        answer:
+          "From its appearance — Salvatore Genovese named it after the lizard because of its wrinkled, almost reptilian skin texture. The name also reinforced the marketing angle for Tesco when the pepper hit retail shelves in 2015."
+      }
+    ]
+  },
+  {
+    slug: "fatalii",
+    name: "Fatalii",
+    aliases: ["fatali", "fatalli", "African fatalii"],
+    origin: "africa",
+    scovilleMin: 125000,
+    scovilleMax: 400000,
+    heatTier: "very-hot",
+    color: "Bright yellow (most common), red, or chocolate",
+    flavorProfile: "Intensely fruity — citrus, apricot, mango, and tropical floral notes — with a clean, sharp heat.",
+    description:
+      "The Fatalii is a Central African superhot-adjacent pepper with one of the most distinctive fruit profiles in the chinense family. Native to the Central African Republic, Cameroon, and the surrounding region, it shares heat-tier territory with habanero but delivers a brighter, more concentrated citrus character.",
+    editorialNote:
+      "If you ask craft sauce makers which underappreciated pepper deserves more attention, the Fatalii is the answer that comes up most often. The flavor is striking — like a habanero with the volume turned up on the fruit notes. Less famous than its Caribbean cousins because Central African peppers haven't had a Nando's-style global moment, but the cultivar is increasingly common in serious hot sauce production. Fatalii Yellow is the standard; Fatalii Red and Chocolate Fatalii exist as color variants with subtly different flavor profiles.",
+    culinaryUses: [
+      "Premium craft hot sauces emphasizing tropical fruit notes",
+      "African pepper sauces and condiments",
+      "Mango or pineapple-paired sauces",
+      "Fresh in tropical fruit salsas and ceviches",
+      "Dried and powdered for fruity spice blends"
+    ],
+    pairsWith: ["African cuisine", "Caribbean", "Mango", "Pineapple", "Passion fruit", "Citrus", "Grilled fish"],
+    funFact: "The Fatalii is named for its heat — 'fatal' in the local sense of dangerously hot. Despite being among the hottest peppers in Africa, it's used liberally in pepper soups and stews where its fruit notes shine through the burn.",
+    affiliateKeys: ["amazon-yellowbird-habanero", "amazon-peri-peri-sauce"],
+    recipeTagMatch: ["african", "tropical", "caribbean"],
+    featured: false,
+    source: "editorial",
+    species: "chinense",
+    pepperType: "fresh-pod",
+    flavorNotes: ["fruity", "tropical", "citrus", "floral"],
+    history: {
+      region: "Central African Republic, Cameroon, and the wider Congo basin",
+      era: "Cultivated for centuries; gained craft hot sauce attention in the 2000s",
+      story:
+        "The Fatalii originated in Central African Republic and the Congo basin, where it has been cultivated as a household pepper for generations. Like other African peppers, it spread to West Africa and into Caribbean cooking traditions through colonial trade routes. The craft hot sauce scene rediscovered Fatalii in the 2000s as superhot interest broadened beyond Caribbean and South Asian peppers, and the fruity flavor profile has made it a favorite for sauce makers who want chinense heat with brighter citrus notes than habanero or scotch bonnet provide."
+    },
+    growing: {
+      usdaZones: "Perennial in 10–11, annual in 4–9",
+      daysToGerminate: "14–28",
+      daysToHarvest: 110,
+      plantHeight: "24–36 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "Among the easier chinense peppers to grow — less temperamental than habanero and significantly easier than superhots like Reaper or Pepper X. Plants produce heavily once established (20–40 pods per plant is typical) and tolerate slightly cooler nights than most chinense varieties. A good gateway pepper for home growers ready to move past annuum cultivars."
+    },
+    buying: {
+      freshAvailability: "Rare in mainstream US grocers; African and specialty pepper markets are the main sources. Online specialty pepper farms ship fresh in late summer.",
+      driedAvailability: "Dried whole Fataliis and powder available online from specialty hot sauce and pepper retailers.",
+      seedSources: ["Baker Creek", "Pepper Joe's", "Refining Fire Chiles", "African Bird's Eye seed sellers"],
+      seasonality: "Field-grown peak August–October in US; year-round in tropical climates.",
+      notes:
+        "If buying powder, look for the yellow Fatalii variety as the baseline — Fatalii Red and Chocolate Fatalii are color variants with slightly different flavor profiles that are sometimes labeled separately. Most commercial Fatalii sauce uses the yellow form."
+    },
+    substitutes: [
+      {
+        slug: "habanero",
+        ratio: "1:1",
+        note: "Closest commonly-available substitute. Fatalii is slightly hotter on average with more fruit-forward citrus notes; habanero is more aggressive. For most recipes the swap works."
+      },
+      {
+        slug: "scotch-bonnet",
+        ratio: "1:1",
+        note: "Similar heat tier and similar fruit-driven profile. Scotch bonnet is sweeter and rounder; Fatalii is brighter and more citrusy."
+      },
+      {
+        slug: "aji-amarillo",
+        ratio: "Use 2 aji amarillos per Fatalii",
+        note: "Aji amarillo has similar tropical fruit notes at about half the heat. Useful when you want Fatalii's flavor at a more accessible burn."
+      }
+    ],
+    faqs: [
+      {
+        question: "How hot is a Fatalii compared to habanero?",
+        answer:
+          "Slightly hotter on average. Fatalii runs 125,000–400,000 Scoville Heat Units; habanero runs 100,000–350,000. Individual peppers overlap heavily — you'll find Fataliis at habanero heat and vice versa. The bigger distinction is flavor: Fatalii is more citrus-forward, habanero is more general tropical."
+      },
+      {
+        question: "What does Fatalii taste like?",
+        answer:
+          "Concentrated citrus and tropical fruit — lemon, apricot, mango, passion fruit, and a slight floral note. The flavor is one of the most distinctive in the chinense family and the reason craft sauce makers seek it out. Hotter than habanero but doesn't taste hotter because the fruit notes balance the heat character."
+      },
+      {
+        question: "Can I grow Fatalii at home?",
+        answer:
+          "Yes, easily — Fatalii is among the more cooperative chinense peppers for home growing. Behaves similarly to habanero: 14–28 day germination, 100–110 days to harvest, needs warm soil and full sun. A 5-gallon container is enough per plant. Productive once established, often producing through to first frost in temperate climates."
+      },
+      {
+        question: "Where can I buy Fatalii hot sauce?",
+        answer:
+          "Craft hot sauce producers increasingly feature Fatalii — look at brands like Mad Dog, Heartbeat, Queen Majesty, and Bravado for current offerings. African import grocers also carry Fatalii-based pepper sauces. The sauce is more accessible than fresh peppers outside specialty growing regions."
+      }
+    ]
   }
 ];
 
