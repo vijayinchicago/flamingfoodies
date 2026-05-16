@@ -123,7 +123,74 @@ export const PEPPERS: Pepper[] = [
     affiliateKeys: ["amazon-chipotle-in-adobo", "amazon-cholula-original", "amazon-tabasco-green", "amazon-siete-jalapeño-sauce"],
     recipeTagMatch: ["mexican", "tex-mex", "american"],
     featured: true,
-    source: "editorial"
+    source: "editorial",
+    species: "annuum",
+    pepperType: "fresh-pod",
+    flavorNotes: ["vegetal", "fruity", "citrus"],
+    history: {
+      region: "Veracruz and Puebla, Mexico",
+      era: "Pre-Columbian, cultivated for 6,000+ years",
+      story:
+        "The jalapeño takes its name from Xalapa (historically Jalapa), the capital of Veracruz, where the pepper was traded for centuries before Spanish contact. Indigenous peoples in southern Mexico cultivated it long before European arrival, and the smoking technique that turns ripe jalapeños into chipotles is itself ancient — likely older than written records of the pepper. Today commercial production centers on Chihuahua, Sinaloa, and Texas, with Mexico still supplying most of the global supply."
+    },
+    growing: {
+      usdaZones: "Perennial in 9–11, annual in 4–8",
+      daysToGerminate: "7–21",
+      daysToHarvest: 75,
+      plantHeight: "24–36 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "Start seeds indoors 8–10 weeks before last frost; jalapeños need warm soil (75–85°F) to germinate. Transplant after night temperatures stay above 55°F. Pinch the first flower set to push energy into root development. A 3–5 gallon container is enough per plant. Uneven watering causes blossom-end rot, so mulch heavily and water deeply once or twice a week rather than shallow daily."
+    },
+    buying: {
+      freshAvailability: "Year-round at virtually every US grocery store; the most universally stocked hot pepper in the country.",
+      driedAvailability: "Smoked-dried form (chipotle) is widely available at Latin grocers, well-stocked supermarkets, and online. Unsmoked dried jalapeños are uncommon.",
+      seedSources: ["Burpee", "Bonnie Plants", "Johnny's Selected Seeds", "Pepper Joe's", "Baker Creek"],
+      seasonality: "Peak field-grown season is August through October; greenhouse production keeps fresh supply steady year-round.",
+      notes:
+        "Green jalapeños are picked unripe and are what you'll see in most supermarkets. Red jalapeños are fully ripened — sweeter, slightly hotter, and harder to find fresh. If a recipe specifies red jalapeño, leave green ones on the windowsill for a few days to ripen, or substitute Fresno chiles."
+    },
+    substitutes: [
+      {
+        slug: "serrano",
+        ratio: "Use about ⅔ as many",
+        note: "Serranos are 2–3× hotter with a similar bright, grassy profile. Reduce quantity or remove some seeds to dial the heat back."
+      },
+      {
+        slug: "chipotle",
+        ratio: "1 chipotle per 2 jalapeños",
+        note: "When you want jalapeño's flavor with smoky depth instead of fresh grassiness — chipotle is the same pepper, smoked and dried."
+      }
+    ],
+    faqs: [
+      {
+        question: "How hot is a jalapeño compared to a habanero?",
+        answer:
+          "A habanero is about 25–50 times hotter than a jalapeño. Jalapeños sit in the 2,500–8,000 Scoville range; habaneros run from 100,000 to 350,000 SHU. The two peppers also taste fundamentally different — jalapeños are grassy and vegetal, habaneros are fruity and tropical."
+      },
+      {
+        question: "Are red jalapeños hotter than green?",
+        answer:
+          "Slightly — but the bigger difference is flavor. Red jalapeños have been left on the plant to ripen and develop sweetness, fruitiness, and a touch more capsaicin. Most commercial jalapeños are picked green because they ship better, not because the green form is preferred."
+      },
+      {
+        question: "What's the difference between a jalapeño and a chipotle?",
+        answer:
+          "They're the same pepper at different stages. A chipotle is a ripe red jalapeño that has been slow-smoked over wood and dried. The smoking transforms the bright, vegetal jalapeño flavor into something deep, earthy, and lightly sweet. Chipotles are usually sold dried, ground into powder, or canned in adobo sauce."
+      },
+      {
+        question: "Can you eat jalapeño seeds?",
+        answer:
+          "Yes — seeds are edible and not the source of a jalapeño's heat. Capsaicin lives mostly in the white pith (the placenta) that holds the seeds, not in the seeds themselves. Removing the seeds and pith reduces heat by 60–80% without changing the pepper's flavor."
+      },
+      {
+        question: "What's a good substitute for jalapeño?",
+        answer:
+          "Serrano peppers are the closest swap — they're hotter (use about two-thirds the amount) with the same grassy, fresh character. Fresno peppers work for red jalapeño calls. For a milder substitute, use poblano or Anaheim; you'll lose heat but keep the vegetal flavor. In a pinch, ¼ teaspoon of cayenne powder approximates the heat of one fresh jalapeño but loses all the fresh-pepper flavor."
+      }
+    ]
   },
   {
     slug: "serrano",
