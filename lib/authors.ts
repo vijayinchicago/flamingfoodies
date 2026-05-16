@@ -9,6 +9,11 @@ export type PublicAuthorProfile = {
   longBio: string;
   focusAreas: string[];
   aliases: string[];
+  /**
+   * Optional cross-publication credit. Render an "Also writes at" line linking
+   * to a sibling publication when this author contributes to both.
+   */
+  alsoWritesAt?: { name: string; url: string };
 };
 
 const AUTHOR_PROFILES: PublicAuthorProfile[] = [

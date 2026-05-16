@@ -18,6 +18,8 @@ import { RecipeMethodSection } from "@/components/recipes/recipe-method-section"
 import { RecipeStickyBar } from "@/components/recipes/recipe-sticky-bar";
 import { PeppersInContent } from "@/components/peppers/peppers-in-content";
 import { findPeppersInText } from "@/lib/peppers";
+import { SisterSiteCallout } from "@/components/content/sister-site-callout";
+import { getSisterLinksForRecipe } from "@/lib/sister-site-links";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { FaqSchema } from "@/components/schema/faq-schema";
 import { RecipeSchema } from "@/components/schema/recipe-schema";
@@ -1012,6 +1014,9 @@ export default async function RecipePage({
             </section>
           </div>
         </div>
+
+        {/* Cross-link to Bark & Baste — renders only when a curated entry exists */}
+        <SisterSiteCallout links={getSisterLinksForRecipe(recipe.slug)} />
 
         <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4 print-hidden">
           <article className="recipe-core-panel rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6">

@@ -80,6 +80,33 @@ export default function AboutPage() {
       </div>
 
       <div className="panel p-8">
+        <p className="eyebrow">Our other publication</p>
+        <h2 className="mt-3 font-display text-4xl text-charcoal">
+          Bark &amp; Baste — our BBQ sister site.
+        </h2>
+        <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/75">
+          FlamingFoodies covers spicy food; <a
+            href="https://www.barkandbaste.com"
+            rel="noopener"
+            className="font-semibold text-charcoal underline underline-offset-4 hover:text-ember"
+          >Bark &amp; Baste</a> is its sibling, focused on BBQ technique, rubs, and smoked
+          cooking from the same editorial team. Some recipes and ingredient guides cross-reference
+          between the two when a topic genuinely fits both kitchens — a chile pepper used in a
+          BBQ rub, a hot sauce that finishes a brisket, a smoking technique that pairs with a
+          fiery side. Cross-references are editorial decisions, not blanket links.
+        </p>
+        <div className="mt-6">
+          <a
+            href="https://www.barkandbaste.com"
+            rel="noopener"
+            className="inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30"
+          >
+            Visit Bark &amp; Baste
+          </a>
+        </div>
+      </div>
+
+      <div className="panel p-8">
         <p className="eyebrow">Keep in touch</p>
         <h2 className="mt-3 font-display text-4xl text-charcoal">Questions, corrections, and brand inquiries all have a place.</h2>
         <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/75">

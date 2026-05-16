@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 
 import { AffiliateLink } from "@/components/content/affiliate-link";
 import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
+import { SisterSiteCallout } from "@/components/content/sister-site-callout";
+import { getSisterLinksForPepper } from "@/lib/sister-site-links";
 import { EmailCapture } from "@/components/forms/email-capture";
 import { RecipeCard } from "@/components/cards/recipe-card";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
@@ -447,6 +449,9 @@ export default async function PepperPage({ params }: { params: { slug: string } 
           </Link>
         </section>
       ) : null}
+
+      {/* Cross-link to Bark & Baste — renders only when a curated entry exists */}
+      <SisterSiteCallout links={getSisterLinksForPepper(pepper.slug)} />
 
       {/* Similar peppers + compare CTA */}
       {nearbyPeppers.length > 0 ? (

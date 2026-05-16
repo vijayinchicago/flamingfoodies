@@ -84,6 +84,19 @@ export default async function AuthorPage({
               <li key={area}>{area}</li>
             ))}
           </ul>
+          {author.alsoWritesAt ? (
+            <p className="mt-6 text-sm text-charcoal/65">
+              Also writes at{" "}
+              <a
+                href={author.alsoWritesAt.url}
+                rel="noopener author"
+                className="font-semibold text-charcoal underline underline-offset-4 hover:text-ember"
+              >
+                {author.alsoWritesAt.name}
+              </a>
+              .
+            </p>
+          ) : null}
         </article>
 
         <article className="panel p-8">
