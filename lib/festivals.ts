@@ -18,6 +18,14 @@ export interface Festival {
   month: number;
   /** Human-readable date range, e.g. "April 25–26" */
   dateRange: string;
+  /**
+   * Optional explicit start day-of-month (1–31). When set with endDay, used
+   * by getFestivalStatus to determine accurately whether the festival has
+   * passed. Falls back to parsing dateRange when not populated.
+   */
+  startDay?: number;
+  /** Optional explicit end day-of-month (1–31). See startDay. */
+  endDay?: number;
   annual: boolean;
   website: string;
   description: string;
@@ -244,7 +252,9 @@ export const FESTIVALS: Festival[] = [
     stateCode: "FL",
     region: "southeast",
     month: 5,
-    dateRange: "Early May",
+    dateRange: "Early May (May 3–4)",
+    startDay: 3,
+    endDay: 4,
     annual: true,
     website: "https://www.cayennediane.com/world-calendar-of-spicy-events-2/",
     description:
@@ -670,8 +680,15 @@ function daysInMonth(year: number, monthOneIndexed: number): number {
  * something as passed.
  */
 export function estimateFestivalEndDay(festival: Festival, year: number): number {
-  const range = festival.dateRange.toLowerCase();
   const monthMax = daysInMonth(year, festival.month);
+
+  // Prefer the explicit endDay field when present — it's the source of truth.
+  if (typeof festival.endDay === "number" && festival.endDay >= 1 && festival.endDay <= 31) {
+    return Math.min(monthMax, festival.endDay);
+  }
+
+  // Fall back to parsing the free-text dateRange.
+  const range = festival.dateRange.toLowerCase();
 
   // Look for "Month DD-DD" or "Month DD" patterns and take the highest number.
   const numericMatches = range.match(/\d{1,2}/g);
@@ -755,6 +772,8 @@ type FestivalRow = {
   region: string;
   month: number;
   date_range: string;
+  start_day?: number | null;
+  end_day?: number | null;
   annual: boolean;
   website: string;
   description: string;
@@ -780,6 +799,8 @@ function rowToFestival(row: FestivalRow): Festival {
     region: (row.region as FestivalRegion) || "south",
     month: row.month,
     dateRange: row.date_range,
+    startDay: row.start_day ?? undefined,
+    endDay: row.end_day ?? undefined,
     annual: row.annual,
     website: row.website,
     description: row.description,
