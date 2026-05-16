@@ -37,6 +37,31 @@ export default async function PeppersPage() {
         copy="Scoville ratings, flavor profiles, culinary uses, and the story behind each pepper — from a gentle jalapeño to the Carolina Reaper."
       />
 
+      {/* Quick tools */}
+      <div className="mt-10 grid gap-4 sm:grid-cols-3">
+        <Link href="/peppers/scoville-scale" className="panel p-5 transition hover:border-charcoal/20">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ember">Tool</p>
+          <h2 className="mt-2 font-display text-xl text-charcoal">Scoville scale</h2>
+          <p className="mt-2 text-sm leading-6 text-charcoal/70">
+            Every pepper plotted from mild to reaper on one visual scale.
+          </p>
+        </Link>
+        <Link href="/peppers/find" className="panel p-5 transition hover:border-charcoal/20">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ember">Tool</p>
+          <h2 className="mt-2 font-display text-xl text-charcoal">Find a pepper</h2>
+          <p className="mt-2 text-sm leading-6 text-charcoal/70">
+            Filter by heat, flavor notes, and origin to find what fits your dish.
+          </p>
+        </Link>
+        <Link href="/peppers/compare" className="panel p-5 transition hover:border-charcoal/20">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ember">Tool</p>
+          <h2 className="mt-2 font-display text-xl text-charcoal">Compare two peppers</h2>
+          <p className="mt-2 text-sm leading-6 text-charcoal/70">
+            Side-by-side scoville, flavor, and which-to-use verdict.
+          </p>
+        </Link>
+      </div>
+
       {/* Heat scale visual */}
       <div className="mt-12 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-8">
         <p className="eyebrow">The heat scale</p>

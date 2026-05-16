@@ -11,6 +11,60 @@ export type PepperOrigin =
   | "north-america" | "africa" | "southeast-asia" | "east-asia" | "south-asia"
   | "europe" | "middle-east";
 
+export type PepperSpecies =
+  | "annuum"      // jalapeño, cayenne, bell, ancho
+  | "chinense"    // habanero, scotch bonnet, ghost, reaper
+  | "frutescens"  // tabasco, malagueta, piri-piri
+  | "pubescens"   // rocoto, manzano
+  | "baccatum";   // aji amarillo, aji limo, lemon drop
+
+export type PepperType =
+  | "fresh-pod"   // jalapeño, serrano (eaten fresh or pickled)
+  | "drying"      // ancho, guajillo, cayenne (mainly dried)
+  | "smoking"     // chipotle (jalapeño dried + smoked)
+  | "superhot"    // ghost, reaper, scorpion
+  | "sweet";      // bell-adjacent
+
+export type FlavorNote =
+  | "fruity" | "smoky" | "earthy" | "vegetal" | "citrus"
+  | "floral" | "tropical" | "nutty" | "bitter" | "sweet";
+
+export interface PepperGrowing {
+  usdaZones?: string;                  // "9–11" or "annual in zones 4–8"
+  daysToGerminate?: string;            // "10–21"
+  daysToHarvest?: number;              // from transplant
+  plantHeight?: string;                // "24–36 in"
+  containerFriendly?: boolean;
+  sunRequirement?: "full" | "partial";
+  waterNeeds?: "low" | "moderate" | "high";
+  notes?: string;                      // free-form growing notes
+}
+
+export interface PepperBuying {
+  freshAvailability?: string;          // "year-round at most grocers"
+  driedAvailability?: string;          // "Latin markets and online"
+  seedSources?: string[];              // seed seller names
+  seasonality?: string;                // "peak July–September"
+  notes?: string;
+}
+
+export interface PepperSubstitute {
+  slug: string;                        // slug of substitute pepper
+  ratio?: string;                      // "1:1" or "use 2 for every 1"
+  note?: string;                       // why this substitution works
+}
+
+export interface PepperFaq {
+  question: string;
+  answer: string;
+}
+
+export interface PepperHistory {
+  region?: string;                     // "Veracruz, Mexico"
+  era?: string;                        // "Pre-Columbian"
+  story?: string;                      // 1–2 sentence narrative
+}
+
 export interface Pepper {
   slug: string;
   name: string;
@@ -30,6 +84,16 @@ export interface Pepper {
   recipeTagMatch: string[];  // tags to cross-link recipes
   featured: boolean;
   source: "editorial";
+  // Optional deep-reference fields. Render only when populated.
+  species?: PepperSpecies;
+  pepperType?: PepperType;
+  flavorNotes?: FlavorNote[];
+  imageGallery?: string[];      // additional photo URLs beyond the hero
+  history?: PepperHistory;
+  growing?: PepperGrowing;
+  buying?: PepperBuying;
+  substitutes?: PepperSubstitute[];
+  faqs?: PepperFaq[];
 }
 
 export const PEPPERS: Pepper[] = [
@@ -487,6 +551,58 @@ export function getPeppersSortedByHeat(): Pepper[] {
 
 export function getTierOrder(): HeatTier[] {
   return TIER_ORDER;
+}
+
+export type ResolvedSubstitute = { pepper: Pepper; ratio?: string; note?: string };
+
+export function resolveSubstitutes(pepper: Pepper): ResolvedSubstitute[] {
+  if (!pepper.substitutes?.length) return [];
+  const resolved: ResolvedSubstitute[] = [];
+  for (const sub of pepper.substitutes) {
+    const p = getPepperBySlug(sub.slug);
+    if (p) resolved.push({ pepper: p, ratio: sub.ratio, note: sub.note });
+  }
+  return resolved;
+}
+
+export function getNeighborInScovilleScale(pepper: Pepper, direction: "hotter" | "milder"): Pepper | undefined {
+  const sorted = getPeppersSortedByHeat();
+  const idx = sorted.findIndex((p) => p.slug === pepper.slug);
+  if (idx < 0) return undefined;
+  return direction === "hotter" ? sorted[idx + 1] : sorted[idx - 1];
+}
+
+export function getPeppersByFlavorNotes(pepper: Pepper, limit = 4): Pepper[] {
+  if (!pepper.flavorNotes?.length) return [];
+  const targetNotes = new Set(pepper.flavorNotes);
+  return PEPPERS
+    .filter((p) => p.slug !== pepper.slug && p.flavorNotes?.some((n) => targetNotes.has(n)))
+    .slice(0, limit);
+}
+
+// Scan arbitrary text for pepper mentions (name + aliases). Returns the
+// matching peppers, ordered by first appearance in the text.
+export function findPeppersInText(text: string, peppers: Pepper[] = PEPPERS): Pepper[] {
+  if (!text) return [];
+  const haystack = text.toLowerCase();
+  const hits = peppers
+    .map((p) => {
+      const candidates = [p.name, ...p.aliases].map((s) => s.toLowerCase());
+      let earliest = Infinity;
+      for (const candidate of candidates) {
+        if (!candidate) continue;
+        // word-ish boundary: not preceded/followed by an alphanumeric to avoid
+        // matching "carolina reaper" inside "scarolinareaper" etc.
+        const re = new RegExp(`(^|[^a-z0-9])${candidate.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}([^a-z0-9]|$)`);
+        const match = re.exec(haystack);
+        if (match && match.index < earliest) earliest = match.index;
+      }
+      return earliest === Infinity ? null : { pepper: p, position: earliest };
+    })
+    .filter((x): x is { pepper: Pepper; position: number } => x !== null)
+    .sort((a, b) => a.position - b.position)
+    .map((x) => x.pepper);
+  return hits;
 }
 
 export function formatScoville(min: number, max: number): string {

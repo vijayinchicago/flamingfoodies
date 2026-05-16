@@ -33,6 +33,8 @@ import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
 import { getFeaturedMerchProducts, getReview, getReviews } from "@/lib/services/content";
 import { absoluteUrl, formatDate, markdownToHtml } from "@/lib/utils";
+import { PeppersInContent } from "@/components/peppers/peppers-in-content";
+import { findPeppersInText } from "@/lib/peppers";
 
 export async function generateMetadata({
   params
@@ -75,6 +77,17 @@ export default async function ReviewPage({
     getDynamicInlineTerms()
   ]);
   const html = injectInlineAffiliateLinks(rawHtml, `/reviews/${review.slug}`, dynamicTerms);
+
+  // Cross-link any peppers featured in this review.
+  const reviewText = [
+    review.title,
+    review.productName ?? "",
+    review.description,
+    review.content ?? "",
+    ...(review.flavorNotes ?? [])
+  ].join(" ");
+  const peppersInReview = findPeppersInText(reviewText).slice(0, 6);
+
   const primaryOffer = findAffiliateLinkByUrl(review.affiliateUrl);
   const relatedOffers = getReviewAffiliateRecommendations({
     category: review.category,
@@ -233,6 +246,12 @@ export default async function ReviewPage({
           contentSlug={review.slug}
         />
       </div>
+      {peppersInReview.length > 0 ? (
+        <div className="mt-6 max-w-3xl">
+          <PeppersInContent peppers={peppersInReview} heading="Peppers in this sauce" />
+        </div>
+      ) : null}
+
       <div className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="max-w-3xl">
           <AffiliateDisclosure compact />

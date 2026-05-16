@@ -50,6 +50,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/subscriptions", lastModified: "2026-04-18" },
     { path: "/festivals", lastModified: "2026-04-18" },
     { path: "/peppers", lastModified: "2026-04-18" },
+    { path: "/peppers/compare", lastModified: "2026-05-16" },
+    { path: "/peppers/find", lastModified: "2026-05-16" },
+    { path: "/peppers/scoville-scale", lastModified: "2026-05-16" },
     { path: "/brands", lastModified: "2026-04-18" },
     { path: "/how-to", lastModified: "2026-04-18" },
     { path: "/new-releases", lastModified: "2026-04-18" },
@@ -91,6 +94,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         url: absoluteUrl(`/peppers/${pepper.slug}`),
         lastModified: new Date()
       })),
+      // Each pepper paired with its scoville neighbor — high-intent compare URLs.
+      peppers
+        .slice()
+        .sort((a, b) => a.scovilleMin - b.scovilleMin)
+        .flatMap((pepper, index, sorted) => {
+          const neighbor = sorted[index + 1];
+          if (!neighbor) return [];
+          return [{
+            url: absoluteUrl(`/peppers/compare/${pepper.slug}/${neighbor.slug}`),
+            lastModified: new Date()
+          }];
+        }),
       brands
         .filter((brand) => !shouldNoIndexPath(`/brands/${brand.slug}`))
         .map((brand) => ({

@@ -16,6 +16,8 @@ import { RecipeBrowseStrip } from "@/components/recipes/recipe-browse-strip";
 import { RecipeIngredientRail } from "@/components/recipes/recipe-ingredient-rail";
 import { RecipeMethodSection } from "@/components/recipes/recipe-method-section";
 import { RecipeStickyBar } from "@/components/recipes/recipe-sticky-bar";
+import { PeppersInContent } from "@/components/peppers/peppers-in-content";
+import { findPeppersInText } from "@/lib/peppers";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { FaqSchema } from "@/components/schema/faq-schema";
 import { RecipeSchema } from "@/components/schema/recipe-schema";
@@ -269,6 +271,19 @@ export default async function RecipePage({
   }
   const ingredientSections = getRecipeIngredientSections(recipe);
   const methodSteps = getRecipeMethodSteps(recipe);
+
+  // Cross-link any peppers mentioned in the recipe to their encyclopedia pages.
+  const recipeText = [
+    recipe.title,
+    recipe.description,
+    recipe.intro ?? "",
+    ...(recipe.tags ?? []),
+    ...ingredientSections.flatMap((section) =>
+      section.items.map((item) => `${item.amount ?? ""} ${item.item ?? ""} ${item.notes ?? ""}`)
+    ),
+    ...methodSteps.map((step) => `${step.title} ${step.body}`)
+  ].join(" ");
+  const peppersInRecipe = findPeppersInText(recipeText).slice(0, 6);
   const browseOptions = getRecipeBrowseOptions(recipes);
   const faqs = getRecipeFaqs(recipe);
   const substitutions = getRecipeSupportList(recipe.substitutions);
@@ -669,6 +684,12 @@ export default async function RecipePage({
         <div className="print-hidden">
           <AffiliateDisclosure compact />
         </div>
+
+        {peppersInRecipe.length > 0 ? (
+          <div className="print-hidden">
+            <PeppersInContent peppers={peppersInRecipe} heading="Peppers in this recipe" />
+          </div>
+        ) : null}
 
         {searchParams?.saved ? (
           <p className="text-sm text-emerald-300">Recipe box updated.</p>
