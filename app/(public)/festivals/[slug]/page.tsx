@@ -16,9 +16,14 @@ import {
   FESTIVALS,
   getFestivalsFromDb,
   getFestivalFromDb,
+  getFestivalStatus,
   getMonthName,
   getRegionLabel
 } from "@/lib/festivals";
+
+// Revalidate every 6 hours so the festival status badge ("happening this
+// month" / "already passed") stays current without manual rebuilds.
+export const revalidate = 21600;
 
 export async function generateStaticParams() {
   // Pre-render all published festivals at build time
@@ -56,6 +61,32 @@ export default async function FestivalPage({ params }: { params: { slug: string 
   if (!festival) notFound();
 
   const sourcePage = `/festivals/${festival.slug}`;
+  const status = getFestivalStatus(festival);
+  const statusBadge: { label: string; className: string } = (() => {
+    switch (status) {
+      case "happening-now":
+        return {
+          label: "Happening this month",
+          className: "border-ember/40 bg-ember/10 text-ember"
+        };
+      case "upcoming":
+        return {
+          label: `Coming up in ${getMonthName(festival.month)}`,
+          className: "border-amber-500/40 bg-amber-100 text-amber-800"
+        };
+      case "passed-this-year":
+        return {
+          label: `Already passed this year · back next ${getMonthName(festival.month)}`,
+          className: "border-charcoal/15 bg-charcoal/[0.06] text-charcoal/70"
+        };
+      case "later-this-year":
+      default:
+        return {
+          label: `Later this year · ${getMonthName(festival.month)}`,
+          className: "border-charcoal/15 bg-charcoal/[0.04] text-charcoal/65"
+        };
+    }
+  })();
 
   // Resolve affiliate pack items
   const packItems = festival.packAffiliate
@@ -133,6 +164,9 @@ export default async function FestivalPage({ params }: { params: { slug: string 
         <div className="flex flex-wrap items-center gap-3">
           <span className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${regionBadgeClass}`}>
             {getRegionLabel(festival.region)}
+          </span>
+          <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusBadge.className}`}>
+            {statusBadge.label}
           </span>
           <span className="rounded-full border border-charcoal/10 bg-charcoal/[0.05] px-3 py-1 text-xs text-charcoal/55">
             {getMonthName(festival.month)} · Annual

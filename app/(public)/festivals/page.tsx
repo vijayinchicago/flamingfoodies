@@ -3,11 +3,16 @@ import Link from "next/link";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { buildMetadata } from "@/lib/seo";
 import {
+  getFestivalStatus,
   getFestivalsFromDb,
   getMonthName,
   getRegionLabel,
   type Festival
 } from "@/lib/festivals";
+
+// Revalidate every 6 hours so the date-aware "Coming up soon" / "Already
+// happened" filters stay in sync with the current date without needing a deploy.
+export const revalidate = 21600;
 
 export const metadata = buildMetadata({
   title: "Hot Sauce Festivals in the US | FlamingFoodies",
@@ -29,10 +34,12 @@ export default async function FestivalsPage() {
   const festivals = await getFestivalsFromDb();
 
   const now = new Date();
-  const currentMonth = now.getMonth() + 1; // 1-indexed
-  const upcoming = festivals.filter(
-    (f) => f.month >= currentMonth && f.month <= currentMonth + 2
-  );
+  const statuses = new Map(festivals.map((f) => [f.slug, getFestivalStatus(f, now)]));
+  const upcoming = festivals.filter((f) => {
+    const status = statuses.get(f.slug);
+    return status === "happening-now" || status === "upcoming";
+  });
+  const recentlyPassed = festivals.filter((f) => statuses.get(f.slug) === "passed-this-year");
   const featured = festivals.filter((f) => f.featured);
 
   const byMonth = new Map<number, Festival[]>();
@@ -51,34 +58,79 @@ export default async function FestivalsPage() {
         copy="Hot sauce and spicy food festivals from January through October — competitions, vendor floors, eating contests, and the best excuse to plan a road trip."
       />
 
-      {/* Upcoming this month / next 2 months */}
+      {/* Upcoming this month / next 2 months — only those that haven't already
+          happened based on dateRange parsing. */}
       {upcoming.length > 0 ? (
         <div className="mt-12">
           <p className="eyebrow">Coming up soon</p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {upcoming.map((festival) => (
+            {upcoming.map((festival) => {
+              const status = statuses.get(festival.slug);
+              return (
+                <Link
+                  key={festival.slug}
+                  href={`/festivals/${festival.slug}`}
+                  className="group overflow-hidden rounded-[2rem] border border-ember/30 bg-ember/10 p-6 transition hover:border-ember/50 hover:bg-ember/15"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <p className={`text-xs uppercase tracking-[0.22em] ${REGION_COLORS[festival.region] ?? "text-ember"}`}>
+                      {getRegionLabel(festival.region)}
+                    </p>
+                    <span className="shrink-0 rounded-full bg-ember/20 px-3 py-1 text-xs font-semibold text-ember">
+                      {status === "happening-now" ? "This month" : getMonthName(festival.month)}
+                    </span>
+                  </div>
+                  <h2 className="mt-3 font-display text-3xl leading-tight text-charcoal">
+                    {festival.name}
+                  </h2>
+                  <p className="mt-1 text-sm text-charcoal/60">
+                    {festival.city}, {festival.stateCode} · {festival.dateRange}
+                  </p>
+                  <p className="mt-3 text-sm leading-7 text-charcoal/70">{festival.tagline}</p>
+                  <p className="mt-4 text-sm font-semibold text-charcoal/70 group-hover:text-white">
+                    Plan your visit →
+                  </p>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Recently happened this year — annual festivals that have already run
+          but will return next year. Useful context so users searching during
+          off-season see what they missed. */}
+      {recentlyPassed.length > 0 ? (
+        <div className="mt-12">
+          <p className="eyebrow">Already happened this year</p>
+          <p className="mt-2 max-w-2xl text-sm leading-7 text-charcoal/65">
+            Annual festivals that have already run this year. They&apos;ll be back next year — plan
+            ahead.
+          </p>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {recentlyPassed.slice(0, 6).map((festival) => (
               <Link
                 key={festival.slug}
                 href={`/festivals/${festival.slug}`}
-                className="group overflow-hidden rounded-[2rem] border border-ember/30 bg-ember/10 p-6 transition hover:border-ember/50 hover:bg-ember/15"
+                className="group overflow-hidden rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6 transition hover:border-charcoal/20"
               >
                 <div className="flex items-start justify-between gap-3">
                   <p className={`text-xs uppercase tracking-[0.22em] ${REGION_COLORS[festival.region] ?? "text-ember"}`}>
                     {getRegionLabel(festival.region)}
                   </p>
-                  <span className="shrink-0 rounded-full bg-ember/20 px-3 py-1 text-xs font-semibold text-ember">
-                    {getMonthName(festival.month)}
+                  <span className="shrink-0 rounded-full border border-charcoal/15 bg-white px-3 py-1 text-xs font-semibold text-charcoal/55">
+                    Back next {getMonthName(festival.month)}
                   </span>
                 </div>
                 <h2 className="mt-3 font-display text-3xl leading-tight text-charcoal">
                   {festival.name}
                 </h2>
-                <p className="mt-1 text-sm text-charcoal/60">
+                <p className="mt-1 text-sm text-charcoal/55">
                   {festival.city}, {festival.stateCode} · {festival.dateRange}
                 </p>
-                <p className="mt-3 text-sm leading-7 text-charcoal/70">{festival.tagline}</p>
-                <p className="mt-4 text-sm font-semibold text-charcoal/70 group-hover:text-white">
-                  Plan your visit →
+                <p className="mt-3 text-sm leading-7 text-charcoal/65">{festival.tagline}</p>
+                <p className="mt-4 text-sm font-semibold text-charcoal/55 group-hover:text-charcoal/80">
+                  See the guide for next year →
                 </p>
               </Link>
             ))}

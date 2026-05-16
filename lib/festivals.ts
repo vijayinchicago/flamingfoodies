@@ -654,6 +654,72 @@ export function getCurrentAndUpcomingFestivals(currentMonth: number): Festival[]
   return FESTIVALS.filter((f) => f.month >= currentMonth && f.month <= currentMonth + 2);
 }
 
+export type FestivalStatus = "upcoming" | "happening-now" | "passed-this-year" | "later-this-year";
+
+const MONTHS_LOWER = MONTH_NAMES.map((m) => m.toLowerCase());
+
+function daysInMonth(year: number, monthOneIndexed: number): number {
+  return new Date(year, monthOneIndexed, 0).getDate();
+}
+
+/**
+ * Estimate the last day-of-month a festival occupies, parsed from its
+ * free-text `dateRange` field. Used to decide whether the festival has
+ * already happened this year. Conservative — when the date range is
+ * ambiguous we prefer "later in the month" to avoid prematurely marking
+ * something as passed.
+ */
+export function estimateFestivalEndDay(festival: Festival, year: number): number {
+  const range = festival.dateRange.toLowerCase();
+  const monthMax = daysInMonth(year, festival.month);
+
+  // Look for "Month DD-DD" or "Month DD" patterns and take the highest number.
+  const numericMatches = range.match(/\d{1,2}/g);
+  if (numericMatches && numericMatches.length > 0) {
+    const candidates = numericMatches
+      .map((n) => parseInt(n, 10))
+      .filter((n) => n >= 1 && n <= 31);
+    if (candidates.length > 0) {
+      return Math.min(monthMax, Math.max(...candidates));
+    }
+  }
+
+  // Look for "early/mid/late" cues.
+  if (/\bearly\b/.test(range)) return Math.min(monthMax, 10);
+  if (/\bmid\b|\bmid-?month\b/.test(range)) return Math.min(monthMax, 20);
+  if (/\blate\b|\bend\b/.test(range)) return monthMax;
+  if (/first weekend|first week/.test(range)) return Math.min(monthMax, 7);
+  if (/last weekend|last week/.test(range)) return monthMax;
+
+  // Default: assume end-of-month so we don't prematurely flag a festival as
+  // passed when its actual date is unknown.
+  return monthMax;
+}
+
+/**
+ * Status of a festival relative to today. For annual festivals that have
+ * already happened this year, status is "passed-this-year" — the listing
+ * should show them in a "back next year" treatment rather than in the
+ * upcoming-soon section.
+ */
+export function getFestivalStatus(festival: Festival, now: Date = new Date()): FestivalStatus {
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+
+  const endDay = estimateFestivalEndDay(festival, year);
+
+  if (festival.month < month) return "passed-this-year";
+  if (festival.month === month) {
+    if (endDay < day) return "passed-this-year";
+    // Within current month and end day hasn't arrived → happening now or imminent.
+    return "happening-now";
+  }
+  // Future month this year.
+  if (festival.month <= month + 2) return "upcoming";
+  return "later-this-year";
+}
+
 export function getFeaturedFestivals(): Festival[] {
   return FESTIVALS.filter((f) => f.featured);
 }
