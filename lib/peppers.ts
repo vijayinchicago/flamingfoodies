@@ -3059,6 +3059,7 @@ type PepperRow = {
   editorial_note: string; culinary_uses: string[]; pairs_with: string[];
   fun_fact: string; affiliate_keys: string[]; recipe_tag_match: string[];
   featured: boolean;
+  pinterest_image_url?: string | null;
 };
 
 function rowToPepper(row: PepperRow): Pepper {
@@ -3072,7 +3073,8 @@ function rowToPepper(row: PepperRow): Pepper {
     culinaryUses: row.culinary_uses ?? [], pairsWith: row.pairs_with ?? [],
     funFact: row.fun_fact, affiliateKeys: row.affiliate_keys ?? [],
     recipeTagMatch: row.recipe_tag_match ?? [],
-    featured: row.featured, source: "editorial"
+    featured: row.featured, source: "editorial",
+    pinterestImageUrl: row.pinterest_image_url ?? undefined
   };
 }
 
