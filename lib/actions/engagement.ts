@@ -241,7 +241,7 @@ export async function toggleFollowAction(formData: FormData) {
   });
 
   if (!parsed.success) {
-    redirect("/leaderboard?error=Invalid%20follow%20request");
+    redirect("/community?error=Invalid%20follow%20request");
   }
 
   if (profile.id === parsed.data.targetUserId) {

@@ -2,7 +2,6 @@
 // discovery content should remain eligible for indexing unless a page opts out
 // more specifically.
 const ADSENSE_REVIEW_HOLDOUT_PREFIXES = [
-  "/leaderboard",
   "/new-releases",
   "/search"
 ] as const;

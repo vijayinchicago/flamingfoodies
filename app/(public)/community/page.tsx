@@ -84,10 +84,10 @@ export default async function CommunityPage() {
             </Link>
           ) : (
             <Link
-              href="/leaderboard"
+              href="/recipes"
               className="rounded-full border border-charcoal/15 px-8 py-3 font-semibold text-charcoal"
             >
-              View the leaderboard
+              Browse recipes
             </Link>
           )}
         </div>
