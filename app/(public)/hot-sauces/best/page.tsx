@@ -72,6 +72,47 @@ export default async function BestHotSaucesPage() {
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
 
+      {/* By use-case — explicit links to each best-for sub-page so Google reads this hub as the parent of a clear series */}
+      <div className="mt-10">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ember">
+          Or jump straight to a specific use case
+        </p>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Link href="/hot-sauces/best-for-tacos" className="rounded-[1rem] border border-charcoal/10 bg-white p-4 transition hover:border-ember">
+            <p className="text-xs font-semibold text-charcoal">Best for tacos</p>
+            <p className="mt-1 text-xs text-charcoal/55">Mexican, citrus, bright</p>
+          </Link>
+          <Link href="/hot-sauces/best-for-wings" className="rounded-[1rem] border border-charcoal/10 bg-white p-4 transition hover:border-ember">
+            <p className="text-xs font-semibold text-charcoal">Best for wings</p>
+            <p className="mt-1 text-xs text-charcoal/55">Garlic, vinegar, big heat</p>
+          </Link>
+          <Link href="/hot-sauces/best-for-pizza" className="rounded-[1rem] border border-charcoal/10 bg-white p-4 transition hover:border-ember">
+            <p className="text-xs font-semibold text-charcoal">Best for pizza</p>
+            <p className="mt-1 text-xs text-charcoal/55">Hot honey, garlic, drizzle</p>
+          </Link>
+          <Link href="/hot-sauces/best-for-eggs" className="rounded-[1rem] border border-charcoal/10 bg-white p-4 transition hover:border-ember">
+            <p className="text-xs font-semibold text-charcoal">Best for eggs</p>
+            <p className="mt-1 text-xs text-charcoal/55">Bright, pourable, mild</p>
+          </Link>
+          <Link href="/hot-sauces/best-for-seafood" className="rounded-[1rem] border border-charcoal/10 bg-white p-4 transition hover:border-ember">
+            <p className="text-xs font-semibold text-charcoal">Best for seafood</p>
+            <p className="mt-1 text-xs text-charcoal/55">Citrus, ginger, mild</p>
+          </Link>
+          <Link href="/hot-sauces/best-for-fried-chicken" className="rounded-[1rem] border border-charcoal/10 bg-white p-4 transition hover:border-ember">
+            <p className="text-xs font-semibold text-charcoal">Best for fried chicken</p>
+            <p className="mt-1 text-xs text-charcoal/55">Garlic, buffalo, hot honey</p>
+          </Link>
+          <Link href="/hot-sauces/affordable" className="rounded-[1rem] border border-charcoal/10 bg-white p-4 transition hover:border-ember">
+            <p className="text-xs font-semibold text-charcoal">Best affordable picks</p>
+            <p className="mt-1 text-xs text-charcoal/55">Under $15 and under $50</p>
+          </Link>
+          <Link href="/hot-sauces/best-gift-sets" className="rounded-[1rem] border border-charcoal/10 bg-white p-4 transition hover:border-ember">
+            <p className="text-xs font-semibold text-charcoal">Best gift sets</p>
+            <p className="mt-1 text-xs text-charcoal/55">Curated lineups and subscriptions</p>
+          </Link>
+        </div>
+      </div>
+
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <div className="panel p-8">
           <p className="eyebrow">How we choose</p>

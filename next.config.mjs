@@ -10,6 +10,18 @@ const nextConfig = {
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       { protocol: "https", hostname: "avatars.githubusercontent.com" }
     ]
+  },
+  async redirects() {
+    return [
+      // 301 the deprecated /hot-sauces/under-15 page into the consolidated
+      // affordable picks page, which contains both an under-$15 section and
+      // an under-$50 section. Preserves link equity and search rankings.
+      {
+        source: "/hot-sauces/under-15",
+        destination: "/hot-sauces/affordable",
+        permanent: true
+      }
+    ];
   }
 };
 

@@ -42,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/hot-sauces/best-for-wings", lastModified: "2026-04-18" },
     { path: "/hot-sauces/best-gift-sets", lastModified: "2026-04-18" },
     { path: "/hot-sauces/gifts-under-50", lastModified: "2026-04-18" },
-    { path: "/hot-sauces/under-15", lastModified: "2026-04-18" },
+    { path: "/hot-sauces/affordable", lastModified: "2026-05-16" },
     { path: "/community", lastModified: "2026-04-18" },
     { path: "/guides", lastModified: "2026-04-18" },
     { path: "/quiz", lastModified: "2025-06-01" },
