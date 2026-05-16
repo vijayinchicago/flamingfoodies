@@ -37,8 +37,28 @@ export default async function PeppersPage() {
         copy="Scoville ratings, flavor profiles, culinary uses, and the story behind each pepper — from a gentle jalapeño to the Carolina Reaper."
       />
 
+      {/* Pillar guides */}
+      <div className="mt-10 grid gap-4 sm:grid-cols-2">
+        <Link href="/peppers/guide" className="panel p-6 transition hover:border-ember">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ember">Pillar guide</p>
+          <h2 className="mt-2 font-display text-2xl text-charcoal">The complete guide to chile peppers</h2>
+          <p className="mt-2 text-sm leading-6 text-charcoal/70">
+            Heat tiers, capsicum species, regional traditions, and how to pick the right pepper —
+            the top-level map for the whole encyclopedia.
+          </p>
+        </Link>
+        <Link href="/peppers/substitutes" className="panel p-6 transition hover:border-ember">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ember">Pillar guide</p>
+          <h2 className="mt-2 font-display text-2xl text-charcoal">Pepper substitutes reference</h2>
+          <p className="mt-2 text-sm leading-6 text-charcoal/70">
+            What to use when the recipe calls for a pepper you don&apos;t have. Curated swaps with
+            ratios for every pepper in the encyclopedia.
+          </p>
+        </Link>
+      </div>
+
       {/* Quick tools */}
-      <div className="mt-10 grid gap-4 sm:grid-cols-3">
+      <div className="mt-6 grid gap-4 sm:grid-cols-3">
         <Link href="/peppers/scoville-scale" className="panel p-5 transition hover:border-charcoal/20">
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ember">Tool</p>
           <h2 className="mt-2 font-display text-xl text-charcoal">Scoville scale</h2>

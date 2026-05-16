@@ -56,7 +56,20 @@ export async function generateMetadata({
     title: review.title,
     description: review.description,
     path: `/reviews/${review.slug}`,
-    images: hero.imageUrl ? [hero.imageUrl] : undefined
+    type: "article",
+    publishedTime: review.publishedAt,
+    modifiedTime: review.publishedAt,
+    authors: review.authorName ? [review.authorName] : undefined,
+    imageObjects: hero.imageUrl
+      ? [
+          {
+            url: hero.imageUrl,
+            alt: hero.imageAlt || review.title,
+            width: 1200,
+            height: 630
+          }
+        ]
+      : undefined
   });
 }
 

@@ -40,7 +40,20 @@ export async function generateMetadata({
     title: post.seoTitle || post.title,
     description: post.seoDescription || post.description,
     path: `/blog/${post.slug}`,
-    images: post.imageUrl ? [post.imageUrl] : undefined,
+    type: "article",
+    publishedTime: post.publishedAt,
+    modifiedTime: post.publishedAt,
+    authors: post.authorName ? [post.authorName] : undefined,
+    imageObjects: post.imageUrl
+      ? [
+          {
+            url: post.imageUrl,
+            alt: post.imageAlt || post.title,
+            width: 1200,
+            height: 630
+          }
+        ]
+      : undefined,
     noIndex: isReviewHoldBlogSlug(post.slug)
   });
 }

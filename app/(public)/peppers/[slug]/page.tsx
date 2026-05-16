@@ -56,7 +56,16 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   return buildMetadata({
     title: `${pepper.name}: Scoville, Flavor, Substitutes & Growing | FlamingFoodies`,
     description: pepper.description,
-    path: `/peppers/${pepper.slug}`
+    path: `/peppers/${pepper.slug}`,
+    type: "article",
+    imageObjects: pepper.imageGallery?.length
+      ? pepper.imageGallery.slice(0, 1).map((url) => ({
+          url,
+          alt: `${pepper.name} pepper`,
+          width: 1200,
+          height: 630
+        }))
+      : undefined
   });
 }
 

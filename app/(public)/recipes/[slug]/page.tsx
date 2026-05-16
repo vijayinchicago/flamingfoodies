@@ -233,7 +233,18 @@ export async function generateMetadata({
     title: recipe.seoTitle || recipe.title,
     description: recipe.seoDescription || recipe.description,
     path: `/recipes/${recipe.slug}`,
-    images: [hero.imageUrl]
+    type: "article",
+    publishedTime: recipe.publishedAt,
+    modifiedTime: recipe.publishedAt,
+    authors: recipe.authorName ? [recipe.authorName] : undefined,
+    imageObjects: [
+      {
+        url: hero.imageUrl,
+        alt: hero.imageAlt || recipe.title,
+        width: 1200,
+        height: 630
+      }
+    ]
   });
 }
 
