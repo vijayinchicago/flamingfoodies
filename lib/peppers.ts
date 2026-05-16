@@ -1970,6 +1970,981 @@ export const PEPPERS: Pepper[] = [
           "Craft hot sauce producers increasingly feature Fatalii — look at brands like Mad Dog, Heartbeat, Queen Majesty, and Bravado for current offerings. African import grocers also carry Fatalii-based pepper sauces. The sauce is more accessible than fresh peppers outside specialty growing regions."
       }
     ]
+  },
+  {
+    slug: "poblano",
+    name: "Poblano",
+    aliases: ["poblano pepper", "fresh ancho", "chile poblano"],
+    origin: "mexico",
+    scovilleMin: 1000,
+    scovilleMax: 2000,
+    heatTier: "mild",
+    color: "Dark green ripening to deep red",
+    flavorProfile: "Rich, earthy, slightly fruity heat — closer to a vegetable than a chile when fresh.",
+    description:
+      "The poblano is the workhorse mild chile of Mexican cooking, named for the state of Puebla where it originated. Large, heart-shaped, and dark green when picked, it carries enough flavor to anchor a dish but enough restraint to feed an entire table.",
+    editorialNote:
+      "The poblano sits in the sweet spot of mild Mexican peppers — flavorful enough to matter, mild enough that anyone can eat it. It is the pepper of chiles rellenos and chiles en nogada, two of Mexico's most identifiable dishes. When roasted and peeled, the flesh turns silky and the flavor deepens into something that tastes more like a vegetable than a chile. When dried, the same pepper becomes the ancho — one of the foundations of Mexican mole. Two completely different ingredients, one plant.",
+    culinaryUses: [
+      "Chiles rellenos stuffed with cheese or picadillo",
+      "Chiles en nogada — the patriotic Mexican stuffed-pepper dish",
+      "Sliced and sautéed for rajas (with cream or in tacos)",
+      "Roasted and blended into mild salsas and crema bases",
+      "Dried as ancho for moles, adobos, and pantry use"
+    ],
+    pairsWith: ["Mexican", "Tex-Mex", "Cheese", "Cream", "Pork", "Walnut and pomegranate"],
+    funFact: "The poblano's mild heat varies more than most peppers — some pods register barely any burn, others sneak up to jalapeño-adjacent intensity. Mexican cooks taste a small piece before committing.",
+    affiliateKeys: ["amazon-chipotle-in-adobo", "amazon-cholula-original", "amazon-tajin-clasico"],
+    recipeTagMatch: ["mexican", "tex-mex"],
+    featured: true,
+    source: "editorial",
+    species: "annuum",
+    pepperType: "fresh-pod",
+    flavorNotes: ["earthy", "vegetal", "fruity"],
+    history: {
+      region: "Puebla, Mexico",
+      era: "Pre-Columbian, cultivated for thousands of years",
+      story:
+        "The poblano takes its name from Puebla — 'poblano' meaning 'from Puebla.' Cultivation predates Spanish contact by millennia. The pepper became culturally inseparable from Puebla cuisine when chiles en nogada was reportedly created there in 1821 to honor Agustín de Iturbide; the green poblano, white walnut sauce, and red pomegranate seeds form the Mexican flag's colors on a plate. Today the largest commercial production comes from Mexican states near Puebla plus parts of the southern US."
+    },
+    growing: {
+      usdaZones: "Perennial in 9–11, annual in 4–8",
+      daysToGerminate: "10–21",
+      daysToHarvest: 75,
+      plantHeight: "24–36 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "One of the easier mild chiles for US home gardens. Productive (15–25 pods per plant), forgiving of soil conditions, and not as heat-dependent as chinense varieties. Harvest green for fresh poblanos; let pods ripen fully red on the plant and dry them for homemade anchos."
+    },
+    buying: {
+      freshAvailability: "Year-round at most US grocery stores; near-universal at Latin grocers. One of the easiest Mexican chiles to find fresh in the US.",
+      driedAvailability: "Dried poblano is sold as ancho — very widely available at Latin grocers and online.",
+      seedSources: ["Burpee", "Bonnie Plants", "Native Seeds/SEARCH", "Baker Creek", "Johnny's Selected Seeds"],
+      seasonality: "Peak field-grown August–October; greenhouse production keeps fresh supply steady year-round.",
+      notes:
+        "Look for poblanos with dark, glossy skin and firm flesh. Pale or wrinkled pods are past their prime. The bigger and broader the pod, the better for stuffing; smaller pods are better for slicing into rajas."
+    },
+    substitutes: [
+      {
+        slug: "anaheim",
+        ratio: "1:1",
+        note: "Closest substitute — similar mild heat with a similar vegetal character. Anaheim is slightly sweeter and milder."
+      },
+      {
+        slug: "hatch-green-chile",
+        ratio: "1:1",
+        note: "Similar mild heat with more smoke and earth. Hatch is preferred for roasted applications where smoky character matters."
+      }
+    ],
+    faqs: [
+      {
+        question: "What's the difference between poblano and ancho?",
+        answer:
+          "They're the same pepper at different stages. A poblano is the fresh green pod; an ancho is the same pod ripened red and dried. The drying process transforms the flavor completely — fresh poblanos taste vegetal and bright, ancho tastes like raisin, dried fruit, and chocolate. Both come from the same plant."
+      },
+      {
+        question: "How spicy is a poblano?",
+        answer:
+          "Mild — 1,000 to 2,000 Scoville Heat Units, which is about a quarter the heat of a jalapeño. Individual peppers vary significantly though; an occasional poblano will register noticeably hotter (closer to a mild jalapeño). Taste a small piece before committing if heat tolerance is a concern."
+      },
+      {
+        question: "Should you peel poblanos before cooking?",
+        answer:
+          "For chiles rellenos and rajas, yes — roast the peppers until the skin blackens, steam them in a covered bowl for 10 minutes, then peel. The skin is tough and slightly bitter. For sliced raw uses (some salsas, stir-fries) you can skip peeling. Charring also deepens the flavor significantly."
+      },
+      {
+        question: "Can I substitute a green bell pepper for a poblano?",
+        answer:
+          "Not really. Green bell peppers have no heat and a sharper, more grassy flavor — they'll miss the earthy depth and mild burn that defines a poblano. Anaheim or Hatch are the right substitutes when poblano isn't available. Bell pepper works only if you're already removing the heat dimension entirely."
+      }
+    ]
+  },
+  {
+    slug: "anaheim",
+    name: "Anaheim",
+    aliases: ["anaheim pepper", "California chile", "chile verde del norte"],
+    origin: "north-america",
+    scovilleMin: 500,
+    scovilleMax: 2500,
+    heatTier: "mild",
+    color: "Bright green ripening to red",
+    flavorProfile: "Sweet, mildly vegetal, with a gentle warmth that lingers rather than punches.",
+    description:
+      "The Anaheim is the milder cousin to New Mexico's Hatch chile, named for the California city where commercial cultivation took off in the early 1900s. Long, slender, glossy, and forgiving — the Anaheim is the chile that introduces most Americans to chile cooking.",
+    editorialNote:
+      "The Anaheim's role is approachability. It carries enough chile flavor to feel authentic in chile verde, chile relleno, and green sauce applications, but the heat stays well below the threshold where it becomes a barrier. The Hatch and Anaheim are genetic siblings — Anaheim was bred from a New Mexico chile transplanted to Southern California by Emilio Ortega in 1900 — but a century of separate breeding has made them measurably different: Hatch is more variable and can be much hotter, Anaheim is consistent and tame. For mainstream American cooks, the Anaheim is the safer reach.",
+    culinaryUses: [
+      "Chile verde and other green chile stews",
+      "Roasted and stuffed for chile rellenos (a milder version)",
+      "Sliced into fajitas, stir-fries, and breakfast scrambles",
+      "Blended into mild salsa verde",
+      "Pickled for sandwiches and burgers"
+    ],
+    pairsWith: ["Mexican", "Tex-Mex", "Southwestern", "Pork", "Cheese", "Eggs"],
+    funFact: "The Anaheim and the Hatch chile share a common ancestor — a cultivar developed at New Mexico State University around 1900. Emilio Ortega moved seeds to Anaheim, California, and a century of separate selection produced two distinct peppers from the same starting point.",
+    affiliateKeys: ["amazon-cholula-green-tomatillo", "amazon-tajin-clasico"],
+    recipeTagMatch: ["mexican", "southwest", "tex-mex"],
+    featured: false,
+    source: "editorial",
+    species: "annuum",
+    pepperType: "fresh-pod",
+    flavorNotes: ["vegetal", "sweet"],
+    history: {
+      region: "Anaheim, California, United States",
+      era: "Cultivated commercially since the early 1900s",
+      story:
+        "Emilio Ortega, a Mexican-American farmer who learned chile cultivation in New Mexico, brought seeds back to Southern California and began commercial production around 1900 in what is now Anaheim. The Ortega Chile Company canned the peppers and built a brand around them. Over the next century, California growers selected for milder, more uniform pods that ship well — diverging from the Hatch chile lineage that stayed in New Mexico. Today the Anaheim is its own stable cultivar."
+    },
+    growing: {
+      usdaZones: "Perennial in 9–11, annual in 4–8",
+      daysToGerminate: "10–21",
+      daysToHarvest: 75,
+      plantHeight: "24–30 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "Among the easiest US chiles for home gardens — productive, forgiving, and tolerant of cooler summers than habanero or chinense varieties. A 3-gallon container is enough per plant. Anaheims can be harvested green for fresh use or left to ripen red and dried (though they're less commonly dried than poblano/ancho)."
+    },
+    buying: {
+      freshAvailability: "Year-round at virtually every US grocery store; one of the most universally stocked fresh chiles in the country.",
+      driedAvailability: "Dried red Anaheims (sometimes labeled 'chile colorado') are available at Latin grocers but less common than ancho or guajillo.",
+      seedSources: ["Burpee", "Bonnie Plants", "Native Seeds/SEARCH", "Johnny's Selected Seeds", "Baker Creek"],
+      seasonality: "Year-round greenhouse and California field production; outdoor peak August–October.",
+      notes:
+        "Pre-roasted canned Ortega chiles (whole and diced) are pantry staples worth keeping — they're Anaheims processed for chiles rellenos, breakfast scrambles, and quick green chile applications when fresh isn't available."
+    },
+    substitutes: [
+      {
+        slug: "poblano",
+        ratio: "1:1",
+        note: "Very close cousin. Poblano is slightly more earthy, Anaheim slightly more sweet. Largely interchangeable in mild chile applications."
+      },
+      {
+        slug: "hatch-green-chile",
+        ratio: "1:1",
+        note: "Anaheim's New Mexico sibling. Hatch is more variable — buy mild Hatch if you want the closest swap, hot Hatch for more kick."
+      }
+    ],
+    faqs: [
+      {
+        question: "Are Anaheim and Hatch the same chile?",
+        answer:
+          "Closely related but distinct. They share a common ancestor (a New Mexico cultivar from the late 1800s), but a century of separate breeding has made Anaheim milder and more uniform, while Hatch retained more flavor variation and heat potential. Hatch is also a geographic designation — only chiles grown in the Hatch Valley can be sold as Hatch."
+      },
+      {
+        question: "How hot is an Anaheim pepper?",
+        answer:
+          "Mild — 500 to 2,500 Scoville Heat Units, which is roughly one-fifth the heat of a jalapeño. Most Anaheims sit at the low end of this range. Individual pods can reach the high end (closer to a poblano), but very rarely beyond."
+      },
+      {
+        question: "Can you eat Anaheim peppers raw?",
+        answer:
+          "Yes, though roasting brings out much more flavor. Raw Anaheims taste vegetal and slightly bitter, similar to a green bell pepper with a small heat note. Roasted, the flesh turns sweet and slightly smoky. Most traditional recipes call for roasting and peeling first."
+      },
+      {
+        question: "What can I use instead of Anaheim peppers?",
+        answer:
+          "Poblano is the closest swap — similar mild heat and similar size for stuffing. Hatch chiles work but are more variable. Cubanelle peppers (Italian frying peppers) can substitute when only mild vegetal heat is needed. Green bell pepper is the wrong answer — it has no heat and a different flavor character."
+      }
+    ]
+  },
+  {
+    slug: "ancho",
+    name: "Ancho",
+    aliases: ["ancho chile", "dried poblano", "chile ancho"],
+    origin: "mexico",
+    scovilleMin: 1000,
+    scovilleMax: 2000,
+    heatTier: "mild",
+    color: "Dark reddish-brown to nearly black (dried)",
+    flavorProfile: "Dried fruit and chocolate — raisin, prune, slight smoke, with a gentle warmth.",
+    description:
+      "The ancho is a ripe poblano that has been dried, and the transformation produces one of the most flavorful dried chiles in the world. Wrinkled, reddish-brown, slightly sweet, and indispensable to Mexican cooking, the ancho is one of the three pillars of traditional mole sauce.",
+    editorialNote:
+      "Ancho is the dried chile to know first. Its flavor profile — raisin, prune, cocoa, mild earth — is unlike anything you can get from a fresh pepper, and the heat is mild enough to use generously. Toasted briefly on a dry pan and rehydrated in warm water, an ancho releases the kind of dried-fruit depth that anchors moles, adobos, and slow-cooked meat dishes. The 'holy trinity' of Mexican dried chiles is ancho, pasilla, and guajillo; ancho contributes the sweet, raisin-like backbone of the trio.",
+    culinaryUses: [
+      "Mole poblano, mole negro, and other traditional mole sauces",
+      "Adobo marinade for cochinita pibil and slow-cooked meats",
+      "Chile colorado red sauce for enchiladas and tamales",
+      "Toasted, rehydrated, and blended into ranchero and chile sauces",
+      "Ground into ancho chili powder for rubs and seasoning blends"
+    ],
+    pairsWith: ["Mexican", "Mole", "Pork", "Beef", "Chocolate", "Cinnamon", "Toasted nuts"],
+    funFact: "The word 'ancho' means 'wide' in Spanish — a reference to the broad, heart-shaped pod the chile keeps even after drying. The unrelated chile 'mulato' is also a dried poblano variant, just slightly darker, smokier, and less sweet.",
+    affiliateKeys: ["amazon-chipotle-in-adobo", "amazon-cholula-original"],
+    recipeTagMatch: ["mexican", "mole"],
+    featured: true,
+    source: "editorial",
+    species: "annuum",
+    pepperType: "drying",
+    flavorNotes: ["sweet", "smoky", "earthy", "fruity"],
+    history: {
+      region: "Puebla, Mexico (same as fresh poblano)",
+      era: "Pre-Columbian; drying technique predates Spanish contact",
+      story:
+        "Ancho is the dried form of the poblano pepper — the same plant, the same pre-Columbian Mesoamerican origin. The drying technique (sun-drying ripe red poblanos) was developed for preservation in a culture without refrigeration; the flavor transformation was a happy accident that became central to Mexican cooking. Today's ancho is most associated with Pueblan mole tradition, though the chile is used widely across central and southern Mexico."
+    },
+    growing: {
+      usdaZones: "Same as poblano — perennial in 9–11, annual in 4–8",
+      daysToGerminate: "10–21",
+      daysToHarvest: 75,
+      plantHeight: "24–36 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "Ancho isn't a separate cultivar — it's dried poblano. To make your own, grow poblanos and let pods fully ripen red on the plant. Sun-dry on a wire rack for several days until pods are leathery but still pliable. Store in an airtight container; properly dried anchos keep for over a year."
+    },
+    buying: {
+      freshAvailability: "Ancho is dried by definition — fresh equivalent (ripe red poblano) is hard to find at most grocers since most poblanos are sold green.",
+      driedAvailability: "Whole dried anchos and ancho powder are widely available at Latin grocers, online specialty stores, and increasingly at mainstream supermarkets in the international or Mexican food sections.",
+      seedSources: ["Grow poblano seeds and dry the ripe red pods at home"],
+      seasonality: "Year-round; the dried form has a long shelf life.",
+      notes:
+        "Look for dried anchos that are still pliable, not brittle — flexibility indicates they have residual moisture and will rehydrate cleanly. Stiff, hard anchos have been on the shelf too long. The best brands are vacuum-sealed or freshly packaged from Mexican importers."
+    },
+    substitutes: [
+      {
+        slug: "pasilla",
+        ratio: "1:1",
+        note: "Closest substitute among dried Mexican chiles. Pasilla is slightly more earthy and less sweet; ancho is more raisin-forward. Both work in mole and adobo applications."
+      },
+      {
+        slug: "chipotle",
+        ratio: "Use 1 chipotle per 2 anchos",
+        note: "Different flavor (smoky vs raisin-sweet) but similar heat tier. Use when you want smoke instead of sweetness, in much smaller quantities."
+      }
+    ],
+    faqs: [
+      {
+        question: "Is ancho the same as poblano?",
+        answer:
+          "Same pepper, different stage. A poblano is the fresh green pod; an ancho is that same pod ripened to red and dried. The drying transforms the flavor completely — from vegetal-bright (poblano) to raisin-sweet (ancho). They function as different ingredients despite sharing a plant."
+      },
+      {
+        question: "How do you use dried ancho chiles?",
+        answer:
+          "Toast briefly on a dry pan (30 seconds per side, until fragrant), remove the stem and seeds, then rehydrate in warm water for 15–20 minutes until soft. Blend the rehydrated chile into sauces, marinades, or moles. The soaking liquid is also flavorful — strain and use as part of the liquid in the recipe."
+      },
+      {
+        question: "What does ancho taste like?",
+        answer:
+          "Dried fruit, chocolate, and mild earth — common tasting notes include raisin, prune, fig, and a hint of cocoa. The heat is mild (similar to a fresh poblano). The flavor is what makes it indispensable to mole: it provides the rich, fruit-forward backbone that other chiles can't replicate."
+      },
+      {
+        question: "Can I substitute ancho chile powder for whole dried ancho?",
+        answer:
+          "Yes, with caveats. About 1 tablespoon of ancho powder substitutes for one whole rehydrated ancho. The powder is more concentrated in heat and slightly less flavorful (some of the aromatic notes degrade in grinding), but it works for quick applications. For traditional mole or adobo, whole rehydrated anchos give a better result."
+      }
+    ]
+  },
+  {
+    slug: "guajillo",
+    name: "Guajillo",
+    aliases: ["guajillo chile", "chile guajillo", "dried mirasol"],
+    origin: "mexico",
+    scovilleMin: 2500,
+    scovilleMax: 5000,
+    heatTier: "medium",
+    color: "Deep red (dried)",
+    flavorProfile: "Berry-like, tangy, slightly fruity heat with a hint of green tea and pine.",
+    description:
+      "The guajillo is the second pillar of Mexican dried chile cooking — the workhorse alongside ancho. Slender, deep red, with a thin papery skin and a flavor that lands between fruit and tartness. One of the most important dried chiles in Mexican cuisine.",
+    editorialNote:
+      "Guajillo is the dried Mexican chile that you'll see in nearly every traditional recipe alongside ancho. Where ancho contributes raisin sweetness and depth, guajillo brings brightness, tartness, and a hint of fruit — like cranberry or red currant compared to ancho's dried-fig profile. The combination is the foundation of mole, adobo, chile colorado, and pozole rojo. Guajillo also has more heat than ancho (still mild-to-medium, but noticeable), which gives the trinity its baseline warmth without crossing into uncomfortable territory.",
+    culinaryUses: [
+      "Pozole rojo — the foundational dried chile for red pozole",
+      "Birria — slow-braised meat in guajillo-based chile broth",
+      "Mole sauces alongside ancho and pasilla",
+      "Chile colorado red sauce for tamales and enchiladas",
+      "Salsa roja for tacos and table salsa"
+    ],
+    pairsWith: ["Mexican", "Pozole", "Birria", "Beef", "Goat", "Lime", "Garlic"],
+    funFact: "'Guajillo' translates roughly to 'little gourd' or 'little rattle' — the dried pods rattle when shaken because the seeds come loose inside the papery skin.",
+    affiliateKeys: ["amazon-chipotle-in-adobo", "amazon-cholula-original"],
+    recipeTagMatch: ["mexican", "birria", "pozole"],
+    featured: true,
+    source: "editorial",
+    species: "annuum",
+    pepperType: "drying",
+    flavorNotes: ["fruity", "smoky", "citrus", "sweet"],
+    history: {
+      region: "Central and northern Mexico, especially Zacatecas, Aguascalientes, and Durango",
+      era: "Pre-Columbian; widely cultivated throughout colonial Mexico",
+      story:
+        "Guajillo is the dried form of the mirasol pepper, native to central Mexico. The name 'mirasol' means 'looks at the sun' — the fresh pods point upward toward the sky on the plant, unlike most chiles that hang downward. Today commercial production centers on Mexico's central highlands and the surrounding states, with significant additional production in California, New Mexico, and Texas. Guajillo is essential to many of Mexico's most iconic dishes; without it, pozole rojo and birria as we know them wouldn't exist."
+    },
+    growing: {
+      usdaZones: "Perennial in 9–11, annual in 4–8",
+      daysToGerminate: "10–21",
+      daysToHarvest: 80,
+      plantHeight: "24–36 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "Guajillo is the dried form of mirasol, so to grow your own you'll need mirasol seeds (sometimes labeled 'mirasol/guajillo'). Plants are productive and forgiving, similar to other annuum cultivars. Let pods ripen fully red on the plant, then sun-dry on racks for several days until leathery."
+    },
+    buying: {
+      freshAvailability: "Fresh mirasol is uncommon outside Mexican farms and the largest Latin grocers in the US.",
+      driedAvailability: "Dried guajillo is universally available at Latin grocers, online, and increasingly at mainstream supermarkets in the international foods section.",
+      seedSources: ["Native Seeds/SEARCH", "Baker Creek", "Sandia Seed Company", "Pepper Joe's"],
+      seasonality: "Year-round; the dried form has a long shelf life.",
+      notes:
+        "Look for guajillos with intact, glossy skins — the papery outer layer should still be smooth and flexible. Crackled, brittle pods have lost moisture and won't rehydrate as well. The best guajillos come from Mexican importers and are typically vacuum-sealed."
+    },
+    substitutes: [
+      {
+        slug: "ancho",
+        ratio: "1:1",
+        note: "Most common kitchen swap — they often appear together in recipes. Ancho is sweeter and milder; guajillo brings more tartness and slight heat."
+      },
+      {
+        slug: "pasilla",
+        ratio: "1:1",
+        note: "Together with ancho, completes the 'holy trinity' of Mexican dried chiles. Pasilla is earthier and slightly more bitter than guajillo."
+      }
+    ],
+    faqs: [
+      {
+        question: "What's the difference between guajillo and ancho?",
+        answer:
+          "Different peppers, different flavors. Guajillo is the dried mirasol — a long, slender, deep red chile with a tangy, berry-like flavor and mild-to-medium heat. Ancho is the dried poblano — wider, darker, with a sweet raisin-and-chocolate flavor and milder heat. They're complementary and often used together in mole and adobo."
+      },
+      {
+        question: "How spicy is a guajillo chile?",
+        answer:
+          "Mild to medium — 2,500 to 5,000 Scoville Heat Units, similar to a mild jalapeño. The heat is more noticeable than ancho but well below cayenne or chile de árbol. In sauces, the heat dissipates further, making guajillo the dried chile that adds warmth without dominating."
+      },
+      {
+        question: "How do you use dried guajillo chiles?",
+        answer:
+          "Toast on a dry pan briefly (about 30 seconds per side, until fragrant), then rehydrate in warm water for 15–20 minutes. Remove stems and seeds, then blend the softened chile with the soaking liquid and other aromatics into a sauce. Guajillo paste is the base for birria, pozole, and chile colorado."
+      },
+      {
+        question: "What can I substitute for guajillo?",
+        answer:
+          "Ancho is the closest swap — milder and sweeter, but functionally similar in moles and sauces. New Mexico dried red chile works well too. Cascabel chiles approximate the slightly nutty character. In a pinch, a mix of paprika and a small amount of cayenne approximates the heat and color but loses the chile-specific flavor."
+      }
+    ]
+  },
+  {
+    slug: "pasilla",
+    name: "Pasilla",
+    aliases: ["chile pasilla", "chile negro", "dried chilaca"],
+    origin: "mexico",
+    scovilleMin: 1000,
+    scovilleMax: 2500,
+    heatTier: "mild",
+    color: "Very dark brown, nearly black (dried)",
+    flavorProfile: "Earthy, slightly bitter, with hints of dried herbs and dark berries — the deepest-tasting of the dried Mexican chile trinity.",
+    description:
+      "The pasilla — also called chile negro — is the third pillar of Mexican dried chile cooking, alongside ancho and guajillo. Long, slender, and so dark it appears nearly black, the pasilla brings deep, earthy complexity to traditional moles and adobos.",
+    editorialNote:
+      "Pasilla is the savory counterpoint in the dried Mexican trinity. Where ancho is sweet and guajillo is tangy, pasilla is herbal, slightly bitter, and almost mushroom-like in its depth. The name comes from 'pasa,' the Spanish word for raisin — though pasilla tastes less like raisin than ancho does. Confusingly, in California and parts of the US southwest, the dried poblano (ancho) is sometimes mislabeled 'pasilla,' which causes recipe confusion. The real pasilla is the dried chilaca pepper, an entirely different plant.",
+    culinaryUses: [
+      "Mole negro — the dark, complex Oaxacan mole",
+      "Adobo for slow-cooked meats and seafood",
+      "Pasilla cream sauce for fish dishes",
+      "Chile sauces for tamales and enchiladas",
+      "Toasted and ground for sophisticated chile rubs"
+    ],
+    pairsWith: ["Mexican", "Oaxacan", "Seafood", "Lamb", "Chocolate", "Garlic", "Cumin"],
+    funFact: "Mole negro from Oaxaca uses pasilla as its primary chile and can include over 30 ingredients including chocolate, sesame seeds, cinnamon, and dried herbs — it's one of the most labor-intensive sauces in Mexican cooking.",
+    affiliateKeys: ["amazon-chipotle-in-adobo"],
+    recipeTagMatch: ["mexican", "oaxacan", "mole"],
+    featured: false,
+    source: "editorial",
+    species: "annuum",
+    pepperType: "drying",
+    flavorNotes: ["earthy", "sweet", "smoky", "bitter"],
+    history: {
+      region: "Central and southern Mexico, especially Oaxaca and Puebla",
+      era: "Pre-Columbian; central to Oaxacan culinary tradition",
+      story:
+        "Pasilla is the dried form of the chilaca pepper, native to central Mexico. Long associated with Oaxacan cooking — particularly the iconic mole negro — pasilla has been part of Mexican cuisine since well before Spanish contact. The Mexican states of Zacatecas, Aguascalientes, and Guanajuato also produce significant amounts. The Pasilla de Oaxaca is a smoked variant that adds another flavor dimension and is harder to find outside specialty Oaxacan markets."
+    },
+    growing: {
+      usdaZones: "Perennial in 9–11, annual in 4–8",
+      daysToGerminate: "10–21",
+      daysToHarvest: 85,
+      plantHeight: "24–36 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "Chilaca peppers (fresh form of pasilla) grow long and slender on tall plants. Let pods ripen to dark green-black, then sun-dry until leathery and nearly black. Like other dried Mexican chiles, the drying process intensifies and transforms the flavor."
+    },
+    buying: {
+      freshAvailability: "Fresh chilaca peppers are very rare outside Mexico. Most cooks encounter pasilla only in dried form.",
+      driedAvailability: "Dried pasilla is available at Latin grocers and online. Less common than ancho or guajillo but increasingly stocked at well-supplied Mexican markets.",
+      seedSources: ["Native Seeds/SEARCH", "Sandia Seed Company", "Baker Creek"],
+      seasonality: "Year-round; long shelf life.",
+      notes:
+        "Be careful with labels: in California and parts of the US, dried poblano (true ancho) is sometimes sold as 'pasilla.' The real pasilla is longer, narrower, and significantly darker. Check the shape: pasilla is slender and elongated; ancho is wider and heart-shaped."
+    },
+    substitutes: [
+      {
+        slug: "ancho",
+        ratio: "1:1",
+        note: "Closest substitute in mole and adobo. Ancho is sweeter and brighter; pasilla is earthier and more complex. The blend of both is standard in traditional mole."
+      },
+      {
+        slug: "guajillo",
+        ratio: "1:1",
+        note: "Different flavor character (tangy/fruity vs earthy/bitter) but similar heat level and functional role in chile sauces."
+      }
+    ],
+    faqs: [
+      {
+        question: "Is pasilla the same as ancho?",
+        answer:
+          "No — they're completely different peppers, often confused in US grocery labeling. Pasilla is the dried chilaca; ancho is the dried poblano. The confusion comes from California, where dried poblano is sometimes mislabeled 'pasilla.' The real pasilla is longer, narrower, and much darker than ancho."
+      },
+      {
+        question: "What does pasilla taste like?",
+        answer:
+          "Earthy, slightly bitter, with notes of dried herbs, mushroom, dark berries, and a hint of bittersweet chocolate. The flavor is more complex and savory than ancho or guajillo, which is why pasilla is favored in mole negro — the dark Oaxacan mole that needs deep, brooding flavor notes."
+      },
+      {
+        question: "How spicy is pasilla?",
+        answer:
+          "Mild — 1,000 to 2,500 Scoville Heat Units, similar to a poblano. The flavor is what matters, not the heat. In traditional Mexican cooking, pasilla is chosen for its earthy depth, not its burn."
+      },
+      {
+        question: "Can I use pasilla in place of ancho?",
+        answer:
+          "Yes, with a flavor shift. The result will be earthier and less sweet — appropriate for some sauces (mole negro, adobo for seafood) but less ideal for sweeter applications. For mole poblano or chile rellenos sauce where the sweetness of ancho matters, the swap won't taste quite right."
+      }
+    ]
+  },
+  {
+    slug: "fresno",
+    name: "Fresno",
+    aliases: ["fresno pepper", "fresno chile"],
+    origin: "north-america",
+    scovilleMin: 2500,
+    scovilleMax: 10000,
+    heatTier: "medium",
+    color: "Bright red (occasionally green when unripe)",
+    flavorProfile: "Bright, slightly fruity, with a clean medium heat — like a red jalapeño with more fruit and less vegetal character.",
+    description:
+      "The Fresno pepper looks almost identical to a red jalapeño and is frequently confused with one. Bred in Fresno, California in 1952, it has slightly different flavor and a marginally hotter heat profile, with a smokier, fruitier character that makes it a craft hot sauce favorite.",
+    editorialNote:
+      "The Fresno is one of the most useful peppers most people have never heard of. At a glance it looks like a red jalapeño; in the kitchen it behaves like a slightly fruitier, slightly hotter version. Craft hot sauce makers favor it for that fruit character — Hot Ones' Yellowbird and Cholula's Hot Sauce both use Fresno or Fresno-derived peppers. Whole Foods and other higher-end grocers stock fresh Fresnos year-round; mainstream stores are catching up. Worth knowing as both a substitute and a primary ingredient.",
+    culinaryUses: [
+      "Quick-pickled for tacos, sandwiches, and burgers",
+      "Sliced fresh into salsas and pico de gallo (a sweeter version)",
+      "Roasted and blended into bright red hot sauces",
+      "Stir-fried into Asian preparations where its fruit notes work well",
+      "Substituted for red jalapeño in nearly any recipe"
+    ],
+    pairsWith: ["Mexican", "American", "Asian fusion", "Pork", "Burgers", "Quick pickles"],
+    funFact: "The Fresno pepper was first developed by Clarence Brown Hamlin in 1952 at the California Department of Agriculture in Fresno. It was registered specifically as a milder, sweeter alternative to red jalapeños for the canning industry — though today it's more often used fresh.",
+    affiliateKeys: ["amazon-cholula-original", "amazon-yellowbird-serrano"],
+    recipeTagMatch: ["mexican", "tex-mex", "american"],
+    featured: false,
+    source: "editorial",
+    species: "annuum",
+    pepperType: "fresh-pod",
+    flavorNotes: ["fruity", "smoky", "sweet"],
+    history: {
+      region: "Fresno, California, United States",
+      era: "Developed commercially in 1952",
+      story:
+        "Clarence Brown Hamlin developed the Fresno cultivar at the California Department of Agriculture as a more uniform, slightly milder alternative to red jalapeños for industrial canning. The pepper found its commercial niche fresh rather than canned and has steadily gained popularity at upscale grocers since the 2000s. The combination of red jalapeño appearance with a slightly fruitier flavor has made it a favorite of craft chefs and sauce producers."
+    },
+    growing: {
+      usdaZones: "Perennial in 9–11, annual in 4–8",
+      daysToGerminate: "7–14",
+      daysToHarvest: 75,
+      plantHeight: "24–30 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "Easy to grow — behaves similarly to jalapeño with a slightly more upright plant habit. Plants are productive (20–30 pods per season) and start producing earlier than chinense varieties. Container-friendly with a 3-gallon pot. Harvest fully red for the characteristic Fresno flavor; green Fresnos taste closer to green jalapeño."
+    },
+    buying: {
+      freshAvailability: "Increasingly common at upscale US grocers (Whole Foods, Sprouts, Trader Joe's); standard at Mexican markets. Year-round availability in California, seasonal elsewhere.",
+      driedAvailability: "Less common dried than fresh. Some specialty pepper retailers sell dried Fresnos for use in chili blends.",
+      seedSources: ["Burpee", "Bonnie Plants", "Baker Creek", "Pepper Joe's"],
+      seasonality: "Peak field-grown August–October; year-round greenhouse and California production.",
+      notes:
+        "If your grocer stocks 'red jalapeños' and they look glossy and slightly fatter than green jalapeños, there's a decent chance they're actually Fresnos. The two are often labeled interchangeably in mainstream stores. Either works for most recipes."
+    },
+    substitutes: [
+      {
+        slug: "jalapeno",
+        ratio: "1:1 (use a red jalapeño if available)",
+        note: "Functionally interchangeable. A red jalapeño is the closest swap by appearance and flavor; a green jalapeño works but loses the fruit-forward character."
+      },
+      {
+        slug: "serrano",
+        ratio: "Use ⅔ as many serranos",
+        note: "Hotter and less fruity; works when you need similar bright heat but more intensity."
+      }
+    ],
+    faqs: [
+      {
+        question: "Is a Fresno pepper the same as a red jalapeño?",
+        answer:
+          "Different cultivars, but very similar. Fresno was bred separately from jalapeño in 1952. The pepper looks almost identical to a ripe red jalapeño but is slightly fruitier in flavor and a touch hotter on average. Most grocers don't distinguish, and they're often interchangeable in recipes."
+      },
+      {
+        question: "How spicy is a Fresno?",
+        answer:
+          "Medium — 2,500 to 10,000 Scoville Heat Units. That's the same range as jalapeño but biased toward the high end. Most Fresnos taste hotter than typical green jalapeños but milder than serrano. Predictable heat with a noticeable fruit note."
+      },
+      {
+        question: "Can you eat Fresno peppers raw?",
+        answer:
+          "Yes — that's their most common use. Sliced raw into salsas, pico de gallo, pickled toppings, and salads. The flavor is bright and fruity raw; roasting deepens it but isn't necessary. The thin walls work well for quick pickling (5 minutes in hot vinegar with sugar)."
+      },
+      {
+        question: "What hot sauces are made with Fresno peppers?",
+        answer:
+          "Several craft sauces feature Fresno specifically — Hot Ones' first season sauces drew heavily from Fresno, and brands like Truff, Yellowbird's Serrano, and various small-batch producers use Fresno as the base. Many 'red jalapeño' sauces are actually Fresno-based without distinguishing in marketing."
+      }
+    ]
+  },
+  {
+    slug: "aleppo",
+    name: "Aleppo Pepper",
+    aliases: ["halaby pepper", "halaby biber", "Syrian pepper"],
+    origin: "middle-east",
+    scovilleMin: 5000,
+    scovilleMax: 10000,
+    heatTier: "medium",
+    color: "Deep red (dried and flaked)",
+    flavorProfile: "Sun-dried tomato, raisin, dried-fruit smoke, and a slow-building moderate heat.",
+    description:
+      "The Aleppo pepper is one of the most distinctive flaked chiles in the world — a Syrian-Turkish staple that combines moderate heat with a complex flavor that lands closer to dried fruit than to standard red pepper flakes. Sun-dried, salted, deseeded, and coarsely ground.",
+    editorialNote:
+      "If you only ever own one specialty chile flake, Aleppo is the one to choose. The combination of sun-dried tomato, raisin sweetness, and gentle building heat works almost anywhere standard red pepper flakes would — pasta, pizza, roasted vegetables, eggs — but with significantly more flavor character. The Syrian war disrupted traditional Aleppo region production starting in 2011; much of today's supply comes from Gaziantep, Turkey, which produces a near-identical pepper that is also (confusingly) labeled 'Aleppo' in the US market. The Turkish version is excellent; purists distinguish them, but most Western buyers can use either interchangeably.",
+    culinaryUses: [
+      "Sprinkled on hummus, labneh, and other Mediterranean dips",
+      "Mixed into spice rubs for grilled lamb, chicken, and fish",
+      "Stirred into salad dressings for warm-tomato character",
+      "Substituted for red pepper flakes on pasta and pizza for more flavor depth",
+      "Added to muhammara, the Syrian red pepper-walnut spread"
+    ],
+    pairsWith: ["Middle Eastern", "Mediterranean", "Lamb", "Tomatoes", "Olive oil", "Sumac", "Pomegranate molasses"],
+    funFact: "Traditional Aleppo pepper production is so labor-intensive that the price reflects it — peppers are sun-dried over weeks on rooftop terraces, then hand-deseeded, salted, and coarsely milled. Modern commercial processing speeds this up but high-quality Aleppo is still a premium product.",
+    affiliateKeys: ["amazon-tajin-clasico"],
+    recipeTagMatch: ["middle eastern", "mediterranean"],
+    featured: false,
+    source: "editorial",
+    species: "annuum",
+    pepperType: "drying",
+    flavorNotes: ["fruity", "smoky", "earthy", "sweet"],
+    history: {
+      region: "Aleppo, Syria, and the surrounding Levant; now also Gaziantep, Turkey",
+      era: "Cultivated in the Aleppo region since the Ottoman period",
+      story:
+        "The Aleppo pepper takes its name from the Syrian city where commercial production was concentrated for centuries — a center of the Levantine spice trade since Ottoman times. The Syrian civil war that began in 2011 severely disrupted production around Aleppo, and much of today's commercial 'Aleppo pepper' is grown across the border in Gaziantep, Turkey (where the same cultivar has been cultivated for nearly as long). Syrian Aleppo is slowly returning to market as regional production recovers."
+    },
+    growing: {
+      usdaZones: "Perennial in 9–11, annual in 4–8",
+      daysToGerminate: "10–21",
+      daysToHarvest: 90,
+      plantHeight: "24–36 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "Halaby biber (the cultivar name) grows similarly to other annuum peppers. The flavor comes from the traditional processing — sun-drying, salting, partial removal of seeds — rather than from the fresh pepper itself. Growing the pepper is straightforward; producing authentic Aleppo flakes at home requires the multi-week drying process."
+    },
+    buying: {
+      freshAvailability: "Fresh halaby biber is rare in the US — mostly available at Middle Eastern grocers or via specialty growers.",
+      driedAvailability: "Aleppo pepper flakes are widely available — Middle Eastern grocers, specialty spice retailers (Penzeys, Burlap & Barrel, World Spice), and most upscale supermarkets. Both Syrian and Turkish-origin versions are sold.",
+      seedSources: ["Baker Creek (heritage seed)", "specialty Middle Eastern seed importers"],
+      seasonality: "Year-round dried product; the multi-week processing means continuous supply.",
+      notes:
+        "Quality varies. Look for Aleppo that is moist, oily, deep red, and pleasantly fragrant — dry, pale, or odorless flakes have been on the shelf too long. Burlap & Barrel sells Syrian-origin Aleppo; many Middle Eastern grocers sell Turkish-origin. Both are excellent."
+    },
+    substitutes: [
+      {
+        slug: "gochugaru",
+        ratio: "1:1",
+        note: "Korean gochugaru has similar flake form and moderate heat. Less fruit-and-raisin character; more straightforward sweet smoke. Works in non-Middle-Eastern applications."
+      },
+      {
+        slug: "calabrian-chili",
+        ratio: "1:1 (flakes)",
+        note: "Italian Calabrian flakes have similar heat and a comparable fruit character. Closer to Aleppo than American red pepper flakes."
+      }
+    ],
+    faqs: [
+      {
+        question: "What does Aleppo pepper taste like?",
+        answer:
+          "Sun-dried tomato, raisin, mild smoke, and a slowly-building moderate heat. The flavor is the appeal — Aleppo tastes like an ingredient, not just heat. Compared to standard American red pepper flakes (which are mostly heat with little flavor), Aleppo brings genuine fruit and depth."
+      },
+      {
+        question: "How spicy is Aleppo pepper?",
+        answer:
+          "Mild to medium — about 10,000 Scoville Heat Units, similar to a hot jalapeño. The heat builds slowly rather than hitting immediately. You can use Aleppo more liberally than standard red pepper flakes because the heat is gentler and the flavor justifies the larger quantity."
+      },
+      {
+        question: "Where can I buy real Aleppo pepper?",
+        answer:
+          "Middle Eastern grocers carry it most reliably; specialty spice retailers like Burlap & Barrel and Penzeys carry quality versions online. Most upscale supermarkets (Whole Foods, Wegmans) now stock it in the spice aisle. Look for moist, oily, dark red flakes — the freshest product has visible sheen."
+      },
+      {
+        question: "Can I substitute red pepper flakes for Aleppo?",
+        answer:
+          "Yes, but you'll lose the flavor character — Aleppo's fruit-and-smoke notes don't come through with standard American red pepper flakes. For closer substitution: Turkish marash biber (a close cousin), Korean gochugaru (similar flake form), or a mix of paprika and a small amount of cayenne approximates the heat and color without the depth."
+      }
+    ]
+  },
+  {
+    slug: "shishito",
+    name: "Shishito",
+    aliases: ["shishi pepper", "shishi-tougarashi"],
+    origin: "east-asia",
+    scovilleMin: 50,
+    scovilleMax: 200,
+    heatTier: "mild",
+    color: "Bright green ripening to red",
+    flavorProfile: "Vegetal, slightly sweet, and bright — with an unpredictable ~1-in-10 chance of significantly more heat.",
+    description:
+      "The shishito is a Japanese pepper that's almost entirely mild — except about one in every ten pods is unexpectedly hot. Slim, slightly wrinkled, bright green, and most famous as a blistered tapas-style appetizer, the shishito has become one of the trendiest peppers in American restaurants since the 2010s.",
+    editorialNote:
+      "Shishito's appeal is the lottery. The vast majority of pods taste vegetal and sweet with almost no heat — eating them blistered in oil and salt is closer to eating a green bean than a chile. But genetics being what they are, roughly one in ten pods carries serious capsaicin, and the surprise becomes part of the dining experience. The combination of accessibility and unpredictability has made shishitos one of the most successful 'crossover' peppers — they appear on menus that wouldn't otherwise touch chiles. Grocer availability has caught up: Trader Joe's, Whole Foods, and increasing numbers of mainstream supermarkets stock them year-round.",
+    culinaryUses: [
+      "Blistered in a hot pan with oil and finished with flaky salt — the canonical Japanese izakaya preparation",
+      "Charred on a grill and squeezed with lemon",
+      "Stuffed with cheese and quickly broiled",
+      "Stir-fried with garlic and soy sauce",
+      "Pickled for tacos and sandwiches"
+    ],
+    pairsWith: ["Japanese", "Tapas", "Flaky salt", "Lemon", "Soy sauce", "Sesame", "Yuzu"],
+    funFact: "The name 'shishito' translates to 'lion pepper' — the slightly bulbous, wrinkled tip of the pod was thought to resemble a lion's head in Japanese folk tradition. The lottery factor (one in ten being hot) is unrelated to the name but has become part of the modern American appeal.",
+    affiliateKeys: ["amazon-chili-crisp", "amazon-fly-by-jing-sichuan-gold"],
+    recipeTagMatch: ["japanese", "asian"],
+    featured: true,
+    source: "editorial",
+    species: "annuum",
+    pepperType: "fresh-pod",
+    flavorNotes: ["vegetal", "sweet", "smoky"],
+    history: {
+      region: "Japan, with cultivation also in Korea and parts of China",
+      era: "Long established in Japanese cooking; gained Western fame in the 2010s",
+      story:
+        "Shishitos have been cultivated in Japan for centuries as a household pepper, eaten in summer when the pods are at peak. The variety is closely related to (and visually similar to) the Spanish padrón, suggesting both descended from a common ancestor brought via Portuguese trade. American restaurants, particularly those leaning Japanese-fusion, popularized shishitos starting in the 2010s — by the mid-2020s they had become a standard appetizer on bar menus from New York to Los Angeles. Mexican and California growers now supply much of the US market."
+    },
+    growing: {
+      usdaZones: "Perennial in 9–11, annual in 4–8",
+      daysToGerminate: "7–14",
+      daysToHarvest: 60,
+      plantHeight: "18–24 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "One of the easiest peppers to grow in a home garden — productive, compact, and quick to fruit. A single plant can produce 50+ pods over a season. Pick them when green and slightly smaller than your finger; older pods turn red, get tougher, and develop more heat. Plants do well in containers as small as 2 gallons."
+    },
+    buying: {
+      freshAvailability: "Year-round at Whole Foods, Trader Joe's, Sprouts, and many mainstream grocers. Standard at Japanese and Asian markets. One of the most available specialty peppers in the US.",
+      driedAvailability: "Not commonly dried — shishitos are a fresh pepper.",
+      seedSources: ["Kitazawa Seed", "Baker Creek", "Burpee", "Johnny's Selected Seeds"],
+      seasonality: "Year-round at well-stocked grocers; peak fresh August–October.",
+      notes:
+        "Look for firm, glossy green pods. Wrinkled or pale shishitos are past their prime. The slightly bulbous tip is normal — that's the 'lion head' shape the name refers to."
+    },
+    substitutes: [
+      {
+        slug: "padron",
+        ratio: "1:1",
+        note: "The Spanish near-equivalent. Padróns are almost interchangeable with shishitos — same mild heat with the same lottery factor. Use whichever you can find."
+      }
+    ],
+    faqs: [
+      {
+        question: "Why is one in ten shishitos spicy?",
+        answer:
+          "Genetic variation. The cultivar produces mostly mild peppers, but environmental stress (heat, drought, age) can trigger higher capsaicin in occasional pods. There's no way to tell which is which from the outside. The unpredictability is part of the appeal — Japanese cooks have eaten shishitos this way for centuries."
+      },
+      {
+        question: "How do you cook shishito peppers?",
+        answer:
+          "Most commonly blistered: a hot pan with a little oil, the peppers thrown in whole, tossed until the skins blister and char in spots (about 3–4 minutes), then finished with flaky salt. Squeeze of lemon optional. Eat the whole pepper — stem, seeds, and all. They're also good grilled, charred over flame, or stuffed and broiled."
+      },
+      {
+        question: "Are shishito peppers spicy?",
+        answer:
+          "Mostly not — they're rated 50–200 Scoville Heat Units, well below jalapeño. But roughly one in every ten pods is unexpectedly hot, sometimes reaching mild-jalapeño levels. The lottery factor is well-known and is part of the cultivar's charm rather than a defect."
+      },
+      {
+        question: "What's the difference between shishito and padrón?",
+        answer:
+          "Very little — they're closely related cultivars from Japan and Spain respectively. Padróns are slightly larger and can carry slightly more heat on average, but both have the same vegetal flavor, the same mild baseline, and the same one-in-ten lottery factor for unexpectedly hot pods. Most American grocers and restaurants treat them interchangeably."
+      }
+    ]
+  },
+  {
+    slug: "padron",
+    name: "Padrón",
+    aliases: ["padron pepper", "pimientos de padrón", "Galician pepper"],
+    origin: "europe",
+    scovilleMin: 500,
+    scovilleMax: 2500,
+    heatTier: "mild",
+    color: "Bright green, occasionally ripening to red",
+    flavorProfile: "Vegetal and slightly fruity, with a mild grass-and-green-pepper character — and the well-known one-in-ten chance of meaningful heat.",
+    description:
+      "The padrón is the defining tapa pepper of Spanish cooking — a small, slightly wrinkled green chile from Galicia best known for its lottery factor. Most pods are mild and vegetal; about one in ten is unexpectedly hot. Blistered in olive oil and finished with sea salt, they're one of the most iconic Spanish bar foods.",
+    editorialNote:
+      "Padrón peppers are to Spanish tapas what shishitos are to Japanese izakaya cooking — and the two are botanically similar enough that you can substitute either for the other. The Galician proverb 'os pementos de Padrón, uns pican e outros non' ('Padrón peppers, some are hot and some are not') captures the appeal perfectly. American restaurants have embraced them alongside shishitos, often serving the two together as a 'pepper lottery' plate. They're easier to find at Spanish-leaning restaurants and at upscale supermarkets than they used to be.",
+    culinaryUses: [
+      "Blistered in olive oil and finished with flaky sea salt — the iconic Galician tapa",
+      "Pan-charred and served with Manchego cheese",
+      "Grilled and folded into Spanish tortillas (egg-and-potato omelets)",
+      "Mixed with shishitos for a 'pepper lottery' plate",
+      "Pickled in sherry vinegar for tapas spreads"
+    ],
+    pairsWith: ["Spanish", "Tapas", "Olive oil", "Sea salt", "Manchego", "Sherry vinegar", "Jamón"],
+    funFact: "Padrón peppers are grown almost exclusively in the Herbón parish of A Coruña, Galicia — production is protected by an EU 'Pemento de Herbón' designation of origin, making it one of the few EU-protected chile peppers in the world.",
+    affiliateKeys: ["amazon-tajin-clasico"],
+    recipeTagMatch: ["spanish", "tapas"],
+    featured: false,
+    source: "editorial",
+    species: "annuum",
+    pepperType: "fresh-pod",
+    flavorNotes: ["vegetal", "fruity", "sweet"],
+    history: {
+      region: "Herbón, Galicia, northwestern Spain",
+      era: "Cultivated in Galicia since the 16th century",
+      story:
+        "Padrón peppers were brought to Galicia by Franciscan monks returning from Mexico in the 16th century. They were planted in the parish of Herbón, near the town of Padrón, where the climate and soil produced a specific small, mild cultivar that became culturally distinct from other Spanish peppers. The EU's Protected Designation of Origin status (granted in 2010) restricts the 'Padrón pepper' name to peppers grown in this specific area, though similar peppers are now produced elsewhere in Spain and sold under broader names."
+    },
+    growing: {
+      usdaZones: "Perennial in 9–11, annual in 4–8",
+      daysToGerminate: "10–18",
+      daysToHarvest: 65,
+      plantHeight: "24–30 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "Easy and productive — similar growing requirements to shishito. Plants tolerate the Galician cool, damp summers better than many chiles, which is part of why they thrive on the Atlantic coast. In US gardens, picks are best when small (1–2 inches); larger pods get progressively hotter. Container-friendly with a 3-gallon pot."
+    },
+    buying: {
+      freshAvailability: "Increasingly common at upscale US grocers (Whole Foods, Sprouts) during summer; year-round at Spanish specialty importers. Less universally stocked than shishito but trending up.",
+      driedAvailability: "Not commonly dried — padróns are a fresh pepper.",
+      seedSources: ["Baker Creek", "Renee's Garden", "Spanish heirloom seed importers"],
+      seasonality: "Peak fresh July–September; year-round availability where greenhouse production exists.",
+      notes:
+        "Look for small, firm, dark-green pods with slight wrinkling. Padróns sold in Spain are typically smaller than US-grown versions. Larger pods are still good but more likely to carry heat — Spanish cooks generally pick them young to keep the lottery favorable."
+    },
+    substitutes: [
+      {
+        slug: "shishito",
+        ratio: "1:1",
+        note: "The Japanese near-equivalent. Padrón and shishito are functionally interchangeable in blistering and grilling applications — same mild profile, same lottery factor."
+      }
+    ],
+    faqs: [
+      {
+        question: "What's the famous Galician saying about padrón peppers?",
+        answer:
+          "'Os pementos de Padrón, uns pican e outros non' — 'Padrón peppers, some are hot and some are not.' It's a centuries-old reference to the cultivar's unpredictable heat: most pods are mild, but a small percentage are unexpectedly fiery. The saying is so well-known in Spain that 'padrón' has become shorthand for unpredictability."
+      },
+      {
+        question: "How spicy are padrón peppers?",
+        answer:
+          "Mostly mild — 500–2,500 Scoville Heat Units, similar to a poblano on the low end. About one in ten pods will be hotter, sometimes reaching jalapeño territory. There's no visible way to tell which is which. Larger, older pods are more likely to be hot than small young ones, but it's still a lottery."
+      },
+      {
+        question: "How do you cook padrón peppers?",
+        answer:
+          "Blistered: heat olive oil in a pan until shimmering, throw in whole padróns, toss until skins blister and char in spots (3–4 minutes), finish with flaky sea salt. Eat them whole, stem and all (or use the stem as a handle). The classic Galician preparation. They're also good grilled, fried in olive oil with garlic, or charred and folded into tortilla."
+      },
+      {
+        question: "Are padrón peppers the same as shishitos?",
+        answer:
+          "Closely related cousins, not identical. Both are mild peppers with the same lottery factor (~1 in 10 hot). Padróns are typically slightly larger and can carry slightly more heat on average. They originated separately — padrón in Spain via Mexican monk imports, shishito in Japan — but the cultivars are similar enough to be functionally interchangeable in most recipes."
+      }
+    ]
+  },
+  {
+    slug: "chile-de-arbol",
+    name: "Chile de Árbol",
+    aliases: ["chile de arbol", "bird's beak chile", "rat's tail chile"],
+    origin: "mexico",
+    scovilleMin: 15000,
+    scovilleMax: 30000,
+    heatTier: "medium",
+    color: "Bright red (dried)",
+    flavorProfile: "Clean, sharp heat with a slightly grassy, nutty backbone — direct and uncomplicated.",
+    description:
+      "The chile de árbol is one of the most useful dried Mexican chiles in the medium-heat tier. Slender, bright red, and direct in its heat, it brings clean fire without much fruity or smoky distraction. A staple in Mexican salsas, soups, and pickled condiments.",
+    editorialNote:
+      "Where ancho and pasilla bring depth and guajillo brings tang, chile de árbol brings straight heat. It's the dried Mexican chile you reach for when you want to dial up the burn of a sauce without changing its overall flavor profile. Salsa de árbol — toasted árbol blended with tomato, garlic, and salt — is one of the most direct hot sauces in the Mexican repertoire, often appearing on taco stand tables in 16-ounce squirt bottles. Despite the 'medium' tier label, individual árbols can hit serrano-level intensity.",
+    culinaryUses: [
+      "Salsa de árbol — bright, hot red salsa for tacos and eggs",
+      "Toasted and crumbled over pozole, menudo, and birria",
+      "Pickled in vinegar with carrots and onion (en escabeche)",
+      "Infused into oils for chili oil applications",
+      "Ground into chile flakes for spice blends"
+    ],
+    pairsWith: ["Mexican", "Tacos", "Eggs", "Soups", "Pickled vegetables", "Lime"],
+    funFact: "The name 'chile de árbol' translates literally to 'tree chile' — the plant grows taller and more woody than most chile cultivars, sometimes reaching four feet with a small-tree-like form rather than a typical pepper bush shape.",
+    affiliateKeys: ["amazon-cholula-original", "amazon-tajin-clasico"],
+    recipeTagMatch: ["mexican", "salsa"],
+    featured: false,
+    source: "editorial",
+    species: "annuum",
+    pepperType: "drying",
+    flavorNotes: ["vegetal", "smoky", "sweet"],
+    history: {
+      region: "Central and northern Mexico, especially Jalisco and Nayarit",
+      era: "Pre-Columbian Mexican cultivation",
+      story:
+        "Chile de árbol is descended from the pequin pepper family, native to the wild brushlands of central Mexico. Cultivation became commercial in the 20th century, with Jalisco and Nayarit emerging as primary growing regions. The cultivar is exported widely now, and significant production also happens in California, Arizona, and New Mexico. The tall, tree-like plant habit distinguishes it visually from most other Mexican chiles."
+    },
+    growing: {
+      usdaZones: "Perennial in 9–11, annual in 4–8",
+      daysToGerminate: "10–21",
+      daysToHarvest: 85,
+      plantHeight: "36–48 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "Distinctive growth habit: taller and more woody than most chile plants, sometimes requiring staking. Highly productive — a single plant can yield hundreds of small pods over a season. Let pods ripen fully red on the plant, then dry on racks or strings until brittle. Storage life is excellent when properly dried."
+    },
+    buying: {
+      freshAvailability: "Fresh árbols are rare outside Mexican farms and large Latin grocers. Most cooks encounter them dried.",
+      driedAvailability: "Universally available at Latin grocers and online; increasingly stocked at mainstream supermarkets in the international section.",
+      seedSources: ["Native Seeds/SEARCH", "Baker Creek", "Sandia Seed Company", "Pepper Joe's"],
+      seasonality: "Year-round; long shelf life when dried.",
+      notes:
+        "Look for whole, intact dried pods with bright red color — fading to pale orange or brown indicates age and lost flavor. The thin walls are normal; brittle is fine, crumbling is past prime."
+    },
+    substitutes: [
+      {
+        slug: "cayenne",
+        ratio: "1:1",
+        note: "Similar heat range and similar clean, direct character when dried. Cayenne is slightly hotter on average and has very similar applications."
+      },
+      {
+        slug: "thai-birds-eye",
+        ratio: "Use ½ as many",
+        note: "About twice the heat of chile de árbol. Use less for similar burn; thai birds eye is more bright/citrus than the earthy árbol character."
+      }
+    ],
+    faqs: [
+      {
+        question: "How hot is chile de árbol?",
+        answer:
+          "Medium-hot — 15,000 to 30,000 Scoville Heat Units, which puts it at about three to four times the heat of a hot jalapeño. Less intense than thai bird's eye or cayenne but well above guajillo or ancho. The heat is direct and clean rather than building."
+      },
+      {
+        question: "What does chile de árbol taste like?",
+        answer:
+          "Clean, sharp, slightly nutty heat with a grassy backbone. Less fruity than habanero, less smoky than chipotle, less tangy than guajillo. The flavor is the chile equivalent of a clean note — straightforward heat without much distraction, which is exactly what makes it useful as a dialing-up ingredient."
+      },
+      {
+        question: "How do you use chile de árbol?",
+        answer:
+          "Toast briefly on a dry pan until fragrant (about 30 seconds per side), then blend into salsas with tomato or tomatillo, vinegar, garlic, and salt for salsa de árbol. Alternatively, crumble whole toasted árbols over finished dishes (pozole, menudo, eggs) for a textural heat hit. Can also be infused into hot oil for quick chili oil."
+      },
+      {
+        question: "What can I substitute for chile de árbol?",
+        answer:
+          "Cayenne pepper (whole or ground) is the closest swap — same heat tier, similar dry-heat character. Thai bird's eye chiles work but are hotter (use about half). For ground applications, half cayenne plus half paprika approximates árbol's color and heat without exact flavor match."
+      }
+    ]
+  },
+  {
+    slug: "banana-pepper",
+    name: "Banana Pepper",
+    aliases: ["yellow wax pepper", "Hungarian banana", "sweet banana"],
+    origin: "europe",
+    scovilleMin: 0,
+    scovilleMax: 500,
+    heatTier: "mild",
+    color: "Pale yellow ripening through orange to red",
+    flavorProfile: "Tangy, slightly sweet, mild with almost no perceptible heat — closer to a sweet pepper than a chile.",
+    description:
+      "The banana pepper is a long, curved yellow pepper that's almost always sold pickled or fresh as a mild, tangy ingredient. Common on sandwiches, salads, and pizzas across the American Midwest, it's one of the most widely consumed mild peppers in the US.",
+    editorialNote:
+      "The banana pepper occupies an interesting space — it's a chile by botany but functionally a sweet pepper by usage. Pickled rings are the format most Americans encounter, sold by the jar at every supermarket and standard at sub shops and pizzerias from coast to coast. The pepper has almost no heat (less than a green bell pepper in many cases) and instead delivers tang, slight sweetness, and crunch. The Hungarian wax pepper is a closely related cultivar with more heat — important to distinguish when shopping for seeds. For most cooking contexts, 'banana pepper' refers to the mild version.",
+    culinaryUses: [
+      "Pickled in rings for sandwiches, subs, and pizza toppings",
+      "Sliced fresh into salads and Greek-style preparations",
+      "Stuffed with cheese and breadcrumbs for an oven-baked appetizer",
+      "Added to relishes and pickle blends",
+      "Used in Hungarian and Eastern European cooking as a mild stuffed pepper"
+    ],
+    pairsWith: ["Italian-American", "American sandwiches", "Pizza", "Greek salad", "Pickled vegetables", "Eastern European"],
+    funFact: "The banana pepper's status as a 'standard pizzeria topping' across the American Midwest is a 20th-century Italian-American invention — banana peppers themselves are originally from Hungary and Central Europe, not Italy.",
+    affiliateKeys: ["amazon-cholula-original"],
+    recipeTagMatch: ["italian", "american", "eastern european"],
+    featured: false,
+    source: "editorial",
+    species: "annuum",
+    pepperType: "fresh-pod",
+    flavorNotes: ["vegetal", "sweet", "citrus"],
+    history: {
+      region: "Hungary and Central Europe; cultivated commercially in the US since the early 1900s",
+      era: "Brought to the US by Hungarian and Eastern European immigrants in the 19th century",
+      story:
+        "Banana peppers descend from Hungarian cultivars that immigrants brought to the US in the 19th and early 20th centuries. The mild yellow form became commercially successful in the American Midwest, particularly Ohio and Pennsylvania, where Hungarian and Italian-American communities popularized it. Today commercial production is concentrated in California, Florida, and the Great Lakes states. The hotter Hungarian wax pepper is a close cultivar relative that diverged through separate selection."
+    },
+    growing: {
+      usdaZones: "Perennial in 9–11, annual in 4–8",
+      daysToGerminate: "7–14",
+      daysToHarvest: 65,
+      plantHeight: "18–30 in",
+      containerFriendly: true,
+      sunRequirement: "full",
+      waterNeeds: "moderate",
+      notes:
+        "One of the most cooperative peppers for US home gardens — productive, early-fruiting, tolerant of cooler summers than habanero or chinense varieties. A single plant can produce 30–50 peppers over a season. Container-friendly with a 3-gallon pot. Harvest at yellow stage for classic banana pepper flavor; leave on the plant to ripen orange and red for a sweeter version."
+    },
+    buying: {
+      freshAvailability: "Year-round at virtually every US grocery store. Pickled rings are standard pantry items, also year-round.",
+      driedAvailability: "Not commonly dried — banana peppers are eaten fresh or pickled.",
+      seedSources: ["Burpee", "Bonnie Plants", "Baker Creek", "Johnny's Selected Seeds"],
+      seasonality: "Year-round; greenhouse and US field production keep fresh supply continuous.",
+      notes:
+        "Be careful with seed labeling: 'banana pepper' usually means the mild sweet variety, but 'Hungarian wax' or 'hot banana' refers to a hotter cultivar (5,000–15,000 SHU). Check the seed packet's heat description before planting if you specifically want the mild form."
+    },
+    substitutes: [
+      {
+        slug: "anaheim",
+        ratio: "1:1",
+        note: "Mild, slightly larger, similar vegetal character. Anaheim works for fresh applications; doesn't have the tangy bite that defines pickled banana peppers."
+      }
+    ],
+    faqs: [
+      {
+        question: "Are banana peppers spicy?",
+        answer:
+          "Barely. Sweet banana peppers are 0–500 Scoville Heat Units — well below jalapeño and often imperceptibly mild. The 'heat' you taste in a pickled banana pepper is mostly the brine's vinegar and salt, not the pepper itself. Hungarian wax peppers (a related cultivar sometimes confused with banana) are significantly hotter."
+      },
+      {
+        question: "What's the difference between banana peppers and pepperoncini?",
+        answer:
+          "Different peppers, often confused because both are commonly pickled, yellow-ish, and mild. Pepperoncini are smaller, slightly more wrinkled, and slightly milder; banana peppers are longer, smoother, and have a touch more sweetness. Pepperoncini originated in Greece and Italy; banana peppers in Hungary. Functionally similar but not identical."
+      },
+      {
+        question: "Can you eat banana peppers raw?",
+        answer:
+          "Yes — fresh banana peppers are excellent sliced into salads, sandwiches, and Greek-style preparations. The flavor is tangy and slightly sweet, with crunch similar to a mild pepper. The yellow-pickled form is more common in the US, but the fresh form is just as useful."
+      },
+      {
+        question: "Are Hungarian wax peppers the same as banana peppers?",
+        answer:
+          "Closely related but distinct cultivars. Sweet banana peppers are 0–500 SHU; Hungarian wax peppers are 5,000–15,000 SHU (similar to a jalapeño). Both are yellow and curved, which causes the confusion. If a seed packet or grocer doesn't specify, the yellow milder version is usually banana pepper; the hotter version is usually Hungarian wax."
+      }
+    ]
   }
 ];
 
