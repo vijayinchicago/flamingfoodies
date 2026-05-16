@@ -182,8 +182,8 @@ export function RecipeBrowseClient({
 
   return (
     <>
-      {/* Sticky filter rail */}
-      <div id="recipe-browse" className="sticky top-[68px] z-30 -mx-4 mt-6 border-y border-charcoal/10 bg-cream/95 px-4 py-4 backdrop-blur-md sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+      {/* Filter rail */}
+      <div id="recipe-browse" className="mt-6">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <input
             type="search"
@@ -239,7 +239,7 @@ export function RecipeBrowseClient({
           </div>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
           {browseOptions.heatLevels.map((h) => (
             <button
               key={h}
@@ -250,8 +250,8 @@ export function RecipeBrowseClient({
               {formatHeatLabel(h)}
             </button>
           ))}
-          <span className="mx-1 h-6 w-px bg-charcoal/15 self-center" aria-hidden />
-          {browseOptions.cuisines.map((c) => (
+          <span className="mx-1 h-6 w-px bg-charcoal/15" aria-hidden />
+          {browseOptions.cuisines.slice(0, 6).map((c) => (
             <button
               key={c}
               type="button"
@@ -261,6 +261,19 @@ export function RecipeBrowseClient({
               {formatCuisineLabel(c)}
             </button>
           ))}
+          {browseOptions.cuisines.length > 6 ? (
+            <select
+              value={browseOptions.cuisines.slice(0, 6).includes(cuisine as CuisineType) ? "" : cuisine}
+              onChange={(e) => { setCuisine(e.target.value || "all"); setPage(1); }}
+              className={`${filterFieldClass} py-2`}
+              aria-label="More cuisines"
+            >
+              <option value="">More cuisines…</option>
+              {browseOptions.cuisines.slice(6).map((c) => (
+                <option key={c} value={c}>{formatCuisineLabel(c)}</option>
+              ))}
+            </select>
+          ) : null}
         </div>
       </div>
 
