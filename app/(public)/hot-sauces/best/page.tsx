@@ -9,6 +9,7 @@ import { ReviewCard } from "@/components/cards/review-card";
 import { HotSauceComparisonTable } from "@/components/hot-sauces/hot-sauce-comparison-table";
 import { HotSauceFaqSection } from "@/components/hot-sauces/hot-sauce-faq-section";
 import { SectionHeading } from "@/components/layout/section-heading";
+import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { FaqSchema } from "@/components/schema/faq-schema";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
 import {
@@ -57,6 +58,13 @@ export default async function BestHotSaucesPage() {
 
   return (
     <section className="container-shell py-16">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", item: absoluteUrl("/") },
+          { name: "Hot Sauces", item: absoluteUrl("/hot-sauces") },
+          { name: "Best Hot Sauces", item: absoluteUrl("/hot-sauces/best") }
+        ]}
+      />
       <ItemListSchema
         name="Best hot sauces"
         items={bestSauces.map((review) => ({

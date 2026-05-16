@@ -6,6 +6,7 @@ import { ReviewCard } from "@/components/cards/review-card";
 import { EmailCapture } from "@/components/forms/email-capture";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { OrganizationSchema } from "@/components/schema/organization-schema";
+import { WebSiteSchema } from "@/components/schema/website-schema";
 import { HOT_SAUCE_LANDING_LINKS } from "@/lib/hot-sauces";
 import { getFeaturedCollection } from "@/lib/services/content";
 import { getGuides } from "@/lib/content/guides";
@@ -31,6 +32,7 @@ export default async function HomePage() {
   return (
     <>
       <OrganizationSchema />
+      <WebSiteSchema />
       <section className="dark-scope bg-flame-gradient">
         <div className="container-shell py-8 sm:py-24">
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">

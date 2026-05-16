@@ -31,10 +31,12 @@ import {
 import { getMerchThemeClasses } from "@/lib/merch";
 import { getReviewHeroFields } from "@/lib/review-hero";
 import { buildMetadata } from "@/lib/seo";
-import { getFeaturedMerchProducts, getReview, getReviews } from "@/lib/services/content";
+import { getFeaturedMerchProducts, getRecipes, getReview, getReviews } from "@/lib/services/content";
 import { absoluteUrl, formatDate, markdownToHtml } from "@/lib/utils";
 import { PeppersInContent } from "@/components/peppers/peppers-in-content";
 import { findPeppersInText } from "@/lib/peppers";
+import { RecipeCard } from "@/components/cards/recipe-card";
+import { getRecipesForReview } from "@/lib/recipe-commerce";
 
 export async function generateMetadata({
   params
@@ -125,11 +127,13 @@ export default async function ReviewPage({
       })
     }))
     .filter((entry): entry is { offer: (typeof relatedOffers)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
-  const [merchPreview, ads, allReviews] = await Promise.all([
+  const [merchPreview, ads, allReviews, allRecipes] = await Promise.all([
     getFeaturedMerchProducts(2),
     getAdRuntimeConfig(),
-    getReviews()
+    getReviews(),
+    getRecipes()
   ]);
+  const recipesForThisSauce = getRecipesForReview(review, allRecipes, 3);
   const whyThisPick = getHotSauceWhyBuy(review);
   const bestFor = getHotSauceBestForCopy(review);
   const skipIf = getHotSauceSkipIfCopy(review);
@@ -482,6 +486,24 @@ export default async function ReviewPage({
           </div>
         </div>
       ) : null}
+      {recipesForThisSauce.length > 0 ? (
+        <section className="mt-14">
+          <p className="eyebrow">Use it on something</p>
+          <h2 className="mt-3 font-display text-3xl text-charcoal sm:text-4xl">
+            Recipes that pair with this sauce
+          </h2>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/70">
+            Scored against the recipe&apos;s cuisine, heat profile, and ingredient signals — these
+            are the dishes this bottle actually earns its place on.
+          </p>
+          <div className="mt-6 grid gap-6 lg:grid-cols-3">
+            {recipesForThisSauce.map((recipe) => (
+              <RecipeCard key={recipe.id} recipe={recipe} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
       <div className="mt-12">
         <CommentSection
           contentType="review"

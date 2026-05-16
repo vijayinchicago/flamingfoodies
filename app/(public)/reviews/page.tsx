@@ -5,6 +5,7 @@ import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { AffiliateLink } from "@/components/content/affiliate-link";
 import { ReviewCard } from "@/components/cards/review-card";
 import { SectionHeading } from "@/components/layout/section-heading";
+import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
 import { getAdRuntimeConfig } from "@/lib/ads";
 import {
@@ -116,6 +117,12 @@ export default async function ReviewsIndexPage({
 
   return (
     <section className="container-shell py-16">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", item: absoluteUrl("/") },
+          { name: "Hot Sauce Reviews", item: absoluteUrl("/reviews") }
+        ]}
+      />
       <ItemListSchema
         name="FlamingFoodies review archive"
         items={paginatedReviews.items.map((review) => ({

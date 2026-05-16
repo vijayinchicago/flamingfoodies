@@ -299,3 +299,24 @@ export function getRelatedRecipesForRecipe(
     .slice(0, limit)
     .map(({ score: _score, recipe }) => recipe);
 }
+
+/**
+ * Inverse of getRecipeSaucePairings: given a review (typically a hot sauce),
+ * return the recipes that pair well with it. Used on review pages to surface
+ * cooking applications for the bottle being reviewed.
+ */
+export function getRecipesForReview(
+  review: Review,
+  recipes: Recipe[],
+  limit = 3
+): Recipe[] {
+  return recipes
+    .filter((recipe) => recipe.status === "published")
+    .map((recipe) => ({
+      recipe,
+      score: scoreRecipeSaucePairing(recipe, review)
+    }))
+    .sort((left, right) => right.score - left.score)
+    .slice(0, limit)
+    .map(({ recipe }) => recipe);
+}

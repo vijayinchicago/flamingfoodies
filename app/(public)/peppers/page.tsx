@@ -1,7 +1,10 @@
 import Link from "next/link";
 
 import { SectionHeading } from "@/components/layout/section-heading";
+import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
+import { ItemListSchema } from "@/components/schema/item-list-schema";
 import { buildMetadata } from "@/lib/seo";
+import { absoluteUrl } from "@/lib/utils";
 import {
   getPeppersFromDb,
   HEAT_TIERS,
@@ -31,6 +34,19 @@ export default async function PeppersPage() {
 
   return (
     <section className="container-shell py-16">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", item: absoluteUrl("/") },
+          { name: "Pepper Encyclopedia", item: absoluteUrl("/peppers") }
+        ]}
+      />
+      <ItemListSchema
+        name="FlamingFoodies pepper encyclopedia"
+        items={peppers.slice(0, 30).map((p) => ({
+          name: p.name,
+          url: absoluteUrl(`/peppers/${p.slug}`)
+        }))}
+      />
       <SectionHeading
         eyebrow="Pepper encyclopedia"
         title="Every pepper. Every heat level. Every use."

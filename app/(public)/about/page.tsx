@@ -1,7 +1,10 @@
 import Link from "next/link";
 
 import { TrustPageShell } from "@/components/layout/trust-page-shell";
+import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
+import { OrganizationSchema } from "@/components/schema/organization-schema";
 import { buildMetadata } from "@/lib/seo";
+import { absoluteUrl } from "@/lib/utils";
 
 const LAST_UPDATED = "April 10, 2026";
 
@@ -14,6 +17,14 @@ export const metadata = buildMetadata({
 
 export default function AboutPage() {
   return (
+    <>
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", item: absoluteUrl("/") },
+          { name: "About", item: absoluteUrl("/about") }
+        ]}
+      />
+      <OrganizationSchema />
     <TrustPageShell
       eyebrow="About"
       title="Flavor-first spicy food for real kitchens and mixed tables."
@@ -148,5 +159,6 @@ export default function AboutPage() {
         </div>
       </div>
     </TrustPageShell>
+    </>
   );
 }

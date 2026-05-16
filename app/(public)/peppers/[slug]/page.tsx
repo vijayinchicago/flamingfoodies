@@ -13,10 +13,12 @@ import { FaqSchema } from "@/components/schema/faq-schema";
 import { WebPageSchema } from "@/components/schema/web-page-schema";
 import { AFFILIATE_LINKS, resolveAffiliateLink } from "@/lib/affiliates";
 import { buildMetadata } from "@/lib/seo";
-import { getRecipes } from "@/lib/services/content";
+import { getRecipes, getReviews } from "@/lib/services/content";
 import { absoluteUrl } from "@/lib/utils";
+import { ReviewCard } from "@/components/cards/review-card";
 import {
   PEPPERS,
+  findContentMentioningPepper,
   getPeppersFromDb,
   getPepperFromDb,
   resolveSubstitutes,
@@ -86,7 +88,16 @@ export default async function PepperPage({ params }: { params: { slug: string } 
     })
     .filter((item): item is NonNullable<typeof item> => item !== null);
 
-  const allRecipes = await getRecipes();
+  const [allRecipes, allReviews] = await Promise.all([getRecipes(), getReviews()]);
+
+  // Reviews that explicitly mention this pepper by name or alias — the "hot
+  // sauces that feature this pepper" cross-link block.
+  const reviewsFeaturingPepper = findContentMentioningPepper(
+    pepper,
+    allReviews.filter((r) => r.status === "published"),
+    (r) => [r.title, r.productName, r.description, r.content, ...(r.flavorNotes ?? [])].join(" ")
+  ).slice(0, 3);
+
   const relatedRecipes = allRecipes
     .filter((r) => {
       const text = [r.title, r.description, r.cuisineType ?? "", ...(r.tags ?? [])].join(" ").toLowerCase();
@@ -457,6 +468,25 @@ export default async function PepperPage({ params }: { params: { slug: string } 
           >
             Browse all recipes
           </Link>
+        </section>
+      ) : null}
+
+      {/* Hot sauces that feature this pepper */}
+      {reviewsFeaturingPepper.length > 0 ? (
+        <section className="mt-14">
+          <p className="eyebrow">In a bottle</p>
+          <h2 className="mt-3 font-display text-3xl text-charcoal sm:text-4xl">
+            Hot sauces that feature {pepper.name.toLowerCase()}
+          </h2>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/70">
+            Reviewed bottles where {pepper.name.toLowerCase()} shows up by name in the ingredient
+            list, tasting notes, or product description.
+          </p>
+          <div className="mt-6 grid gap-6 lg:grid-cols-3">
+            {reviewsFeaturingPepper.map((review) => (
+              <ReviewCard key={review.id} review={review} />
+            ))}
+          </div>
         </section>
       ) : null}
 

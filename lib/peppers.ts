@@ -3016,6 +3016,28 @@ export function getPeppersByFlavorNotes(pepper: Pepper, limit = 4): Pepper[] {
     .slice(0, limit);
 }
 
+// Given a pepper, find any content items (reviews/recipes) that mention it by
+// name or alias. Generic enough to work for any content type as long as a
+// haystack-builder is supplied. Returns matches in original order.
+export function findContentMentioningPepper<T>(
+  pepper: Pepper,
+  items: T[],
+  buildHaystack: (item: T) => string
+): T[] {
+  const candidates = [pepper.name, ...pepper.aliases]
+    .map((s) => s.toLowerCase())
+    .filter(Boolean);
+  if (candidates.length === 0) return [];
+
+  return items.filter((item) => {
+    const haystack = buildHaystack(item).toLowerCase();
+    return candidates.some((candidate) => {
+      const re = new RegExp(`(^|[^a-z0-9])${candidate.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&")}([^a-z0-9]|$)`);
+      return re.test(haystack);
+    });
+  });
+}
+
 // Scan arbitrary text for pepper mentions (name + aliases). Returns the
 // matching peppers, ordered by first appearance in the text.
 export function findPeppersInText(text: string, peppers: Pepper[] = PEPPERS): Pepper[] {

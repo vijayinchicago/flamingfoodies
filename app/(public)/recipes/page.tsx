@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { RecipeBrowseClient } from "@/components/recipes/recipe-browse-client";
+import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { ItemListSchema } from "@/components/schema/item-list-schema";
 import { SectionHeading } from "@/components/layout/section-heading";
 import {
@@ -47,6 +48,12 @@ export default async function RecipesIndexPage() {
 
   return (
     <section className="container-shell py-16">
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", item: absoluteUrl("/") },
+          { name: "Spicy Recipes", item: absoluteUrl("/recipes") }
+        ]}
+      />
       <ItemListSchema
         name="FlamingFoodies recipe archive"
         items={recipes.slice(0, 20).map((recipe) => ({
