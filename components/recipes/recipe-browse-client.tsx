@@ -182,31 +182,9 @@ export function RecipeBrowseClient({
 
   return (
     <>
-      {/* Editorial sections — hidden when filters are active */}
-      {!hasActiveFilters && editorialSections.length > 0 ? (
-        <div className="mt-10 space-y-10">
-          {editorialSections.map((section) => (
-            <div key={section.key}>
-              <div>
-                <p className="eyebrow">{section.eyebrow}</p>
-                <h2 className="mt-3 font-display text-4xl text-charcoal">{section.title}</h2>
-                <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/70">
-                  {section.description}
-                </p>
-              </div>
-              <div className="mt-6 grid gap-6 lg:grid-cols-3 xl:grid-cols-4">
-                {section.items.map((recipe) => (
-                  <RecipeCard key={`${section.key}-${recipe.id}`} recipe={recipe} />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      {/* Filter panel */}
-      <div id="recipe-browse" className="panel-light mt-10 p-6">
-        <div className="grid gap-4 xl:grid-cols-[2fr_repeat(4,minmax(0,1fr))_0.9fr]">
+      {/* Sticky filter rail */}
+      <div id="recipe-browse" className="sticky top-[68px] z-30 -mx-4 mt-6 border-y border-charcoal/10 bg-cream/95 px-4 py-4 backdrop-blur-md sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           <input
             type="search"
             value={query}
@@ -215,115 +193,86 @@ export function RecipeBrowseClient({
               setPage(1);
             }}
             placeholder="Search by dish, ingredient, or tag"
-            className={`${filterFieldClass} placeholder:text-charcoal/45`}
+            className={`${filterFieldClass} placeholder:text-charcoal/45 lg:flex-1`}
           />
-          <select
-            value={cuisine}
-            onChange={(e) => { setCuisine(e.target.value); setPage(1); }}
-            className={filterFieldClass}
-          >
-            <option value="all">All cuisines</option>
-            {browseOptions.cuisines.map((c) => (
-              <option key={c} value={c}>{formatCuisineLabel(c)}</option>
-            ))}
-          </select>
-          <select
-            value={heat}
-            onChange={(e) => { setHeat(e.target.value); setPage(1); }}
-            className={filterFieldClass}
-          >
-            <option value="all">All heat levels</option>
-            {browseOptions.heatLevels.map((h) => (
-              <option key={h} value={h}>{formatHeatLabel(h)}</option>
-            ))}
-          </select>
-          <select
-            value={difficulty}
-            onChange={(e) => { setDifficulty(e.target.value); setPage(1); }}
-            className={filterFieldClass}
-          >
-            <option value="all">Any difficulty</option>
-            {browseOptions.difficulties.map((d) => (
-              <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
-            ))}
-          </select>
-          <select
-            value={maxTimeKey}
-            onChange={(e) => { setMaxTimeKey(e.target.value); setPage(1); }}
-            className={filterFieldClass}
-          >
-            {RECIPE_TIME_OPTIONS.map((o) => (
-              <option key={o.key} value={o.key}>{o.label}</option>
-            ))}
-          </select>
-          <select
-            value={sort}
-            onChange={(e) => { setSort(e.target.value as RecipeSortKey); setPage(1); }}
-            className={filterFieldClass}
-          >
-            {RECIPE_SORT_OPTIONS.map((o) => (
-              <option key={o.key} value={o.key}>{o.label}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          {hasActiveFilters ? (
-            <button
-              type="button"
-              onClick={clearAll}
-              className="rounded-full border border-charcoal/10 px-5 py-3 text-sm font-semibold text-charcoal"
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={maxTimeKey}
+              onChange={(e) => { setMaxTimeKey(e.target.value); setPage(1); }}
+              className={`${filterFieldClass} py-2.5`}
+              aria-label="Cook time"
             >
-              Clear all
-            </button>
-          ) : null}
-          <p className="text-sm text-charcoal/60">
-            {hasActiveFilters
-              ? `${filteredAndSorted.length} recipe${filteredAndSorted.length === 1 ? "" : "s"} match your filters`
-              : "Filter by cuisine, heat, time, and difficulty — results update as you type"}
-          </p>
+              {RECIPE_TIME_OPTIONS.map((o) => (
+                <option key={o.key} value={o.key}>{o.label}</option>
+              ))}
+            </select>
+            <select
+              value={difficulty}
+              onChange={(e) => { setDifficulty(e.target.value); setPage(1); }}
+              className={`${filterFieldClass} py-2.5`}
+              aria-label="Difficulty"
+            >
+              <option value="all">Any difficulty</option>
+              {browseOptions.difficulties.map((d) => (
+                <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
+              ))}
+            </select>
+            <select
+              value={sort}
+              onChange={(e) => { setSort(e.target.value as RecipeSortKey); setPage(1); }}
+              className={`${filterFieldClass} py-2.5`}
+              aria-label="Sort"
+            >
+              {RECIPE_SORT_OPTIONS.map((o) => (
+                <option key={o.key} value={o.key}>{o.label}</option>
+              ))}
+            </select>
+            {hasActiveFilters ? (
+              <button
+                type="button"
+                onClick={clearAll}
+                className="rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
+              >
+                Clear
+              </button>
+            ) : null}
+          </div>
         </div>
-      </div>
 
-      {/* Quick chips */}
-      <div className="mt-6 flex flex-wrap gap-3">
-        {browseOptions.cuisines.slice(0, 6).map((c) => (
-          <button
-            key={c}
-            type="button"
-            onClick={() => { setCuisine(cuisine === c ? "all" : c); setPage(1); }}
-            className={`${chipBase} ${cuisine === c ? chipActive : chipInactive}`}
-          >
-            {formatCuisineLabel(c)}
-          </button>
-        ))}
-        {browseOptions.heatLevels.map((h) => (
-          <button
-            key={h}
-            type="button"
-            onClick={() => { setHeat(heat === h ? "all" : h); setPage(1); }}
-            className={`${chipBase} ${heat === h ? chipHeatActive : chipInactive}`}
-          >
-            {formatHeatLabel(h)}
-          </button>
-        ))}
+        <div className="mt-3 flex flex-wrap gap-2">
+          {browseOptions.heatLevels.map((h) => (
+            <button
+              key={h}
+              type="button"
+              onClick={() => { setHeat(heat === h ? "all" : h); setPage(1); }}
+              className={`${chipBase} ${heat === h ? chipHeatActive : chipInactive}`}
+            >
+              {formatHeatLabel(h)}
+            </button>
+          ))}
+          <span className="mx-1 h-6 w-px bg-charcoal/15 self-center" aria-hidden />
+          {browseOptions.cuisines.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => { setCuisine(cuisine === c ? "all" : c); setPage(1); }}
+              className={`${chipBase} ${cuisine === c ? chipActive : chipInactive}`}
+            >
+              {formatCuisineLabel(c)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Results header */}
-      <div className="mt-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="eyebrow">Recipe archive</p>
-          <h2 className="mt-3 font-display text-4xl text-charcoal">
-            {paginated.totalResults > 0
-              ? `Showing ${paginated.startResult}–${paginated.endResult} of ${paginated.totalResults}`
-              : "No recipes match those filters yet"}
-          </h2>
-          <p className="mt-3 text-sm leading-7 text-charcoal/70">
-            {paginated.totalResults > 0
-              ? "Tighten the filters to narrow the list, or sort for quickest dinners and hottest cooks."
-              : "Try a broader search, clear one filter, or switch to another cuisine or heat level."}
-          </p>
-        </div>
+      <div className="mt-8 flex flex-wrap items-baseline justify-between gap-3">
+        <h2 className="font-display text-2xl text-charcoal sm:text-3xl">
+          {paginated.totalResults > 0
+            ? hasActiveFilters
+              ? `${paginated.totalResults} recipe${paginated.totalResults === 1 ? "" : "s"} match`
+              : `${paginated.totalResults} recipes`
+            : "No recipes match those filters"}
+        </h2>
         {paginated.totalPages > 1 ? (
           <p className="text-sm text-charcoal/55">
             Page {paginated.currentPage} of {paginated.totalPages}
@@ -332,7 +281,7 @@ export function RecipeBrowseClient({
       </div>
 
       {/* Recipe grid */}
-      <div className="mt-10 grid gap-6 lg:grid-cols-3">
+      <div className="mt-6 grid gap-6 lg:grid-cols-3">
         {paginated.items.length > 0 ? (
           paginated.items.map((recipe) => <RecipeCard key={recipe.id} recipe={recipe} />)
         ) : (
@@ -378,6 +327,25 @@ export function RecipeBrowseClient({
             </button>
           ) : null}
         </div>
+      ) : null}
+
+      {/* Editor's picks — only when not actively filtering, only the first curated section */}
+      {!hasActiveFilters && editorialSections[0] ? (
+        <section className="mt-16">
+          <div className="flex items-baseline justify-between gap-3">
+            <div>
+              <p className="eyebrow">Editor&apos;s picks</p>
+              <h2 className="mt-2 font-display text-3xl text-charcoal sm:text-4xl">
+                {editorialSections[0].title}
+              </h2>
+            </div>
+          </div>
+          <div className="mt-6 grid gap-6 lg:grid-cols-3 xl:grid-cols-4">
+            {editorialSections[0].items.slice(0, 4).map((recipe) => (
+              <RecipeCard key={`editor-${recipe.id}`} recipe={recipe} />
+            ))}
+          </div>
+        </section>
       ) : null}
 
       {/* Gear callout */}

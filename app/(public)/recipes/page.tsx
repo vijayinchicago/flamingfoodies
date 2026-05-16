@@ -56,9 +56,9 @@ export default async function RecipesIndexPage() {
         }))}
       />
       <SectionHeading
-        eyebrow="Recipes"
-        title="Search spicy recipes by cuisine, heat, cook time, and difficulty."
-        copy="Find tacos, noodles, burgers, braises, and fiery comfort food — results update live as you filter."
+        eyebrow={`Recipes · ${recipes.length} total`}
+        title="Every spicy recipe on FlamingFoodies."
+        copy="Filter by heat, cuisine, cook time, or difficulty. Results update as you go."
       />
       <Suspense>
         <RecipeBrowseClient
