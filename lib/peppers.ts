@@ -89,6 +89,12 @@ export interface Pepper {
   pepperType?: PepperType;
   flavorNotes?: FlavorNote[];
   imageGallery?: string[];      // additional photo URLs beyond the hero
+  /**
+   * Optional Pinterest-optimized vertical hero (recommend 1000×1500).
+   * When set, page metadata renders a portrait og:image and pinterest:image
+   * meta tags alongside the standard 1200×630 card.
+   */
+  pinterestImageUrl?: string;
   history?: PepperHistory;
   growing?: PepperGrowing;
   buying?: PepperBuying;

@@ -54,6 +54,7 @@ export async function generateMetadata({
           }
         ]
       : undefined,
+    pinterestImage: post.pinterestImageUrl,
     noIndex: isReviewHoldBlogSlug(post.slug)
   });
 }

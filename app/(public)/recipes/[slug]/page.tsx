@@ -244,7 +244,8 @@ export async function generateMetadata({
         width: 1200,
         height: 630
       }
-    ]
+    ],
+    pinterestImage: recipe.pinterestImageUrl
   });
 }
 

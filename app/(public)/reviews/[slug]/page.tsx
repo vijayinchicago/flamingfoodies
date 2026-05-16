@@ -69,7 +69,8 @@ export async function generateMetadata({
             height: 630
           }
         ]
-      : undefined
+      : undefined,
+    pinterestImage: review.pinterestImageUrl
   });
 }
 

@@ -30,6 +30,13 @@ export interface BaseContent {
   description: string;
   imageUrl?: string;
   imageAlt?: string;
+  /**
+   * Optional Pinterest-optimized vertical hero variant (recommend 1000×1500,
+   * a 2:3 portrait ratio). When set, the page metadata renders an additional
+   * og:image at portrait dimensions plus pinterest:image meta tags so
+   * Pinterest readers can grab the pin-friendly variant.
+   */
+  pinterestImageUrl?: string;
   featured?: boolean;
   source: ContentSource;
   status: PostStatus;

@@ -65,7 +65,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
           width: 1200,
           height: 630
         }))
-      : undefined
+      : undefined,
+    pinterestImage: pepper.pinterestImageUrl
   });
 }
 
