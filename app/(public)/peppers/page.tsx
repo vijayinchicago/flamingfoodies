@@ -64,19 +64,24 @@ export default async function PeppersPage() {
 
       {/* Heat scale visual */}
       <div className="mt-12 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-8">
-        <p className="eyebrow">The heat scale</p>
-        <div className="mt-6 flex flex-col gap-3">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <p className="eyebrow">The heat scale</p>
+          <p className="text-xs font-semibold text-ember">
+            Tap any pepper for its full guide →
+          </p>
+        </div>
+        <div className="mt-6 flex flex-col gap-4">
           {tierOrder.map((tier) => {
             const meta = HEAT_TIERS[tier];
             const tieredPeppers = byTier.get(tier) ?? [];
             return (
-              <div key={tier} className="flex items-center gap-4">
+              <div key={tier} className="flex flex-wrap items-center gap-x-4 gap-y-2">
                 <div
                   className={`w-28 shrink-0 rounded-full px-3 py-1.5 text-center text-xs font-semibold uppercase tracking-wider ${meta.bgClass} ${meta.textClass}`}
                 >
                   {meta.label}
                 </div>
-                <div className="hidden text-xs text-charcoal/45 sm:block w-36 shrink-0">
+                <div className="hidden text-xs text-charcoal/55 sm:block w-36 shrink-0">
                   {meta.range}
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -84,9 +89,12 @@ export default async function PeppersPage() {
                     <Link
                       key={p.slug}
                       href={`/peppers/${p.slug}`}
-                      className="rounded-full border border-charcoal/10 bg-charcoal/[0.04] px-3 py-1 text-xs text-charcoal/70 transition hover:border-charcoal/20 hover:text-charcoal"
+                      className="inline-flex items-center gap-1 rounded-full border border-charcoal/20 bg-white px-3 py-1.5 text-xs font-semibold text-charcoal shadow-sm transition hover:-translate-y-0.5 hover:border-ember hover:text-ember"
                     >
-                      {p.name}
+                      <span>{p.name}</span>
+                      <span aria-hidden className="text-[10px] text-charcoal/45 transition group-hover:text-ember">
+                        →
+                      </span>
                     </Link>
                   ))}
                   {tieredPeppers.length === 0 && (
