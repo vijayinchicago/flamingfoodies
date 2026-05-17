@@ -679,6 +679,32 @@ function daysInMonth(year: number, monthOneIndexed: number): number {
  * ambiguous we prefer "later in the month" to avoid prematurely marking
  * something as passed.
  */
+/**
+ * Confidence-tagged parse of a free-text dateRange into explicit start/end
+ * day-of-month values. Returns null when no confident parse is possible
+ * (i.e. only "early/mid/late" cues are present, with no numeric anchors).
+ *
+ * Used by the backfill script to populate start_day / end_day on existing
+ * rows where the parse is high-confidence, while leaving ambiguous rows
+ * for editorial review.
+ */
+export function parseDateRangeToDays(
+  dateRange: string
+): { startDay: number; endDay: number } | null {
+  const range = dateRange.toLowerCase();
+  const numericMatches = range.match(/\d{1,2}/g);
+  if (!numericMatches || numericMatches.length === 0) return null;
+
+  const candidates = numericMatches
+    .map((n) => parseInt(n, 10))
+    .filter((n) => n >= 1 && n <= 31);
+  if (candidates.length === 0) return null;
+
+  const startDay = Math.min(...candidates);
+  const endDay = Math.max(...candidates);
+  return { startDay, endDay };
+}
+
 export function estimateFestivalEndDay(festival: Festival, year: number): number {
   const monthMax = daysInMonth(year, festival.month);
 
@@ -688,20 +714,12 @@ export function estimateFestivalEndDay(festival: Festival, year: number): number
   }
 
   // Fall back to parsing the free-text dateRange.
+  const parsed = parseDateRangeToDays(festival.dateRange);
+  if (parsed) return Math.min(monthMax, parsed.endDay);
+
   const range = festival.dateRange.toLowerCase();
 
-  // Look for "Month DD-DD" or "Month DD" patterns and take the highest number.
-  const numericMatches = range.match(/\d{1,2}/g);
-  if (numericMatches && numericMatches.length > 0) {
-    const candidates = numericMatches
-      .map((n) => parseInt(n, 10))
-      .filter((n) => n >= 1 && n <= 31);
-    if (candidates.length > 0) {
-      return Math.min(monthMax, Math.max(...candidates));
-    }
-  }
-
-  // Look for "early/mid/late" cues.
+  // Look for "early/mid/late" cues when no explicit numbers are available.
   if (/\bearly\b/.test(range)) return Math.min(monthMax, 10);
   if (/\bmid\b|\bmid-?month\b/.test(range)) return Math.min(monthMax, 20);
   if (/\blate\b|\bend\b/.test(range)) return monthMax;

@@ -34,6 +34,10 @@ export type DiscoveredFestival = {
   region: string;
   month: number;
   date_range: string;
+  /** Explicit start day-of-month (1-31). Optional but strongly preferred. */
+  start_day?: number | null;
+  /** Explicit end day-of-month (1-31). Optional but strongly preferred. */
+  end_day?: number | null;
   annual: boolean;
   website: string;
   description: string;
@@ -42,6 +46,14 @@ export type DiscoveredFestival = {
   best_for: string;
   tags: string[];
 };
+
+function validateDay(value: unknown): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const n = typeof value === "number" ? value : parseInt(String(value), 10);
+  if (!Number.isFinite(n)) return null;
+  if (n < 1 || n > 31) return null;
+  return Math.floor(n);
+}
 
 export type FestivalDiscoveryResult = {
   found: number;
@@ -90,7 +102,9 @@ For each festival you find, return a JSON array of festival objects. Each object
   "state_code": string,     // 2-letter state abbreviation
   "region": string,         // One of: northeast, southeast, south, midwest, southwest, west
   "month": number,          // Primary month as integer 1-12
-  "date_range": string,     // Human-readable range e.g. "Late April" or "August 8-9"
+  "date_range": string,     // Human-readable range e.g. "August 8-9" or "Late April"
+  "start_day": number|null, // EXPLICIT start day-of-month (1-31). Null if truly unknown.
+  "end_day": number|null,   // EXPLICIT end day-of-month (1-31). Null if truly unknown.
   "annual": boolean,        // true if recurring annually
   "website": string,        // Official website URL or empty string
   "description": string,    // 2-3 sentence editorial description of the festival
@@ -99,6 +113,11 @@ For each festival you find, return a JSON array of festival objects. Each object
   "best_for": string,       // 1-2 sentences on who should attend
   "tags": string[]          // Array of descriptive tags e.g. ["outdoor","competition","family friendly"]
 }
+
+IMPORTANT — date precision:
+- ALWAYS try to find explicit day-of-month numbers from the festival's official site or recent press coverage. Prefer "August 8-9" over "Mid August" in date_range.
+- When you find explicit dates, populate start_day and end_day as integers. For a single-day festival, set both to the same day.
+- Only use null for start_day / end_day when the festival's site is genuinely vague (e.g. only says "every May" with no specific dates announced yet). Do not guess.
 
 Return ONLY a valid JSON array. No markdown, no prose, no explanation. If you find no new festivals, return [].`;
 
@@ -211,6 +230,8 @@ export async function runFestivalDiscovery(): Promise<FestivalDiscoveryResult> {
       continue;
     }
 
+    const startDay = validateDay(fest.start_day);
+    const endDay = validateDay(fest.end_day);
     const row = {
       slug,
       name: fest.name,
@@ -221,6 +242,8 @@ export async function runFestivalDiscovery(): Promise<FestivalDiscoveryResult> {
       region: validateRegion(fest.region ?? "south"),
       month: validateMonth(fest.month),
       date_range: fest.date_range ?? "",
+      start_day: startDay,
+      end_day: endDay !== null ? endDay : startDay,
       annual: Boolean(fest.annual),
       website: fest.website ?? "",
       description: fest.description ?? "",
