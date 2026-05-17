@@ -11,6 +11,7 @@ const navSections = [
       { href: "/admin/content/blog", label: "Blog" },
       { href: "/admin/content/recipes", label: "Recipes" },
       { href: "/admin/content/reviews", label: "Reviews" },
+      { href: "/admin/content/festivals", label: "Festivals" },
       { href: "/admin/content/merch", label: "Shop picks" }
     ]
   },

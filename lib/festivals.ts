@@ -858,6 +858,42 @@ export async function getFestivalsFromDb(): Promise<Festival[]> {
   }
 }
 
+export type AdminFestival = Festival & {
+  status: "draft" | "published";
+  source: "editorial" | "ai_discovered" | string;
+  createdAt?: string;
+};
+
+/**
+ * Admin-facing fetch: returns every festival regardless of status, with the
+ * status + source fields surfaced so the admin can review drafts. Uses the
+ * admin Supabase client to bypass RLS.
+ */
+export async function getAdminFestivals(): Promise<AdminFestival[]> {
+  try {
+    const { createSupabaseAdminClient } = await import("@/lib/supabase/server");
+    const supabase = createSupabaseAdminClient();
+    if (!supabase) return [];
+
+    const { data, error } = await supabase
+      .from("festivals")
+      .select("*, status, source, created_at")
+      .order("status", { ascending: true })
+      .order("month", { ascending: true });
+
+    if (error || !data) return [];
+
+    return data.map((row: FestivalRow & { status: string; source: string; created_at?: string }) => ({
+      ...rowToFestival(row),
+      status: (row.status === "published" ? "published" : "draft") as "draft" | "published",
+      source: row.source ?? "editorial",
+      createdAt: row.created_at
+    }));
+  } catch {
+    return [];
+  }
+}
+
 /**
  * Load a single festival by slug from DB, falling back to static data.
  */
