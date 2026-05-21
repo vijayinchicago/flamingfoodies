@@ -13,7 +13,18 @@ export interface GuideSummary {
 }
 
 export async function getGuides() {
-  const files = await fs.readdir(guidesDirectory);
+  // Next.js's output tracer can't see this readdir, so dynamic routes
+  // (e.g. /sitemap.xml) may ship without content/guides/. Treat a missing
+  // dir as "no guides" so callers don't crash.
+  let files: string[];
+  try {
+    files = await fs.readdir(guidesDirectory);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return [];
+    }
+    throw error;
+  }
   const entries = await Promise.all(
     files
       .filter((file) => file.endsWith(".md"))
