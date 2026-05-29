@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ContentCard } from "@/components/cards/content-card";
 import { RecipeCard } from "@/components/cards/recipe-card";
 import { CommentSection } from "@/components/community/comment-section";
 import { AdSlot } from "@/components/ads/ad-slot";
@@ -56,10 +57,17 @@ import {
 } from "@/lib/recipes";
 import { getRecipeSearchInsightBlocks } from "@/lib/search-content-optimizations";
 import { getAdRuntimeConfig } from "@/lib/ads";
+import { getGuidesWithBody } from "@/lib/content/guides";
+import {
+  getBlogPostsForRecipe,
+  getGuidesForRecipe
+} from "@/lib/content-cross-links";
+import { shouldPromoteBlogPost } from "@/lib/editorial-guards";
 import { buildMetadata } from "@/lib/seo";
 import { getRuntimeRecipeSearchOptimization } from "@/lib/services/search-insights";
 import { getCurrentProfile } from "@/lib/supabase/auth";
 import {
+  getBlogPosts,
   getFeaturedMerchProducts,
   getRecipe,
   getRecipes,
@@ -263,14 +271,22 @@ export default async function RecipePage({
   }
 
   const profile = await getCurrentProfile();
-  const [userState, merchPreview, reviews, recipes, dynamicTerms, ads] = await Promise.all([
+  const [userState, merchPreview, reviews, recipes, dynamicTerms, ads, allBlogPosts, allGuides] = await Promise.all([
     getRecipeUserState(recipe.id, profile?.id),
     getFeaturedMerchProducts(2),
     getReviews(),
     getRecipes(),
     getDynamicInlineTerms(),
-    getAdRuntimeConfig()
+    getAdRuntimeConfig(),
+    getBlogPosts(),
+    getGuidesWithBody()
   ]);
+  const blogPostsForRecipe = getBlogPostsForRecipe(
+    recipe,
+    allBlogPosts.filter((post) => shouldPromoteBlogPost({ slug: post.slug, source: post.source })),
+    2
+  );
+  const guidesForRecipe = getGuidesForRecipe(recipe, allGuides, 2);
 
   // Build equipment affiliate map once — used to turn gear chips into links
   const allInlineTerms: InlineCatalogTerm[] = [...buildInlineTermsFromCatalog(), ...dynamicTerms];
@@ -1370,6 +1386,60 @@ export default async function RecipePage({
               </section>
             ) : null}
           </div>
+        ) : null}
+
+        {(blogPostsForRecipe.length || guidesForRecipe.length) ? (
+          <section className="grid gap-6 print-hidden xl:grid-cols-[1fr_1fr]">
+            {blogPostsForRecipe.length ? (
+              <div className="panel p-6 sm:p-7">
+                <p className="eyebrow">From the blog</p>
+                <h3 className="mt-3 font-display text-4xl text-charcoal">
+                  Editorial that builds on this dish
+                </h3>
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-charcoal/65">
+                  Background pieces in the same cuisine or heat lane.
+                </p>
+                <div className="mt-6 grid gap-4 md:grid-cols-2">
+                  {blogPostsForRecipe.map((post) => (
+                    <ContentCard
+                      key={post.slug}
+                      href={`/blog/${post.slug}`}
+                      image={post.imageUrl}
+                      imageAlt={post.imageAlt}
+                      eyebrow={post.category}
+                      title={post.title}
+                      description={post.description}
+                      meta={post.publishedAt}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            {guidesForRecipe.length ? (
+              <div className="panel p-6 sm:p-7">
+                <p className="eyebrow">Background guides</p>
+                <h3 className="mt-3 font-display text-4xl text-charcoal">
+                  Read the guide behind the technique
+                </h3>
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-charcoal/65">
+                  Evergreen explainers that go deeper on what this recipe is doing.
+                </p>
+                <div className="mt-6 space-y-4">
+                  {guidesForRecipe.map((guide) => (
+                    <Link
+                      key={guide.slug}
+                      href={`/guides/${guide.slug}`}
+                      className="block rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 transition hover:border-charcoal/20"
+                    >
+                      <p className="eyebrow">Guide</p>
+                      <h4 className="mt-2 font-display text-2xl text-charcoal">{guide.title}</h4>
+                      <p className="mt-3 text-sm leading-6 text-charcoal/70">{guide.description}</p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+          </section>
         ) : null}
       </div>
       <RecipeStickyBar targetId="recipe-detail-shell" />

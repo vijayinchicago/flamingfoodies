@@ -6,14 +6,21 @@ import { AffiliateDisclosure } from "@/components/content/affiliate-disclosure";
 import { SisterSiteCallout } from "@/components/content/sister-site-callout";
 import { getSisterLinksForPepper } from "@/lib/sister-site-links";
 import { EmailCapture } from "@/components/forms/email-capture";
+import { ContentCard } from "@/components/cards/content-card";
 import { RecipeCard } from "@/components/cards/recipe-card";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { FaqSchema } from "@/components/schema/faq-schema";
 import { WebPageSchema } from "@/components/schema/web-page-schema";
 import { AFFILIATE_LINKS, resolveAffiliateLink } from "@/lib/affiliates";
+import { getGuidesWithBody } from "@/lib/content/guides";
+import {
+  getBlogPostsMentioningPepper,
+  getGuidesMentioningPepper
+} from "@/lib/content-cross-links";
+import { shouldPromoteBlogPost } from "@/lib/editorial-guards";
 import { buildMetadata } from "@/lib/seo";
-import { getRecipes, getReviews } from "@/lib/services/content";
+import { getBlogPosts, getRecipes, getReviews } from "@/lib/services/content";
 import { absoluteUrl } from "@/lib/utils";
 import { ReviewCard } from "@/components/cards/review-card";
 import {
@@ -88,7 +95,21 @@ export default async function PepperPage({ params }: { params: { slug: string } 
     })
     .filter((item): item is NonNullable<typeof item> => item !== null);
 
-  const [allRecipes, allReviews] = await Promise.all([getRecipes(), getReviews()]);
+  const [allRecipes, allReviews, allPosts, allGuides] = await Promise.all([
+    getRecipes(),
+    getReviews(),
+    getBlogPosts(),
+    getGuidesWithBody()
+  ]);
+
+  // Blog posts + guides that mention this pepper — closes the "blog/guide
+  // orphan" gap by giving each pepper an inbound link from editorial content.
+  const blogPostsForPepper = getBlogPostsMentioningPepper(
+    pepper,
+    allPosts.filter((post) => shouldPromoteBlogPost({ slug: post.slug, source: post.source })),
+    3
+  );
+  const guidesForPepper = getGuidesMentioningPepper(pepper, allGuides, 2);
 
   // Reviews that explicitly mention this pepper by name or alias — the "hot
   // sauces that feature this pepper" cross-link block.
@@ -485,6 +506,53 @@ export default async function PepperPage({ params }: { params: { slug: string } 
           <div className="mt-6 grid gap-6 lg:grid-cols-3">
             {reviewsFeaturingPepper.map((review) => (
               <ReviewCard key={review.id} review={review} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Blog posts that reference this pepper */}
+      {blogPostsForPepper.length > 0 ? (
+        <section className="mt-14">
+          <p className="eyebrow">From the blog</p>
+          <h2 className="mt-3 font-display text-3xl text-charcoal sm:text-4xl">
+            Editorial that references {pepper.name.toLowerCase()}.
+          </h2>
+          <div className="mt-8 grid gap-6 lg:grid-cols-3">
+            {blogPostsForPepper.map((post) => (
+              <ContentCard
+                key={post.slug}
+                href={`/blog/${post.slug}`}
+                image={post.imageUrl}
+                imageAlt={post.imageAlt}
+                eyebrow={post.category}
+                title={post.title}
+                description={post.description}
+                meta={post.publishedAt}
+              />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {/* Guides that reference this pepper */}
+      {guidesForPepper.length > 0 ? (
+        <section className="mt-14 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-7 sm:p-8">
+          <p className="eyebrow">Background reading</p>
+          <h2 className="mt-3 font-display text-3xl text-charcoal sm:text-4xl">
+            Guides that cover {pepper.name.toLowerCase()}.
+          </h2>
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            {guidesForPepper.map((guide) => (
+              <Link
+                key={guide.slug}
+                href={`/guides/${guide.slug}`}
+                className="rounded-[1.5rem] border border-charcoal/10 bg-white p-5 transition hover:border-charcoal/20"
+              >
+                <p className="eyebrow">Guide</p>
+                <h3 className="mt-2 font-display text-2xl text-charcoal">{guide.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-charcoal/70">{guide.description}</p>
+              </Link>
             ))}
           </div>
         </section>

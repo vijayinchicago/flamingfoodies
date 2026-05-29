@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { AdSlot } from "@/components/ads/ad-slot";
+import { ContentCard } from "@/components/cards/content-card";
 import { ReviewCard } from "@/components/cards/review-card";
 import { CommentSection } from "@/components/community/comment-section";
 import { ReviewStickyBuyBar } from "@/components/reviews/review-sticky-buy-bar";
@@ -30,8 +31,20 @@ import {
 } from "@/lib/hot-sauces";
 import { getMerchThemeClasses } from "@/lib/merch";
 import { getReviewHeroFields } from "@/lib/review-hero";
+import { getGuidesWithBody } from "@/lib/content/guides";
+import {
+  getBlogPostsForReview,
+  getGuidesForReview
+} from "@/lib/content-cross-links";
+import { shouldPromoteBlogPost } from "@/lib/editorial-guards";
 import { buildMetadata } from "@/lib/seo";
-import { getFeaturedMerchProducts, getRecipes, getReview, getReviews } from "@/lib/services/content";
+import {
+  getBlogPosts,
+  getFeaturedMerchProducts,
+  getRecipes,
+  getReview,
+  getReviews
+} from "@/lib/services/content";
 import { absoluteUrl, formatDate, markdownToHtml } from "@/lib/utils";
 import { PeppersInContent } from "@/components/peppers/peppers-in-content";
 import { findPeppersInText } from "@/lib/peppers";
@@ -127,13 +140,21 @@ export default async function ReviewPage({
       })
     }))
     .filter((entry): entry is { offer: (typeof relatedOffers)[number]; resolved: NonNullable<ReturnType<typeof resolveAffiliateLink>> } => Boolean(entry.resolved));
-  const [merchPreview, ads, allReviews, allRecipes] = await Promise.all([
+  const [merchPreview, ads, allReviews, allRecipes, allBlogPosts, allGuides] = await Promise.all([
     getFeaturedMerchProducts(2),
     getAdRuntimeConfig(),
     getReviews(),
-    getRecipes()
+    getRecipes(),
+    getBlogPosts(),
+    getGuidesWithBody()
   ]);
   const recipesForThisSauce = getRecipesForReview(review, allRecipes, 3);
+  const blogPostsForReview = getBlogPostsForReview(
+    review,
+    allBlogPosts.filter((post) => shouldPromoteBlogPost({ slug: post.slug, source: post.source })),
+    2
+  );
+  const guidesForReview = getGuidesForReview(review, allGuides, 2);
   const whyThisPick = getHotSauceWhyBuy(review);
   const bestFor = getHotSauceBestForCopy(review);
   const skipIf = getHotSauceSkipIfCopy(review);
@@ -501,6 +522,54 @@ export default async function ReviewPage({
               <RecipeCard key={recipe.id} recipe={recipe} />
             ))}
           </div>
+        </section>
+      ) : null}
+
+      {(blogPostsForReview.length || guidesForReview.length) ? (
+        <section className="mt-14 grid gap-6 xl:grid-cols-[1fr_1fr]">
+          {blogPostsForReview.length ? (
+            <div className="panel p-6 sm:p-7">
+              <p className="eyebrow">From the blog</p>
+              <h3 className="mt-3 font-display text-4xl text-charcoal">
+                Editorial that places this bottle in context
+              </h3>
+              <div className="mt-6 grid gap-4 md:grid-cols-2">
+                {blogPostsForReview.map((post) => (
+                  <ContentCard
+                    key={post.slug}
+                    href={`/blog/${post.slug}`}
+                    image={post.imageUrl}
+                    imageAlt={post.imageAlt}
+                    eyebrow={post.category}
+                    title={post.title}
+                    description={post.description}
+                    meta={post.publishedAt}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : null}
+          {guidesForReview.length ? (
+            <div className="panel p-6 sm:p-7">
+              <p className="eyebrow">Background guides</p>
+              <h3 className="mt-3 font-display text-4xl text-charcoal">
+                Guides that explain the lane
+              </h3>
+              <div className="mt-6 space-y-4">
+                {guidesForReview.map((guide) => (
+                  <Link
+                    key={guide.slug}
+                    href={`/guides/${guide.slug}`}
+                    className="block rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 transition hover:border-charcoal/20"
+                  >
+                    <p className="eyebrow">Guide</p>
+                    <h4 className="mt-2 font-display text-2xl text-charcoal">{guide.title}</h4>
+                    <p className="mt-3 text-sm leading-6 text-charcoal/70">{guide.description}</p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </section>
       ) : null}
 

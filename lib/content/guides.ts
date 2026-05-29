@@ -12,6 +12,44 @@ export interface GuideSummary {
   publishedAt: string;
 }
 
+export interface GuideWithBody extends GuideSummary {
+  /** Raw markdown body — used by cross-link scoring, not for direct render. */
+  body: string;
+}
+
+export async function getGuidesWithBody(): Promise<GuideWithBody[]> {
+  let files: string[];
+  try {
+    files = await fs.readdir(guidesDirectory);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return [];
+    }
+    throw error;
+  }
+  const entries = await Promise.all(
+    files
+      .filter((file) => file.endsWith(".md"))
+      .map(async (file) => {
+        const slug = file.replace(/\.md$/, "");
+        const raw = await fs.readFile(path.join(guidesDirectory, file), "utf8");
+        const { data, content } = parseFrontmatter(raw);
+
+        return {
+          slug,
+          title: String(data.title),
+          description: String(data.description),
+          publishedAt: String(data.publishedAt),
+          body: content
+        } satisfies GuideWithBody;
+      })
+  );
+
+  return entries.sort((left, right) =>
+    right.publishedAt.localeCompare(left.publishedAt)
+  );
+}
+
 export async function getGuides() {
   // Next.js's output tracer can't see this readdir, so dynamic routes
   // (e.g. /sitemap.xml) may ship without content/guides/. Treat a missing

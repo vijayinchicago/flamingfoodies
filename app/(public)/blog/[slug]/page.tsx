@@ -3,16 +3,31 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ContentCard } from "@/components/cards/content-card";
+import { RecipeCard } from "@/components/cards/recipe-card";
+import { ReviewCard } from "@/components/cards/review-card";
 import { CommentSection } from "@/components/community/comment-section";
 import { PinterestSaveButton } from "@/components/content/pinterest-save-button";
 import { ShareBar } from "@/components/content/share-bar";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
+import { PeppersInContent } from "@/components/peppers/peppers-in-content";
 import { ArticleSchema } from "@/components/schema/article-schema";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { getPublicAuthorByName, getPublicAuthorHref } from "@/lib/authors";
+import { getGuidesWithBody } from "@/lib/content/guides";
+import {
+  getGuidesForBlogPost,
+  getPeppersInBlogPost,
+  getRecipesForBlogPost,
+  getReviewsForBlogPost
+} from "@/lib/content-cross-links";
 import { isReviewHoldBlogSlug, shouldPromoteBlogPost } from "@/lib/editorial-guards";
 import { buildMetadata } from "@/lib/seo";
-import { getBlogPost, getBlogPosts } from "@/lib/services/content";
+import {
+  getBlogPost,
+  getBlogPosts,
+  getRecipes,
+  getReviews
+} from "@/lib/services/content";
 import { absoluteUrl, formatDate, markdownToHtml } from "@/lib/utils";
 
 export async function generateStaticParams() {
@@ -64,7 +79,13 @@ export default async function BlogPostPage({
 }: {
   params: { slug: string };
 }) {
-  const [post, allPosts] = await Promise.all([getBlogPost(params.slug), getBlogPosts()]);
+  const [post, allPosts, allRecipes, allReviews, allGuides] = await Promise.all([
+    getBlogPost(params.slug),
+    getBlogPosts(),
+    getRecipes(),
+    getReviews(),
+    getGuidesWithBody()
+  ]);
 
   if (!post) notFound();
 
@@ -96,6 +117,19 @@ export default async function BlogPostPage({
     .sort((left, right) => right.score - left.score)
     .slice(0, 3)
     .map(({ candidate }) => candidate);
+
+  const peppersInPost = getPeppersInBlogPost(post);
+  const recipesForPost = getRecipesForBlogPost(
+    post,
+    allRecipes.filter((recipe) => recipe.status === "published"),
+    3
+  );
+  const reviewsForPost = getReviewsForBlogPost(
+    post,
+    allReviews.filter((review) => review.status === "published"),
+    3
+  );
+  const guidesForPost = getGuidesForBlogPost(post, allGuides, 2);
 
   return (
     <article className="container-shell py-16">
@@ -186,6 +220,76 @@ export default async function BlogPostPage({
         className="prose-guide mt-12"
         dangerouslySetInnerHTML={{ __html: html }}
       />
+      {peppersInPost.length > 0 ? (
+        <div className="mt-10 max-w-3xl">
+          <PeppersInContent peppers={peppersInPost} heading="Peppers featured in this post" />
+        </div>
+      ) : null}
+      {recipesForPost.length > 0 ? (
+        <section className="mt-14">
+          <p className="eyebrow">Cook with this idea</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
+            Recipes that pull on the same thread.
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
+            Matched on cuisine, heat lane, and the ingredients this post leans on.
+          </p>
+          <div className="mt-8 grid gap-6 lg:grid-cols-3">
+            {recipesForPost.map((recipe) => (
+              <RecipeCard key={recipe.id} recipe={recipe} />
+            ))}
+          </div>
+          <Link
+            href="/recipes"
+            className="mt-6 inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30"
+          >
+            Browse all recipes
+          </Link>
+        </section>
+      ) : null}
+      {reviewsForPost.length > 0 ? (
+        <section className="mt-14">
+          <p className="eyebrow">Bottle picks</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
+            Hot sauces this post points at.
+          </h2>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
+            Reviewed sauces that line up with the heat, cuisine, or flavor lane discussed above.
+          </p>
+          <div className="mt-8 grid gap-6 lg:grid-cols-3">
+            {reviewsForPost.map((review) => (
+              <ReviewCard key={review.id} review={review} />
+            ))}
+          </div>
+          <Link
+            href="/hot-sauces"
+            className="mt-6 inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal hover:border-charcoal/30"
+          >
+            Browse all hot sauces
+          </Link>
+        </section>
+      ) : null}
+      {guidesForPost.length > 0 ? (
+        <section className="mt-14 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-7 sm:p-8">
+          <p className="eyebrow">Go deeper</p>
+          <h2 className="mt-3 font-display text-3xl text-charcoal sm:text-4xl">
+            Background guides that build on this.
+          </h2>
+          <div className="mt-6 grid gap-4 lg:grid-cols-2">
+            {guidesForPost.map((guide) => (
+              <Link
+                key={guide.slug}
+                href={`/guides/${guide.slug}`}
+                className="rounded-[1.5rem] border border-charcoal/10 bg-white p-5 transition hover:border-charcoal/20"
+              >
+                <p className="eyebrow">Guide</p>
+                <h3 className="mt-2 font-display text-2xl text-charcoal">{guide.title}</h3>
+                <p className="mt-3 text-sm leading-6 text-charcoal/70">{guide.description}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
       {relatedPosts.length ? (
         <div className="mt-14">
           <p className="eyebrow">Keep reading</p>
