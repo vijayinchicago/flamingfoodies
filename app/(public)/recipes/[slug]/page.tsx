@@ -63,9 +63,10 @@ import {
   getGuidesForRecipe
 } from "@/lib/content-cross-links";
 import { shouldPromoteBlogPost } from "@/lib/editorial-guards";
+import { flags } from "@/lib/env";
 import { buildMetadata } from "@/lib/seo";
 import { getRuntimeRecipeSearchOptimization } from "@/lib/services/search-insights";
-import { getCurrentProfile } from "@/lib/supabase/auth";
+import { getCurrentMemberProfile } from "@/lib/supabase/auth";
 import {
   getBlogPosts,
   getFeaturedMerchProducts,
@@ -270,7 +271,7 @@ export default async function RecipePage({
     notFound();
   }
 
-  const profile = await getCurrentProfile();
+  const profile = await getCurrentMemberProfile();
   const [userState, merchPreview, reviews, recipes, dynamicTerms, ads, allBlogPosts, allGuides] = await Promise.all([
     getRecipeUserState(recipe.id, profile?.id),
     getFeaturedMerchProducts(2),
@@ -826,13 +827,17 @@ export default async function RecipePage({
                       </button>
                     </form>
                   </>
-                ) : (
+                ) : flags.memberAuthEnabled ? (
                   <Link
                     href="/login"
                     className="inline-flex w-full justify-center rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-cream"
                   >
                     Log in to save and rate
                   </Link>
+                ) : (
+                  <p className="text-sm leading-7 text-charcoal/60">
+                    Recipe-box saves and ratings are paused while member sign-in is disabled.
+                  </p>
                 )}
               </div>
             </section>

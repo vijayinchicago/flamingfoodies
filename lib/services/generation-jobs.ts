@@ -5,6 +5,22 @@ type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
 export const GENERATION_JOB_TIMEOUT_MINUTES = 45;
 export const RETRYABLE_RECIPE_GENERATION_ATTEMPTS = 2;
 
+export function summarizeGenerationJobResults(jobs: readonly object[]) {
+  const failedJobs = jobs.filter((job) => {
+    const error = "error" in job ? job.error : null;
+    return typeof error === "string" && error.trim().length > 0;
+  });
+  const firstError = failedJobs[0] && "error" in failedJobs[0]
+    ? failedJobs[0].error
+    : null;
+
+  return {
+    succeeded: jobs.length - failedJobs.length,
+    failed: failedJobs.length,
+    firstError: typeof firstError === "string" ? firstError : null
+  };
+}
+
 const RETRYABLE_RECIPE_ERROR_PREFIXES = [
   "Draft generation returned an empty recipe payload.",
   "Draft generation returned an invalid recipe payload:"

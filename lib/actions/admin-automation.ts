@@ -29,6 +29,7 @@ import {
   resumeAutomationAgent,
   runManualAutomationTask
 } from "@/lib/services/automation-control";
+import { summarizeGenerationJobResults } from "@/lib/services/generation-jobs";
 import {
   applyReleaseApproval,
   runBrandDiscovery,
@@ -231,10 +232,14 @@ export async function triggerGenerationAction(formData: FormData) {
 
       return result;
     },
-    summarize: (result) => ({
-      summary: `Queued ${result.createdJobs.length} ${parsed.data.type} job(s).`,
-      rowsCreated: result.createdJobs.length
-    })
+    summarize: (result) => {
+      const jobSummary = summarizeGenerationJobResults(result.createdJobs);
+
+      return {
+        summary: `Created ${jobSummary.succeeded} ${parsed.data.type} job(s); ${jobSummary.failed} failed.`,
+        rowsCreated: jobSummary.succeeded
+      };
+    }
   });
 
   const result = task.ok ? task.result : redirectTriggerError(task.errorMessage);
@@ -255,7 +260,8 @@ export async function triggerGenerationAction(formData: FormData) {
   revalidatePath("/admin/automation/jobs");
   revalidatePath(AUTOMATION_TRIGGER_PATH);
   revalidatePath("/admin");
-  redirect(`${AUTOMATION_TRIGGER_PATH}?created=${result.createdJobs.length}`);
+  const jobSummary = summarizeGenerationJobResults(result.createdJobs);
+  redirect(`${AUTOMATION_TRIGGER_PATH}?created=${jobSummary.succeeded}`);
 }
 
 export async function updateGenerationScheduleAction(formData: FormData) {

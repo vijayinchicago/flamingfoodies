@@ -53,7 +53,19 @@ export async function getCurrentProfile(): Promise<Profile | null> {
   };
 }
 
+export async function getCurrentMemberProfile(): Promise<Profile | null> {
+  if (!flags.memberAuthEnabled) {
+    return null;
+  }
+
+  return getCurrentProfile();
+}
+
 export async function requireUser() {
+  if (!flags.memberAuthEnabled) {
+    redirect("/");
+  }
+
   const profile = await getCurrentProfile();
 
   if (!profile) {
@@ -64,7 +76,11 @@ export async function requireUser() {
 }
 
 export async function requireAdmin() {
-  const profile = await requireUser();
+  const profile = await getCurrentProfile();
+
+  if (!profile) {
+    redirect("/login");
+  }
 
   if (profile.role !== "admin") {
     redirect("/");

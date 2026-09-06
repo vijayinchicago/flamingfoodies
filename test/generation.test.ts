@@ -11,6 +11,7 @@ import {
   GENERATION_JOB_TIMEOUT_MINUTES,
   buildTimedOutGenerationJobMessage,
   expireTimedOutGenerationJobs,
+  summarizeGenerationJobResults,
   shouldRetryGenerationFailure
 } from "@/lib/services/generation-jobs";
 import {
@@ -646,5 +647,21 @@ describe("generation prompts", () => {
     });
 
     expect(payload.cuisine_type).toBe("szechuan");
+  });
+});
+
+describe("generation job result accounting", () => {
+  it("counts only successful jobs as created", () => {
+    expect(
+      summarizeGenerationJobResults([
+        { id: 1, slug: "created-recipe" },
+        { id: 2, error: "Provider model was unavailable" },
+        { id: 3, error: "" }
+      ])
+    ).toEqual({
+      succeeded: 2,
+      failed: 1,
+      firstError: "Provider model was unavailable"
+    });
   });
 });

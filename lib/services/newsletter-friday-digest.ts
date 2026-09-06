@@ -4,7 +4,7 @@ import { z } from "zod";
 import { env, flags } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
-const ANTHROPIC_MODEL = env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
+const ANTHROPIC_MODEL = env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
 const FRIDAY_GROUP_KEY = "weekly-roundup";
 const RECIPE_CANDIDATE_LIMIT = 6;
 const REVIEW_CANDIDATE_LIMIT = 6;
@@ -142,13 +142,11 @@ async function generateFridayDigestContent(input: {
   const response = await anthropic.messages.create({
     model: ANTHROPIC_MODEL,
     max_tokens: 1500,
-    messages: [
-      { role: "user", content: buildPrompt(input) },
-      { role: "assistant", content: "{" }
-    ]
+    messages: [{ role: "user", content: buildPrompt(input) }]
   });
 
-  const raw = "{" + pickAnthropicText(response.content);
+  const text = pickAnthropicText(response.content).trim();
+  const raw = text.startsWith("{") ? text : `{${text}`;
   const parsed = tryParseJson<Record<string, unknown>>(raw);
   if (!parsed) return null;
 

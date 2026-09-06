@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { CommunityCard } from "@/components/cards/community-card";
 import { toggleFollowAction } from "@/lib/actions/engagement";
 import { buildMetadata } from "@/lib/seo";
-import { getCurrentProfile } from "@/lib/supabase/auth";
+import { getCurrentMemberProfile } from "@/lib/supabase/auth";
 import {
   getCommunityPosts,
   getFollowState,
@@ -36,7 +36,7 @@ export default async function ProfilePage({
   const [profile, posts, viewer] = await Promise.all([
     getProfile(params.username),
     getCommunityPosts(),
-    getCurrentProfile()
+    getCurrentMemberProfile()
   ]);
 
   if (!profile) notFound();

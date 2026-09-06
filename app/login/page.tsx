@@ -2,16 +2,20 @@ import { LoginPanel } from "@/components/forms/login-panel";
 import { buildMetadata } from "@/lib/seo";
 
 export const metadata = buildMetadata({
-  title: "Log In | FlamingFoodies",
-  description: "Sign in to save recipes, comment, and manage your FlamingFoodies profile.",
+  title: "Admin Sign In | FlamingFoodies",
+  description: "Restricted administrator sign-in for FlamingFoodies.",
   path: "/login",
   noIndex: true
 });
 
-export default function LoginPage() {
+export default function LoginPage({
+  searchParams
+}: {
+  searchParams?: { error?: string };
+}) {
   return (
     <section className="container-shell py-16">
-      <LoginPanel />
+      <LoginPanel initialMessage={searchParams?.error || ""} />
     </section>
   );
 }

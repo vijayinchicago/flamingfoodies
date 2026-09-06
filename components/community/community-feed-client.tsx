@@ -170,10 +170,12 @@ function CommunityPostCard({ post }: { post: CommunityPost }) {
 
 export function CommunityFeedClient({
   posts,
-  isLoggedIn = false
+  isLoggedIn = false,
+  memberAuthEnabled = true
 }: {
   posts: CommunityPost[];
   isLoggedIn?: boolean;
+  memberAuthEnabled?: boolean;
 }) {
   const [activeTab, setActiveTab] = useState<FeedTab>("trending");
   const [typeFilter, setTypeFilter] = useState<PostTypeFilter>("all");
@@ -241,7 +243,7 @@ export function CommunityFeedClient({
               {tab.label}
             </button>
           ))}
-          {isLoggedIn ? (
+          {memberAuthEnabled && isLoggedIn ? (
             <button
               type="button"
               className="rounded-xl px-5 py-2.5 text-sm font-semibold text-charcoal/70 hover:text-charcoal"
@@ -249,7 +251,7 @@ export function CommunityFeedClient({
             >
               Following
             </button>
-          ) : (
+          ) : memberAuthEnabled ? (
             <Link
               href="/login"
               className="rounded-xl px-5 py-2.5 text-sm font-semibold text-charcoal/45 transition hover:text-charcoal/70"
@@ -257,7 +259,7 @@ export function CommunityFeedClient({
             >
               Following
             </Link>
-          )}
+          ) : null}
         </div>
 
         {/* Type filters */}

@@ -1,7 +1,8 @@
 import Link from "next/link";
 
 import { submitCommentAction } from "@/lib/actions/engagement";
-import { getCurrentProfile } from "@/lib/supabase/auth";
+import { flags } from "@/lib/env";
+import { getCurrentMemberProfile } from "@/lib/supabase/auth";
 import { getCommentsForContent } from "@/lib/services/content";
 import { formatDate } from "@/lib/utils";
 
@@ -18,7 +19,7 @@ export async function CommentSection({
 }) {
   const [comments, profile] = await Promise.all([
     getCommentsForContent(contentType, contentId),
-    getCurrentProfile()
+    getCurrentMemberProfile()
   ]);
 
   return (
@@ -43,13 +44,17 @@ export async function CommentSection({
               Post comment
             </button>
           </form>
-        ) : (
+        ) : flags.memberAuthEnabled ? (
           <Link
             href="/login"
             className="mt-6 inline-flex rounded-full border border-charcoal/15 px-4 py-2 text-sm font-semibold text-charcoal"
           >
             Log in to comment
           </Link>
+        ) : (
+          <p className="mt-6 text-sm text-charcoal/60">
+            Comments are read-only while member sign-in is paused.
+          </p>
         )}
       </div>
 

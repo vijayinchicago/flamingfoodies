@@ -28,6 +28,7 @@ import {
 import {
   RETRYABLE_RECIPE_GENERATION_ATTEMPTS,
   expireTimedOutGenerationJobs,
+  summarizeGenerationJobResults,
   shouldRetryGenerationFailure
 } from "@/lib/services/generation-jobs";
 import { runInlinePrepublishQaForRow } from "@/lib/services/prepublish-qa";
@@ -391,7 +392,7 @@ const reviewVoiceRewriteSchema = z.object({
 const AUTOMATED_RECIPE_PUBLISH_SCORE = 84;
 const AUTOMATED_BLOG_PUBLISH_SCORE = 86;
 const AUTOMATED_REVIEW_PUBLISH_SCORE = 86;
-const ANTHROPIC_TEXT_MODEL = env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514";
+const ANTHROPIC_TEXT_MODEL = env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
 const ANTHROPIC_GENERATION_MAX_TOKENS = 3200;
 const ANTHROPIC_QA_MAX_TOKENS = 1400;
 const ANTHROPIC_REWRITE_MAX_TOKENS = 4800;
@@ -804,7 +805,7 @@ async function requestJsonFromAnthropic(
     maxTokens: number;
   }
 ) {
-  let output = "{";
+  let output = "";
   let tokensUsed = 0;
   let stopReason: string | null = null;
 
@@ -815,10 +816,6 @@ async function requestJsonFromAnthropic(
             {
               role: "user" as const,
               content: prompt
-            },
-            {
-              role: "assistant" as const,
-              content: "{"
             }
           ]
         : [
@@ -4124,6 +4121,7 @@ export async function runGenerationPipeline(
             : null,
           error: message
         });
+        break;
       }
     }
 
@@ -4139,6 +4137,13 @@ export async function runGenerationPipeline(
         last_run_at: new Date().toISOString()
       })
       .eq("id", scheduleRow.id);
+  }
+
+  const jobSummary = summarizeGenerationJobResults(createdJobs);
+  if (createdJobs.length > 0 && jobSummary.succeeded === 0) {
+    throw new Error(
+      `${generationType} generation failed for all ${jobSummary.failed} job(s): ${jobSummary.firstError || "Unknown generation error"}`
+    );
   }
 
   return {

@@ -10,5 +10,5 @@ export const metadata = buildMetadata({
 });
 
 export default function SignupPage() {
-  redirect("/login");
+  redirect("/");
 }

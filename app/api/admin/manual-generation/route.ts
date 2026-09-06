@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireAdminApiAccess, writeAdminAuditLog } from "@/lib/admin-api";
 import { runGenerationPipeline } from "@/lib/services/automation";
 import { runManualAutomationTask } from "@/lib/services/automation-control";
+import { summarizeGenerationJobResults } from "@/lib/services/generation-jobs";
 import { runShopPickAutomation } from "@/lib/services/shop-automation";
 import { jsonResponse } from "@/lib/utils";
 
@@ -98,10 +99,14 @@ export async function POST(request: Request) {
       onSuccess: () => {
         revalidateGeneratedType(parsed.data.type);
       },
-      summarize: (result) => ({
-        summary: `Queued ${result.createdJobs.length} ${parsed.data.type} job(s).`,
-        rowsCreated: result.createdJobs.length
-      })
+      summarize: (result) => {
+        const jobSummary = summarizeGenerationJobResults(result.createdJobs);
+
+        return {
+          summary: `Created ${jobSummary.succeeded} ${parsed.data.type} job(s); ${jobSummary.failed} failed.`,
+          rowsCreated: jobSummary.succeeded
+        };
+      }
     });
 
     if (!task.ok) {
