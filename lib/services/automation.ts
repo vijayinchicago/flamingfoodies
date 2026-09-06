@@ -464,7 +464,7 @@ function extractFirstJsonPayload(value: string) {
   return null;
 }
 
-function parseJsonResponse<T>(value: string): T | null {
+export function parseGeneratedJsonResponse<T>(value: string): T | null {
   const cleaned = stripCodeFence(value);
 
   try {
@@ -493,14 +493,8 @@ function getAnthropicTextOutput(
     .trim();
 }
 
-function completeJsonPrefill(value: string) {
-  const trimmed = value.trimStart();
-
-  if (!trimmed) {
-    return "";
-  }
-
-  return trimmed.startsWith("{") || trimmed.startsWith("[") ? trimmed : `{${trimmed}`;
+export function appendAnthropicJsonChunk(output: string, chunk: string) {
+  return output ? `${output}${chunk}` : chunk;
 }
 
 function summarizeModelOutput(value: string) {
@@ -840,17 +834,14 @@ async function requestJsonFromAnthropic(
       messages
     });
 
-    const chunk =
-      attempt === 0
-        ? completeJsonPrefill(getAnthropicTextOutput(response.content))
-        : getAnthropicTextOutput(response.content);
+    const chunk = getAnthropicTextOutput(response.content);
 
-    output = attempt === 0 ? chunk : `${output}${chunk}`;
+    output = appendAnthropicJsonChunk(output, chunk);
     tokensUsed +=
       Number(response.usage?.input_tokens ?? 0) + Number(response.usage?.output_tokens ?? 0);
     stopReason = response.stop_reason ?? null;
 
-    if (parseJsonResponse(output)) {
+    if (parseGeneratedJsonResponse(output)) {
       break;
     }
 
@@ -861,7 +852,7 @@ async function requestJsonFromAnthropic(
 
   return {
     output,
-    payload: parseJsonResponse<Record<string, any>>(output),
+    payload: parseGeneratedJsonResponse<Record<string, any>>(output),
     tokensUsed,
     stopReason
   };
@@ -2217,7 +2208,7 @@ async function runEditorialQaReview(
     }
   );
 
-  return parseJsonResponse<AgentQaReview>(response.output);
+  return parseGeneratedJsonResponse<AgentQaReview>(response.output);
 }
 
 function buildQaIssue(

@@ -15,6 +15,7 @@ import {
   shouldRetryGenerationFailure
 } from "@/lib/services/generation-jobs";
 import {
+  appendAnthropicJsonChunk,
   buildBlogPhotoSearchQueries,
   buildReviewPhotoSearchQueries,
   buildRecipePhotoSearchQueries,
@@ -22,6 +23,7 @@ import {
   mergeAgentQaReviewForAutonomousDraft,
   normalizeGeneratedCommonPayload,
   normalizeGeneratedRecipePayload,
+  parseGeneratedJsonResponse,
   pickBalancedHotSauceFocus,
   planBalancedCuisines,
   planBalancedHeatLevels,
@@ -29,6 +31,25 @@ import {
   resolveAutonomousPublishAt,
   shouldAutonomousPublish
 } from "@/lib/services/automation";
+
+describe("Anthropic JSON response handling", () => {
+  it("preserves and parses a fenced initial JSON response", () => {
+    const output = appendAnthropicJsonChunk("", '```json\n{"title":"Spicy noodles"}\n```');
+
+    expect(output).toBe('```json\n{"title":"Spicy noodles"}\n```');
+    expect(parseGeneratedJsonResponse(output)).toEqual({ title: "Spicy noodles" });
+  });
+
+  it("joins a fenced truncated response with its continuation", () => {
+    const initial = appendAnthropicJsonChunk("", '```json\n{"title":"Spicy noodles",');
+    const completed = appendAnthropicJsonChunk(initial, '"description":"Bright and hot"}\n```');
+
+    expect(parseGeneratedJsonResponse(completed)).toEqual({
+      title: "Spicy noodles",
+      description: "Bright and hot"
+    });
+  });
+});
 
 describe("generation prompts", () => {
   it("creates a recipe prompt with heat and cuisine details", () => {
