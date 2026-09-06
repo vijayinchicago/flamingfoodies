@@ -98,7 +98,7 @@ export default async function ReviewPage({
 
   if (!review) notFound();
   const hero = getReviewHeroFields(review);
-  const reviewByline = review.authorName || "FlamingFoodies Review Desk";
+  const reviewByline = review.authorName || "Miles Hart";
   const reviewAuthor = getPublicAuthorByName(reviewByline);
 
   const [rawHtml, dynamicTerms] = await Promise.all([

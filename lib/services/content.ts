@@ -1,5 +1,5 @@
 import {
-  sampleBlogPosts,
+  sampleBlogPosts as rawSampleBlogPosts,
   sampleComments,
   sampleCompetitions,
   sampleCommunityPosts,
@@ -7,15 +7,16 @@ import {
   sampleMerchProducts,
   sampleProfiles,
   sampleRecipeRatings,
-  sampleRecipes,
+  sampleRecipes as rawSampleRecipes,
   sampleRecipeSaves,
-  sampleReviews
+  sampleReviews as rawSampleReviews
 } from "@/lib/sample-data";
 import {
   sanitizeAutomationAuthorName,
   sanitizeAutomationQaNotes,
   sanitizeAutomationTags
 } from "@/lib/content-labels";
+import { resolveEditorialAuthorName } from "@/lib/authors";
 import type { AffiliateLinkEntry } from "@/lib/affiliates";
 import { getBlogHeroFields } from "@/lib/blog-hero";
 import { flags } from "@/lib/env";
@@ -50,6 +51,40 @@ import type {
   Review
 } from "@/lib/types";
 import { slugify } from "@/lib/utils";
+
+const sampleBlogPosts = rawSampleBlogPosts.map((post) => ({
+  ...post,
+  authorName: resolveEditorialAuthorName({
+    type: "blog",
+    title: post.title,
+    category: post.category,
+    tags: post.tags,
+    currentAuthorName: post.authorName
+  })
+}));
+
+const sampleRecipes = rawSampleRecipes.map((recipe) => ({
+  ...recipe,
+  authorName: resolveEditorialAuthorName({
+    type: "recipe",
+    title: recipe.title,
+    tags: recipe.tags,
+    difficulty: recipe.difficulty,
+    totalTimeMinutes: recipe.totalTimeMinutes,
+    currentAuthorName: recipe.authorName
+  })
+}));
+
+const sampleReviews = rawSampleReviews.map((review) => ({
+  ...review,
+  authorName: resolveEditorialAuthorName({
+    type: "review",
+    title: review.title,
+    category: review.category,
+    tags: review.tags,
+    currentAuthorName: review.authorName
+  })
+}));
 
 function sortPublished<T extends { publishedAt?: string }>(items: T[]) {
   return [...items].sort((left, right) =>
@@ -348,7 +383,13 @@ function mapBlogRow(row: any): BlogPost {
     title: row.title,
     description: row.description,
     content: row.content,
-    authorName: sanitizeAutomationAuthorName(row.author_name) || "FlamingFoodies Team",
+    authorName: resolveEditorialAuthorName({
+      type: "blog",
+      title: row.title,
+      category: row.category,
+      tags: row.tags ?? [],
+      currentAuthorName: sanitizeAutomationAuthorName(row.author_name)
+    }),
     category: row.category,
     tags: sanitizeAutomationTags(row.tags ?? []),
     imageUrl: hero.imageUrl,
@@ -392,7 +433,14 @@ function mapRecipeRow(row: any): Recipe {
     description: row.description,
     intro: row.intro ?? undefined,
     heroSummary: row.hero_summary ?? undefined,
-    authorName: sanitizeAutomationAuthorName(row.author_name) || "FlamingFoodies Test Kitchen",
+    authorName: resolveEditorialAuthorName({
+      type: "recipe",
+      title: row.title,
+      tags: row.tags ?? [],
+      difficulty: row.difficulty,
+      totalTimeMinutes: row.total_time_minutes,
+      currentAuthorName: sanitizeAutomationAuthorName(row.author_name)
+    }),
     heatLevel: row.heat_level,
     cuisineType: row.cuisine_type,
     prepTimeMinutes: row.prep_time_minutes ?? 0,
@@ -474,7 +522,13 @@ function mapReviewRow(row: any): Review {
     qaNotes: sanitizeAutomationQaNotes(row.qa_notes),
     qaReport: row.qa_report ?? undefined,
     qaIssues: Array.isArray(row.qa_issues) ? row.qa_issues : undefined,
-    authorName: sanitizeAutomationAuthorName(row.author_name) || "FlamingFoodies Review Desk",
+    authorName: resolveEditorialAuthorName({
+      type: "review",
+      title: row.title,
+      category: row.category,
+      tags: row.tags ?? [],
+      currentAuthorName: sanitizeAutomationAuthorName(row.author_name)
+    }),
     recommended: row.recommended ?? false,
     featured: row.featured ?? false
   };

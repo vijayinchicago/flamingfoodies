@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 
 import { TrustPageShell } from "@/components/layout/trust-page-shell";
 import {
+  EDITORIAL_PERSONA_DISCLOSURE,
+  buildAuthorProfileStructuredData,
   getAllPublicAuthors,
   getPublicAuthorBySlug,
   matchesPublicAuthorName
@@ -11,7 +13,7 @@ import { shouldPromoteBlogPost } from "@/lib/editorial-guards";
 import { buildMetadata } from "@/lib/seo";
 import { getBlogPosts, getRecipes, getReviews } from "@/lib/services/content";
 
-const LAST_UPDATED = "April 27, 2026";
+const LAST_UPDATED = "September 6, 2026";
 
 export async function generateStaticParams() {
   return getAllPublicAuthors().map((author) => ({ slug: author.slug }));
@@ -68,16 +70,26 @@ export default async function AuthorPage({
     .slice(0, 4);
 
   return (
-    <TrustPageShell
-      eyebrow="Contributor"
-      title={author.displayName}
-      description={`${author.role}. ${author.shortBio}`}
-      lastUpdated={LAST_UPDATED}
-    >
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(buildAuthorProfileStructuredData(author))
+        }}
+      />
+      <TrustPageShell
+        eyebrow="Editorial pen name"
+        title={author.displayName}
+        description={`${author.role}. ${author.personality}`}
+        lastUpdated={LAST_UPDATED}
+      >
       <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <article className="panel p-8">
           <p className="eyebrow">About this byline</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">What this lane covers.</h2>
+          <p className="mt-4 rounded-[1.25rem] border border-ember/20 bg-ember/[0.06] p-4 text-sm leading-7 text-charcoal/75">
+            {EDITORIAL_PERSONA_DISCLOSURE}
+          </p>
           <p className="mt-4 text-sm leading-7 text-charcoal/75">{author.longBio}</p>
           <ul className="mt-6 space-y-3 text-sm leading-7 text-charcoal/70">
             {author.focusAreas.map((area) => (
@@ -193,6 +205,7 @@ export default async function AuthorPage({
           </div>
         </article>
       </div>
-    </TrustPageShell>
+      </TrustPageShell>
+    </>
   );
 }

@@ -6,7 +6,7 @@ const posts = [
     title: "How to Build Your First Hot Sauce Shelf",
     description:
       "A practical way to build a useful starter shelf without overbuying novelty bottles or expensive gift sets.",
-    author_name: "FlamingFoodies Team",
+    author_name: "Miles Hart",
     category: "guides",
     content: `
 ## Start with lanes you actually cook in
@@ -47,7 +47,7 @@ The [hot sauce hub](/hot-sauces) helps you shop by intent, the [reviews archive]
     title: "How to Pick a Hot Sauce for Eggs, Breakfast Tacos, and Hash",
     description:
       "What actually works at breakfast: bright pours, chili crisps, and bottles you can use generously before noon.",
-    author_name: "FlamingFoodies Team",
+    author_name: "Miles Hart",
     category: "guides",
     content: `
 ## Breakfast heat should wake food up, not flatten it
@@ -88,7 +88,7 @@ You do not need a premium subscription box to fix your morning shelf. Start with
     title: "What Makes a Hot Sauce Good on Pizza and Wings",
     description:
       "A quick field guide to the garlic, cling, smoke, and heat curves that work best on richer, game-day food.",
-    author_name: "FlamingFoodies Team",
+    author_name: "Miles Hart",
     category: "guides",
     content: `
 ## Rich food can carry more aggression
@@ -129,7 +129,7 @@ Once you know whether you want buffalo-style cling, garlic weight, or pizza-frie
     title: "How to Choose a Hot Sauce for Seafood",
     description:
       "The bright, gingery, and fruit-forward bottles that sharpen shrimp, fish tacos, grilled fish, and shellfish instead of taking them over.",
-    author_name: "FlamingFoodies Team",
+    author_name: "Miles Hart",
     category: "guides",
     content: `
 ## Seafood usually wants lift first

@@ -6,6 +6,7 @@ import {
   buildAmazonSearchUrl,
   getAffiliateLinkEntries
 } from "@/lib/affiliates";
+import { resolveEditorialAuthorName } from "@/lib/authors";
 import {
   buildBlogHeroImageAlt,
   buildBlogHeroImageUrl,
@@ -2542,22 +2543,34 @@ function buildRecipeDraft(
     generated?.intro ||
     `This draft leans into ${cuisineLabel.toLowerCase()} heat traditions while keeping the ${laneLabel} practical for home cooks.`;
   const heroSummary = generated?.hero_summary || intro;
+  const prepTimeMinutes = Number(generated?.prep_time_minutes ?? 20);
+  const cookTimeMinutes = Number(generated?.cook_time_minutes ?? 25);
+  const difficulty = generated?.difficulty || "intermediate";
+  const tags =
+    generated?.tags ??
+    [cuisine, recipeLane ? recipeLane.replace(/_/g, "-") : "weeknight", "spicy"];
 
   return {
     title,
     description,
     intro,
     hero_summary: heroSummary,
-    author_name: "FlamingFoodies Test Kitchen",
+    author_name: resolveEditorialAuthorName({
+      type: "recipe",
+      title,
+      tags,
+      difficulty,
+      totalTimeMinutes: prepTimeMinutes + cookTimeMinutes
+    }),
     heat_level: generated?.heat_level || plannedHeatLevel || getHeatLevel(index),
     cuisine_type: generated?.cuisine_type || cuisine,
-    prep_time_minutes: Number(generated?.prep_time_minutes ?? 20),
-    cook_time_minutes: Number(generated?.cook_time_minutes ?? 25),
+    prep_time_minutes: prepTimeMinutes,
+    cook_time_minutes: cookTimeMinutes,
     active_time_minutes: Number(
       generated?.active_time_minutes ?? generated?.prep_time_minutes ?? 20
     ),
     servings: Number(generated?.servings ?? 4),
-    difficulty: generated?.difficulty || "intermediate",
+    difficulty,
     ingredients:
       generated?.ingredients ?? [
         { amount: "2", unit: "tbsp", item: "chili paste", notes: "adjust to taste" },
@@ -2590,9 +2603,7 @@ function buildRecipeDraft(
     substitutions: generated?.substitutions ?? generated?.variations ?? [],
     faqs: generated?.faqs ?? [],
     equipment: generated?.equipment ?? ["large skillet", "mixing bowl"],
-    tags:
-      generated?.tags ??
-      [cuisine, recipeLane ? recipeLane.replace(/_/g, "-") : "weeknight", "spicy"],
+    tags,
     image_url: imageUrl ?? null,
     image_alt:
       generated?.image_alt ||
@@ -2626,20 +2637,22 @@ function buildBlogDraft(
   const content =
     generated?.content ||
     `## The draw\n\n${title} is not about brute force. It is about pacing, contrast, and dishes that stay craveable.\n\n## Why it works\n\nThe best spicy food balances heat with acid, texture, and aroma.\n\n## What to cook next\n\nUse this post as a starting point for cooking and reading deeper into the subject.\n`;
+  const category = generated?.category || ["culture", "science", "guides", "gear"][index % 4];
+  const tags = generated?.tags ?? [cuisine, "spicy-food"];
 
   return {
     title,
     description,
     content,
-    author_name: "FlamingFoodies",
-    category: generated?.category || ["culture", "science", "guides", "gear"][index % 4],
-    tags: generated?.tags ?? [cuisine, "spicy-food"],
+    author_name: resolveEditorialAuthorName({ type: "blog", title, category, tags }),
+    category,
+    tags,
     image_url: imageUrl ?? null,
     image_alt:
       generated?.image_alt ||
       buildBlogHeroImageAlt({
         title,
-        category: generated?.category || ["culture", "science", "guides", "gear"][index % 4],
+        category,
         cuisineType: generated?.cuisine_type || cuisine
       }),
     heat_level: generated?.heat_level || plannedHeatLevel || getHeatLevel(index),
@@ -2681,6 +2694,8 @@ function buildReviewDraft(
   const content =
     generated?.content ||
     `## First taste\n\n${productName} opens with personality and finishes with enough heat to matter.\n\n## Where it lands\n\nThis bottle stands out most when you match it to the right foods and heat tolerance.\n`;
+  const category = generated?.category || "hot-sauce";
+  const tags = generated?.tags ?? [slugify(brand), "review"];
 
   return {
     title,
@@ -2701,10 +2716,10 @@ function buildReviewDraft(
     scoville_max: Number(generated?.scoville_max ?? 4500),
     flavor_notes: generated?.flavor_notes ?? focus?.flavorNotes ?? ["bright", "smoky", "fruity"],
     cuisine_origin: generated?.cuisine_origin || focus?.cuisineOrigin || cuisine,
-    category: generated?.category || "hot-sauce",
+    category,
     pros: generated?.pros ?? ["Balanced heat", "Useful on multiple foods"],
     cons: generated?.cons ?? ["Needs hands-on tasting before publish"],
-    tags: generated?.tags ?? [slugify(brand), "review"],
+    tags,
     recommended: Boolean(generated?.recommended ?? true),
     featured: false,
     source: "ai_generated",
@@ -3325,7 +3340,14 @@ function buildStoredRecipeDraft(row: Record<string, any>) {
     description: row.description,
     intro: row.intro || row.description,
     hero_summary: heroSummary,
-    author_name: row.author_name || "FlamingFoodies Test Kitchen",
+    author_name: resolveEditorialAuthorName({
+      type: "recipe",
+      title: row.title,
+      tags: Array.isArray(row.tags) ? row.tags : [],
+      difficulty: row.difficulty,
+      totalTimeMinutes: Number(row.total_time_minutes ?? 0),
+      currentAuthorName: row.author_name
+    }),
     heat_level: heatLevelSet.has(row.heat_level) ? row.heat_level : "medium",
     cuisine_type: cuisine,
     prep_time_minutes: Number(row.prep_time_minutes ?? 20),
@@ -3377,7 +3399,13 @@ function buildStoredBlogDraft(row: Record<string, any>) {
     title: row.title,
     description: row.description,
     content: row.content,
-    author_name: row.author_name || "FlamingFoodies",
+    author_name: resolveEditorialAuthorName({
+      type: "blog",
+      title: row.title,
+      category,
+      tags: Array.isArray(row.tags) ? row.tags : [],
+      currentAuthorName: row.author_name
+    }),
     category,
     tags:
       Array.isArray(row.tags) && row.tags.length >= 2

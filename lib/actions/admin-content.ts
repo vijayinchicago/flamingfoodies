@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { buildBlogQaReport, getBlogQaPublishError } from "@/lib/blog-qa";
+import { resolveEditorialAuthorName } from "@/lib/authors";
 import { CUISINE_TYPES, HEAT_LEVELS } from "@/lib/content-taxonomy";
 import { getBlogHeroFields } from "@/lib/blog-hero";
 import { flags } from "@/lib/env";
@@ -459,7 +460,13 @@ function buildRecipeQaPayload({
     description: parsed.description,
     intro: parsed.intro,
     heroSummary: parsed.heroSummary,
-    authorName: "QA",
+    authorName: resolveEditorialAuthorName({
+      type: "recipe",
+      title: parsed.title,
+      tags: parseCsvList(parsed.tags || ""),
+      difficulty: parsed.difficulty,
+      totalTimeMinutes: parsed.prepTimeMinutes + parsed.cookTimeMinutes
+    }),
     heatLevel: parsed.heatLevel,
     cuisineType: parsed.cuisineType,
     prepTimeMinutes: parsed.prepTimeMinutes,
@@ -534,6 +541,12 @@ function buildReviewQaPayload({
     priceUsd: parsed.priceUsd,
     affiliateUrl: parsed.affiliateUrl,
     content: parsed.content,
+    authorName: resolveEditorialAuthorName({
+      type: "review",
+      title: parsed.title,
+      category: parsed.category,
+      tags: parseCsvList(parsed.tags || "")
+    }),
     heatLevel: parsed.heatLevel,
     scovilleMin: parsed.scovilleMin,
     scovilleMax: parsed.scovilleMax,
@@ -581,7 +594,12 @@ function buildBlogQaPayload({
     slug: "draft",
     title: parsed.title,
     description: parsed.description,
-    authorName: "FlamingFoodies",
+    authorName: resolveEditorialAuthorName({
+      type: "blog",
+      title: parsed.title,
+      category: parsed.category,
+      tags: parseCsvList(parsed.tags || "")
+    }),
     category: parsed.category,
     content: parsed.content,
     tags: parseCsvList(parsed.tags || ""),
@@ -622,7 +640,13 @@ function mapBlogRowToQaCandidate(row: any): BlogPost {
     slug: row.slug,
     title: row.title,
     description: row.description,
-    authorName: row.author_name ?? "FlamingFoodies",
+    authorName: resolveEditorialAuthorName({
+      type: "blog",
+      title: row.title,
+      category: row.category,
+      tags: row.tags ?? [],
+      currentAuthorName: row.author_name
+    }),
     category: row.category,
     content: row.content,
     tags: row.tags ?? [],
@@ -662,7 +686,14 @@ function mapRecipeRowToQaCandidate(row: any): Recipe {
     description: row.description,
     intro: row.intro ?? undefined,
     heroSummary: row.hero_summary ?? undefined,
-    authorName: row.author_name,
+    authorName: resolveEditorialAuthorName({
+      type: "recipe",
+      title: row.title,
+      tags: row.tags ?? [],
+      difficulty: row.difficulty,
+      totalTimeMinutes: row.total_time_minutes,
+      currentAuthorName: row.author_name
+    }),
     heatLevel: row.heat_level,
     cuisineType: row.cuisine_type,
     prepTimeMinutes: row.prep_time_minutes ?? 0,
@@ -736,6 +767,13 @@ function mapReviewRowToQaCandidate(row: any): Review {
     viewCount: row.view_count ?? 0,
     likeCount: row.like_count ?? 0,
     content: row.content,
+    authorName: resolveEditorialAuthorName({
+      type: "review",
+      title: row.title,
+      category: row.category,
+      tags: row.tags ?? [],
+      currentAuthorName: row.author_name
+    }),
     heatLevel: row.heat_level ?? undefined,
     scovilleMin: row.scoville_min ?? undefined,
     scovilleMax: row.scoville_max ?? undefined,
@@ -832,7 +870,13 @@ function mapSampleBlogForInsert(post: BlogPost) {
     title: post.title,
     description: post.description,
     content: post.content,
-    author_name: post.authorName,
+    author_name: resolveEditorialAuthorName({
+      type: "blog",
+      title: post.title,
+      category: post.category,
+      tags: post.tags,
+      currentAuthorName: post.authorName
+    }),
     category: post.category,
     tags: post.tags,
     image_url: post.imageUrl ?? null,
@@ -902,7 +946,14 @@ function mapSampleRecipeForInsert(recipe: Recipe) {
     description: recipe.description,
     intro: recipe.intro ?? null,
     hero_summary: getRecipeHeroSummary(recipe),
-    author_name: recipe.authorName,
+    author_name: resolveEditorialAuthorName({
+      type: "recipe",
+      title: recipe.title,
+      tags: recipe.tags,
+      difficulty: recipe.difficulty,
+      totalTimeMinutes: recipe.totalTimeMinutes,
+      currentAuthorName: recipe.authorName
+    }),
     heat_level: recipe.heatLevel,
     cuisine_type: recipe.cuisineType,
     prep_time_minutes: recipe.prepTimeMinutes,
@@ -1094,7 +1145,12 @@ export async function createBlogPostAction(formData: FormData) {
       title: parsed.data.title,
       description: parsed.data.description,
       content: parsed.data.content,
-      author_name: admin.displayName,
+      author_name: resolveEditorialAuthorName({
+        type: "blog",
+        title: parsed.data.title,
+        category: parsed.data.category,
+        tags: parseCsvList(parsed.data.tags || "")
+      }),
       author_id: admin.id,
       category: parsed.data.category,
       tags: parseCsvList(parsed.data.tags || ""),
@@ -1210,6 +1266,12 @@ export async function updateBlogPostAction(formData: FormData) {
       title: parsed.data.title,
       description: parsed.data.description,
       content: parsed.data.content,
+      author_name: resolveEditorialAuthorName({
+        type: "blog",
+        title: parsed.data.title,
+        category: parsed.data.category,
+        tags: parseCsvList(parsed.data.tags || "")
+      }),
       category: parsed.data.category,
       tags: parseCsvList(parsed.data.tags || ""),
       image_url: qa.imageUrl,
@@ -1426,7 +1488,13 @@ export async function createRecipeAction(formData: FormData) {
       description: parsed.data.description,
       intro: parsed.data.intro ?? null,
       hero_summary: parsed.data.heroSummary ?? null,
-      author_name: admin.displayName,
+      author_name: resolveEditorialAuthorName({
+        type: "recipe",
+        title: parsed.data.title,
+        tags: parseCsvList(parsed.data.tags || ""),
+        difficulty: parsed.data.difficulty,
+        totalTimeMinutes: parsed.data.prepTimeMinutes + parsed.data.cookTimeMinutes
+      }),
       author_id: admin.id,
       heat_level: parsed.data.heatLevel,
       cuisine_type: parsed.data.cuisineType,
@@ -1599,6 +1667,13 @@ export async function updateRecipeAction(formData: FormData) {
       description: parsed.data.description,
       intro: parsed.data.intro ?? null,
       hero_summary: parsed.data.heroSummary ?? null,
+      author_name: resolveEditorialAuthorName({
+        type: "recipe",
+        title: parsed.data.title,
+        tags: parseCsvList(parsed.data.tags || ""),
+        difficulty: parsed.data.difficulty,
+        totalTimeMinutes: parsed.data.prepTimeMinutes + parsed.data.cookTimeMinutes
+      }),
       heat_level: parsed.data.heatLevel,
       cuisine_type: parsed.data.cuisineType,
       prep_time_minutes: parsed.data.prepTimeMinutes,

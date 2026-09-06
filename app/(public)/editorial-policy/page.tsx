@@ -1,9 +1,10 @@
 import Link from "next/link";
 
 import { TrustPageShell } from "@/components/layout/trust-page-shell";
+import { EDITORIAL_PERSONA_DISCLOSURE } from "@/lib/authors";
 import { buildMetadata } from "@/lib/seo";
 
-const LAST_UPDATED = "April 27, 2026";
+const LAST_UPDATED = "September 6, 2026";
 
 export const metadata = buildMetadata({
   title: "Editorial Policy | FlamingFoodies",
@@ -61,8 +62,14 @@ export default function EditorialPolicyPage() {
               details, and sourceable facts where claims depend on outside information.
             </p>
             <p>
-              We may use internal publishing tools to support drafting, organization, or QA, but a
-              page still has to meet the same usefulness and trust standards before it stays public.
+              We use generative and rules-based publishing tools to support research organization,
+              drafting, image selection or illustration, formatting, and QA. A page still has to
+              meet the same usefulness and trust standards before it stays public.
+            </p>
+            <p>
+              We do not list an AI system as an author. A named byline identifies the editorial
+              lane accountable for framing and maintaining the page, while the publisher remains
+              responsible for corrections and publication decisions.
             </p>
             <p>
               If a page becomes stale, over-optimized, repetitive, or too thin to justify
@@ -97,6 +104,25 @@ export default function EditorialPolicyPage() {
           </div>
         </article>
       </div>
+
+      <article className="panel p-8">
+        <p className="eyebrow">Bylines and editorial personas</p>
+        <h2 className="mt-3 font-display text-4xl text-charcoal">
+          Names should clarify responsibility, never manufacture authority.
+        </h2>
+        <p className="mt-5 max-w-4xl text-sm leading-7 text-charcoal/75">
+          {EDITORIAL_PERSONA_DISCLOSURE} Persona profiles describe an assigned subject area and
+          voice, not a made-up résumé. A persona byline is not evidence that an individual cooked,
+          tasted, traveled, interviewed, or attended something. When first-hand work is completed,
+          the page must say what was done; when it was not, the copy must not imply otherwise.
+        </p>
+        <Link
+          href="/authors"
+          className="mt-6 inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
+        >
+          Meet the editorial board
+        </Link>
+      </article>
     </TrustPageShell>
   );
 }

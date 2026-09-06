@@ -1,9 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 
+import authorsModule from "../lib/authors.ts";
 import sampleDataModule from "../lib/sample-data/index.ts";
 import type { BlogPost } from "../lib/types.ts";
 
 const { sampleBlogPosts } = sampleDataModule;
+const { resolveEditorialAuthorName } = authorsModule;
 
 function calculateReadTime(text: string) {
   const words = text.trim().split(/\s+/).filter(Boolean).length;
@@ -16,7 +18,13 @@ function mapBlogPostForUpsert(post: BlogPost) {
     title: post.title,
     description: post.description,
     content: post.content,
-    author_name: post.authorName,
+    author_name: resolveEditorialAuthorName({
+      type: "blog",
+      title: post.title,
+      category: post.category,
+      tags: post.tags,
+      currentAuthorName: post.authorName
+    }),
     category: post.category,
     tags: post.tags,
     image_url: post.imageUrl ?? null,

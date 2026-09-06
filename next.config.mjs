@@ -20,6 +20,21 @@ const nextConfig = {
         source: "/hot-sauces/under-15",
         destination: "/hot-sauces/affordable",
         permanent: true
+      },
+      {
+        source: "/authors/flamingfoodies-team",
+        destination: "/authors/mara-santiago",
+        permanent: true
+      },
+      {
+        source: "/authors/flamingfoodies-test-kitchen",
+        destination: "/authors/tess-calder",
+        permanent: true
+      },
+      {
+        source: "/authors/flamingfoodies-review-desk",
+        destination: "/authors/miles-hart",
+        permanent: true
       }
     ];
   }

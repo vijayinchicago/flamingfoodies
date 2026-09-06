@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
+import authorsModule from "../lib/authors.ts";
 import recipesModule from "../lib/recipes.ts";
 import recipeQaModule from "../lib/recipe-qa.ts";
 import sampleDataModule from "../lib/sample-data/index.ts";
@@ -14,6 +15,7 @@ const {
 } = recipesModule;
 const { buildRecipeQaReport, getRecipeManualReviewState } = recipeQaModule;
 const { sampleRecipes } = sampleDataModule;
+const { resolveEditorialAuthorName } = authorsModule;
 
 function mapRecipeForUpsert(recipe: Recipe) {
   const manualReview = getRecipeManualReviewState(recipe);
@@ -29,7 +31,14 @@ function mapRecipeForUpsert(recipe: Recipe) {
     description: recipe.description,
     intro: recipe.intro ?? null,
     hero_summary: getRecipeHeroSummary(recipe),
-    author_name: recipe.authorName,
+    author_name: resolveEditorialAuthorName({
+      type: "recipe",
+      title: recipe.title,
+      tags: recipe.tags,
+      difficulty: recipe.difficulty,
+      totalTimeMinutes: recipe.totalTimeMinutes,
+      currentAuthorName: recipe.authorName
+    }),
     heat_level: recipe.heatLevel,
     cuisine_type: recipe.cuisineType,
     prep_time_minutes: recipe.prepTimeMinutes,

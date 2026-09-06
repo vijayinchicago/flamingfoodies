@@ -3,10 +3,14 @@ import Link from "next/link";
 import { TrustPageShell } from "@/components/layout/trust-page-shell";
 import { BreadcrumbSchema } from "@/components/schema/breadcrumb-schema";
 import { OrganizationSchema } from "@/components/schema/organization-schema";
+import {
+  EDITORIAL_PERSONA_DISCLOSURE,
+  getAllPublicAuthors
+} from "@/lib/authors";
 import { buildMetadata } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/utils";
 
-const LAST_UPDATED = "April 10, 2026";
+const LAST_UPDATED = "September 6, 2026";
 
 export const metadata = buildMetadata({
   title: "About FlamingFoodies",
@@ -16,6 +20,8 @@ export const metadata = buildMetadata({
 });
 
 export default function AboutPage() {
+  const authors = getAllPublicAuthors();
+
   return (
     <>
       <BreadcrumbSchema
@@ -67,9 +73,9 @@ export default function AboutPage() {
           <h2 className="mt-3 font-display text-4xl text-charcoal">Warm, practical, and clear about what we know.</h2>
           <div className="mt-5 grid gap-5 md:grid-cols-2">
             <p className="text-sm leading-7 text-charcoal/75">
-              We publish original recipes, reviews, and food stories built around a family-table
-              tone: welcoming, specific, and grounded in what people actually cook and eat. We aim
-              for a voice that feels generous and useful, not performative or content-farm generic.
+              We publish recipes, reviews, and food stories built around a family-table tone:
+              welcoming, specific, and grounded in the decisions people make while cooking,
+              serving, and shopping. We aim for work that is useful, not content-farm generic.
             </p>
             <p className="text-sm leading-7 text-charcoal/75">
               When we recommend products, we try to explain why a pick is strong, who it is for,
@@ -89,6 +95,85 @@ export default function AboutPage() {
           </div>
         </div>
       </div>
+
+      <section className="panel p-8">
+        <p className="eyebrow">Editorial board &amp; voices</p>
+        <h2 className="mt-3 max-w-4xl font-display text-4xl text-charcoal">
+          Four distinct beats, with one accountable publisher.
+        </h2>
+        <p className="mt-4 max-w-4xl text-sm leading-7 text-charcoal/75">
+          {EDITORIAL_PERSONA_DISCLOSURE} FlamingFoodies owns the final publishing decision,
+          corrections, and standards behind every one of these bylines.
+        </p>
+        <div className="mt-8 grid gap-5 md:grid-cols-2">
+          {authors.map((author) => (
+            <article
+              key={author.slug}
+              className="rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-6"
+            >
+              <p className="text-xs uppercase tracking-[0.22em] text-ember">
+                Editorial pen name
+              </p>
+              <h3 className="mt-3 font-display text-3xl text-charcoal">{author.displayName}</h3>
+              <p className="mt-1 text-sm font-semibold text-charcoal/70">{author.role}</p>
+              <p className="mt-4 text-sm italic leading-7 text-charcoal/70">
+                {author.personality}
+              </p>
+              <ul className="mt-4 space-y-2 text-sm leading-7 text-charcoal/70">
+                {author.focusAreas.map((area) => (
+                  <li key={area}>{area}</li>
+                ))}
+              </ul>
+              <Link
+                href={`/authors/${author.slug}`}
+                className="mt-5 inline-flex font-semibold text-charcoal underline underline-offset-4 hover:text-ember"
+              >
+                Read this byline&apos;s profile
+              </Link>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <article className="panel p-8">
+          <p className="eyebrow">How automation is used</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
+            Tools can help make a draft. They do not become the author.
+          </h2>
+          <div className="mt-5 space-y-4 text-sm leading-7 text-charcoal/75">
+            <p>
+              FlamingFoodies uses generative and rules-based tools for research organization,
+              drafting, image selection or illustration, formatting, and pre-publication QA.
+              Automated content is still subject to the same usefulness, clarity, and category-fit
+              checks as manually entered content.
+            </p>
+            <p>
+              A persona byline identifies the responsible editorial lane. It does not mean that a
+              fictional individual personally cooked a recipe, tasted a bottle, attended an event,
+              or holds credentials we have not documented. Hands-on testing is stated only when it
+              was actually completed and recorded.
+            </p>
+          </div>
+        </article>
+
+        <article className="panel p-8">
+          <p className="eyebrow">What the byline means</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">A routing rule, not a disguise.</h2>
+          <p className="mt-5 text-sm leading-7 text-charcoal/75">
+            Recipes are split between practical weeknight work and technique-heavy projects.
+            Ingredient and culture stories, cooking-science explainers, and commercial reviews each
+            have their own voice. New and existing pages are assigned by the same topic rules so a
+            name remains meaningful across the archive.
+          </p>
+          <Link
+            href="/editorial-policy"
+            className="mt-6 inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
+          >
+            Read the full editorial policy
+          </Link>
+        </article>
+      </section>
 
       <div className="panel p-8">
         <p className="eyebrow">Our other publication</p>

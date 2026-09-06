@@ -1,15 +1,18 @@
 import Link from "next/link";
 
 import { TrustPageShell } from "@/components/layout/trust-page-shell";
-import { getAllPublicAuthors } from "@/lib/authors";
+import {
+  EDITORIAL_PERSONA_DISCLOSURE,
+  getAllPublicAuthors
+} from "@/lib/authors";
 import { buildMetadata } from "@/lib/seo";
 
-const LAST_UPDATED = "April 27, 2026";
+const LAST_UPDATED = "September 6, 2026";
 
 export const metadata = buildMetadata({
   title: "FlamingFoodies Contributors",
   description:
-    "Contributor and editorial team pages for the people and desks behind FlamingFoodies coverage.",
+    "The disclosed editorial pen names, coverage beats, and profiles behind FlamingFoodies recipes, stories, and reviews.",
   path: "/authors"
 });
 
@@ -18,16 +21,20 @@ export default function AuthorsPage() {
 
   return (
     <TrustPageShell
-      eyebrow="Contributors"
-      title="Who writes, edits, and steers the site."
-      description="FlamingFoodies uses contributor, team, and desk pages to make it clearer which lane of the site a byline belongs to."
+      eyebrow="Editorial board"
+      title="The voices behind each coverage lane."
+      description={EDITORIAL_PERSONA_DISCLOSURE}
       lastUpdated={LAST_UPDATED}
     >
       <div className="grid gap-6 lg:grid-cols-2">
         {authors.map((author) => (
           <article key={author.slug} className="panel p-8">
-            <p className="eyebrow">{author.role}</p>
+            <p className="eyebrow">Editorial pen name</p>
             <h2 className="mt-3 font-display text-4xl text-charcoal">{author.displayName}</h2>
+            <p className="mt-2 text-sm font-semibold text-charcoal/70">{author.role}</p>
+            <p className="mt-4 text-sm italic leading-7 text-charcoal/70">
+              {author.personality}
+            </p>
             <p className="mt-4 text-sm leading-7 text-charcoal/75">{author.shortBio}</p>
             <ul className="mt-5 space-y-2 text-sm leading-7 text-charcoal/70">
               {author.focusAreas.map((area) => (
@@ -38,7 +45,7 @@ export default function AuthorsPage() {
               href={`/authors/${author.slug}`}
               className="mt-6 inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
-              View contributor page
+              View byline profile
             </Link>
           </article>
         ))}

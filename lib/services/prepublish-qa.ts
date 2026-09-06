@@ -1,5 +1,6 @@
 import { buildBlogQaReport } from "@/lib/blog-qa";
 import { getBlogHeroFields } from "@/lib/blog-hero";
+import { resolveEditorialAuthorName } from "@/lib/authors";
 import { flags } from "@/lib/env";
 import { buildRecipeQaReport } from "@/lib/recipe-qa";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
@@ -196,7 +197,13 @@ function mapBlogRowToQaCandidate(row: EditorialRow): BlogPost {
     slug: row.slug,
     title: row.title,
     description: row.description,
-    authorName: row.author_name ?? "FlamingFoodies",
+    authorName: resolveEditorialAuthorName({
+      type: "blog",
+      title: row.title,
+      category: row.category,
+      tags: row.tags ?? [],
+      currentAuthorName: row.author_name
+    }),
     authorId: row.author_id ?? undefined,
     category: row.category,
     content: row.content,
@@ -241,7 +248,14 @@ function mapRecipeRowToQaCandidate(row: EditorialRow): Recipe {
     description: row.description,
     intro: row.intro ?? undefined,
     heroSummary: row.hero_summary ?? undefined,
-    authorName: row.author_name ?? "FlamingFoodies Test Kitchen",
+    authorName: resolveEditorialAuthorName({
+      type: "recipe",
+      title: row.title,
+      tags: row.tags ?? [],
+      difficulty: row.difficulty,
+      totalTimeMinutes: row.total_time_minutes,
+      currentAuthorName: row.author_name
+    }),
     heatLevel: row.heat_level,
     cuisineType: row.cuisine_type,
     prepTimeMinutes: row.prep_time_minutes ?? 0,
@@ -331,7 +345,13 @@ function mapReviewRowToQaCandidate(row: EditorialRow): Review {
     qaNotes: row.qa_notes ?? undefined,
     qaReport: row.qa_report ?? undefined,
     qaIssues: Array.isArray(row.qa_issues) ? row.qa_issues : undefined,
-    authorName: row.author_name ?? "FlamingFoodies Review Desk",
+    authorName: resolveEditorialAuthorName({
+      type: "review",
+      title: row.title,
+      category: row.category,
+      tags: row.tags ?? [],
+      currentAuthorName: row.author_name
+    }),
     recommended: row.recommended ?? false,
     featured: row.featured ?? false
   };
