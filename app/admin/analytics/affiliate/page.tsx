@@ -2,16 +2,16 @@ import { AdminPage } from "@/components/admin/admin-page";
 import { getAffiliateAnalytics } from "@/lib/services/analytics";
 
 export default async function AdminAffiliatePage() {
-  const analytics = await getAffiliateAnalytics(30);
+  const analytics = await getAffiliateAnalytics(36500);
 
   return (
     <AdminPage
       title="Affiliate analytics"
-      description="Real click-through and partner mix from the last 30 days."
+      description="Session-verified outbound clicks. Automated crawlers are excluded."
     >
       <div className="grid gap-6 md:grid-cols-3">
         <article className="panel-light p-6">
-          <p className="eyebrow">Affiliate clicks</p>
+          <p className="eyebrow">Verified clicks · lifetime</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">{analytics.totals.clicks}</h2>
         </article>
         <article className="panel-light p-6">
@@ -19,12 +19,22 @@ export default async function AdminAffiliatePage() {
           <h2 className="mt-3 font-display text-4xl text-charcoal">{analytics.totals.partners}</h2>
         </article>
         <article className="panel-light p-6">
-          <p className="eyebrow">Estimated revenue</p>
-          <h2 className="mt-3 font-display text-4xl text-charcoal">
-            {analytics.totals.estimatedRevenue}
-          </h2>
+          <p className="eyebrow">Actual earnings</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Network only</h2>
+          <p className="mt-2 text-sm leading-6 text-charcoal/60">
+            Order and commission reports are not connected to this dashboard.
+          </p>
         </article>
       </div>
+
+      <article className="panel-light p-6">
+        <p className="eyebrow">What counts here</p>
+        <p className="mt-3 max-w-4xl text-sm leading-7 text-charcoal/65">
+          A verified click carries the browser session created when a person uses an affiliate
+          link. Raw requests from crawlers opening public redirect URLs are ignored. Amazon
+          Associates remains the source of truth for ordered items and commission income.
+        </p>
+      </article>
 
       {analytics.partners.length ? (
         <>
@@ -36,7 +46,6 @@ export default async function AdminAffiliatePage() {
                   <div className="flex gap-6 text-sm text-charcoal/60">
                     <span>{partner.clicks} clicks</span>
                     <span>{partner.clickShare} click share</span>
-                    <span>{partner.estimatedRevenue} est. revenue</span>
                   </div>
                 </div>
                 <p className="mt-3 text-sm text-charcoal/65">Top product: {partner.topProduct}</p>
@@ -107,7 +116,7 @@ export default async function AdminAffiliatePage() {
       ) : (
         <article className="panel-light p-6">
           <p className="text-sm text-charcoal/60">
-            No affiliate clicks have been recorded in the last 30 days yet.
+            No session-verified affiliate clicks have been recorded yet.
           </p>
         </article>
       )}

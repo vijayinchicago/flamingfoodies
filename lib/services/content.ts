@@ -69,10 +69,8 @@ function getSortableTimestamp(item: { publishedAt?: string; createdAt?: string }
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
-const HOUR_IN_MS = 60 * 60 * 1000;
-
 function getDailyRotationSeed(now = new Date()) {
-  return Math.floor(now.getTime() / HOUR_IN_MS);
+  return Math.floor(now.getTime() / DAY_IN_MS);
 }
 
 function rotateItems<T>(items: T[], offset: number) {
@@ -184,8 +182,8 @@ function sortRecipesByEvergreen(recipes: Recipe[]) {
   });
 }
 
-function selectHomepageRecipes(recipes: Recipe[], limit: number, seed: number) {
-  const pool = getHomepageEligiblePool(recipes);
+export function selectHomepageRecipes(recipes: Recipe[], limit: number, seed: number) {
+  const pool = recipes;
   if (!pool.length || limit <= 0) {
     return [];
   }
@@ -203,12 +201,19 @@ function selectHomepageRecipes(recipes: Recipe[], limit: number, seed: number) {
 
   const selections: Recipe[] = [];
   const usedIds = new Set<number>();
+
+  const newestRecipe = recentPool[0];
+  if (newestRecipe) {
+    selections.push(newestRecipe);
+    usedIds.add(newestRecipe.id);
+  }
+
   const slotPools = [
-    discoveryPool,
     quickPool,
     approachablePool,
     evergreenPool,
     recentPool,
+    discoveryPool,
     discoveryPool
   ];
 
@@ -1373,7 +1378,7 @@ export async function getFeaturedCollection() {
   const featuredReviews = getHomepageEligiblePool(reviews);
 
   return {
-    recipes: selectHomepageRecipes(recipes, 6, dailySeed),
+    recipes: selectHomepageRecipes(recipes, 7, dailySeed),
     blogPosts: selectRotatingWindow(
       sortBlogPostsByMomentum(featuredPosts),
       2,

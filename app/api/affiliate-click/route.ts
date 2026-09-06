@@ -11,7 +11,7 @@ const affiliateClickSchema = z
     url: z.string().url().optional(),
     sourcePage: z.string().optional(),
     position: z.string().optional(),
-    sessionId: z.string().min(1).max(128).optional()
+    sessionId: z.string().uuid()
   })
   .refine(
     (payload) =>

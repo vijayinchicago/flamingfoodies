@@ -41,10 +41,12 @@ export default async function AdminPirateMetricsPage() {
           </p>
         </article>
         <article className="panel-light p-6">
-          <p className="eyebrow">Revenue</p>
-          <h2 className="mt-3 font-display text-4xl text-charcoal">{metrics.revenue.estimatedRevenue}</h2>
+          <p className="eyebrow">Revenue signal</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">
+            {metrics.revenue.affiliateClicks} clicks
+          </h2>
           <p className="mt-2 text-sm text-charcoal/65">
-            {metrics.revenue.affiliateClicks} affiliate clicks
+            Actual commission data is not connected
           </p>
         </article>
       </div>
@@ -172,7 +174,7 @@ export default async function AdminPirateMetricsPage() {
         </div>
 
         <div className="panel-light p-6">
-          <p className="eyebrow">Revenue proxies</p>
+          <p className="eyebrow">Verified commerce signals</p>
           <div className="mt-4 grid gap-3">
             {metrics.revenue.topPartners.length ? (
               metrics.revenue.topPartners.map((partner) => (
@@ -184,7 +186,7 @@ export default async function AdminPirateMetricsPage() {
                     <p className="text-sm font-semibold text-charcoal">{partner.partner}</p>
                     <p className="text-xs text-charcoal/55">{partner.clicks} clicks</p>
                   </div>
-                  <span className="text-sm text-charcoal/60">{partner.estimatedRevenue}</span>
+                  <span className="text-sm text-charcoal/60">Network earnings not imported</span>
                 </article>
               ))
             ) : (

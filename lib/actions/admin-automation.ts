@@ -334,6 +334,7 @@ export async function runPublishScheduledAction() {
     execute: publishScheduledContent,
     onSuccess: (result) => {
       revalidatePath("/admin/automation/jobs");
+      revalidatePath("/");
       revalidatePath("/blog");
       revalidatePath("/recipes");
       revalidatePath("/reviews");
@@ -607,6 +608,7 @@ export async function runReevaluatePendingAiDraftsAction() {
       revalidatePath("/admin/content/recipes");
       revalidatePath("/admin/content/blog");
       revalidatePath("/admin/content/reviews");
+      revalidatePath("/");
       revalidatePath("/blog");
       revalidatePath("/recipes");
       revalidatePath("/reviews");

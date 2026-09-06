@@ -25,6 +25,7 @@ export default async function HomePage() {
   const editorialFranchises = getEditorialFranchises(blogPosts);
   const featuredRecipe = recipes[0] ?? null;
   const featuredRecipeHero = featuredRecipe ? getRecipeHeroFields(featuredRecipe) : null;
+  const recipeGrid = recipes.slice(1);
   const featuredGuide = guides[0] ?? null;
   const mobileRecipePreviewCount = 4;
   const popularBottleGuides = HOT_SAUCE_LANDING_LINKS.slice(0, 6);
@@ -116,7 +117,7 @@ export default async function HomePage() {
           copy="Fast dinners, gentler starts, and bigger weekend payoffs."
         />
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
-          {recipes.map((recipe, index) => (
+          {recipeGrid.map((recipe, index) => (
             <div key={recipe.id} className={index >= mobileRecipePreviewCount ? "hidden lg:block" : ""}>
               <RecipeCard recipe={recipe} />
             </div>

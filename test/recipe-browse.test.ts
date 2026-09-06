@@ -133,6 +133,16 @@ describe("recipe browse helpers", () => {
     expect(sorted[2]?.slug).toBe("thai-red-curry");
   });
 
+  it("defaults the archive to newest first", () => {
+    const sorted = sortRecipes([recipes[2], recipes[0], recipes[1]]);
+
+    expect(sorted.map((recipe) => recipe.slug)).toEqual([
+      "thai-red-curry",
+      "naga-chicken-curry",
+      "gochujang-noodles"
+    ]);
+  });
+
   it("keeps featured sorting fresh by favoring newer featured recipes", () => {
     const now = new Date("2026-04-14T12:00:00.000Z");
     const sorted = sortRecipes(

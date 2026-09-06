@@ -2,6 +2,9 @@ import { flags } from "@/lib/env";
 import { getAffiliateLinkEntryWithOverride } from "@/lib/services/affiliate-link-overrides";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
+const CLIENT_SESSION_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 export async function logAffiliateClick({
   partnerKey,
   partnerName,
@@ -37,27 +40,32 @@ export async function logAffiliateClick({
   const normalizedPosition = position || null;
   const normalizedSessionId = sessionId?.trim() || null;
 
-  if (normalizedSessionId) {
-    let existingQuery = supabase
-      .from("affiliate_clicks")
-      .select("id")
-      .eq("session_id", normalizedSessionId)
-      .eq("partner", partner)
-      .eq("url", targetUrl)
-      .gte("clicked_at", new Date(Date.now() - 30 * 60 * 1000).toISOString())
-      .limit(1);
+  // The public redirect URLs are routinely followed by crawlers. A session ID is
+  // attached by the browser click handler, so rows without one are not evidence
+  // of a person choosing an affiliate link.
+  if (!normalizedSessionId || !CLIENT_SESSION_ID_PATTERN.test(normalizedSessionId)) {
+    return;
+  }
 
-    existingQuery = normalizedSourcePage
-      ? existingQuery.eq("source_page", normalizedSourcePage)
-      : existingQuery.is("source_page", null);
-    existingQuery = normalizedPosition
-      ? existingQuery.eq("position", normalizedPosition)
-      : existingQuery.is("position", null);
+  let existingQuery = supabase
+    .from("affiliate_clicks")
+    .select("id")
+    .eq("session_id", normalizedSessionId)
+    .eq("partner", partner)
+    .eq("url", targetUrl)
+    .gte("clicked_at", new Date(Date.now() - 30 * 60 * 1000).toISOString())
+    .limit(1);
 
-    const { data: existingRows } = await existingQuery;
-    if (existingRows?.length) {
-      return;
-    }
+  existingQuery = normalizedSourcePage
+    ? existingQuery.eq("source_page", normalizedSourcePage)
+    : existingQuery.is("source_page", null);
+  existingQuery = normalizedPosition
+    ? existingQuery.eq("position", normalizedPosition)
+    : existingQuery.is("position", null);
+
+  const { data: existingRows } = await existingQuery;
+  if (existingRows?.length) {
+    return;
   }
 
   await supabase.from("affiliate_clicks").insert({

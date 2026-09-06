@@ -416,6 +416,7 @@ export async function runShopPerformanceEvaluator(options?: {
       supabase
         .from("affiliate_clicks")
         .select("partner, product, url, source_page, position, session_id, clicked_at")
+        .not("session_id", "is", null)
         .gte("clicked_at", completedAt.toISOString())
         .lt("clicked_at", windowEnd.toISOString())
         .in("partner", partners)

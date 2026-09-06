@@ -1114,6 +1114,7 @@ export async function runShopCatalogRefresh(options?: {
     supabase
       .from("affiliate_clicks")
       .select("partner, product")
+      .not("session_id", "is", null)
       .gte("clicked_at", since),
     supabase
       .from("merch_products")

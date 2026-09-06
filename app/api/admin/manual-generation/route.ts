@@ -32,6 +32,8 @@ function revalidateGeneratedType(type: "recipe" | "blog_post" | "review" | "merc
 
   if (type === "recipe") {
     revalidatePath("/admin/content/recipes");
+    revalidatePath("/");
+    revalidatePath("/recipes");
   }
 
   if (type === "blog_post") {

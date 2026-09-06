@@ -794,6 +794,7 @@ function revalidateBlogPaths(slug: string, previousSlug?: string | null) {
 
 function revalidateRecipePaths(slug: string, previousSlug?: string | null) {
   revalidatePath("/admin/content/recipes");
+  revalidatePath("/");
   revalidatePath("/recipes");
   if (previousSlug && previousSlug !== slug) {
     revalidatePath(`/recipes/${previousSlug}`);

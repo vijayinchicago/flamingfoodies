@@ -3,8 +3,8 @@ import type { CuisineType, HeatLevel, Recipe } from "@/lib/types";
 export type RecipeSortKey = "featured" | "newest" | "quickest" | "hottest";
 
 export const RECIPE_SORT_OPTIONS: Array<{ key: RecipeSortKey; label: string }> = [
-  { key: "featured", label: "Featured + fresh" },
   { key: "newest", label: "Newest first" },
+  { key: "featured", label: "Popular + fresh" },
   { key: "quickest", label: "Quickest first" },
   { key: "hottest", label: "Hottest first" }
 ];
@@ -186,7 +186,7 @@ export function filterRecipes(recipes: Recipe[], filters: RecipeBrowseFilters) {
   });
 }
 
-export function sortRecipes(recipes: Recipe[], sort: RecipeSortKey = "featured", now = new Date()) {
+export function sortRecipes(recipes: Recipe[], sort: RecipeSortKey = "newest", now = new Date()) {
   const sorted = [...recipes];
 
   sorted.sort((left, right) => {

@@ -26,6 +26,7 @@ async function handleRequest(request: Request) {
       revalidatePath("/admin/content/recipes");
       revalidatePath("/admin/content/blog");
       revalidatePath("/admin/content/reviews");
+      revalidatePath("/");
       revalidatePath("/blog");
       revalidatePath("/recipes");
       revalidatePath("/reviews");

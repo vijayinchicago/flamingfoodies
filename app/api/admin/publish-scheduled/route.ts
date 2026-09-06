@@ -15,6 +15,7 @@ async function handleRequest(request: Request) {
     triggerReference: pathname,
     execute: publishScheduledContent,
     onSuccess: (result) => {
+      revalidatePath("/");
       revalidatePath("/blog");
       revalidatePath("/recipes");
       revalidatePath("/reviews");

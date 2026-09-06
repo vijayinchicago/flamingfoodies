@@ -67,7 +67,7 @@ export interface ResolvedAffiliateLink extends AffiliateLinkEntry {
 
 const AMAZON_TAG = env.NEXT_PUBLIC_AMAZON_TAG || "flamingfoodies-20";
 const SKIMLINKS_ENABLED = Boolean(env.NEXT_PUBLIC_SKIMLINKS_ID);
-const AMAZON_ONLY_MODE = false;
+const AMAZON_ONLY_MODE = true;
 const AFFILIATE_PARTNER_LABELS: Record<string, string> = {
   amazon: "Amazon",
   mike_hot_sauce: "Mike's Hot Honey",

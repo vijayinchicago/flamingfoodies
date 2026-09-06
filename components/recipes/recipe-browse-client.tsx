@@ -31,7 +31,7 @@ function formatHeatLabel(value: HeatLevel) {
 function parseSort(value: string | null): RecipeSortKey {
   return RECIPE_SORT_OPTIONS.some((o) => o.key === value)
     ? (value as RecipeSortKey)
-    : "featured";
+    : "newest";
 }
 
 interface BrowseOptions {
@@ -83,6 +83,7 @@ export function RecipeBrowseClient({
   const [page, setPage] = useState(Number(searchParams.get("page") ?? "1"));
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const resultsHeadingRef = useRef<HTMLHeadingElement | null>(null);
   const [debouncedQuery, setDebouncedQuery] = useState(query);
 
   // Debounce text search 300ms
@@ -116,7 +117,7 @@ export function RecipeBrowseClient({
       if (vals.heat !== "all") params.set("heat", vals.heat);
       if (vals.difficulty !== "all") params.set("difficulty", vals.difficulty);
       if (vals.maxTime !== "all") params.set("maxTime", vals.maxTime);
-      if (vals.sort !== "featured") params.set("sort", vals.sort);
+      if (vals.sort !== "newest") params.set("sort", vals.sort);
       if (Number(vals.page) > 1) params.set("page", vals.page);
       const qs = params.toString();
       startTransition(() => {
@@ -159,7 +160,7 @@ export function RecipeBrowseClient({
     heat !== "all" ||
     difficulty !== "all" ||
     maxTimeKey !== "all" ||
-    sort !== "featured";
+    sort !== "newest";
 
   function clearAll() {
     setQuery("");
@@ -168,8 +169,16 @@ export function RecipeBrowseClient({
     setHeat("all");
     setDifficulty("all");
     setMaxTimeKey("all");
-    setSort("featured");
+    setSort("newest");
     setPage(1);
+  }
+
+  function goToPage(nextPage: number) {
+    setPage(nextPage);
+    window.requestAnimationFrame(() => {
+      resultsHeadingRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      resultsHeadingRef.current?.focus({ preventScroll: true });
+    });
   }
 
   const filterFieldClass =
@@ -279,7 +288,11 @@ export function RecipeBrowseClient({
 
       {/* Results header */}
       <div className="mt-8 flex flex-wrap items-baseline justify-between gap-3">
-        <h2 className="font-display text-2xl text-charcoal sm:text-3xl">
+        <h2
+          ref={resultsHeadingRef}
+          tabIndex={-1}
+          className="scroll-mt-24 font-display text-2xl text-charcoal outline-none sm:text-3xl"
+        >
           {paginated.totalResults > 0
             ? hasActiveFilters
               ? `${paginated.totalResults} recipe${paginated.totalResults === 1 ? "" : "s"} match`
@@ -324,7 +337,7 @@ export function RecipeBrowseClient({
           {paginated.currentPage > 1 ? (
             <button
               type="button"
-              onClick={() => setPage((p) => p - 1)}
+              onClick={() => goToPage(paginated.currentPage - 1)}
               className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
               Previous page
@@ -333,7 +346,7 @@ export function RecipeBrowseClient({
           {paginated.currentPage < paginated.totalPages ? (
             <button
               type="button"
-              onClick={() => setPage((p) => p + 1)}
+              onClick={() => goToPage(paginated.currentPage + 1)}
               className="rounded-full bg-charcoal px-5 py-3 text-sm font-semibold text-cream"
             >
               Next page

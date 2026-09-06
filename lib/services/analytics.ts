@@ -184,6 +184,7 @@ export async function getAffiliateAnalytics(windowDays = 30) {
   const { data } = await supabase
     .from("affiliate_clicks")
     .select("partner, product, url, source_page, position, session_id, clicked_at")
+    .not("session_id", "is", null)
     .gte("clicked_at", isoDaysAgo(windowDays));
 
   if (!data?.length) {
@@ -341,6 +342,7 @@ export async function getAffiliateRegistryHealth(windowDays = 30) {
   const { data } = await supabase
     .from("affiliate_clicks")
     .select("partner, product, url, source_page, position, session_id, clicked_at")
+    .not("session_id", "is", null)
     .gte("clicked_at", isoDaysAgo(windowDays));
 
   const clickCounts = new Map<string, number>();

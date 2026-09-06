@@ -346,8 +346,8 @@ export function buildPirateMetrics(
         stage: "Revenue",
         status: revenueStatus,
         detail: revenueEvidenceCount
-          ? `${affiliateClicks.length} affiliate clicks are recorded, with EPC-based revenue shown as a proxy.`
-          : "Affiliate click tracking is wired, but no clicks have landed in this window yet."
+          ? `${affiliateClicks.length} session-verified affiliate clicks are recorded; actual commissions remain in the affiliate network.`
+          : "Affiliate click tracking is wired, but no session-verified clicks have landed in this window yet."
       }
     ],
     acquisition: {
