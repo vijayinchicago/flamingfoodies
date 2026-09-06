@@ -2,7 +2,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 type AdminClient = NonNullable<ReturnType<typeof createSupabaseAdminClient>>;
 
-export const GENERATION_JOB_TIMEOUT_MINUTES = 45;
+export const GENERATION_JOB_TIMEOUT_MINUTES = 6;
 export const RETRYABLE_RECIPE_GENERATION_ATTEMPTS = 2;
 
 export function summarizeGenerationJobResults(jobs: readonly object[]) {
@@ -38,6 +38,10 @@ export function buildTimedOutGenerationJobMessage(timeoutMinutes = GENERATION_JO
   return `Generation job timed out after ${timeoutMinutes} minutes and was marked failed automatically.`;
 }
 
+export function buildTimedOutGenerationRunMessage(timeoutMinutes = GENERATION_JOB_TIMEOUT_MINUTES) {
+  return `Manual generation exceeded the ${timeoutMinutes}-minute execution window and was marked failed automatically.`;
+}
+
 export async function expireTimedOutGenerationJobs(
   supabase: AdminClient,
   options?: {
@@ -67,6 +71,43 @@ export async function expireTimedOutGenerationJobs(
   }
 
   const { data, error } = await query.select("id");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    count: data?.length ?? 0,
+    timeoutMinutes,
+    cutoffIso
+  };
+}
+
+export async function expireTimedOutManualGenerationRuns(
+  supabase: AdminClient,
+  options?: {
+    now?: Date;
+    timeoutMinutes?: number;
+  }
+) {
+  const timeoutMinutes = Math.max(5, options?.timeoutMinutes ?? GENERATION_JOB_TIMEOUT_MINUTES);
+  const now = options?.now ?? new Date();
+  const cutoffIso = new Date(now.getTime() - timeoutMinutes * 60 * 1000).toISOString();
+  const message = buildTimedOutGenerationRunMessage(timeoutMinutes);
+
+  const { data, error } = await supabase
+    .from("automation_runs")
+    .update({
+      status: "failed",
+      completed_at: now.toISOString(),
+      summary: message,
+      error_message: message
+    })
+    .eq("status", "started")
+    .eq("agent_id", "editorial-autopublisher")
+    .eq("trigger_reference", "api:/api/admin/manual-generation")
+    .lt("started_at", cutoffIso)
+    .select("id");
 
   if (error) {
     throw new Error(error.message);

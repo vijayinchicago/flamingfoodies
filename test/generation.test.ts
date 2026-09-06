@@ -10,7 +10,9 @@ import { getQuizResult } from "@/lib/quiz";
 import {
   GENERATION_JOB_TIMEOUT_MINUTES,
   buildTimedOutGenerationJobMessage,
+  buildTimedOutGenerationRunMessage,
   expireTimedOutGenerationJobs,
+  expireTimedOutManualGenerationRuns,
   summarizeGenerationJobResults,
   shouldRetryGenerationFailure
 } from "@/lib/services/generation-jobs";
@@ -462,13 +464,56 @@ describe("generation prompts", () => {
     });
     expect(query.eq).toHaveBeenCalledWith("status", "generating");
     expect(query.not).toHaveBeenCalledWith("started_at", "is", null);
-    expect(query.lt).toHaveBeenCalledWith("started_at", "2026-04-15T11:15:00.000Z");
+    expect(query.lt).toHaveBeenCalledWith("started_at", "2026-04-15T11:54:00.000Z");
     expect(query.in).toHaveBeenCalledWith("job_type", ["recipe"]);
     expect(select).toHaveBeenCalledWith("id");
     expect(result).toEqual({
       count: 2,
       timeoutMinutes: GENERATION_JOB_TIMEOUT_MINUTES,
-      cutoffIso: "2026-04-15T11:15:00.000Z"
+      cutoffIso: "2026-04-15T11:54:00.000Z"
+    });
+  });
+
+  it("closes orphaned manual generation runs after the function window", async () => {
+    const select = vi.fn().mockResolvedValue({
+      data: [{ id: 44 }],
+      error: null
+    });
+    const query = {
+      eq: vi.fn(),
+      lt: vi.fn(),
+      select
+    } as Record<string, ReturnType<typeof vi.fn>>;
+    query.eq.mockReturnValue(query);
+    query.lt.mockReturnValue(query);
+
+    const update = vi.fn().mockReturnValue(query);
+    const supabase = {
+      from: vi.fn().mockReturnValue({ update })
+    } as any;
+    const now = new Date("2026-04-15T12:00:00Z");
+
+    const result = await expireTimedOutManualGenerationRuns(supabase, { now });
+    const message = buildTimedOutGenerationRunMessage(GENERATION_JOB_TIMEOUT_MINUTES);
+
+    expect(update).toHaveBeenCalledWith({
+      status: "failed",
+      completed_at: now.toISOString(),
+      summary: message,
+      error_message: message
+    });
+    expect(query.eq).toHaveBeenCalledWith("status", "started");
+    expect(query.eq).toHaveBeenCalledWith("agent_id", "editorial-autopublisher");
+    expect(query.eq).toHaveBeenCalledWith(
+      "trigger_reference",
+      "api:/api/admin/manual-generation"
+    );
+    expect(query.lt).toHaveBeenCalledWith("started_at", "2026-04-15T11:54:00.000Z");
+    expect(select).toHaveBeenCalledWith("id");
+    expect(result).toEqual({
+      count: 1,
+      timeoutMinutes: GENERATION_JOB_TIMEOUT_MINUTES,
+      cutoffIso: "2026-04-15T11:54:00.000Z"
     });
   });
 

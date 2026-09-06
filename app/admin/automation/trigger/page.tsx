@@ -36,7 +36,7 @@ const triggers = [
     id: "recipe",
     label: "Recipe draft",
     type: "recipe",
-    qty: 3,
+    qty: 1,
     copy: "Generate recipe drafts that can auto-schedule publish once the automated QA gate clears."
   },
   {

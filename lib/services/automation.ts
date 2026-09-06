@@ -392,11 +392,12 @@ const reviewVoiceRewriteSchema = z.object({
 const AUTOMATED_RECIPE_PUBLISH_SCORE = 84;
 const AUTOMATED_BLOG_PUBLISH_SCORE = 86;
 const AUTOMATED_REVIEW_PUBLISH_SCORE = 86;
-const ANTHROPIC_TEXT_MODEL = env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
+const ANTHROPIC_TEXT_MODEL = env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001";
 const ANTHROPIC_GENERATION_MAX_TOKENS = 3200;
 const ANTHROPIC_QA_MAX_TOKENS = 1400;
 const ANTHROPIC_REWRITE_MAX_TOKENS = 4800;
 const ANTHROPIC_JSON_CONTINUATION_LIMIT = 2;
+const ANTHROPIC_REQUEST_TIMEOUT_MS = 60_000;
 type ValidatedGeneratedPayloadMap = {
   recipe: z.infer<typeof generatedRecipeSchema>;
   blog_post: z.infer<typeof generatedBlogSchema>;
@@ -828,10 +829,40 @@ async function requestJsonFromAnthropic(
             }
           ];
 
-    const response = await anthropic.messages.create({
+    const requestStartedAt = Date.now();
+    let response;
+
+    try {
+      response = await anthropic.messages.create(
+        {
+          model: ANTHROPIC_TEXT_MODEL,
+          max_tokens: options.maxTokens,
+          messages
+        },
+        {
+          maxRetries: 0,
+          timeout: ANTHROPIC_REQUEST_TIMEOUT_MS
+        }
+      );
+    } catch (error) {
+      console.error("[generation] Anthropic JSON request failed", {
+        model: ANTHROPIC_TEXT_MODEL,
+        attempt: attempt + 1,
+        maxTokens: options.maxTokens,
+        durationMs: Date.now() - requestStartedAt,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      throw error;
+    }
+
+    console.info("[generation] Anthropic JSON request completed", {
       model: ANTHROPIC_TEXT_MODEL,
-      max_tokens: options.maxTokens,
-      messages
+      attempt: attempt + 1,
+      maxTokens: options.maxTokens,
+      durationMs: Date.now() - requestStartedAt,
+      stopReason: response.stop_reason ?? null,
+      inputTokens: Number(response.usage?.input_tokens ?? 0),
+      outputTokens: Number(response.usage?.output_tokens ?? 0)
     });
 
     const chunk = getAnthropicTextOutput(response.content);
@@ -4033,6 +4064,11 @@ export async function runGenerationPipeline(
         lastOutput = generated.output;
         totalTokensUsed += generated.tokensUsed;
 
+        await supabase
+          .from("content_generation_jobs")
+          .update({ tokens_used: totalTokensUsed })
+          .eq("id", job.id);
+
         if (!generated.payload && generated.stopReason === "max_tokens") {
           throw new Error(
             "Draft generation hit the Anthropic max_tokens limit before completing JSON."
@@ -4083,6 +4119,11 @@ export async function runGenerationPipeline(
           shouldRetryGenerationFailure(generationType, message) && attemptIndex + 1 < maxAttempts;
 
         if (shouldRetry) {
+          console.warn("[generation] Retrying recipe generation after validation failure", {
+            jobId: job.id,
+            attempt: attemptNumber,
+            error: message
+          });
           continue;
         }
 

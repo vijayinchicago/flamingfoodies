@@ -4,7 +4,7 @@ import { z } from "zod";
 import { env, flags } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
-const ANTHROPIC_MODEL = env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
+const ANTHROPIC_MODEL = env.ANTHROPIC_MODEL || "claude-haiku-4-5-20251001";
 const FRIDAY_GROUP_KEY = "weekly-roundup";
 const RECIPE_CANDIDATE_LIMIT = 6;
 const REVIEW_CANDIDATE_LIMIT = 6;

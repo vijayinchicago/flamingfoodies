@@ -3087,7 +3087,7 @@ export const sampleGenerationJobs: GenerationJob[] = [
     resultId: 2,
     resultType: "recipe",
     tokensUsed: 3352,
-    modelUsed: "claude-sonnet-4-6",
+    modelUsed: "claude-haiku-4-5-20251001",
     attempts: 1,
     queuedAt: "2026-04-03T10:00:00.000Z",
     startedAt: "2026-04-03T10:00:03.000Z",
