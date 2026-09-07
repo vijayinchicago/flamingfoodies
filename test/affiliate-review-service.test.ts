@@ -103,6 +103,29 @@ describe("affiliate reviewer pipeline", () => {
     const failure = state.writes.find((write) => write.table === "affiliate_review_generations" && write.value.status === "failed");
     expect(failure?.value.input_tokens).toBeUndefined();
   });
+  it("retains fenced QA and trailing commentary as a blocked draft, without another paid call", async () => {
+    const qa = { identityConfirmed: true, sourcesAdequate: true, issues: ["Verify the conflicting weight specifications."] };
+    const raw = "```json\n" + JSON.stringify(qa) + "\n```\n\nSummary for human review: verify the weight.";
+    state.create.mockReset().mockResolvedValueOnce(response("Evidence", true)).mockResolvedValueOnce(response(JSON.stringify(draft)))
+      .mockResolvedValueOnce(response(raw));
+    expect((await runAffiliateProductReviewer({ invocationKey: "test" })).status).toBe("blocked");
+    expect(state.create).toHaveBeenCalledTimes(3);
+    expect(state.writes.some((write) => write.value.raw_response?.content[0].text === raw)).toBe(true);
+    expect(state.writes.at(-1)?.value.qa.blockers).toContain(qa.issues[0]);
+    expect(state.writes.at(-1)?.value.qa.blockers).toContain("QA returned additional commentary; inspect the saved QA response before approval.");
+  });
+  it("never treats commentary outside an otherwise clean QA object as approval", async () => {
+    state.create.mockReset().mockResolvedValueOnce(response("Evidence", true)).mockResolvedValueOnce(response(JSON.stringify(draft)))
+      .mockResolvedValueOnce(response('```json\n{"identityConfirmed":true,"sourcesAdequate":true,"issues":[]}\n```\nThe product identity is uncertain.'));
+    expect((await runAffiliateProductReviewer({ invocationKey: "test" })).status).toBe("blocked");
+  });
+  it("still rejects malformed fenced QA without losing the saved draft or response", async () => {
+    state.create.mockReset().mockResolvedValueOnce(response("Evidence", true)).mockResolvedValueOnce(response(JSON.stringify(draft)))
+      .mockResolvedValueOnce(response('```json\n{bad json}\n```\nSummary'));
+    await expect(runAffiliateProductReviewer({ invocationKey: "test" })).rejects.toThrow();
+    expect(state.writes.some((write) => write.value.draft)).toBe(true);
+    expect(state.writes.filter((write) => write.value.raw_response)).toHaveLength(3);
+  });
   it("rejects a lost worker lease before generating the next stage", async () => {
     state.leaseValid = false;
     await expect(runAffiliateProductReviewer({ invocationKey: "test" })).rejects.toThrow("lease expired");

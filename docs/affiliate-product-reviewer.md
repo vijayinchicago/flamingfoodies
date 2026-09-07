@@ -83,6 +83,12 @@ confirmed RLS on all three tables, no anon/authenticated table or claim-function
 access, service-role access, draft-only defaults, and the retired legacy review
 schedule. No unrelated pending migrations were applied.
 
+The first live run on September 7 completed all three provider calls in about
+42 seconds, but its QA response included a fenced JSON object followed by prose.
+QA parsing now accepts that explicit fenced object and treats any extra commentary
+as an additional human-review blocker, never as an approval. Raw responses remain
+unchanged. Regression tests cover commentary, retained findings and malformed JSON.
+
 ## Verification
 
 Unit/service/authorization coverage:

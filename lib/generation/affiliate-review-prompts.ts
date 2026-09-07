@@ -45,5 +45,7 @@ phrasing, invented price/rating, unearned superlatives, internal planning jargon
 Flag claims supported only by the brief but NOT by citation evidence. Flavor/performance
 claims must be attributed. A research-based assessment must not read like a hands-on review.
 Return only JSON: {"identityConfirmed":true,"sourcesAdequate":true,"issues":["specific correction needed"]}.
+Do not wrap the JSON in a code fence or append a summary. Put every correction in issues;
+omit compliments and passed checks from issues. The application supplies the disclosure.
 If the evidence is thin, set sourcesAdequate false and explain. Never approve publication;
 a human still must check the facts and provide a licensed exact-product image.`;

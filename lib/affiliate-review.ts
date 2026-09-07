@@ -39,6 +39,28 @@ export const reviewDraftSchema = z.object({
 export type AffiliateReviewDraft = z.infer<typeof reviewDraftSchema>;
 export type ResearchCitation = { url: string; title: string; citedText: string };
 
+const reviewQaSchema = z.object({
+  identityConfirmed: z.boolean(), sourcesAdequate: z.boolean(),
+  issues: z.array(z.string().max(800)).max(20)
+}).strict();
+
+export function assessAffiliateReviewDraft(draft: AffiliateReviewDraft, citations: ResearchCitation[], qaText: string) {
+  // Some responses contain a valid fenced object followed by a human-review note.
+  // Parse only that explicit object; extra commentary must never silently approve a draft.
+  const fenced = qaText.trim().match(/^```(?:json)?\s*\n([\s\S]*?)\n```([\s\S]*)$/i);
+  const qa = reviewQaSchema.parse(JSON.parse(fenced ? fenced[1] : qaText));
+  const blockers = [...reviewDraftBlockers(draft, citations), ...qa.issues,
+    ...(!qa.identityConfirmed ? ["QA could not confirm the exact product identity."] : []),
+    ...(!qa.sourcesAdequate ? ["QA found the source evidence insufficient."] : []),
+    ...(fenced?.[2].trim() ? ["QA returned additional commentary; inspect the saved QA response before approval."] : [])];
+  return { ...qa, blockers, manualChecks: [
+    "Human fact-check and editorial approval are required. Nothing is scheduled for publication.",
+    "An exact-product image and its usage rights must be checked before publication.",
+    "Verify the affiliate destination matches the product, size and variant.",
+    "No star rating has been assigned; this is not a hands-on test."
+  ] };
+}
+
 /** Only provider-returned citations count as evidence, never URLs invented in generated JSON. */
 export function extractResearchCitations(content: unknown): ResearchCitation[] {
   if (!Array.isArray(content)) return [];

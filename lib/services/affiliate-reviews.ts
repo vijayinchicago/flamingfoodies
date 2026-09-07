@@ -4,7 +4,7 @@ import { z } from "zod";
 import {
   AFFILIATE_REVIEW_AGENT, AFFILIATE_REVIEW_PATH, estimateReviewCost,
   extractResearchCitations, normalizeProductName, productIdentity,
-  reviewDraftBlockers, reviewDraftSchema, type AffiliateReviewDraft, type ResearchCitation
+  assessAffiliateReviewDraft, reviewDraftSchema, type AffiliateReviewDraft, type ResearchCitation
 } from "@/lib/affiliate-review";
 import { env } from "@/lib/env";
 import {
@@ -108,8 +108,6 @@ function parseJson(text: string) {
   return JSON.parse(text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, ""));
 }
 
-const qaSchema = z.object({ identityConfirmed: z.boolean(), sourcesAdequate: z.boolean(), issues: z.array(z.string().max(800)).max(20) }).strict();
-
 export async function runAffiliateProductReviewer(input: {
   invocationKey: string; run?: RunHandle | null; retryId?: string;
 }) {
@@ -188,17 +186,10 @@ export async function runAffiliateProductReviewer(input: {
     const draft = reviewDraftSchema.parse(parseJson(written.text));
     await updateJob({ draft, status: "checking" });
     const audited = await generate("qa", `${AFFILIATE_QA_INSTRUCTIONS}\nProduct:\n${JSON.stringify(job.product)}\nEvidence:\n${JSON.stringify(research)}\nDraft:\n${JSON.stringify(draft)}`);
-    const qa = qaSchema.parse(parseJson(audited.text));
-    const blockers = [...reviewDraftBlockers(draft, research.citations), ...qa.issues,
-      ...(!qa.identityConfirmed ? ["QA could not confirm the exact product identity."] : []),
-      ...(!qa.sourcesAdequate ? ["QA found the source evidence insufficient."] : [])];
+    const qa = assessAffiliateReviewDraft(draft, research.citations, audited.text);
+    const { blockers } = qa;
     const status = blockers.length ? "blocked" : "awaiting_review";
-    await updateJob({ status, lease_token: null, qa: { ...qa, blockers, manualChecks: [
-      "Human fact-check and editorial approval are required. Nothing is scheduled for publication.",
-      "An exact-product image and its usage rights must be checked before publication.",
-      "Verify the affiliate destination matches the product, size and variant.",
-      "No star rating has been assigned; this is not a hands-on test."
-    ] } });
+    await updateJob({ status, lease_token: null, qa });
     await appendAutomationRunEvent(input.run ?? null, { level: blockers.length ? "warning" : "info", code: "affiliate_review_draft_saved",
       message: `${job.product.product}: ${status.replaceAll("_", " ")}.`, payload: { jobId: job.id, blockers, detailUrl: `${AFFILIATE_REVIEW_PATH}/${job.id}` } });
     return { jobId: job.id, status, draftsCreated: 1, blockers, skipped: null };
