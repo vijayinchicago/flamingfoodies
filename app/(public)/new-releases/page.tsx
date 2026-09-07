@@ -11,7 +11,7 @@ import { formatDate } from "@/lib/utils";
 export const metadata = buildMetadata({
   title: "New Hot Sauce Releases | FlamingFoodies",
   description:
-    "A rolling feed of new hot sauce launches, limited editions, collabs, and restocks that may later earn fuller editorial coverage.",
+    "New hot sauce launches, limited editions, collaborations, and restocks in one place.",
   path: "/new-releases",
   noIndex: true
 });
@@ -32,7 +32,7 @@ export default async function NewReleasesPage() {
       <SectionHeading
         eyebrow="New releases"
         title="What's just dropped in hot sauce."
-        copy="New products, limited editions, brand collabs, and restocks collected in one place before the strongest items graduate into fuller review or guide coverage."
+        copy="Browse new sauces, limited editions, brand collaborations, and bottles that are back in stock."
       />
 
       <AffiliateDisclosure className="mt-8 max-w-3xl" compact />

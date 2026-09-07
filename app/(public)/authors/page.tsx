@@ -12,7 +12,7 @@ const LAST_UPDATED = "September 6, 2026";
 export const metadata = buildMetadata({
   title: "FlamingFoodies Contributors",
   description:
-    "The disclosed editorial pen names, coverage beats, and profiles behind FlamingFoodies recipes, stories, and reviews.",
+    "Meet the disclosed editorial pen names behind FlamingFoodies recipes, stories, and reviews, and learn which subjects each covers.",
   path: "/authors"
 });
 

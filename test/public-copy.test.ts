@@ -18,7 +18,8 @@ describe("public template copy", () => {
       ...sourceFiles("app/(public)"), ...sourceFiles("components"),
       "lib/sample-data/index.ts", "lib/brands.ts", "lib/peppers.ts", "lib/festivals.ts",
       "lib/tutorials.ts", "lib/shop.ts", "lib/hot-sauces.ts", "lib/recipe-commerce.ts",
-      "lib/recipe-editorial-sections.ts", "lib/editorial-franchises.ts", "lib/newsletter-segments.ts"
+      "lib/recipe-editorial-sections.ts", "lib/editorial-franchises.ts", "lib/newsletter-segments.ts",
+      "lib/search-content-optimizations.ts"
     ];
     const patterns = [/(?:^|\s)lanes?(?=[.!?,;:\s]|$)/i, ...policy.planningJargonPatterns.map((pattern) => new RegExp(pattern, "i"))];
     const failures: string[] = [];

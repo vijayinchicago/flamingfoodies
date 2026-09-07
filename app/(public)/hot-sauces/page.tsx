@@ -76,7 +76,7 @@ export default async function HotSaucesHubPage() {
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
             Start with what you like to eat: tacos, eggs, wings, fried chicken,
-            seafood, pizza, or a hard budget cap. Use the search-style guides first, then go deeper.
+            seafood, or pizza. You can also browse by budget, then read individual bottle reviews.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link

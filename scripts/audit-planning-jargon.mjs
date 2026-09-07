@@ -8,10 +8,30 @@ fs.mkdirSync(root, { recursive: true, mode: 0o700 });
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 const tables = ["recipes", "blog_posts", "reviews", "brands", "peppers", "festivals", "tutorials"];
 const excluded = /(?:url|slug|source|credit|license|disclosure|qa|author|reviewed|status|model|prompt|token|_id$|^id$|recipe_?lane)/i;
-const suspect = /\blanes?\b|\b(?:use cases?|search intent|(?:browse|shop) by intent|why-buy|content (?:pillar|cluster|surface|franchise)|editorial franchise|conversion funnel|engagement signals?|ingredient signals?|audience segment|keyword strategy|email capture|follow-on activity|content-planning|shopping paths?|buying paths?|more paths|pillar guides?)\b|^\s*pillar\s*$/igm;
+const policy = JSON.parse(fs.readFileSync(new URL("../lib/generation/editorial-policy.json", import.meta.url), "utf8"));
+const suspect = new RegExp([...policy.planningJargonPatterns, "\\blanes?\\b", "follow-on activity"].join("|"), "igm");
 const leaves = (value, prefix = "") => typeof value === "string" ? [[prefix, value]] : value && typeof value === "object" ? Object.entries(value).filter(([key]) => !excluded.test(key)).flatMap(([key, child]) => leaves(child, prefix ? `${prefix}.${key}` : key)) : [];
 const read = (obj, key) => key.split(".").reduce((value, part) => value?.[part], obj);
 const save = (file, data) => fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n", { mode: 0o600 });
+
+if (process.argv.includes("--apply-runtime")) {
+  const key = "search_runtime_optimizations";
+  const { data, error } = await db.from("site_settings").select("value").eq("key", key).single();
+  if (error) throw error;
+  const before = "If you found this while looking for how to make a hot chicken sandwich, the make-or-break move is the Nashville oil. Fry the chicken until the crust is solid first, then brush on enough cayenne oil to stain the breading without drowning it, and use slaw plus pickles to keep the sandwich moving.";
+  const after = "The Nashville oil is key to this hot chicken sandwich. Fry the chicken until the crust is solid first, then brush on enough cayenne oil to stain the breading without drowning it, and use slaw plus pickles to balance the heat.";
+  const value = structuredClone(data.value);
+  const recipe = value.recipes?.["nashville-hot-chicken-sandwiches"];
+  if (recipe?.introAppendix !== before) throw new Error("Runtime copy changed; review before applying");
+  const backup = path.join(root, "search-runtime.backup.json");
+  if (!fs.existsSync(backup)) save(backup, data.value);
+  recipe.introAppendix = after;
+  const { data: updated, error: updateError } = await db.from("site_settings").update({ value }).eq("key", key).eq("value", JSON.stringify(data.value)).select("value");
+  if (updateError) throw updateError;
+  if (updated.length !== 1 || JSON.stringify(updated[0].value) !== JSON.stringify(value)) throw new Error("Runtime update not verified");
+  console.log("Verified one recipe intro override; all other runtime settings preserved.");
+  process.exit(0);
+}
 
 if (process.argv.includes("--apply")) {
   const approved = JSON.parse(fs.readFileSync(path.join(root, "approved.json"), "utf8"));
@@ -76,5 +96,10 @@ for (const table of tables) {
   }
   console.log(JSON.stringify({ table, scanned: total, flaggedFields: matches.filter((m) => m.table === table).length }));
 }
+const { data: runtime, error: runtimeError } = await db.from("site_settings").select("value").eq("key", "search_runtime_optimizations").maybeSingle();
+if (runtimeError) throw runtimeError;
+const runtimeMatches = leaves(runtime?.value).filter(([, value]) => [...value.matchAll(suspect)].length);
+console.log(JSON.stringify({ setting: "search_runtime_optimizations", present: !!runtime, flaggedFields: runtimeMatches.length }));
+for (const [key, value] of runtimeMatches) matches.push({ table: "site_settings", id: "search_runtime_optimizations", path: key, text: value });
 save(path.join(root, "audit.json"), matches);
 for (const { text, ...match } of matches) console.log(JSON.stringify(match));

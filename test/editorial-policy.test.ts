@@ -44,7 +44,8 @@ describe("shared editorial copy checks", () => {
     "What this lane covers.", "Stay in the same heat lane", "Flavor lanes for dinner",
     "Choose newsletter lanes", "Browse by intent", "A stronger why-buy case",
     "Build content pillars", "Use engagement signals", "Improve the conversion funnel",
-    "Buying paths", "Pillar guide", "Pillar", "More Paths", "Shop by intent", "Best use case"
+    "Buying paths", "Pillar guide", "Pillar", "More Paths", "Shop by intent", "Best use case",
+    "If someone lands here from search", "Search the cooking layer", "Trust links"
   ])("blocks internal planning jargon in public copy: %s", (text) => {
     expect(getEditorialCopyIssues({ faqs: [{ answer: text }] })).toContainEqual(expect.objectContaining({ code: "editorial-planning-jargon", severity: "blocker" }));
     expect(() => assertEditorialCopy({ seo_description: text })).toThrow("planning jargon");

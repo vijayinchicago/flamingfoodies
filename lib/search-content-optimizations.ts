@@ -55,7 +55,7 @@ const DEFAULT_RECIPE_SEARCH_OPTIMIZATIONS: Record<string, RecipeSearchOptimizati
     seoDescription:
       "Make a crunchy Nashville hot chicken sandwich at home with the right fried chicken method, cayenne oil sauce, slaw, and pickles.",
     introAppendix:
-      "If you found this while looking for how to make a hot chicken sandwich, the make-or-break move is the Nashville oil. Fry the chicken until the crust is solid first, then brush on enough cayenne oil to stain the breading without drowning it, and use slaw plus pickles to keep the sandwich moving.",
+      "The Nashville oil is key to this hot chicken sandwich. Fry the chicken until the crust is solid first, then brush on enough cayenne oil to stain the breading without drowning it, and use slaw plus pickles to balance the heat.",
     extraFaqs: [
       {
         question: "What is Nashville hot chicken sandwich sauce made of?",

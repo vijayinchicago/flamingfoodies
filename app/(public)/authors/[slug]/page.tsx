@@ -112,11 +112,10 @@ export default async function AuthorPage({
         </article>
 
         <article className="panel p-8">
-          <p className="eyebrow">Trust links</p>
-          <h2 className="mt-3 font-display text-4xl text-charcoal">How this work gets framed.</h2>
+          <p className="eyebrow">Our standards</p>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">How we write and review.</h2>
           <p className="mt-4 text-sm leading-7 text-charcoal/75">
-            Contributor pages work best alongside the site-wide policies that explain how
-            editorial pages, corrections, and review coverage are handled.
+            Read our policies on writing, product reviews, and correcting mistakes.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
@@ -144,7 +143,7 @@ export default async function AuthorPage({
       <div className="grid gap-6 xl:grid-cols-3">
         <article className="panel p-8">
           <p className="eyebrow">Stories</p>
-          <h2 className="mt-3 font-display text-3xl text-charcoal">Blog coverage</h2>
+          <h2 className="mt-3 font-display text-3xl text-charcoal">Articles</h2>
           <div className="mt-5 space-y-3">
             {authoredPosts.length ? (
               authoredPosts.map((post) => (
@@ -186,7 +185,7 @@ export default async function AuthorPage({
 
         <article className="panel p-8">
           <p className="eyebrow">Reviews</p>
-          <h2 className="mt-3 font-display text-3xl text-charcoal">Product coverage</h2>
+          <h2 className="mt-3 font-display text-3xl text-charcoal">Product reviews</h2>
           <div className="mt-5 space-y-3">
             {authoredReviews.length ? (
               authoredReviews.map((review) => (

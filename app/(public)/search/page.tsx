@@ -49,8 +49,7 @@ export default async function SearchPage({
           Find the right recipe, review, or guide faster.
         </h1>
         <p className="mt-4 max-w-3xl text-base leading-7 text-charcoal/72 sm:text-lg sm:leading-8">
-          Search across the cooking layer, hot sauce reviews, and editorial library without
-          bouncing around the site.
+          Search recipes, hot sauce reviews, and food guides in one place.
         </p>
       </div>
 

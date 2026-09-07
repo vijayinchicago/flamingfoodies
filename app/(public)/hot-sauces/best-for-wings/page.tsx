@@ -180,7 +180,7 @@ export default async function BestHotSaucesForWingsPage() {
         <SectionHeading
           eyebrow="Use them tonight"
           title="Recipes for wing night."
-          copy="If someone lands here from search, the best next move is food that rewards one of these bottles immediately."
+          copy="Try one of these recipes with your chosen sauce."
         />
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           {wingRecipes.map((recipe) => (

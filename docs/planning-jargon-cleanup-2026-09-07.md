@@ -6,7 +6,8 @@
   guides, quizzes, newsletter choices, shop categories, seasonal pages and festival pages.
 - Rewrote related planning phrases, including “browse by intent,” “why-buy case,”
   “use case,” “shopping paths,” “buying paths,” “More Paths,” “Pillar guide,”
-  “practical signals” and “Action-oriented buyers.”
+  “practical signals” and “Action-oriented buyers.” Removed publishing-strategy sentences
+  such as “If someone lands here from search,” plus “cooking layer” and “Trust links.”
 - Kept analytics identifiers, database taxonomy, URLs and admin operations unchanged.
 - Retained affiliate, automation and editorial-pen-name disclosures and image credits.
 - Source-backed catalog and sample copy were included, along with the guide sync script.
@@ -22,6 +23,10 @@ The optional brands, peppers, festivals and tutorials tables are absent in produ
 Their source-backed content was scanned instead; this is not a claim that those database
 tables were inspected. Local backups and the approved replacement manifest are in
 `artifacts/editorial-cleanup/planning-jargon/` (gitignored).
+
+Also inspected the public text in `search_runtime_optimizations`. Cleaned one Nashville
+hot chicken intro override and its source defaults, with a full settings backup and an
+exact-value concurrency check. All other runtime settings remain unchanged.
 
 ## Prevention and validation
 

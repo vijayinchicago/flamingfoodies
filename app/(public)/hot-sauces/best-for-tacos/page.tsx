@@ -143,7 +143,7 @@ export default async function BestHotSaucesForTacosPage() {
         <SectionHeading
           eyebrow="Cook with them"
           title="Recipes that make these bottles easy to use right away."
-          copy="If someone lands here from search, the best next step is a recipe that helps them put the sauce to work."
+          copy="Choose a taco recipe to go with your sauce."
         />
         <div className="mt-8 grid gap-6 lg:grid-cols-3">
           {tacoRecipes.map((recipe) => (
