@@ -229,10 +229,10 @@ export default async function BlogPostPage({
         <section className="mt-14">
           <p className="eyebrow">Cook with this idea</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">
-            Recipes that pull on the same thread.
+            Recipes to try next.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
-            Matched on cuisine, heat lane, and the ingredients this post leans on.
+            Put these ingredients and techniques to use in your next meal.
           </p>
           <div className="mt-8 grid gap-6 lg:grid-cols-3">
             {recipesForPost.map((recipe) => (
@@ -251,10 +251,10 @@ export default async function BlogPostPage({
         <section className="mt-14">
           <p className="eyebrow">Bottle picks</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">
-            Hot sauces this post points at.
+            Related hot sauce reviews.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
-            Reviewed sauces that line up with the heat, cuisine, or flavor lane discussed above.
+            Explore sauces with related ingredients, flavors, and heat levels.
           </p>
           <div className="mt-8 grid gap-6 lg:grid-cols-3">
             {reviewsForPost.map((review) => (
@@ -294,7 +294,7 @@ export default async function BlogPostPage({
         <div className="mt-14">
           <p className="eyebrow">Keep reading</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">
-            More stories in this lane.
+            More on this subject.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
             If this post helped, these are the next pieces most likely to keep the thread going.

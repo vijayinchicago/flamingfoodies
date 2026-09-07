@@ -5,6 +5,9 @@ import { RECIPE_PROMPT, BLOG_POST_PROMPT, REVIEW_PROMPT, SOCIAL_CAPTION_PROMPT }
 describe("shared editorial copy checks", () => {
   it.each([
     "As an AI, I cannot taste this.",
+    "As a large language model, I cannot taste this.",
+    "As a language model, here is a recipe.",
+    "Soup :contentReference[oaicite:0]{index=0}",
     "Written by ChatGPT",
     "Soup\u200b with noodles",
     "Sauce \ue200cite\ue202turn0search1\ue201",

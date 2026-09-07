@@ -13,11 +13,12 @@
     "QA: require revisions for boilerplate, duplicated introductions, unexplained claims and vague steps. Return verdict fail with actionable blockers for generation artifacts, unsupported testing or sourcing, fabricated science, unsafe advice, or unresolved stock filler. Reserve revise for nonblocking polish. An automated check is not a human review or a kitchen test. Preserve internal provenance and QA records."
   ],
   "artifactPatterns": [
-    "\\bas an (?:ai|artificial intelligence|language model)\\b",
+    "\\bas (?:an? )?(?:ai|artificial intelligence|(?:large )?language model)\\b",
     "\\b(?:generated|written|created) by (?:chatgpt|claude|an ai|a language model)\\b",
     "<\\/?(?:antml(?::[a-z_]+)?|analysis|thinking|think|system|assistant)\\b[^>]*>",
     "[\\ue200-\\ue203]",
     "\\bturn\\d+(?:search|view|fetch)\\d+\\b",
+    "(?:oaicite|oai_citation|contentReference)\\s*[:=]",
     "[\\u200b\\ufeff]",
     "(?:^|\\n)\\s*(?:Certainly!|Sure, here(?:'s| is) (?:your|the|a) (?:recipe|article|review))"
   ],
