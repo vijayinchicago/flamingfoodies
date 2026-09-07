@@ -120,8 +120,10 @@ const LEGACY_EDITORIAL_BYLINES = new Set(
   ].map((name) => name.toLowerCase())
 );
 
-const COMMERCE_PATTERN =
-  /\b(best|bottle|brand|buy|buyer|buying|choose|comparison|gift|gear|pick|price|product|review|shelf|shop|subscription|value)\b/i;
+const STRONG_COMMERCE_PATTERN =
+  /\b(buying guide|gift guide|product review|shopping guide|subscription box)\b/i;
+const GUIDE_COMMERCE_PATTERN =
+  /\b(best|bottle|buy|buyer|buying|choose|comparison|gift|hot sauce|pick|price|review|shelf|shop|subscription|value)\b/i;
 const TECHNIQUE_PATTERN =
   /\b(barbecue|bbq|brais\w*|capsaicin|chemistry|ferment\w*|grill\w*|method|pressure[- ]cook\w*|roast\w*|science|scoville|slow[- ]cook\w*|smok\w*|technique)\b/i;
 const PRACTICAL_COOKING_PATTERN =
@@ -162,7 +164,12 @@ export function resolveEditorialAuthorName(input: EditorialAuthorAssignmentInput
     return isProjectRecipe ? "Rowan Flint" : "Tess Calder";
   }
 
-  if (input.category === "gear" || input.category === "reviews" || COMMERCE_PATTERN.test(assignmentText)) {
+  if (
+    input.category === "gear" ||
+    input.category === "reviews" ||
+    STRONG_COMMERCE_PATTERN.test(assignmentText) ||
+    (input.category === "guides" && GUIDE_COMMERCE_PATTERN.test(assignmentText))
+  ) {
     return "Miles Hart";
   }
 
@@ -170,7 +177,14 @@ export function resolveEditorialAuthorName(input: EditorialAuthorAssignmentInput
     return "Rowan Flint";
   }
 
-  if (input.category === "recipes" || PRACTICAL_COOKING_PATTERN.test(assignmentText)) {
+  if (input.category === "culture") {
+    return "Mara Santiago";
+  }
+
+  if (
+    input.category === "recipes" ||
+    (!input.category && PRACTICAL_COOKING_PATTERN.test(assignmentText))
+  ) {
     return "Tess Calder";
   }
 

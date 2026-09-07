@@ -16,15 +16,25 @@ UPDATE blog_posts
 SET author_name = CASE
   WHEN lower(coalesce(category, '')) IN ('gear', 'reviews')
     OR lower(concat_ws(' ', title, category, array_to_string(tags, ' ')))
-      ~ '\m(best|bottle|brand|buy|buyer|buying|choose|comparison|gift|gear|pick|price|product|review|shelf|shop|subscription|value)\M'
+      ~ '\m(buying guide|gift guide|product review|shopping guide|subscription box)\M'
+    OR (
+      lower(coalesce(category, '')) = 'guides'
+      AND lower(concat_ws(' ', title, category, array_to_string(tags, ' ')))
+        ~ '\m(best|bottle|buy|buyer|buying|choose|comparison|gift|hot sauce|pick|price|review|shelf|shop|subscription|value)\M'
+    )
     THEN 'Miles Hart'
   WHEN lower(coalesce(category, '')) = 'science'
     OR lower(concat_ws(' ', title, category, array_to_string(tags, ' ')))
       ~ '\m(barbecue|bbq|brais[[:alnum:]_]*|capsaicin|chemistry|ferment[[:alnum:]_]*|grill[[:alnum:]_]*|method|pressure[- ]cook[[:alnum:]_]*|roast[[:alnum:]_]*|science|scoville|slow[- ]cook[[:alnum:]_]*|smok[[:alnum:]_]*|technique)\M'
     THEN 'Rowan Flint'
+  WHEN lower(coalesce(category, '')) = 'culture'
+    THEN 'Mara Santiago'
   WHEN lower(coalesce(category, '')) = 'recipes'
-    OR lower(concat_ws(' ', title, category, array_to_string(tags, ' ')))
+    OR (
+      nullif(trim(category), '') IS NULL
+      AND lower(concat_ws(' ', title, category, array_to_string(tags, ' ')))
       ~ '\m(bowl|breakfast|cook[[:alnum:]_]*|dinner|lunch|meal|noodle|pasta|quick|recipe|serve|substitut[[:alnum:]_]*|taco|weeknight)\M'
+    )
     THEN 'Tess Calder'
   ELSE 'Mara Santiago'
 END

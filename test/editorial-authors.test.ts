@@ -62,7 +62,17 @@ describe("editorial author assignments", () => {
     expect(
       resolveEditorialAuthorName({
         type: "blog",
-        title: "Chile Traditions Around the Family Table",
+        title: "Three Spice Styles Making Every Home Cook Sweat in the Best Way",
+        category: "culture"
+      })
+    ).toBe("Mara Santiago");
+  });
+
+  it("does not treat incidental commerce words as a buying-guide signal", () => {
+    expect(
+      resolveEditorialAuthorName({
+        type: "blog",
+        title: "The Best Way to Understand a Regional Chile Tradition",
         category: "culture"
       })
     ).toBe("Mara Santiago");
