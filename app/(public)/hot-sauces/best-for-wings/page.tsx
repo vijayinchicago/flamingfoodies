@@ -172,14 +172,14 @@ export default async function BestHotSaucesForWingsPage() {
       <HotSauceComparisonTable
         eyebrow="Wing-night comparison"
         title="See which bottle earns the late-night slot."
-        copy="These picks all work on richer food, but they solve different problems. Compare the heat, flavor lane, and why-buy case before you fill the cart."
+        copy="Compare the heat, flavor, and suggested pairings before choosing a sauce for your wings."
         rows={comparisonRows}
       />
 
       <div className="mt-12">
         <SectionHeading
           eyebrow="Use them tonight"
-          title="Recipes that make the wing-night lane useful right away."
+          title="Recipes for wing night."
           copy="If someone lands here from search, the best next move is food that rewards one of these bottles immediately."
         />
         <div className="mt-8 grid gap-6 lg:grid-cols-3">

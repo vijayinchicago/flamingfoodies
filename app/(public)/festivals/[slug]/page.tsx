@@ -247,7 +247,7 @@ export default async function FestivalPage({ params }: { params: { slug: string 
       {/* Can't make it? Related reviews */}
       {displayReviews.length > 0 ? (
         <div className="mt-16">
-          <p className="eyebrow">Flavor lane</p>
+          <p className="eyebrow">Food and flavors</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">
             If you want a taste of the festival at home.
           </h2>

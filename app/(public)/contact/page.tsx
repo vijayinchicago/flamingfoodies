@@ -59,13 +59,13 @@ export default function ContactPage() {
             <p className="eyebrow">Reader routes</p>
             <p className="mt-4 text-sm leading-7 text-charcoal/75">
               If you mainly want updates instead of a direct reply, the newsletter is the lower-lift
-              option. You can choose recipe, hot sauce, or cook-and-shop lanes there.
+              option. You can choose emails about recipes, hot sauces, or cooking and shopping there.
             </p>
             <Link
               href="/subscriptions"
               className="mt-5 inline-flex rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
             >
-              Choose newsletter lanes
+              Choose your newsletters
             </Link>
           </article>
         </div>

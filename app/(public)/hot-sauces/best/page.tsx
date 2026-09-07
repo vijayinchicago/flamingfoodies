@@ -38,7 +38,7 @@ const bestHotSaucesFaqs: RecipeFaq[] = [
   {
     question: "Is a more expensive hot sauce always better?",
     answer:
-      "Not at all. Price usually matters less than use case. Some of the most useful bottles are affordable everyday sauces that simply fit more meals."
+      "Not at all. How you cook matters more than price. Affordable everyday sauces can work with plenty of meals."
   }
 ];
 
@@ -83,7 +83,7 @@ export default async function BestHotSaucesPage() {
       {/* By use-case — explicit links to each best-for sub-page so Google reads this hub as the parent of a clear series */}
       <div className="mt-10">
         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ember">
-          Or jump straight to a specific use case
+          Or find a sauce for your meal
         </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Link href="/hot-sauces/best-for-tacos" className="rounded-[1rem] border border-charcoal/10 bg-white p-4 transition hover:border-ember">

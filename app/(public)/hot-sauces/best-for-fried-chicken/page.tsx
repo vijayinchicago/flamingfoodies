@@ -194,7 +194,7 @@ export default async function BestHotSaucesForFriedChickenPage() {
         <div className="mt-12">
           <SectionHeading
             eyebrow="Cook with them"
-            title="Recipes that make the fried-chicken lane useful right away."
+            title="Recipes for fried-chicken night."
             copy="If the bottle works here, it should pay you back on a sandwich or another crispy chicken dinner immediately."
           />
           <div className="mt-8 grid gap-6 lg:grid-cols-3">

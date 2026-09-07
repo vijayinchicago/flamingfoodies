@@ -188,7 +188,7 @@ export default async function GuidePage({
         <section className="mt-14 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-7 sm:p-8">
           <p className="eyebrow">Keep reading</p>
           <h2 className="mt-3 font-display text-3xl text-charcoal sm:text-4xl">
-            More guides in this lane.
+            More guides on this topic.
           </h2>
           <div className="mt-6 grid gap-4 lg:grid-cols-2">
             {relatedGuides.map((entry) => (

@@ -110,9 +110,9 @@ export default async function SeasonalPage({ params }: { params: { slug: string 
         <div className="mt-6 max-w-3xl rounded-[1.5rem] border border-charcoal/10 bg-charcoal/[0.04] p-5 text-sm leading-7 text-charcoal/72">
           <p className="eyebrow">Seasonal note</p>
           <p className="mt-3">
-            Seasonal pages are built to help you plan the menu, heat range, and flavor lane first.
-            Sauce reviews and shopping paths sit lower on the page so the hosting guidance stays
-            clearly separate from commercial decisions.
+            Start with the menu: choose dishes, flavors, and a heat level your guests will enjoy.
+            You’ll also find sauce reviews and shopping suggestions below if you need
+            ingredients or a bottle for the table.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link href="/editorial-policy" className="font-semibold text-charcoal underline underline-offset-4">
@@ -160,7 +160,7 @@ export default async function SeasonalPage({ params }: { params: { slug: string 
       {reviews.length > 0 ? (
         <div className="mt-14">
           <SectionHeading
-            eyebrow="The sauce lane"
+            eyebrow="Sauces for the menu"
             title={`Hot sauce picks for ${occasion.title.toLowerCase()}.`}
             copy="These reviews are here to help if you want a sauce match for the occasion after you have the menu and heat range in mind."
           />

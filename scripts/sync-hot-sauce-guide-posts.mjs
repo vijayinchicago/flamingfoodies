@@ -9,9 +9,9 @@ const posts = [
     author_name: "Miles Hart",
     category: "guides",
     content: `
-## Start with lanes you actually cook in
+## Start with the meals you cook most
 
-If you are building a first shelf, begin with [the best hot sauces overall](/hot-sauces/best) and then branch into the lanes that match your weeknight food. Most people need a taco bottle, a breakfast bottle, and one richer-food bottle long before they need a superhot flex.
+If you are choosing your first bottles, begin with [the best hot sauces overall](/hot-sauces/best), then look for sauces that match your weeknight meals. A sauce for tacos, one for breakfast, and one for richer food can be more useful than a collection of superhot bottles.
 
 ## Do not overspend on the first pass
 
@@ -23,7 +23,7 @@ If tacos are constant in your house, go next to [best hot sauces for tacos](/hot
 
 ## Use reviews when you are narrowing to one bottle
 
-The [hot sauce hub](/hot-sauces) helps you shop by intent, the [reviews archive](/reviews) helps you compare individual bottles, and [the shop](/shop) is the fast lane when you just want to browse sauces and pantry upgrades in one place.
+Browse [hot sauces by meal](/hot-sauces), compare individual bottles in [our reviews](/reviews), or visit [the shop](/shop) for sauces and pantry ingredients.
     `,
     tags: ["hot sauce", "shopping guide", "shelf builder"],
     featured: true,
@@ -138,13 +138,13 @@ With shrimp, fish, oysters, and grilled seafood, the best bottle is usually the 
 
 ## Fish tacos are not the same as wings
 
-A bottle that crushes wings can bully grilled shrimp. If seafood tacos are your main use case, compare [the seafood shelf](/hot-sauces/best-for-seafood) with [the taco shelf](/hot-sauces/best-for-tacos) and look for the overlap: bright, clean, pepper-forward bottles that still have enough character to stand up to crema or slaw.
+A sauce that suits wings can overpower grilled shrimp. If you often cook seafood tacos, compare [sauces for seafood](/hot-sauces/best-for-seafood) with [sauces for tacos](/hot-sauces/best-for-tacos). Look for bright, pepper-forward bottles that complement crema or slaw.
 
 ## Keep your shelf balanced
 
 The smartest setup is not all citrus bottles. Pair one seafood-friendly sauce with one broader everyday bottle from [best hot sauces overall](/hot-sauces/best), then use [the shop](/shop) if you want to browse pantry and gear upgrades around the same meals.
 
-## Reviews matter more once the lane is clear
+## Compare the bottles on your shortlist
 
 After you know you want a seafood-friendly bottle, use [reviews](/reviews) to compare exact flavor notes, pricing, and the sauces that pull double duty on tacos, grilled fish, and weeknight bowls.
     `,

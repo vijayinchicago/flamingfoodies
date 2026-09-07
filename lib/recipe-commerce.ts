@@ -214,7 +214,7 @@ function scoreRecipeAffiliateEntry(
 
 function buildPairingReason(recipe: Recipe, review: Review) {
   if (review.cuisineOrigin && review.cuisineOrigin === recipe.cuisineType) {
-    return `This bottle fits the ${recipe.cuisineType.replace(/_/g, " ")} lane of the recipe and keeps the heat profile pointed in the same direction.`;
+    return `Explore this sauce from the same cuisine: ${recipe.cuisineType.replace(/_/g, " ")}.`;
   }
 
   if (review.heatLevel && heatRank[review.heatLevel] >= heatRank[recipe.heatLevel]) {

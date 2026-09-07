@@ -135,7 +135,7 @@ export default async function BestHotSaucesForTacosPage() {
       <HotSauceComparisonTable
         eyebrow="Taco-night comparison"
         title="Compare the taco shelf fast."
-        copy="If you are stuck between two bottles, this is the quick answer on heat, flavor lane, and the kind of taco each bottle helps most."
+        copy="Compare the heat, flavor, and taco fillings that suit each sauce."
         rows={comparisonRows}
       />
 

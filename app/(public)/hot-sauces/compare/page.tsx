@@ -362,7 +362,7 @@ export default async function HotSauceComparePage({
             <div className="rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6 text-center">
               <p className="font-display text-3xl text-charcoal">A near-perfect tie.</p>
               <p className="mt-2 text-sm text-charcoal/70">
-                Both sauces are closely matched. Read the pros and cons below to decide which fits your use case better.
+                Both sauces are closely matched. Read the pros and cons below to decide which suits your cooking better.
               </p>
             </div>
           )}

@@ -71,7 +71,7 @@ export default async function BestHotSaucesForPizzaPage() {
             Rich cheese and crust can handle sweeter and heavier heat.
           </h2>
           <p className="mt-4 text-sm leading-7 text-charcoal/70">
-            Pizza is one of the few lanes where hot honey, garlic-heavy heat, and bigger reaper bottles can all make sense, as long as they still taste like something beyond capsaicin.
+            Pizza pairs with hot honey, garlicky sauces, and even reaper sauces, as long as the heat leaves room for the toppings.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link

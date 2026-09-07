@@ -54,7 +54,7 @@ const questions = [
     ]
   },
   {
-    prompt: "If you were shopping today, what lane fits best?",
+    prompt: "What would you like to shop for?",
     options: [
       "Starter bottle",
       "Balanced everyday pour",
@@ -111,12 +111,12 @@ export function QuizForm() {
         </section>
       ))}
       <div className="panel flex flex-col items-start gap-4 p-6">
-        <p className="text-sm uppercase tracking-[0.24em] text-ember">Your heat lane so far</p>
+        <p className="text-sm uppercase tracking-[0.24em] text-ember">Your heat preferences so far</p>
         <h2 className="font-display text-4xl text-charcoal">{formatResultLabel(result)}</h2>
         <p className="text-sm text-charcoal/70">
           {allAnswered
             ? "All set. Open your result for recipes, bottle picks, and gift-safe next steps."
-            : `Answer ${questions.length - answerCount} more question${questions.length - answerCount === 1 ? "" : "s"} to lock in a starting lane.`}
+            : `Answer ${questions.length - answerCount} more question${questions.length - answerCount === 1 ? "" : "s"} to see your recommendations.`}
         </p>
         <Link
           href={allAnswered ? `/quiz/results/${result}` : "/quiz"}

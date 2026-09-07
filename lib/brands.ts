@@ -174,7 +174,7 @@ export const BRANDS: Brand[] = [
       { name: "Serrano Condiment Sauce", affiliateKey: "amazon-yellowbird-serrano", description: "Brighter and thinner — great for tacos." },
       { name: "Ghost Pepper Condiment", affiliateKey: "amazon-yellowbird-ghost-pepper", description: "The heat-seeker version — still clean and fruit-forward." }
     ],
-    whyItMatters: "Yellowbird proved that the vinegar-forward formula wasn't mandatory — and opened a new sensory lane in hot sauce that many craft brands have since entered.",
+    whyItMatters: "Yellowbird offers a vegetable-forward alternative to vinegar-heavy hot sauces.",
     bestFor: "Anyone who wants heat without vinegar's sharpness, clean-label eaters, and fans of fruit-forward flavor profiles.",
     pepperSlug: "habanero",
     featured: false,

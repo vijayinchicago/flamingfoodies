@@ -71,7 +71,7 @@ export default async function BestHotSaucesForEggsPage() {
             Breakfast wants lift, not punishment.
           </h2>
           <p className="mt-4 text-sm leading-7 text-charcoal/70">
-            Eggs do best with sauces you can pour generously, spoon crisps into, or finish with a little sweetness and crunch. This is a lane for everyday bottles, not one-drop stunt sauces.
+            Eggs work well with pourable hot sauces and spoonfuls of chili crisp. Start with everyday bottles that add flavor without overpowering breakfast.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Link
@@ -127,7 +127,7 @@ export default async function BestHotSaucesForEggsPage() {
 
       <HotSauceComparisonTable
         eyebrow="Breakfast comparison"
-        title="Pick the right breakfast lane."
+        title="Find a sauce for your breakfast."
         copy="Some bottles are better as generous everyday pours, while others work more like toppers. This table helps you sort that out quickly."
         rows={comparisonRows}
       />

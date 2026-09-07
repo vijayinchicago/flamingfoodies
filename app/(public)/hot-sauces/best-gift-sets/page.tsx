@@ -197,7 +197,7 @@ export default async function BestHotSauceGiftSetsPage() {
 
       <HotSauceComparisonTable
         eyebrow="Gift comparison"
-        title="See which gift lane fits the person."
+        title="Find a gift they’ll enjoy."
         copy="This is the fast way to separate broad tasting gifts from recurring subscriptions and other lower-risk presents."
         rows={comparisonRows}
       />

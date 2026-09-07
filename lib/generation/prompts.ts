@@ -40,11 +40,11 @@ ${FLAMINGFOODIES_EDITORIAL_VOICE}
 Generate a complete recipe, clearly identifying any regional adaptations. Requirements:
 - Cuisine: ${params.cuisine_type}
 - Heat level: ${params.heat_level} (${HEAT_DESCRIPTIONS[params.heat_level]})
-- Recipe lane: ${params.recipe_lane ? formatTaxonomyLabel(params.recipe_lane) : "choose the most commercially useful lane for this cuisine"}
+- Dish category (planning input only; do not repeat this label in reader copy): ${params.recipe_lane ? formatTaxonomyLabel(params.recipe_lane) : "choose a useful dish category for this cuisine"}
 - The dish should use chilli heat in the way that cuisine does.
 - Do not invent impossible ingredients, techniques, or plating details.
 - The recipe must feel like a real dish a strong home cook could execute.
-- The finished dish should clearly fit the requested lane without drifting into generic filler.
+- The finished dish should clearly fit the requested dish category without drifting into generic filler.
 - Prefer specificity over fluff. Use actual ingredients, doneness cues, timings, and finishing details.
 - Write with the voice of a sharp, experienced food editor who actually cooks: warm, confident, lightly opinionated, and concrete.
 - Let the intro, hero summary, tips, and FAQs sound human and specific, not templated or salesy.
@@ -57,7 +57,7 @@ Generate a complete recipe, clearly identifying any regional adaptations. Requir
 - The hero_image_query must describe a plated finished dish photo, not a bottle shot or product shot.
 - The image_alt must describe the finished dish naturally.
 - Do not include any keys beyond the JSON schema below.
-${params.recipe_lane ? `- Lane guidance: ${RECIPE_LANE_PROMPT_GUIDANCE[params.recipe_lane]}` : ""}
+${params.recipe_lane ? `- Dish guidance: ${RECIPE_LANE_PROMPT_GUIDANCE[params.recipe_lane]}` : ""}
 ${params.hot_sauce_focus
   ? `- This is a featured hot sauce recipe. Build the dish around this actual sauce:
   - Sauce: ${params.hot_sauce_focus.brand} ${params.hot_sauce_focus.product_name}

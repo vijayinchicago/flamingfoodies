@@ -4,6 +4,32 @@ The executable source of truth is [editorial-policy.json](../lib/generation/edit
 Every model-writing call uses it. Recipe, article and review publishing QA checks known
 generation artifacts and stock filler; discovery and newsletter outputs are checked before use.
 
+## Keep planning language internal
+
+Write about food, not our publishing strategy. Do not call a recipe category, cuisine,
+flavor, heat level, shopping choice or newsletter a “lane.” Name the subject instead.
+Likewise avoid “browse by intent,” “use case,” “why-buy case,” “content pillar,”
+“audience segment,” “engagement signals” and “shopping path” in reader-facing copy.
+Do not replace these with equally vague journeys, pathways or ecosystems.
+
+| Planning copy | Reader-facing example |
+| --- | --- |
+| What this lane covers | What you’ll find here |
+| Staples for this flavor lane | Pantry staples for this recipe |
+| Choose newsletter lanes | Choose your newsletters |
+| Best use case | What to serve it with |
+
+Check headings, related-content labels, metadata, quiz results and email buttons as well
+as article bodies. Internal field names and analytics keys can remain unchanged. Literal
+street names, credits and culinary terms such as a floured surface are not planning jargon.
+The model QA must review context beyond the deterministic example list.
+
+`test/public-copy.test.ts` scans public JSX and string literals plus source-backed catalogs.
+`scripts/audit-planning-jargon.mjs` audits published database copy. Its optional `--apply`
+uses an explicitly reviewed exact-match manifest in the gitignored
+`artifacts/editorial-cleanup/planning-jargon/approved.json`, with backups, concurrency
+checks and post-write verification. Do not replay an already-applied manifest.
+
 ## Voice and identity
 
 FlamingFoodies is about good food and adjustable heat. Write clear, welcoming, original

@@ -79,7 +79,7 @@ export function getShopAffiliateCollections(): ShopAffiliateCollection[] {
     },
     {
       key: "taco-night",
-      title: "Taco night lane",
+      title: "Taco night",
       description:
         "Three bottles that together cover every taco spread: an everyday red pour, a bright green option, and a garlic-forward finisher for the carne asada.",
       ctaLabel: "Build taco night",

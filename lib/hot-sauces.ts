@@ -191,7 +191,7 @@ export function getHotSauceBestForCopy(
 ) {
   if (context === "gifts") {
     if (review.category === "subscription-box") {
-      return "Recurring discovery";
+      return "Sauce subscription";
     }
 
     if (review.category === "gift-set") {
@@ -227,7 +227,7 @@ export function getHotSauceBestForCopy(
   }
 
   if (review.category === "subscription-box") {
-    return "Recurring discovery";
+    return "Sauce subscription";
   }
 
   if (review.category === "gift-set") {

@@ -79,7 +79,7 @@ export default function SubscriptionsPage() {
             tag="subscription-interest"
             heading="Get hot sauce picks, gift ideas, and recurring heat."
             description="Choose updates focused on bottle recommendations, subscriptions, and spicy finds worth revisiting."
-            buttonLabel="Join this lane"
+            buttonLabel="Subscribe to this newsletter"
             defaultSegments={["hot-sauce-shelf", "cook-shop"]}
             segmentOptions={[
               {

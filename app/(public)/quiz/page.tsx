@@ -14,7 +14,7 @@ export default function QuizPage() {
     <section className="container-shell py-16">
       <SectionHeading
         eyebrow="Heat quiz"
-        title="Find the heat lane that actually fits how you cook and shop."
+        title="Find recipes and sauces that suit your taste for heat."
         copy="Answer a few quick questions to get a calmer starting point for recipes, bottles, and gift-friendly next steps."
       />
       <div className="mt-10">

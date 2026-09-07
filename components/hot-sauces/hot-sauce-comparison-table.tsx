@@ -40,7 +40,7 @@ export function HotSauceComparisonTable({
                 <dd className="mt-1">{row.bestFor}</dd>
               </div>
               <div>
-                <dt className="text-xs uppercase tracking-[0.2em] text-charcoal/45">Flavor lane</dt>
+                <dt className="text-xs uppercase tracking-[0.2em] text-charcoal/45">Flavor</dt>
                 <dd className="mt-1">{row.flavorLane}</dd>
               </div>
               <div>
@@ -67,7 +67,7 @@ export function HotSauceComparisonTable({
                 <th className="px-6 py-4 font-medium">Bottle</th>
                 <th className="px-6 py-4 font-medium">Best for</th>
                 <th className="px-6 py-4 font-medium">Heat</th>
-                <th className="px-6 py-4 font-medium">Flavor lane</th>
+                <th className="px-6 py-4 font-medium">Flavor</th>
                 <th className="px-6 py-4 font-medium">Price</th>
                 <th className="px-6 py-4 font-medium">Why it makes the cut</th>
                 <th className="px-6 py-4 font-medium sr-only">Review</th>

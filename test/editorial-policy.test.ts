@@ -40,6 +40,23 @@ describe("shared editorial copy checks", () => {
     expect(draft).toEqual(before);
   });
 
+  it.each([
+    "What this lane covers.", "Stay in the same heat lane", "Flavor lanes for dinner",
+    "Choose newsletter lanes", "Browse by intent", "A stronger why-buy case",
+    "Build content pillars", "Use engagement signals", "Improve the conversion funnel"
+  ])("blocks internal planning jargon in public copy: %s", (text) => {
+    expect(getEditorialCopyIssues({ faqs: [{ answer: text }] })).toContainEqual(expect.objectContaining({ code: "editorial-planning-jargon", severity: "blocker" }));
+    expect(() => assertEditorialCopy({ seo_description: text })).toThrow("planning jargon");
+  });
+
+  it("allows literal lanes, culinary clusters and internal taxonomy", () => {
+    expect(getEditorialCopyIssues({
+      content: "The bakery is on Penny Lane. Serve clusters of roasted grapes. Work on a floured surface.",
+      recipe_lane: "heat lane", recipeLane: "kitchen lane", qaNotes: "Reject this lane wording.",
+      sourceUrl: "https://example.com/content-pillars", imageCredit: "Lane Photography"
+    })).toEqual([]);
+  });
+
   it("shares the rules across prompt templates", () => {
     expect(RECIPE_PROMPT({ cuisine_type: "mexican", heat_level: "medium" })).toContain(FLAMINGFOODIES_EDITORIAL_POLICY);
     expect(SOCIAL_CAPTION_PROMPT({ type: "recipe", title: "Salsa" }, "instagram")).toContain(FLAMINGFOODIES_EDITORIAL_POLICY);

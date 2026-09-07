@@ -68,7 +68,7 @@ const SHELF_NOTES: Record<
     bestFor:
       "Dumplings (obviously), but also rice bowls, scrambled eggs, and a drizzle on roasted broccoli. The peppercorn tingle is unique.",
     skipFor:
-      "Cuisines outside the Sichuan/East-Asian lane — the numbing quality is polarizing in a Mexican context."
+      "Dishes where you do not want the numbing sensation of Sichuan pepper."
   }
 };
 
@@ -209,11 +209,9 @@ export default async function StarterShelfPage() {
           <section className="mt-10 break-inside-avoid">
             <h2 className="font-display text-2xl text-charcoal">How I picked these</h2>
             <p className="mt-3 text-sm leading-7 text-charcoal/85">
-              Most &ldquo;best hot sauce&rdquo; lists are built to drive Amazon clicks.
-              This isn&apos;t one of those. Each bottle here covers a real
-              kitchen lane — smoky, fruity, garlicky, sweet-heat, numbing,
-              extreme — so the shelf works as a system, not a duplicate
-              stack of tabasco-likes.
+              These bottles offer a range of flavors and heat levels: smoky, fruity,
+              garlicky, sweet, numbing, and very hot. Choose a few that taste different
+              from one another so you have options for different meals.
             </p>
             <p className="mt-3 text-sm leading-7 text-charcoal/85">
               Buy them over time, not all at once. Three at a time gives you

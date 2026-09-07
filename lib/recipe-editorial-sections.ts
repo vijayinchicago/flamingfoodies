@@ -194,7 +194,7 @@ export function getRecipeEditorialSections(recipes: Recipe[], now = new Date()) 
       key: "noodle-nights",
       eyebrow: "Noodle nights",
       title: "Bowls and noodles with enough bite to feel worth repeating.",
-      description: "Fast, slurpable, sauce-driven lanes for nights when a glossy bowl is the answer.",
+      description: "Noodles and pasta for a quick dinner, with plenty of sauce.",
       matcher: (recipe) =>
         hasAnyToken(recipe, ["noodle", "noodles", "ramen", "udon", "pasta", "spaghetti", "linguine"])
     },

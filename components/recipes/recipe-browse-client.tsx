@@ -317,7 +317,7 @@ export function RecipeBrowseClient({
               Nothing hit all of those filters yet.
             </h3>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-charcoal/65">
-              Clear one or two filters, or search for a broader lane like curry, noodles, tacos,
+              Clear one or two filters, or search for a dish like curry, noodles, tacos,
               chicken, or shrimp.
             </p>
             <button

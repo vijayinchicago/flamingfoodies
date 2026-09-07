@@ -103,7 +103,7 @@ export default async function BlogIndexPage({
       />
       <SectionHeading
         eyebrow="Blog"
-        title="Search spicy food stories by topic, cuisine, and heat lane."
+        title="Search spicy food stories by topic, cuisine, and heat level."
         copy="Longer reads on spicy food culture, shelf-building, gear, ingredients, and the ideas that make the rest of the site more useful."
       />
       <div className="mt-6 flex flex-wrap gap-3 text-sm text-charcoal/70">
@@ -273,7 +273,7 @@ export default async function BlogIndexPage({
           <p className="mt-3 text-sm leading-7 text-charcoal/70">
             {paginatedPosts.totalResults
               ? "Sort for the newest reads or tighten the archive around one topic or cuisine."
-              : "Try a broader search, clear one filter, or switch to another topic lane."}
+              : "Try a broader search, clear one filter, or choose another topic."}
           </p>
         </div>
         {paginatedPosts.totalPages > 1 ? (

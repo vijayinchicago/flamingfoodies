@@ -70,8 +70,8 @@ describe("generation prompts", () => {
       recipe_lane: "burger_sandwich"
     });
 
-    expect(prompt).toContain("Recipe lane: Burger Sandwich");
-    expect(prompt).toContain("Lane guidance:");
+    expect(prompt).toContain("Dish category (planning input only; do not repeat this label in reader copy): Burger Sandwich");
+    expect(prompt).toContain("Dish guidance:");
     expect(prompt).toContain("handheld, sandwich, burger");
   });
 

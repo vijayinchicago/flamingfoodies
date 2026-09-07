@@ -17,15 +17,15 @@ export const NEWSLETTER_SEGMENTS = [
     tag: "hot-sauce-shelf",
     label: "Hot Sauce Shelf Notes",
     shortLabel: "Hot sauces",
-    description: "Bottle picks, best-for guides, new reviews, and shelf-building advice.",
+    description: "Hot sauce recommendations, new reviews, and ideas for using each bottle.",
     sourceLabel: "Sauce shoppers"
   },
   {
     tag: "cook-shop",
     label: "Cook / Shop",
     shortLabel: "Cook / Shop",
-    description: "A tighter mix of practical recipes and the gear, pantry, or bottles that support them.",
-    sourceLabel: "Action-oriented buyers"
+    description: "Practical recipes, plus ingredients, sauces, and kitchen tools to go with them.",
+    sourceLabel: "Cooks and shoppers"
   }
 ] as const;
 

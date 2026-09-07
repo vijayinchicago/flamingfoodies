@@ -89,7 +89,7 @@ export default function AboutPage() {
           <p className="eyebrow">How reviews get checked</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">Method beats hype.</h2>
           <div className="mt-5 space-y-4 text-sm leading-7 text-charcoal/75">
-            <p>We look for practical signals first: what a bottle is good on, where the heat actually lands, and whether the recommendation makes sense for the person clicking it.</p>
+            <p>We focus on practical questions: which foods a sauce goes with, how hot it is, and who might enjoy it.</p>
             <p>Automated checks help catch missing details and inconsistencies. They are not a substitute for cooking a recipe or tasting a product, and we do not describe them as hands-on tests.</p>
             <p>Questions or corrections are welcome. If a claim changes or a better fit emerges, we would rather update the page than leave stale certainty in place.</p>
           </div>
@@ -236,7 +236,7 @@ export default function AboutPage() {
             href="/subscriptions"
             className="rounded-full border border-charcoal/15 px-5 py-3 text-sm font-semibold text-charcoal"
           >
-            Choose newsletter lanes
+            Choose your newsletters
           </Link>
         </div>
       </div>

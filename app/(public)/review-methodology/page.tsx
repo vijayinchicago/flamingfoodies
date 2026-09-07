@@ -25,8 +25,8 @@ export default function ReviewMethodologyPage() {
           <p className="eyebrow">Flavor</p>
           <h2 className="mt-3 font-display text-3xl text-charcoal">Does it taste like something you want again?</h2>
           <p className="mt-4 text-sm leading-7 text-charcoal/75">
-            We care about flavor shape, not just heat bragging rights. A bottle should have a real
-            use case and a reason to stay on the shelf.
+            Flavor matters as much as heat. A useful review explains which foods a sauce
+            goes with and who might enjoy it.
           </p>
         </article>
         <article className="panel p-6">

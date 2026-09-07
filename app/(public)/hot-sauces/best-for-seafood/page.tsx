@@ -145,7 +145,7 @@ export default async function BestHotSaucesForSeafoodPage() {
             <li>Use brighter bottles for grilled shrimp, fish tacos, flaky fish, and ceviche.</li>
             <li>Ginger and citrus usually outperform dense smoke on seafood.</li>
             <li>Save heavy reaper sauces for wings and pizza instead of delicate proteins.</li>
-            <li>If the bottle works with lime, herbs, and grill char, it usually belongs in this lane.</li>
+            <li>Look for sauces that complement lime, herbs, and the char of grilled seafood.</li>
           </ul>
         </div>
       </div>

@@ -154,7 +154,7 @@ export default function QuizResultPage({
             <p className="eyebrow">Start here</p>
             <h2 className="mt-3 font-display text-3xl text-charcoal">Pick one dinner, then one bottle.</h2>
             <p className="mt-4 text-sm leading-7 text-charcoal/75">
-              The easiest way to build confidence is to cook one recipe in your lane and pair it
+              Start with a recipe at your preferred heat level and pair it
               with one bottle you will actually reach for again next week.
             </p>
           </div>
@@ -163,7 +163,7 @@ export default function QuizResultPage({
             <h2 className="mt-3 font-display text-3xl text-charcoal">Start with gifts, not guesses.</h2>
             <p className="mt-4 text-sm leading-7 text-charcoal/75">
               If this quiz was really about another person, skip the guesswork and start with the
-              safer gift-set and under-$50 lanes first.
+              gift sets and options under $50 first.
             </p>
             <Link
               href="/hot-sauces/gifts-under-50"

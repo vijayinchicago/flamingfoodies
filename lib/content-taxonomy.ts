@@ -83,7 +83,7 @@ export const RECIPE_LANE_PROMPT_GUIDANCE: Record<
   rice_bowl:
     "Build a complete bowl-style meal with a clear base, topping story, and finishing sauce.",
   noodle_pasta:
-    "Anchor the dish in noodles, pasta, dumplings, or a starch-forward comfort lane.",
+    "Build the dish around noodles, pasta, dumplings, or another starchy comfort food.",
   stew_curry:
     "Make the dish saucy, spoonable, braised, or curry-like with layered heat.",
   seafood:

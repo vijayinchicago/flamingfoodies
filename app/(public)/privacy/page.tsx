@@ -43,8 +43,8 @@ export default function PrivacyPage() {
           </p>
           <p>
             Analytics and event data may also be used to prioritize future content, improve site
-            performance, and understand which pages or email lanes create the strongest follow-on
-            activity.
+            performance, and understand which pages and newsletters lead readers to visit other
+            pages or click links.
           </p>
         </div>
       </article>

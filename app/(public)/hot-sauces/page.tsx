@@ -75,7 +75,7 @@ export default async function HotSaucesHubPage() {
             Open the page that matches the food on your table.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
-            The best entry point is usually meal-first: tacos, eggs, wings, fried chicken,
+            Start with what you like to eat: tacos, eggs, wings, fried chicken,
             seafood, pizza, or a hard budget cap. Use the search-style guides first, then go deeper.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">

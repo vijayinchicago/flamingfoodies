@@ -305,7 +305,7 @@ export default async function ShopPage() {
   const conversionStats = [
     { label: "Buying paths", value: String(buyingPaths.length || 8) },
     { label: "Hot sauce SKUs", value: "37+" },
-    { label: "Gift-ready lane", value: "Live" },
+    { label: "Gift ideas", value: "Available" },
     { label: "Budget route", value: "Under $15" }
   ];
 
@@ -483,7 +483,7 @@ export default async function ShopPage() {
         <SectionHeading
           eyebrow="Buying Paths"
           title="Shop by what you need right now."
-          copy="Choose a starter kit, budget favorite, gift idea, or dinner-night lane and jump straight to the right picks."
+          copy="Find starter kits, budget favorites, gifts, and ingredients for dinner."
         />
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           {buyingPaths.map((collection) => (

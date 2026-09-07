@@ -23,7 +23,7 @@ export default function EditorialPolicyPage() {
     >
       <div className="grid gap-6 lg:grid-cols-3">
         <article className="panel p-6">
-          <p className="eyebrow">Page intent</p>
+          <p className="eyebrow">Useful advice</p>
           <h2 className="mt-3 font-display text-3xl text-charcoal">Educational pages should teach first.</h2>
           <p className="mt-4 text-sm leading-7 text-charcoal/75">
             Recipes, explainers, and culture pieces are expected to stand on their own before any
@@ -42,8 +42,8 @@ export default function EditorialPolicyPage() {
           </p>
         </article>
         <article className="panel p-6">
-          <p className="eyebrow">Commercial clarity</p>
-          <h2 className="mt-3 font-display text-3xl text-charcoal">Monetization should never hide the page type.</h2>
+          <p className="eyebrow">Affiliate links</p>
+          <h2 className="mt-3 font-display text-3xl text-charcoal">Be clear about how the site earns money.</h2>
           <p className="mt-4 text-sm leading-7 text-charcoal/75">
             We label affiliate links and explain how purchases may support the site. Ingredient
             guides and cooking advice should remain useful whether or not you buy anything.

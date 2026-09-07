@@ -1231,7 +1231,7 @@ export default async function RecipePage({
                         <div>
                           <p className="eyebrow">Shop the pantry</p>
                           <h3 className="mt-3 font-display text-4xl text-charcoal">
-                            Staples for this flavor lane
+                            Pantry staples for this recipe
                           </h3>
                         </div>
                         <Link
@@ -1336,7 +1336,7 @@ export default async function RecipePage({
                       <div>
                         <p className="eyebrow">Cook next</p>
                         <h3 className="mt-3 font-display text-4xl text-charcoal">
-                          Stay in the same heat lane
+                          More recipes with similar heat
                         </h3>
                       </div>
                       <Link
@@ -1402,7 +1402,7 @@ export default async function RecipePage({
                   Editorial that builds on this dish
                 </h3>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-charcoal/65">
-                  Background pieces in the same cuisine or heat lane.
+                  Read more about the ingredients and cuisine.
                 </p>
                 <div className="mt-6 grid gap-4 md:grid-cols-2">
                   {blogPostsForRecipe.map((post) => (

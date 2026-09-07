@@ -86,7 +86,7 @@ export default async function AuthorPage({
       <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <article className="panel p-8">
           <p className="eyebrow">About this byline</p>
-          <h2 className="mt-3 font-display text-4xl text-charcoal">What this lane covers.</h2>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">What you’ll find here.</h2>
           <p className="mt-4 rounded-[1.25rem] border border-ember/20 bg-ember/[0.06] p-4 text-sm leading-7 text-charcoal/75">
             {EDITORIAL_PERSONA_DISCLOSURE}
           </p>

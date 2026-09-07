@@ -13,9 +13,9 @@ const allowed = {
   blog_posts: ["title", "seo_title", "description", "content", "seo_description"],
   reviews: ["description", "content", "verdict", "best_for", "not_for", "pros", "cons", "flavor_notes", "seo_description"]
 };
-const patterns = [...policy.artifactPatterns, ...policy.fillerPatterns, "taste buds", "\\belevat\\w*", "trust me", "heat architecture", "(?:brain|receptor|dopamine|endorphin|neurotransmitter|scientists|researchers|studies show|food anthropologists|hijack|50\\s*(?:hz|hertz)|reward cycle|hypersensitiv)"];
+const patterns = [...policy.artifactPatterns, ...policy.fillerPatterns, ...policy.planningJargonPatterns, "taste buds", "\\belevat\\w*", "trust me", "heat architecture", "(?:brain|receptor|dopamine|endorphin|neurotransmitter|scientists|researchers|studies show|food anthropologists|hijack|50\\s*(?:hz|hertz)|reward cycle|hypersensitiv)"];
 const suspect = new RegExp(patterns.join("|"), "i");
-const hard = new RegExp([...policy.artifactPatterns, ...policy.fillerPatterns].join("|"), "i");
+const hard = new RegExp([...policy.artifactPatterns, ...policy.fillerPatterns, ...policy.planningJargonPatterns].join("|"), "i");
 const leaves = (value, prefix = "") => typeof value === "string" ? [[prefix, value]] : value && typeof value === "object" ? Object.entries(value).flatMap(([key, child]) => leaves(child, prefix ? `${prefix}.${key}` : key)) : [];
 const readPath = (obj, key) => key.split(".").reduce((v, k) => v?.[k], obj);
 function writePath(obj, key, value) {

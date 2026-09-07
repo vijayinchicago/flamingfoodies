@@ -326,7 +326,7 @@ export default async function ReviewsIndexPage({
       <div className="mt-6 rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="eyebrow">Browse by intent</p>
+            <p className="eyebrow">Find your next bottle</p>
             <h2 className="mt-3 font-display text-4xl text-charcoal">Browse reviews your way.</h2>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
               Showing <span className="font-semibold text-charcoal">{paginatedReviews.totalResults}</span>{" "}
@@ -373,7 +373,7 @@ export default async function ReviewsIndexPage({
           <p className="mt-3 text-sm leading-7 text-charcoal/70">
             {paginatedReviews.totalResults
               ? "Narrow things down by best use, then sort for the bottles you want to compare."
-              : "Try a broader search, switch the intent tab, or clear a filter to see more bottles."}
+              : "Try a broader search, choose another category, or clear a filter to see more bottles."}
           </p>
         </div>
         {paginatedReviews.totalPages > 1 ? (
@@ -387,7 +387,7 @@ export default async function ReviewsIndexPage({
           paginatedReviews.items.map((review) => <ReviewCard key={review.id} review={review} />)
         ) : (
           <div className="panel p-8 text-sm leading-7 text-charcoal/70 lg:col-span-2">
-            No hot sauce reviews match that filter yet. Try another browse lane or head back to the{" "}
+            No hot sauce reviews match that filter yet. Try another category or head back to the{" "}
             <Link href="/hot-sauces" className="font-semibold text-charcoal underline underline-offset-4">
               hot sauce hub
             </Link>
