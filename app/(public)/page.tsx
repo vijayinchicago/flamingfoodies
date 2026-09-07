@@ -17,10 +17,11 @@ import { getCurrentOccasions } from "@/lib/seasonal/occasions";
 export const revalidate = 600;
 
 export default async function HomePage() {
-  const [{ recipes, blogPosts, reviews }, guides] = await Promise.all([
+  const [{ recipes, blogPosts, reviews, recipeSchedule }, guides] = await Promise.all([
     getFeaturedCollection(),
     getGuides()
   ]);
+  const isWeekendRecipeSchedule = recipeSchedule === "weekend";
   const seasonalNow = getCurrentOccasions();
   const editorialFranchises = getEditorialFranchises(blogPosts);
   const featuredRecipe = recipes[0] ?? null;
@@ -76,7 +77,9 @@ export default async function HomePage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/35 to-transparent" />
                   <div className="absolute inset-x-0 bottom-0 p-6">
                     <div className="rounded-[2rem] border border-white/10 bg-charcoal/78 p-6 backdrop-blur-md">
-                      <p className="text-xs uppercase tracking-[0.24em] text-ember">Tonight&apos;s pick</p>
+                      <p className="text-xs uppercase tracking-[0.24em] text-ember">
+                        {isWeekendRecipeSchedule ? "Weekend project" : "Tonight's quick pick"}
+                      </p>
                       <h2 className="mt-3 font-display text-4xl text-cream">{featuredRecipe.title}</h2>
                       <p className="mt-4 text-sm leading-7 text-cream/85">{featuredRecipe.description}</p>
                       <div className="mt-5 flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-cream/58">
@@ -114,7 +117,11 @@ export default async function HomePage() {
         <SectionHeading
           eyebrow="Top recipes"
           title="Flavor-first dinners with room for mild, medium, and serious heat."
-          copy="Fast dinners, gentler starts, and bigger weekend payoffs."
+          copy={
+            isWeekendRecipeSchedule
+              ? "Longer cooks worth settling into, plus fresh and popular recipes from the archive."
+              : "Weeknight-friendly cooks led by recipes ready in 45 minutes or less."
+          }
         />
         <div className="mt-10 grid gap-6 lg:grid-cols-3">
           {recipeGrid.map((recipe, index) => (

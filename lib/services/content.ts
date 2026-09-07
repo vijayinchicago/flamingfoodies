@@ -93,6 +93,11 @@ function sortPublished<T extends { publishedAt?: string }>(items: T[]) {
 }
 
 const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const HOMEPAGE_TIME_ZONE = "America/New_York";
+const HOMEPAGE_WEEKDAY_MAX_MINUTES = 45;
+const HOMEPAGE_RECIPE_MINIMUM_POOL_SIZE = 24;
+
+export type HomepageRecipeSchedule = "weekday" | "weekend";
 
 function getSortableTimestamp(item: { publishedAt?: string; createdAt?: string }) {
   const raw = item.publishedAt ?? item.createdAt;
@@ -105,7 +110,30 @@ function getSortableTimestamp(item: { publishedAt?: string; createdAt?: string }
 }
 
 function getDailyRotationSeed(now = new Date()) {
-  return Math.floor(now.getTime() / DAY_IN_MS);
+  const parts = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    timeZone: HOMEPAGE_TIME_ZONE
+  }).formatToParts(now);
+  const year = Number(parts.find((part) => part.type === "year")?.value);
+  const month = Number(parts.find((part) => part.type === "month")?.value);
+  const day = Number(parts.find((part) => part.type === "day")?.value);
+
+  if (![year, month, day].every(Number.isFinite)) {
+    return Math.floor(now.getTime() / DAY_IN_MS);
+  }
+
+  return Math.floor(Date.UTC(year, month - 1, day) / DAY_IN_MS);
+}
+
+export function getHomepageRecipeSchedule(now = new Date()): HomepageRecipeSchedule {
+  const weekday = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    timeZone: HOMEPAGE_TIME_ZONE
+  }).format(now);
+
+  return weekday === "Sat" || weekday === "Sun" ? "weekend" : "weekday";
 }
 
 function rotateItems<T>(items: T[], offset: number) {
@@ -217,38 +245,53 @@ function sortRecipesByEvergreen(recipes: Recipe[]) {
   });
 }
 
-export function selectHomepageRecipes(recipes: Recipe[], limit: number, seed: number) {
+export function selectHomepageRecipes(
+  recipes: Recipe[],
+  limit: number,
+  seed: number,
+  schedule: HomepageRecipeSchedule = "weekday"
+) {
   const pool = recipes;
   if (!pool.length || limit <= 0) {
     return [];
   }
 
   const targetCount = Math.min(limit, pool.length);
-  const discoveryPool = sortRecipesByDiscovery(pool).slice(0, Math.max(targetCount + 4, 10));
+  const candidateWindowSize = Math.max(
+    HOMEPAGE_RECIPE_MINIMUM_POOL_SIZE,
+    targetCount * 4
+  );
+  const discoveryPool = sortRecipesByDiscovery(pool).slice(0, candidateWindowSize);
   const quickPool = sortRecipesByDiscovery(
-    pool.filter((recipe) => recipe.totalTimeMinutes <= 45)
-  ).slice(0, 8);
+    pool.filter((recipe) => recipe.totalTimeMinutes <= HOMEPAGE_WEEKDAY_MAX_MINUTES)
+  ).slice(0, candidateWindowSize);
+  const weekendPool = sortRecipesByDiscovery(
+    pool.filter((recipe) => recipe.totalTimeMinutes > HOMEPAGE_WEEKDAY_MAX_MINUTES)
+  ).slice(0, candidateWindowSize);
   const approachablePool = sortRecipesByDiscovery(
     pool.filter((recipe) => recipe.heatLevel === "mild" || recipe.heatLevel === "medium")
-  ).slice(0, 8);
-  const evergreenPool = sortRecipesByEvergreen(pool).slice(0, 8);
-  const recentPool = sortByRecent(pool).slice(0, 8);
+  ).slice(0, candidateWindowSize);
+  const evergreenPool = sortRecipesByEvergreen(pool).slice(0, candidateWindowSize);
+  const recentPool = sortByRecent(pool).slice(0, candidateWindowSize);
+  const preferredSchedulePool = schedule === "weekend" ? weekendPool : quickPool;
+  const scheduledPool = preferredSchedulePool.length ? preferredSchedulePool : discoveryPool;
 
   const selections: Recipe[] = [];
   const usedIds = new Set<number>();
 
-  const newestRecipe = recentPool[0];
-  if (newestRecipe) {
-    selections.push(newestRecipe);
-    usedIds.add(newestRecipe.id);
+  const leadRecipe = pickRotatingCandidate(scheduledPool, seed, usedIds);
+  if (leadRecipe) {
+    selections.push(leadRecipe);
+    usedIds.add(leadRecipe.id);
   }
 
   const slotPools = [
-    quickPool,
+    scheduledPool,
+    scheduledPool,
+    scheduledPool,
+    recentPool,
     approachablePool,
     evergreenPool,
-    recentPool,
-    discoveryPool,
     discoveryPool
   ];
 
@@ -1425,7 +1468,9 @@ export async function getFeaturedCollection() {
     getBlogPosts(),
     getReviews()
   ]);
-  const dailySeed = getDailyRotationSeed();
+  const now = new Date();
+  const dailySeed = getDailyRotationSeed(now);
+  const recipeSchedule = getHomepageRecipeSchedule(now);
   const editorialPosts = posts.filter((post) =>
     shouldPromoteBlogPost({ slug: post.slug, source: post.source })
   );
@@ -1433,7 +1478,8 @@ export async function getFeaturedCollection() {
   const featuredReviews = getHomepageEligiblePool(reviews);
 
   return {
-    recipes: selectHomepageRecipes(recipes, 7, dailySeed),
+    recipeSchedule,
+    recipes: selectHomepageRecipes(recipes, 7, dailySeed, recipeSchedule),
     blogPosts: selectRotatingWindow(
       sortBlogPostsByMomentum(featuredPosts),
       2,
