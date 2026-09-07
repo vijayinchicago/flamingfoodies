@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 
 import type { GenerationJob } from "@/lib/types";
 
@@ -232,6 +233,14 @@ export function ManualGenerationPanel({
     <div className="grid gap-6">
       <div className="grid gap-4 md:grid-cols-2">
         {triggers.map((trigger) => {
+          if (trigger.type === "review") return (
+            <article key={trigger.id} className="panel-light px-6 py-8 text-left">
+              <p className="eyebrow">Draft-only agent</p>
+              <h2 className="mt-3 font-display text-4xl text-charcoal">{trigger.label}</h2>
+              <p className="mt-3 text-sm text-charcoal/65">{trigger.copy}</p>
+              <Link href="/admin/automation/affiliate-reviews" className="button-primary mt-6">Open product reviewer</Link>
+            </article>
+          );
           const isSubmitting = submittingTriggerId === trigger.id;
           const qty = quantities[trigger.id] ?? trigger.qty;
 
@@ -411,7 +420,7 @@ export function ManualGenerationPanel({
               <a href="/admin/content/recipes" className="rounded-2xl border border-charcoal/10 bg-white px-4 py-4 font-semibold text-charcoal">
                 Review recipe drafts
               </a>
-              <a href="/admin/content/reviews" className="rounded-2xl border border-charcoal/10 bg-white px-4 py-4 font-semibold text-charcoal">
+              <a href="/admin/automation/affiliate-reviews" className="rounded-2xl border border-charcoal/10 bg-white px-4 py-4 font-semibold text-charcoal">
                 Review product drafts
               </a>
               <a href="/admin/content/blog" className="rounded-2xl border border-charcoal/10 bg-white px-4 py-4 font-semibold text-charcoal">

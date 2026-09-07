@@ -70,6 +70,11 @@ export async function POST(request: Request) {
     return jsonResponse({ ok: false, error: "Invalid generation request" }, { status: 400 });
   }
 
+  if (parsed.data.type === "review") {
+    return jsonResponse({ ok: false, error: "Product reviews now use the dedicated draft-only reviewer.",
+      reviewerUrl: "/admin/automation/affiliate-reviews" }, { status: 409 });
+  }
+
   try {
     const task = await runManualAutomationTask({
       agentId:

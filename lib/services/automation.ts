@@ -3901,6 +3901,7 @@ export async function runGenerationPipeline(
     profile?: GenerationProfile;
   }
 ) {
+  if (type === "review") throw new Error("Review generation has moved to the dedicated Affiliate Product Reviewer.");
   const generationType = (type === "recipe" || type === "blog_post" || type === "review"
     ? type
     : "recipe") as GenerationType;

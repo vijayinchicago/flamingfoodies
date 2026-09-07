@@ -137,6 +137,9 @@ export default async function AdminReviewsPage({
       title="Review content"
       description="Product reviews, affiliate positioning, and recommendation status in one table."
     >
+      <p className="mb-6 rounded-2xl border border-charcoal/10 bg-white p-4 text-sm">
+        New automated product assessments are kept separately for human review. <Link className="font-semibold underline" href="/admin/automation/affiliate-reviews">Open Affiliate Product Reviewer →</Link>
+      </p>
       {searchParams?.error ? (
         <section className="rounded-[1.5rem] border border-rose-200 bg-rose-50 p-5 text-rose-900">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-700">

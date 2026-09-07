@@ -4,6 +4,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { jsonResponse } from "@/lib/utils";
 
 export type AutomationAgentId =
+  | "affiliate-product-reviewer"
   | "editorial-autopublisher"
   | "prepublish-qa"
   | "editorial-performance-evaluator"

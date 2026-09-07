@@ -59,6 +59,7 @@ import { runSocialDistributionEvaluator } from "@/lib/services/social-distributi
 import { runShopPerformanceEvaluator } from "@/lib/services/shop-performance-evaluator";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { triggerAffiliateReviewAction } from "@/lib/actions/admin-affiliate-reviews";
 
 const triggerSchema = z.object({
   type: z.enum(["recipe", "blog_post", "review"]),
@@ -83,6 +84,7 @@ const automationApprovalActionSchema = z.object({
 
 const automationAgentActionSchema = z.object({
   agentId: z.enum([
+    "affiliate-product-reviewer",
     "editorial-autopublisher",
     "prepublish-qa",
     "editorial-performance-evaluator",
@@ -215,6 +217,8 @@ export async function triggerGenerationAction(formData: FormData) {
   if (!parsed.success) {
     redirect("/admin/automation/trigger?error=Invalid%20generation%20request");
   }
+
+  if (parsed.data.type === "review") return triggerAffiliateReviewAction(formData);
 
   const task = await runManualAutomationTask({
     agentId: "editorial-autopublisher",

@@ -30,6 +30,7 @@ import { getGenerationJobs, getSiteSettings } from "@/lib/services/admin";
 import { getSocialDistributionConfig } from "@/lib/services/social";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 const triggers = [
   {
@@ -57,11 +58,11 @@ const triggers = [
   },
   {
     id: "review",
-    label: "Review draft",
+    label: "Affiliate product review",
     type: "review",
     qty: 1,
     copy:
-      "Create a product review draft with ratings and notes. Exact-image reviews can now auto-schedule publish too."
+      "Research one unreviewed affiliate product. Saves a private draft in Product reviewer for human review; never assigns a rating or auto-publishes. Quantity is fixed at one."
   },
   {
     id: "merch_product",

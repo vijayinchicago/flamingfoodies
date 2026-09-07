@@ -48,7 +48,7 @@ function applyAffiliateOverride(
   };
 }
 
-export async function getAffiliateLinkOverrides(): Promise<Record<string, AffiliateLinkOverride>> {
+export async function getAffiliateLinkOverrides(strict = false): Promise<Record<string, AffiliateLinkOverride>> {
   if (!flags.hasSupabaseAdmin) {
     return {};
   }
@@ -58,13 +58,14 @@ export async function getAffiliateLinkOverrides(): Promise<Record<string, Affili
     return {};
   }
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("site_settings")
     .select("value")
     .eq("key", AFFILIATE_LINK_OVERRIDE_SETTING_KEY)
     .maybeSingle();
 
   const parsed = affiliateLinkOverrideMapSchema.safeParse(data?.value ?? {});
+  if (strict && (error || !parsed.success)) throw new Error("Cannot verify current affiliate link overrides.");
   return parsed.success ? parsed.data : {};
 }
 
@@ -83,8 +84,8 @@ export async function getAffiliateLinkEntryWithOverride(
   };
 }
 
-export async function getAffiliateRegistryWithOverrides() {
-  const overrides = await getAffiliateLinkOverrides();
+export async function getAffiliateRegistryWithOverrides(strict = false) {
+  const overrides = await getAffiliateLinkOverrides(strict);
 
   return Object.entries(AFFILIATE_LINKS).map(([key, entry]) => {
     const override = overrides[key] ?? null;

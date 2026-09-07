@@ -3,6 +3,7 @@ import { runShopPickAutomation } from "@/lib/services/shop-automation";
 import { runCronAutomationTask } from "@/lib/services/automation-control";
 import { summarizeGenerationJobResults } from "@/lib/services/generation-jobs";
 import { jsonResponse } from "@/lib/utils";
+import { GET as runAffiliateReviewCron } from "@/app/api/admin/affiliate-reviews/cron/route";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -10,6 +11,7 @@ export const maxDuration = 300;
 async function handleRequest(request: Request) {
   const { pathname, searchParams } = new URL(request.url);
   const type = searchParams.get("type") || "recipe";
+  if (type === "review") return runAffiliateReviewCron(request);
   const qtyParam = searchParams.get("qty");
   const profileParam = searchParams.get("profile");
   const qty = qtyParam ? Number(qtyParam) : undefined;

@@ -163,9 +163,9 @@ const scheduleDefinitions: ScheduleDefinition[] = [
     minuteUtc: 0
   },
   {
-    agentId: "editorial-autopublisher",
-    label: "Review generation",
-    note: "Review batch on Mondays and Thursdays.",
+    agentId: "affiliate-product-reviewer",
+    label: "Affiliate product review",
+    note: "One research draft on Mondays and Thursdays; manual review required.",
     hourUtc: 8,
     minuteUtc: 0,
     weekdays: [1, 4]
@@ -514,6 +514,10 @@ function buildNextRuns(now = new Date()) {
 }
 
 function buildAgentLinks(agentId: AutonomousAgent["id"]): AgentRunLink[] {
+  if (agentId === "affiliate-product-reviewer") return [
+    { label: "Product review queue & settings", href: "/admin/automation/affiliate-reviews" },
+    { label: "Run history", href: "/admin/automation/runs?agent=affiliate-product-reviewer" }
+  ];
   if (agentId === "editorial-autopublisher") {
     return [
       { label: "Automation jobs", href: "/admin/automation/jobs" },
@@ -1152,6 +1156,14 @@ export async function getAgentRunsReport(): Promise<AgentRunsReport> {
       capUsage: buildCapUsage(control, ledger),
       links: buildAgentLinks(agent.id)
     };
+
+    if (agent.id === "affiliate-product-reviewer") {
+      return { ...sharedFields,
+        summary: withPausePrefix(sharedFields, "Creates private research drafts from existing affiliate products. Nothing publishes automatically."),
+        stats: [{ label: "Runs in 7d", value: compactNumber(ledger.runsLast7Days) },
+          { label: "Failures in 7d", value: compactNumber(ledger.failedRunsLast7Days) }]
+      };
+    }
 
     if (agent.id === "editorial-autopublisher") {
       return {

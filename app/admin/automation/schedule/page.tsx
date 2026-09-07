@@ -1,6 +1,7 @@
 import { updateGenerationScheduleAction } from "@/lib/actions/admin-automation";
 import { AdminPage } from "@/components/admin/admin-page";
 import { getGenerationSchedule } from "@/lib/services/admin";
+import Link from "next/link";
 
 export default async function AdminSchedulePage({
   searchParams
@@ -25,7 +26,12 @@ export default async function AdminSchedulePage({
         </p>
       ) : null}
       <div className="grid gap-4">
-        {schedule.map((row) => (
+        <section className="panel-light p-6">
+          <h2 className="font-display text-2xl">Affiliate Product Reviewer</h2>
+          <p className="mt-3 text-sm text-charcoal/70">Monday and Thursday at 08:00 UTC. One private research draft per run; manual review required.</p>
+          <Link className="mt-3 inline-block text-sm underline" href="/admin/automation/affiliate-reviews">Manage reviewer schedule limits, queue and manual runs</Link>
+        </section>
+        {schedule.filter((row) => row.jobType !== "review").map((row) => (
           <form key={row.id} action={updateGenerationScheduleAction} className="panel-light p-6">
             <input type="hidden" name="id" value={row.id} />
             <div className="flex flex-wrap items-start justify-between gap-4">

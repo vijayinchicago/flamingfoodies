@@ -38,6 +38,17 @@ export function getAutonomousAgents(input: {
 
   const agents: AutonomousAgent[] = [
     {
+      id: "affiliate-product-reviewer",
+      name: "Affiliate Product Reviewer",
+      status: aiResearchReady ? "live" : "needs_config",
+      cadence: "Monday and Thursday at 08:00 UTC; one research draft per run",
+      purpose: "Researches unreviewed products with existing exact affiliate links and saves source-backed assessments for human review.",
+      outcome: "Builds a review queue without invented testing, ratings or automatic publication.",
+      dependencyNote: "Uses the existing Claude key and affiliate catalog. Human fact-checking and image approval are always required.",
+      riskClass: "draft_only", autonomyMode: "draft_only", writesLiveState: false,
+      writesExternalState: false, isSupport: false
+    },
+    {
       id: "editorial-autopublisher",
       name: "Editorial autopublisher",
       status: input.autoPublishEnabled ? "live" : "needs_config",

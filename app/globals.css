@@ -31,6 +31,18 @@ a {
   color-scheme: light;
 }
 
+.button-primary {
+  @apply inline-flex items-center justify-center rounded-full bg-gradient-to-r from-flame to-ember px-5 py-3 text-sm font-semibold text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember;
+}
+
+.button-secondary {
+  @apply inline-flex items-center justify-center rounded-full border border-charcoal/20 bg-white px-5 py-3 text-sm font-semibold text-charcoal hover:bg-charcoal/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ember;
+}
+
+.input {
+  @apply rounded-xl border border-charcoal/20 px-3 py-2 outline-none focus:border-ember focus:ring-1 focus:ring-ember;
+}
+
 .panel-light input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
 .panel-light textarea,
 .panel-light select {

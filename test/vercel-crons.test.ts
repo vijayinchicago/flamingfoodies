@@ -16,6 +16,13 @@ function readVercelConfig() {
 }
 
 describe("vercel cron config", () => {
+  it("replaces the legacy review cron with the independent draft-only reviewer", () => {
+    const crons = readVercelConfig().crons ?? [];
+    expect(crons.filter((entry) => entry.path.includes("affiliate-reviews"))).toEqual([
+      { path: "/api/admin/affiliate-reviews/cron", schedule: "0 8 * * 1,4" }
+    ]);
+    expect(crons.some((entry) => entry.path.includes("type=review"))).toBe(false);
+  });
   it("runs the AI draft reevaluation pass before scheduled publishing", () => {
     const config = readVercelConfig();
     const reevaluateCron = config.crons?.find(
