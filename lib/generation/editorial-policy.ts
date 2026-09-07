@@ -19,7 +19,8 @@ function collectCopy(value: unknown): string[] {
 
 /** Deterministic checks for known artifacts, not a statistical AI-authorship detector. */
 export function getEditorialCopyIssues(value: unknown): RecipeQaIssue[] {
-  const copy = collectCopy(value).join("\n");
+  const pieces = collectCopy(value);
+  const copy = pieces.join("\n");
   const issues: RecipeQaIssue[] = [];
   if (artifactPatterns.some((pattern) => pattern.test(copy))) {
     issues.push({ severity: "blocker", code: "editorial-generation-artifact", message: "Remove generation markup, assistant boilerplate or invisible formatting artifacts from public copy." });
@@ -28,7 +29,7 @@ export function getEditorialCopyIssues(value: unknown): RecipeQaIssue[] {
   if (filler.length) {
     issues.push({ severity: "blocker", code: "editorial-stock-filler", message: `Replace stock praise with useful specifics: ${[...new Set(filler)].join(", ")}.` });
   }
-  const jargon = planningJargonPatterns.flatMap((pattern) => copy.match(pattern)?.[0] ?? []);
+  const jargon = pieces.flatMap((piece) => planningJargonPatterns.flatMap((pattern) => piece.match(pattern)?.[0] ?? []));
   if (jargon.length) {
     issues.push({ severity: "blocker", code: "editorial-planning-jargon", message: `Replace internal planning jargon with reader-facing specifics: ${[...new Set(jargon)].join(", ")}.` });
   }

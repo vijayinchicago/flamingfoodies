@@ -33,7 +33,7 @@ export function Footer() {
         </div>
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-ember">
-            More Paths
+            More to Explore
           </h2>
           <div className="mt-4 flex flex-col gap-3 text-sm text-charcoal/75">
             <Link href="/hot-sauces">Hot Sauces</Link>

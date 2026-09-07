@@ -262,7 +262,7 @@ export default async function PepperSubstitutesPage() {
       {/* Tools */}
       <section className="mt-16 grid gap-4 md:grid-cols-3">
         <Link href="/peppers/guide" className="panel p-6 transition hover:border-charcoal/20">
-          <p className="eyebrow">Pillar</p>
+          <p className="eyebrow">Pepper guide</p>
           <h3 className="mt-2 font-display text-xl text-charcoal">The complete guide to chile peppers</h3>
           <p className="mt-2 text-sm leading-6 text-charcoal/70">
             Heat tiers, species, regional traditions, and how to pick the right pepper.

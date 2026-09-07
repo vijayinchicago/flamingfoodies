@@ -5,7 +5,8 @@
 - Replaced “lane” metaphors across author pages, shared recipe sections, sauce comparisons,
   guides, quizzes, newsletter choices, shop categories, seasonal pages and festival pages.
 - Rewrote related planning phrases, including “browse by intent,” “why-buy case,”
-  “use case,” “shopping paths,” “practical signals” and “Action-oriented buyers.”
+  “use case,” “shopping paths,” “buying paths,” “More Paths,” “Pillar guide,”
+  “practical signals” and “Action-oriented buyers.”
 - Kept analytics identifiers, database taxonomy, URLs and admin operations unchanged.
 - Retained affiliate, automation and editorial-pen-name disclosures and image credits.
 - Source-backed catalog and sample copy were included, along with the guide sync script.

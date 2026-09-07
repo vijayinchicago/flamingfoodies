@@ -8,7 +8,7 @@ fs.mkdirSync(root, { recursive: true, mode: 0o700 });
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 const tables = ["recipes", "blog_posts", "reviews", "brands", "peppers", "festivals", "tutorials"];
 const excluded = /(?:url|slug|source|credit|license|disclosure|qa|author|reviewed|status|model|prompt|token|_id$|^id$|recipe_?lane)/i;
-const suspect = /\blanes?\b|\b(?:use cases?|search intent|(?:browse|shop) by intent|why-buy|content (?:pillar|cluster|surface|franchise)|editorial franchise|conversion funnel|engagement signals?|ingredient signals?|audience segment|keyword strategy|email capture|follow-on activity|content-planning|shopping paths?)\b/ig;
+const suspect = /\blanes?\b|\b(?:use cases?|search intent|(?:browse|shop) by intent|why-buy|content (?:pillar|cluster|surface|franchise)|editorial franchise|conversion funnel|engagement signals?|ingredient signals?|audience segment|keyword strategy|email capture|follow-on activity|content-planning|shopping paths?|buying paths?|more paths|pillar guides?)\b|^\s*pillar\s*$/igm;
 const leaves = (value, prefix = "") => typeof value === "string" ? [[prefix, value]] : value && typeof value === "object" ? Object.entries(value).filter(([key]) => !excluded.test(key)).flatMap(([key, child]) => leaves(child, prefix ? `${prefix}.${key}` : key)) : [];
 const read = (obj, key) => key.split(".").reduce((value, part) => value?.[part], obj);
 const save = (file, data) => fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n", { mode: 0o600 });

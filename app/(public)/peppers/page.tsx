@@ -56,7 +56,7 @@ export default async function PeppersPage() {
       {/* Pillar guides */}
       <div className="mt-10 grid gap-4 sm:grid-cols-2">
         <Link href="/peppers/guide" className="panel p-6 transition hover:border-ember">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ember">Pillar guide</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ember">Pepper guide</p>
           <h2 className="mt-2 font-display text-2xl text-charcoal">The complete guide to chile peppers</h2>
           <p className="mt-2 text-sm leading-6 text-charcoal/70">
             Heat tiers, capsicum species, regional traditions, and how to pick the right pepper —
@@ -64,7 +64,7 @@ export default async function PeppersPage() {
           </p>
         </Link>
         <Link href="/peppers/substitutes" className="panel p-6 transition hover:border-ember">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ember">Pillar guide</p>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ember">Substitution guide</p>
           <h2 className="mt-2 font-display text-2xl text-charcoal">Pepper substitutes reference</h2>
           <p className="mt-2 text-sm leading-6 text-charcoal/70">
             What to use when the recipe calls for a pepper you don&apos;t have. Curated swaps with

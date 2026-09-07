@@ -115,7 +115,7 @@ function BundleLaneCard({ collection }: { collection: ResolvedBundle }) {
       <div className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-ember/60 to-transparent" />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="eyebrow">Buying Path</p>
+          <p className="eyebrow">Shopping collection</p>
           <h3 className="mt-3 font-display text-4xl text-charcoal">{collection.ctaLabel}</h3>
         </div>
         <span className="rounded-full border border-charcoal/12 bg-charcoal/[0.06] px-3 py-2 text-xs uppercase tracking-[0.22em] text-charcoal/62">
@@ -303,7 +303,7 @@ export default async function ShopPage() {
     buyingPaths.find((collection) => collection.key === "gift-guide") ?? buyingPaths[0];
 
   const conversionStats = [
-    { label: "Buying paths", value: String(buyingPaths.length || 8) },
+    { label: "Collections", value: String(buyingPaths.length || 8) },
     { label: "Hot sauce SKUs", value: "37+" },
     { label: "Gift ideas", value: "Available" },
     { label: "Budget route", value: "Under $15" }
@@ -311,7 +311,7 @@ export default async function ShopPage() {
 
   const quickJumpLinks = [
     { href: "#hot-right-now", label: "Today’s winners" },
-    { href: "#buying-paths", label: "Buying paths" },
+    { href: "#buying-paths", label: "Collections" },
     { href: "#category-picks", label: "Best picks" },
     { href: "#gift-mode", label: "Gift mode" }
   ];
@@ -339,7 +339,7 @@ export default async function ShopPage() {
               href="#buying-paths"
               className="inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-charcoal"
             >
-              Start with a buying path
+              Browse the collections
             </Link>
             <Link
               href="#hot-right-now"
@@ -481,7 +481,7 @@ export default async function ShopPage() {
 
       <div id="buying-paths" className="mt-14">
         <SectionHeading
-          eyebrow="Buying Paths"
+          eyebrow="Shop by collection"
           title="Shop by what you need right now."
           copy="Find starter kits, budget favorites, gifts, and ingredients for dinner."
         />
@@ -537,7 +537,7 @@ export default async function ShopPage() {
             lead={resolvedGearLinks[0]}
             supporting={resolvedGearLinks.slice(1, 3)}
             guideHref="#buying-paths"
-            guideLabel="Back to buying paths"
+            guideLabel="Back to collections"
           />
           <CategorySpotlight
             id="best-pantry"
@@ -571,8 +571,8 @@ export default async function ShopPage() {
               Make the gift feel smart, not random.
             </h2>
             <p className="mt-4 text-sm leading-7 text-charcoal/74">
-              If you are shopping for someone else, the highest-confidence path is still a curated
-              set or a recurring discovery box.
+              If you are shopping for someone else, consider a tasting set
+              or a hot sauce subscription.
             </p>
 
             <div className="mt-6 space-y-3">

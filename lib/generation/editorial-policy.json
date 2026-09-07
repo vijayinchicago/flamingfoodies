@@ -29,7 +29,8 @@
     "\\b(?:choose|pick|browse|join|switch|shopping) (?:[a-z-]+ ){0,4}lanes?\\b",
     "\\b(?:search|buying|page) intent\\b|\\b(?:browse|shop) by intent\\b",
     "\\b(?:content|editorial) (?:pillars?|clusters?|franchises?|surfaces?|funnels?)\\b",
-    "\\b(?:conversion funnels?|engagement signals?|ingredient signals?|audience segments?|keyword strategy|why[ -]buy case|email capture|content-planning|use cases?|shopping paths?)\\b"
+    "\\b(?:conversion funnels?|engagement signals?|ingredient signals?|audience segments?|keyword strategy|why[ -]buy case|email capture|content-planning|use cases?|shopping paths?|buying paths?|more paths|pillar guides?)\\b",
+    "^\\s*pillar\\s*$"
   ],
   "fillerPatterns": [
     "\\bpacked with flavou?r\\b",
