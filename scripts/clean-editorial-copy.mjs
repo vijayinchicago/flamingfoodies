@@ -71,7 +71,7 @@ if (process.argv.includes("--apply")) {
     // Compare every original changed column, including JSON, to avoid overwriting concurrent edits.
     for (const field of Object.keys(patch)) {
       const value = current[field];
-      const textArray = Array.isArray(value) && value.every((item) => typeof item === "string");
+      const textArray = ["tips", "variations", "serving_suggestions", "substitutions", "pros", "cons", "flavor_notes"].includes(field) && Array.isArray(value);
       const expected = textArray
         ? `{${value.map((item) => `"${item.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`).join(",")}}`
         : typeof value === "object" ? JSON.stringify(value) : value;

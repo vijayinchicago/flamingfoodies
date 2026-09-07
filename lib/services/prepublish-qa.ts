@@ -2,6 +2,7 @@ import { buildBlogQaReport } from "@/lib/blog-qa";
 import { getBlogHeroFields } from "@/lib/blog-hero";
 import { resolveEditorialAuthorName } from "@/lib/authors";
 import { flags } from "@/lib/env";
+import { getEditorialCopyIssues } from "@/lib/generation/editorial-policy";
 import { buildRecipeQaReport } from "@/lib/recipe-qa";
 import { getRecipeHeroFields } from "@/lib/recipe-hero";
 import { buildReviewQaReport } from "@/lib/review-qa";
@@ -100,7 +101,7 @@ function buildGenericPrepublishIssues(input: {
   imageUrl?: string | null;
   imageAlt?: string | null;
 }) {
-  const issues: RecipeQaIssue[] = [];
+  const issues: RecipeQaIssue[] = getEditorialCopyIssues(input.row);
   const title = typeof input.row.title === "string" ? input.row.title.trim() : "";
   const description =
     typeof input.row.description === "string" ? input.row.description.trim() : "";
