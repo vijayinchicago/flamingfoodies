@@ -9,5 +9,6 @@ node_modules
 coverage
 dist
 artifacts/parity-packs
+artifacts/editorial-cleanup
 tsconfig.tsbuildinfo
 supabase/.temp

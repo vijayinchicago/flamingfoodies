@@ -130,16 +130,16 @@ export function buildSocialCaption(input: {
 }) {
   const base =
     input.contentType === "recipe"
-      ? `${input.title} is the kind of spicy dinner that keeps a mixed table happy and still gives the heat lovers something to chase.`
+      ? `${input.title}. Find the ingredients and step-by-step recipe at FlamingFoodies.`
       : input.contentType === "blog_post"
-        ? `${input.title} is the kind of useful read you send to the friend who is trying to cook smarter, shop better, or build a better sauce shelf.`
-        : `${getReviewProductLabel(input.title)} is worth a look if you want to know where the heat lands, what the bottle actually tastes like, and what it is good on.`;
+        ? `${input.title}. Read the guide at FlamingFoodies.`
+        : `${getReviewProductLabel(input.title)}: a closer look at the product, with buying advice from FlamingFoodies.`;
 
   const closerByPlatform: Record<(typeof DEFAULT_PLATFORMS)[number], string> = {
     instagram:
       input.contentType === "recipe"
-        ? "Save it for the next dinner night when you want real heat without kitchen chaos."
-        : "Send it to the person who always asks what to buy, cook, or pour first.",
+        ? "Save the recipe for later."
+        : "Save the guide for later.",
     pinterest:
       input.contentType === "recipe"
         ? "Save it for your next dinner plan."

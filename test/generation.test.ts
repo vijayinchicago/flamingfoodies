@@ -60,7 +60,7 @@ describe("generation prompts", () => {
     expect(prompt).toContain("Heat level: hot");
     expect(prompt).toContain("\"hero_image_query\"");
     expect(prompt).toContain("Write with the voice of a sharp, experienced food editor");
-    expect(prompt).toContain("family-table oriented");
+    expect(prompt).toContain("clear, welcoming food writing");
   });
 
   it("adds recipe lane guidance when requested", () => {
@@ -100,14 +100,14 @@ describe("generation prompts", () => {
     expect(prompt).toContain("at least 3 H2 subheadings");
     expect(prompt).toContain("at least 1 short bullet or numbered list");
     expect(prompt).toContain("Write like a strong magazine-style food writer");
-    expect(prompt).toContain("family-table oriented");
+    expect(prompt).toContain("clear, welcoming food writing");
     expect(prompt).toContain("\"hero_image_query\"");
   });
 
   it("creates a review prompt with warmer editorial guidance", () => {
     const prompt = REVIEW_PROMPT({ category: "hot-sauce", cuisine_origin: "jamaican", heat_level: "hot" });
 
-    expect(prompt).toContain("warm, generous, and family-table oriented");
+    expect(prompt).toContain("Product descriptions are not taste-test evidence");
     expect(prompt).toContain("what the bottle tastes like");
     expect(prompt).toContain("Avoid macho heat language");
     expect(prompt).toContain("\"hero_image_query\"");

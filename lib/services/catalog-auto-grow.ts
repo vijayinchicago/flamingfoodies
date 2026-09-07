@@ -17,6 +17,7 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
+import { FLAMINGFOODIES_EDITORIAL_POLICY, assertEditorialCopy } from "@/lib/generation/editorial-policy";
 
 import type { AffiliateCategory } from "@/lib/affiliates";
 import { buildAmazonSearchUrl } from "@/lib/affiliates";
@@ -90,6 +91,7 @@ async function classifyTerm(term: string): Promise<ClassificationResult | null> 
     const response = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 300,
+      system: FLAMINGFOODIES_EDITORIAL_POLICY,
       messages: [{ role: "user", content: AUTO_GROW_PROMPT(term) }]
     });
 
@@ -97,7 +99,9 @@ async function classifyTerm(term: string): Promise<ClassificationResult | null> 
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return null;
 
-    return JSON.parse(jsonMatch[0]) as ClassificationResult;
+    const parsed = JSON.parse(jsonMatch[0]) as ClassificationResult;
+    assertEditorialCopy(parsed);
+    return parsed;
   } catch {
     return null;
   }

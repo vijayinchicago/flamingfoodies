@@ -10,12 +10,12 @@ import {
 import { buildMetadata } from "@/lib/seo";
 import { absoluteUrl } from "@/lib/utils";
 
-const LAST_UPDATED = "September 6, 2026";
+const LAST_UPDATED = "September 7, 2026";
 
 export const metadata = buildMetadata({
   title: "About FlamingFoodies",
   description:
-    "What FlamingFoodies covers, how we choose recipes and hot sauce picks, and the standards behind the editorial system.",
+    "Meet the voices behind FlamingFoodies and learn how we approach spicy recipes, ingredient guides, and hot sauce reviews.",
   path: "/about"
 });
 
@@ -33,7 +33,7 @@ export default function AboutPage() {
       <OrganizationSchema />
     <TrustPageShell
       eyebrow="About"
-      title="Flavor-first spicy food for real kitchens and mixed tables."
+      title="Good food. As much heat as you like."
       description="FlamingFoodies covers spicy recipes, hot sauce reviews, shopping guides, and practical kitchen advice for people who care about what is worth cooking, pouring, and buying."
       lastUpdated={LAST_UPDATED}
     >
@@ -42,9 +42,9 @@ export default function AboutPage() {
           <p className="eyebrow">What we publish</p>
           <h2 className="mt-3 font-display text-3xl text-charcoal">Recipes that hold up in a real kitchen.</h2>
           <p className="mt-4 text-sm leading-7 text-charcoal/75">
-            FlamingFoodies focuses on spicy dinners, sauces, sides, and comfort-food lanes that
-            still taste complete. The goal is not shock value. The goal is repeatable food with a
-            real point of view.
+            A quick bowl of noodles, a pot of beans, a slow weekend braise: peppers have a place
+            in all of them. Our recipes explain what to buy, how to cook it, and how to adjust
+            the heat for the people eating with you.
           </p>
         </article>
         <article className="panel p-6">
@@ -73,14 +73,14 @@ export default function AboutPage() {
           <h2 className="mt-3 font-display text-4xl text-charcoal">Warm, practical, and clear about what we know.</h2>
           <div className="mt-5 grid gap-5 md:grid-cols-2">
             <p className="text-sm leading-7 text-charcoal/75">
-              We publish recipes, reviews, and food stories built around a family-table tone:
-              welcoming, specific, and grounded in the decisions people make while cooking,
-              serving, and shopping. We aim for work that is useful, not content-farm generic.
+              Good cooking advice tells you what to do and what to look for. We aim for clear
+              quantities, useful substitutions, and descriptions of texture and doneness that
+              help you decide when a dish is ready.
             </p>
             <p className="text-sm leading-7 text-charcoal/75">
-              When we recommend products, we try to explain why a pick is strong, who it is for,
-              and when a different bottle would be smarter. Where a draft needs extra review before
-              publish, we use editorial checks to tighten imagery, clarity, and category fit.
+              Product coverage should explain who a bottle is for and what information supports
+              the recommendation. We distinguish manufacturer information from documented
+              hands-on testing and disclose affiliate links.
             </p>
           </div>
         </div>
@@ -90,7 +90,7 @@ export default function AboutPage() {
           <h2 className="mt-3 font-display text-4xl text-charcoal">Method beats hype.</h2>
           <div className="mt-5 space-y-4 text-sm leading-7 text-charcoal/75">
             <p>We look for practical signals first: what a bottle is good on, where the heat actually lands, and whether the recommendation makes sense for the person clicking it.</p>
-            <p>When a review or recipe carries QA notes, image review, or fact review, we surface that on-page so readers can see the confidence signals instead of guessing.</p>
+            <p>Automated checks help catch missing details and inconsistencies. They are not a substitute for cooking a recipe or tasting a product, and we do not describe them as hands-on tests.</p>
             <p>Questions or corrections are welcome. If a claim changes or a better fit emerges, we would rather update the page than leave stale certainty in place.</p>
           </div>
         </div>
@@ -139,32 +139,29 @@ export default function AboutPage() {
         <article className="panel p-8">
           <p className="eyebrow">How automation is used</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">
-            Tools can help make a draft. They do not become the author.
+            How we use publishing tools.
           </h2>
           <div className="mt-5 space-y-4 text-sm leading-7 text-charcoal/75">
             <p>
-              FlamingFoodies uses generative and rules-based tools for research organization,
-              drafting, image selection or illustration, formatting, and pre-publication QA.
-              Automated content is still subject to the same usefulness, clarity, and category-fit
-              checks as manually entered content.
+              We use generative and rules-based tools to organize research, prepare drafts,
+              select or illustrate images, format pages, and check content before publication.
+              FlamingFoodies is responsible for what we publish and for correcting errors.
             </p>
             <p>
-              A persona byline identifies the responsible editorial lane. It does not mean that a
-              fictional individual personally cooked a recipe, tasted a bottle, attended an event,
-              or holds credentials we have not documented. Hands-on testing is stated only when it
-              was actually completed and recorded.
+              Our editorial pen names organize coverage by subject. A byline does not establish
+              that someone cooked a recipe, tasted a bottle or attended an event. We claim
+              hands-on testing only when it was completed and recorded.
             </p>
           </div>
         </article>
 
         <article className="panel p-8">
           <p className="eyebrow">What the byline means</p>
-          <h2 className="mt-3 font-display text-4xl text-charcoal">A routing rule, not a disguise.</h2>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">Find the subjects you enjoy.</h2>
           <p className="mt-5 text-sm leading-7 text-charcoal/75">
-            Recipes are split between practical weeknight work and technique-heavy projects.
-            Ingredient and culture stories, cooking-science explainers, and commercial reviews each
-            have their own voice. New and existing pages are assigned by the same topic rules so a
-            name remains meaningful across the archive.
+            Follow Tess for everyday dinners, Rowan for longer cooking projects, Mara for
+            ingredients and food traditions, and Miles for bottles and gear. Each profile
+            brings those recipes and stories together in one place.
           </p>
           <Link
             href="/editorial-policy"

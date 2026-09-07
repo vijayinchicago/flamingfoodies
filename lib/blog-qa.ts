@@ -28,12 +28,6 @@ function hasBulletList(content: string) {
   return /(^|\n)(?:- |\* |\d+\. )/.test(content);
 }
 
-function containsAiDisclosure(content: string) {
-  return /\b(as an ai|language model|chatgpt|claude|i can't|i cannot|i do not have access|i'm unable)\b/i.test(
-    content
-  );
-}
-
 const formulaicPhrases = [
   /\bpacked with flavor\b/i,
   /\bperfect for(?: busy)? weeknights?\b/i,
@@ -55,7 +49,7 @@ function normalizeCuisineLabel(value?: string) {
 }
 
 export function buildBlogQaReport(post: BlogPost): RecipeQaReport {
-  const blockers: RecipeQaIssue[] = [];
+  const blockers: RecipeQaIssue[] = getEditorialCopyIssues(post);
   const warnings: RecipeQaIssue[] = [];
   const wordCount = getWordCount(post.content);
   const h2Count = getH2Count(post.content);
@@ -93,16 +87,6 @@ export function buildBlogQaReport(post: BlogPost): RecipeQaReport {
         "blocker",
         "blog-structure",
         "Blog draft needs at least three clear H2 sections before auto-publish."
-      )
-    );
-  }
-
-  if (containsAiDisclosure(post.content)) {
-    blockers.push(
-      createIssue(
-        "blocker",
-        "blog-ai-disclosure",
-        "Blog draft contains AI/meta language that should never ship to readers."
       )
     );
   }
@@ -213,3 +197,4 @@ export function getBlogQaPublishError(report: RecipeQaReport) {
 
   return report.blockers[0]?.message || "Blog QA blockers must be resolved before publishing.";
 }
+import { getEditorialCopyIssues } from "@/lib/generation/editorial-policy";

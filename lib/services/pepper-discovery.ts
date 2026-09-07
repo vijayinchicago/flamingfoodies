@@ -6,6 +6,7 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
+import { FLAMINGFOODIES_EDITORIAL_POLICY, assertEditorialCopy } from "@/lib/generation/editorial-policy";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { env } from "@/lib/env";
 
@@ -54,7 +55,7 @@ export async function runPepperDiscovery(): Promise<PepperDiscoveryResult> {
     const response = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 4096,
-      system: SYSTEM,
+      system: `${FLAMINGFOODIES_EDITORIAL_POLICY}\n\n${SYSTEM}`,
       // @ts-ignore
       tools: [{ type: "web_search_20250305", name: "web_search" }],
       messages: [{
@@ -73,6 +74,7 @@ export async function runPepperDiscovery(): Promise<PepperDiscoveryResult> {
   try {
     const cleaned = rawJson.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
     const parsed = JSON.parse(cleaned);
+    assertEditorialCopy(parsed);
     discovered = Array.isArray(parsed) ? parsed : [];
   } catch {
     return { found: 0, inserted: 0, skipped: 0, newSlugs: [], error: `Parse failed: ${rawJson.slice(0, 200)}` };

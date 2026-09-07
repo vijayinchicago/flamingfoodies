@@ -19,6 +19,7 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
+import { FLAMINGFOODIES_EDITORIAL_POLICY, assertEditorialCopy } from "@/lib/generation/editorial-policy";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { env } from "@/lib/env";
 
@@ -163,7 +164,7 @@ export async function runFestivalDiscovery(): Promise<FestivalDiscoveryResult> {
     const response = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 4096,
-      system: DISCOVERY_SYSTEM,
+      system: `${FLAMINGFOODIES_EDITORIAL_POLICY}\n\n${DISCOVERY_SYSTEM}`,
       // web_search_20250305 is a built-in tool; cast needed until SDK types catch up
       // @ts-ignore
       tools: [{ type: "web_search_20250305", name: "web_search" }],
@@ -197,6 +198,7 @@ export async function runFestivalDiscovery(): Promise<FestivalDiscoveryResult> {
     // Strip any accidental markdown fences
     const cleaned = rawJson.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
     const parsed = JSON.parse(cleaned);
+    assertEditorialCopy(parsed);
     discovered = Array.isArray(parsed) ? parsed : [];
   } catch {
     return {

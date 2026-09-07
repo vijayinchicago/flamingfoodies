@@ -95,7 +95,7 @@ type RecipeQaCandidate = Pick<
   | "heroImageReviewed"
   | "cuisineQaReviewed"
   | "source"
->;
+> & Partial<Pick<Recipe, "tips" | "variations" | "seoTitle" | "seoDescription">>;
 
 function normalizeText(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9\s-]+/g, " ");
@@ -200,7 +200,7 @@ export function getRecipeManualReviewState(
 }
 
 export function buildRecipeQaReport(recipe: RecipeQaCandidate): RecipeQaReport {
-  const blockers: RecipeQaIssue[] = [];
+  const blockers: RecipeQaIssue[] = getEditorialCopyIssues(recipe);
   const warnings: RecipeQaIssue[] = [];
   const ingredientSections = recipe.ingredientSections ?? [];
   const methodSteps = recipe.methodSteps ?? [];
@@ -416,3 +416,4 @@ export function getRecipeQaPublishError(report: RecipeQaReport) {
 
   return report.blockers[0]?.message || "Recipe QA blockers must be resolved before publishing.";
 }
+import { getEditorialCopyIssues } from "@/lib/generation/editorial-policy";

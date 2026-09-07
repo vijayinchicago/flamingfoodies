@@ -5,6 +5,7 @@ import {
   formatTaxonomyLabel
 } from "@/lib/content-taxonomy";
 import type { CuisineType, HeatLevel, RecipeGenerationLane } from "@/lib/types";
+import { FLAMINGFOODIES_EDITORIAL_POLICY } from "@/lib/generation/editorial-policy";
 
 type HotSaucePromptFocus = {
   product_name: string;
@@ -16,27 +17,14 @@ type HotSaucePromptFocus = {
   affiliate_url?: string;
 };
 
-const FLAMINGFOODIES_EDITORIAL_VOICE = `
-FlamingFoodies voice:
-- warm, generous, and family-table oriented
-- confident and useful, never snobbish or macho
-- lightly opinionated, but still welcoming to mixed heat tolerance
-- specific and concrete instead of generic or salesy
-- written like a trusted host who cooks for other people
-
-Avoid:
-- macho heat-challenge framing
-- generic filler like "packed with flavor" or "perfect for busy weeknights"
-- fake personal anecdotes or testing claims
-- content-farm transitions, empty hype, or keyword-stuffed paraphrasing
-`;
+const FLAMINGFOODIES_EDITORIAL_VOICE = FLAMINGFOODIES_EDITORIAL_POLICY;
 
 const HEAT_DESCRIPTIONS: Record<HeatLevel, string> = {
   mild: "a gentle warmth, suitable for all audiences",
   medium: "noticeable heat that excites without overwhelming",
   hot: "serious heat for enthusiasts (habanero/scotch bonnet range)",
   inferno: "extreme heat for experienced chilli heads (7-pot/Trinidad Moruga range)",
-  reaper: "Carolina Reaper-level - the absolute limit of culinary heat"
+  reaper: "Carolina Reaper-level heat; use measured quantities and explain how to reduce it"
 };
 
 export const RECIPE_PROMPT = (params: {
@@ -49,7 +37,7 @@ You are a professional food writer for FlamingFoodies.com, a site celebrating sp
 
 ${FLAMINGFOODIES_EDITORIAL_VOICE}
 
-Generate a complete, authentic recipe. Requirements:
+Generate a complete recipe, clearly identifying any regional adaptations. Requirements:
 - Cuisine: ${params.cuisine_type}
 - Heat level: ${params.heat_level} (${HEAT_DESCRIPTIONS[params.heat_level]})
 - Recipe lane: ${params.recipe_lane ? formatTaxonomyLabel(params.recipe_lane) : "choose the most commercially useful lane for this cuisine"}
@@ -237,6 +225,8 @@ export const SOCIAL_CAPTION_PROMPT = (
   platform: string
 ) => `
 Generate a ${platform} caption for this FlamingFoodies ${content.type}: "${content.title}".
+
+${FLAMINGFOODIES_EDITORIAL_POLICY}
 
 Brand voice:
 - warm, generous, and family-table oriented

@@ -1,7 +1,7 @@
 import { absoluteUrl } from "@/lib/utils";
 
 export const EDITORIAL_PERSONA_DISCLOSURE =
-  "FlamingFoodies uses disclosed editorial pen names to keep each coverage lane consistent. These names identify an editorial voice and area of responsibility; they are not claims about a fictional employee's credentials, lived experience, or hands-on testing.";
+  "These are FlamingFoodies editorial pen names, each covering a different subject. They do not represent individual employees or personal testing experience.";
 
 export type PublicAuthorProfile = {
   slug: string;
@@ -30,9 +30,9 @@ const AUTHOR_PROFILES: PublicAuthorProfile[] = [
     role: "Ingredients & Culture Editor",
     personality: "Curious, context-first, and careful with cultural claims.",
     shortBio:
-      "A disclosed editorial pen name for ingredient explainers, pepper knowledge, food culture, and the stories behind spicy cooking.",
+      "Pepper varieties, pantry ingredients, and the regional traditions behind spicy cooking.",
     longBio:
-      "The Mara Santiago byline marks FlamingFoodies coverage that begins with context: what an ingredient is, how a pepper behaves, where a technique fits, and what readers should understand before they cook. It is an editorial persona, not a claim about one fictional writer's biography or personal experience.",
+      "Mara Santiago is our byline for ingredient and food-culture guides. Expect clear explanations of unfamiliar peppers, regional names and pantry staples, with care taken to distinguish a dish's traditions from our adaptations.",
     focusAreas: [
       "Pepper and ingredient explainers",
       "Spicy food culture and history",
@@ -48,9 +48,9 @@ const AUTHOR_PROFILES: PublicAuthorProfile[] = [
     role: "Weeknight Recipe Editor",
     personality: "Practical, encouraging, and suspicious of unnecessary steps.",
     shortBio:
-      "A disclosed editorial pen name for approachable recipes, useful substitutions, and heat that works for mixed-tolerance tables.",
+      "Weeknight dinners, useful substitutions, and simple ways to adjust the heat.",
     longBio:
-      "The Tess Calder byline identifies the practical side of the FlamingFoodies kitchen: recipes designed for repeat cooking, clear timing, flexible substitutions, and a heat level readers can control. It is an editorial persona and does not represent a fictional cook's personal résumé or testing history.",
+      "Tess Calder is our byline for everyday cooking: noodles, tacos, bowls and dinners that fit into a busy evening. The focus is on clear timing, sensible substitutions and knowing which steps are worth the effort.",
     focusAreas: [
       "Weeknight and beginner-friendly recipes",
       "Substitutions and heat-level calibration",
@@ -63,12 +63,12 @@ const AUTHOR_PROFILES: PublicAuthorProfile[] = [
     displayName: "Rowan Flint",
     kind: "person",
     profileType: "editorial_persona",
-    role: "Technique & Test Kitchen Editor",
+    role: "Technique Editor",
     personality: "Method-driven, detail-minded, and interested in how heat changes as food cooks.",
     shortBio:
-      "A disclosed editorial pen name for cooking science, fermentation, grilling, and recipes where method matters as much as ingredients.",
+      "Grilling, slow cooking, fermentation, and the details that make a method work.",
     longBio:
-      "The Rowan Flint byline marks technique-heavy FlamingFoodies work: longer cooks, grilling and smoke, fermentation, pepper science, and recipes where visual cues matter more than a timer alone. It is an editorial persona, not a claim of individual credentials or unrecorded hands-on testing.",
+      "Rowan Flint is our byline for cooking techniques and weekend projects. These guides pay attention to temperature, texture and the signs that tell you when to move to the next step, from browning a braise to tending a grill.",
     focusAreas: [
       "Cooking science and pepper behavior",
       "Grilling, smoke, braises, and fermentation",
@@ -84,9 +84,9 @@ const AUTHOR_PROFILES: PublicAuthorProfile[] = [
     role: "Reviews & Gear Editor",
     personality: "Skeptical, value-minded, and focused on fit instead of hype.",
     shortBio:
-      "A disclosed editorial pen name for hot sauce reviews, buying guides, gear, and product comparisons with clear commercial context.",
+      "Hot sauce, kitchen gear, and buying advice that explains who a product is for.",
     longBio:
-      "The Miles Hart byline identifies FlamingFoodies coverage built around a buying decision: bottle reviews, shelf guides, gear, subscriptions, and product comparisons. The voice favors best-for, skip-if, price, and use-case context. It is an editorial persona and never substitutes for a clearly labeled hands-on test.",
+      "Miles Hart is our byline for bottle reviews, gear and buying guides. The focus is on practical comparisons: what a product offers, who might find it useful, where the information comes from and when to skip it.",
     focusAreas: [
       "Hot sauce and pantry-product reviews",
       "Buying guides, gear, and comparisons",
@@ -246,7 +246,7 @@ export function buildAuthorStructuredData(name?: string) {
       name: author.displayName,
       url,
       jobTitle: author.role,
-      description: author.shortBio,
+      description: `${author.shortBio} ${EDITORIAL_PERSONA_DISCLOSURE}`,
       knowsAbout: author.focusAreas,
       worksFor: {
         "@type": "Organization",

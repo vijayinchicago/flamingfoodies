@@ -22,7 +22,7 @@ export default function AuthorsPage() {
   return (
     <TrustPageShell
       eyebrow="Editorial board"
-      title="The voices behind each coverage lane."
+      title="The voices behind FlamingFoodies."
       description={EDITORIAL_PERSONA_DISCLOSURE}
       lastUpdated={LAST_UPDATED}
     >

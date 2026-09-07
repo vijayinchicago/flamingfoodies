@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { FLAMINGFOODIES_EDITORIAL_POLICY, assertEditorialCopy } from "@/lib/generation/editorial-policy";
 import { z } from "zod";
 
 import { env, flags } from "@/lib/env";
@@ -142,6 +143,7 @@ async function generateFridayDigestContent(input: {
   const response = await anthropic.messages.create({
     model: ANTHROPIC_MODEL,
     max_tokens: 1500,
+    system: FLAMINGFOODIES_EDITORIAL_POLICY,
     messages: [{ role: "user", content: buildPrompt(input) }]
   });
 
@@ -149,6 +151,7 @@ async function generateFridayDigestContent(input: {
   const raw = text.startsWith("{") ? text : `{${text}`;
   const parsed = tryParseJson<Record<string, unknown>>(raw);
   if (!parsed) return null;
+  assertEditorialCopy(parsed);
 
   const validated = fridayDigestSchema.safeParse(parsed);
   return validated.success ? validated.data : null;

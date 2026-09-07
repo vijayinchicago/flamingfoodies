@@ -351,16 +351,10 @@ export default async function ReviewPage({
                 <li key={signal}>{signal}</li>
               ))}
             </ul>
-            {review.qaReport ? (
-              <p className="mt-4 text-sm leading-7 text-charcoal/70">
-                {review.qaReport.warnings.length} warning
-                {review.qaReport.warnings.length === 1 ? "" : "s"} and {review.qaReport.blockers.length} blocker
-                {review.qaReport.blockers.length === 1 ? "" : "s"} are currently logged in the stored QA report.
-              </p>
-            ) : null}
-            {review.qaNotes ? (
-              <p className="mt-4 text-sm leading-7 text-charcoal/70">{review.qaNotes}</p>
-            ) : null}
+            <p className="mt-4 text-sm leading-7 text-charcoal/70">
+              Editorial checks are not hands-on taste tests. See our review methodology for
+              how we use product information and document testing.
+            </p>
             <div className="mt-5 rounded-[1.4rem] border border-charcoal/10 bg-charcoal/[0.04] p-4">
               <p className="text-xs uppercase tracking-[0.22em] text-ember">Editorial oversight</p>
               <p className="mt-2 text-sm leading-7 text-charcoal/75">

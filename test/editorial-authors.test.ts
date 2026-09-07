@@ -111,7 +111,7 @@ describe("editorial persona profiles", () => {
 
     expect(person["@type"]).toBe("Person");
     expect(person.url).toContain(`/authors/${author.slug}`);
-    expect(person.description).toContain("disclosed editorial pen name");
+    expect(person.description).toContain("editorial pen names");
     expect(profile["@type"]).toBe("ProfilePage");
     expect(profile.mainEntity).toEqual(person);
   });

@@ -5,6 +5,7 @@
  */
 
 import Anthropic from "@anthropic-ai/sdk";
+import { FLAMINGFOODIES_EDITORIAL_POLICY, assertEditorialCopy } from "@/lib/generation/editorial-policy";
 
 import type { ReleaseType } from "@/lib/releases";
 import {
@@ -137,6 +138,7 @@ function parseJsonArray<T>(raw: string): T[] {
   }
 
   const parsed = JSON.parse(raw);
+  assertEditorialCopy(parsed);
   return Array.isArray(parsed) ? parsed : [];
 }
 
@@ -188,7 +190,7 @@ async function discoverBrands(existingNames: string[]) {
   const response = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
     max_tokens: 3000,
-    system: BRAND_SYSTEM,
+    system: `${FLAMINGFOODIES_EDITORIAL_POLICY}\n\n${BRAND_SYSTEM}`,
     // @ts-ignore
     tools: [{ type: "web_search_20250305", name: "web_search" }],
     messages: [
@@ -207,7 +209,7 @@ async function discoverReleases() {
   const response = await client.messages.create({
     model: "claude-haiku-4-5-20251001",
     max_tokens: 3000,
-    system: RELEASE_SYSTEM,
+    system: `${FLAMINGFOODIES_EDITORIAL_POLICY}\n\n${RELEASE_SYSTEM}`,
     // @ts-ignore
     tools: [{ type: "web_search_20250305", name: "web_search" }],
     messages: [

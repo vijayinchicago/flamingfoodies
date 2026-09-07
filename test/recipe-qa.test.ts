@@ -112,6 +112,12 @@ const baseRecipe: Recipe = {
 };
 
 describe("recipe QA", () => {
+  it("blocks generation artifacts and stock filler in recipe prose", () => {
+    const report = buildRecipeQaReport({ ...baseRecipe, heroSummary: "A mouthwatering meal", tips: ["As an AI, I recommend this."] });
+    expect(report.blockers.map((issue) => issue.code)).toEqual(expect.arrayContaining(["editorial-generation-artifact", "editorial-stock-filler"]));
+    expect(report.status).toBe("fail");
+  });
+
   it("flags blockers when image review and alt checks are missing", () => {
     const report = buildRecipeQaReport({
       ...baseRecipe,

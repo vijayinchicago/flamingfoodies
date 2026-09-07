@@ -17,8 +17,8 @@ export default function EditorialPolicyPage() {
   return (
     <TrustPageShell
       eyebrow="Editorial policy"
-      title="What we expect from pages before they stay public."
-      description="FlamingFoodies aims to make recipes, explainers, reviews, and shopping guides feel useful, specific, and clear about what kind of page the reader is on."
+      title="Our standards for recipes, stories, and reviews."
+      description="How we approach writing, sources, product recommendations, and corrections."
       lastUpdated={LAST_UPDATED}
     >
       <div className="grid gap-6 lg:grid-cols-3">
@@ -45,9 +45,8 @@ export default function EditorialPolicyPage() {
           <p className="eyebrow">Commercial clarity</p>
           <h2 className="mt-3 font-display text-3xl text-charcoal">Monetization should never hide the page type.</h2>
           <p className="mt-4 text-sm leading-7 text-charcoal/75">
-            Reviews, comparison pages, and gift guides can be commercial-intent surfaces. Blog
-            explainers and educational stories should not read like shopping pages wearing an
-            educational headline.
+            We label affiliate links and explain how purchases may support the site. Ingredient
+            guides and cooking advice should remain useful whether or not you buy anything.
           </p>
         </article>
       </div>
@@ -67,21 +66,19 @@ export default function EditorialPolicyPage() {
               meet the same usefulness and trust standards before it stays public.
             </p>
             <p>
-              We do not list an AI system as an author. A named byline identifies the editorial
-              lane accountable for framing and maintaining the page, while the publisher remains
-              responsible for corrections and publication decisions.
+              Editorial pen names group our coverage by subject. FlamingFoodies remains
+              responsible for publication decisions and corrections.
             </p>
             <p>
-              If a page becomes stale, over-optimized, repetitive, or too thin to justify
-              indexation, we would rather revise it, noindex it, or pull it back than leave it
-              floating as filler.
+              We revise or remove pages when information becomes outdated, a claim cannot be
+              supported, or the advice is not useful enough to keep.
             </p>
           </div>
         </article>
 
         <article className="panel p-8">
           <p className="eyebrow">Related standards</p>
-          <h2 className="mt-3 font-display text-4xl text-charcoal">Read the rest of the trust stack.</h2>
+          <h2 className="mt-3 font-display text-4xl text-charcoal">More about our policies.</h2>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link
               href="/review-methodology"

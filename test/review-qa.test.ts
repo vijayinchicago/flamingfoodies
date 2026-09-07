@@ -41,6 +41,12 @@ const baseReview: Review = {
 };
 
 describe("review QA", () => {
+  it("blocks model artifacts in product descriptions before publication", () => {
+    const report = buildReviewQaReport({ ...baseReview, description: "Written by ChatGPT. A game-changer." });
+    expect(report.blockers.map((issue) => issue.code)).toEqual(expect.arrayContaining(["editorial-generation-artifact", "editorial-stock-filler"]));
+    expect(report.status).toBe("fail");
+  });
+
   it("flags blockers when image review and fact review are missing", () => {
     const report = buildReviewQaReport({
       ...baseReview,

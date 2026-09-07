@@ -10,8 +10,10 @@ describe("social captions", () => {
       platform: "instagram"
     });
 
-    expect(caption).toContain("mixed table");
-    expect(caption).toContain("Save it");
+    expect(caption).toContain("Naga Chicken Curry");
+    expect(caption).toContain("step-by-step recipe");
+    expect(caption).toContain("Save the recipe");
+    expect(caption).not.toContain("mixed table");
     expect(caption).not.toContain("Bring your appetite");
   });
 
@@ -23,7 +25,8 @@ describe("social captions", () => {
     });
 
     expect(caption).toContain("Yellowbird Habanero");
-    expect(caption).toContain("what the bottle actually tastes like");
+    expect(caption).toContain("buying advice");
+    expect(caption).not.toContain("actually tastes like");
     expect(caption).not.toContain("is up on FlamingFoodies");
   });
 

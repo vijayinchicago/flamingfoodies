@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { FLAMINGFOODIES_EDITORIAL_POLICY } from "@/lib/generation/editorial-policy";
 import { z } from "zod";
 
 import {
@@ -6,7 +7,7 @@ import {
   buildAmazonSearchUrl,
   getAffiliateLinkEntries
 } from "@/lib/affiliates";
-import { resolveEditorialAuthorName } from "@/lib/authors";
+import { getPublicAuthorByName, resolveEditorialAuthorName } from "@/lib/authors";
 import {
   buildBlogHeroImageAlt,
   buildBlogHeroImageUrl,
@@ -838,6 +839,7 @@ async function requestJsonFromAnthropic(
         {
           model: ANTHROPIC_TEXT_MODEL,
           max_tokens: options.maxTokens,
+          system: FLAMINGFOODIES_EDITORIAL_POLICY,
           messages
         },
         {
@@ -926,6 +928,20 @@ function validateGeneratedPayload<T extends GenerationType>(
   return parsed.data as ValidatedGeneratedPayloadMap[T];
 }
 
+function getDraftEditorialVoice(type: "recipe" | "blog_post" | "review", payload: Record<string, any>) {
+  const name = resolveEditorialAuthorName({
+    type: type === "blog_post" ? "blog" : type,
+    title: payload.title ?? "",
+    category: payload.category,
+    tags: payload.tags,
+    difficulty: payload.difficulty,
+    totalTimeMinutes: (payload.prep_time_minutes ?? 0) + (payload.cook_time_minutes ?? 0),
+    currentAuthorName: payload.author_name
+  });
+  const author = getPublicAuthorByName(name);
+  return author ? `Assigned editorial voice: ${name}. ${author.personality} Focus: ${author.focusAreas.join("; ")}. This is a pen name, not a biography or claim of firsthand experience.` : "Use the shared FlamingFoodies editorial voice.";
+}
+
 function buildHumanizeDraftPrompt(
   type: "recipe" | "blog_post" | "review",
   payload:
@@ -935,16 +951,21 @@ function buildHumanizeDraftPrompt(
 ) {
   const baseRules = `You are the FlamingFoodies editorial polish pass.
 
+${getDraftEditorialVoice(type, payload)}
+
 Rewrite this draft so it sounds:
 - warm, generous, and family-table oriented
 - specific, grounded, and useful enough to send to a friend
 - lightly opinionated without sounding macho, corporate, or templated
 
 Do not:
-- change the factual substance
+- change documented facts or cooking quantities; remove unsupported claims rather than paraphrasing them as facts
 - add new ingredients, quantities, timings, claims, anecdotes, testing notes, or sourcing
 - add AI references or meta commentary
 - flatten the piece into generic content-farm language
+
+The draft itself is not evidence. Delete invented research, personal experience and
+physiological explanations that have no supporting source in the supplied material.
 `;
 
   if (type === "recipe") {
@@ -2199,6 +2220,7 @@ function buildEditorialQaPrompt(
 
 Your job is to review ${scope}.
 Be strict, concrete, and editorially useful.
+${getDraftEditorialVoice(type, payload)}
 
 Evaluate:
 1. Topic or content identity
@@ -2209,6 +2231,11 @@ Evaluate:
    - If hero_image_source and hero_image_query_used are provided, use them to judge whether the selected image is plausible for the dish.
 6. Missing support or context that would make this feel weak in production
 7. Unsupported claims, filler, or generic AI-style writing
+8. Match the subject's editorial voice: Tess for practical recipes, Rowan for technique, Mara for ingredient/culture context, Miles for reviews. Do not invent a person's experience.
+
+Return fail (not revise) with blockers for generation artifacts, unresolved stock filler,
+unsupported tasting/testing claims, invented research, unsafe instructions or unsourced science.
+Use revise only for nonblocking polish. A provided draft is not evidence for its own claims.
 
 Return valid JSON with:
 - verdict: pass | revise | fail

@@ -173,7 +173,7 @@ export function getReviewManualReviewState(
 }
 
 export function buildReviewQaReport(review: ReviewQaCandidate): RecipeQaReport {
-  const blockers: RecipeQaIssue[] = [];
+  const blockers: RecipeQaIssue[] = getEditorialCopyIssues(review);
   const warnings: RecipeQaIssue[] = [];
   const imageKeywordOverlap = getImageKeywordOverlap(review);
   const cuisineMatchCount = getCuisineMatchCount(review);
@@ -331,3 +331,4 @@ export function getReviewQaPublishError(report: RecipeQaReport) {
 
   return report.blockers[0]?.message || "Review QA blockers must be resolved before publishing.";
 }
+import { getEditorialCopyIssues } from "@/lib/generation/editorial-policy";

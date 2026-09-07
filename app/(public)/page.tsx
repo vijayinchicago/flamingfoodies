@@ -43,7 +43,7 @@ export default async function HomePage() {
             <div className="relative">
               <p className="eyebrow">Flavor-first spicy food</p>
               <h1 className="mt-3 max-w-4xl font-display text-[1.75rem] leading-[1.05] text-cream sm:mt-4 sm:text-6xl sm:leading-[0.98] xl:text-[5.35rem]">
-                Flavor-first spicy food for real kitchens and mixed tables.
+                Good food. As much heat as you like.
               </h1>
               <p className="mt-4 max-w-2xl text-base leading-7 text-cream/85 sm:mt-6 sm:text-lg sm:leading-8">
                 Cook approachable dinners, read practical reviews, and get sharper spicy-food
@@ -94,7 +94,7 @@ export default async function HomePage() {
             ) : null}
             {featuredGuide ? (
               <div className="panel p-7">
-                <p className="eyebrow">Review path</p>
+                <p className="eyebrow">Hot sauce guide</p>
                 <h2 className="mt-3 font-display text-4xl text-cream">Find the right bottle faster.</h2>
                 <p className="mt-4 text-sm leading-7 text-cream/85">
                   Start with practical reviews that separate everyday pours, starter bottles, and
@@ -144,7 +144,7 @@ export default async function HomePage() {
         <SectionHeading
           eyebrow="Popular searches"
           title="Start with the bottle question you actually have."
-          copy="These are the strongest search-intent guides on the site right now: meal-specific bottle picks, value shelves, and the pages most likely to save you a bad buy."
+          copy="Find a sauce for eggs, tacos or wings, compare prices, and learn what to look for on the label."
         />
         <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {popularBottleGuides.map((guide) => (
@@ -163,8 +163,8 @@ export default async function HomePage() {
       <section className="container-shell py-10">
         <SectionHeading
           eyebrow="Stories and reviews"
-          title="Recipes, explainers, and bottle reviews with a clearer line between them."
-          copy="Start with food and practical context, then use reviews and buying guides when you need product help."
+          title="Get to know your peppers, sauces, and spices."
+          copy="Ingredient guides, cooking advice, and a closer look at the bottles on your shelf."
         />
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
           {blogPosts.map((post) => (
@@ -190,9 +190,9 @@ export default async function HomePage() {
 
       <section className="container-shell py-10">
         <SectionHeading
-          eyebrow="Recurring series"
+          eyebrow="More to explore"
           title="Series, seasons, and ideas to explore."
-          copy="Browse regular features with seasonal guides, recurring story lines, and ideas for what to cook next."
+          copy="Find something for the grill, a new sauce to make, or a dinner for the season."
         />
         <div className="mt-10 grid gap-6 xl:grid-cols-3">
           {seasonalNow.slice(0, 1).map((occasion) => (
@@ -234,7 +234,7 @@ export default async function HomePage() {
 
       <section className="container-shell py-16">
         <SectionHeading
-          eyebrow="Email capture"
+          eyebrow="Flame Club newsletter"
           title="Flame Club keeps the best spicy finds in one place."
           copy="Get standout recipes, useful reviews, and new guides without having to hunt through the site every week."
         />

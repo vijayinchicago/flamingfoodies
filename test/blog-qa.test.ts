@@ -69,7 +69,7 @@ describe("buildBlogQaReport", () => {
 
     expect(report.blockers.some((issue) => issue.code === "blog-word-count")).toBe(true);
     expect(report.blockers.some((issue) => issue.code === "blog-structure")).toBe(true);
-    expect(report.blockers.some((issue) => issue.code === "blog-ai-disclosure")).toBe(true);
+    expect(report.blockers.some((issue) => issue.code === "editorial-generation-artifact")).toBe(true);
   });
 
   it("warns when blog voice relies on formulaic content phrases", () => {
