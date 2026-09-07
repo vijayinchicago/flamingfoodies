@@ -144,7 +144,7 @@ export default async function GuidePage({
         <section className="mt-14">
           <p className="eyebrow">Bottles to try</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">
-            Hot sauces that fit this lane.
+            Hot sauces to try.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
             Reviewed picks that map to the heat tiers and styles covered here.

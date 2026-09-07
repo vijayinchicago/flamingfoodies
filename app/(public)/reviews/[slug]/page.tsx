@@ -160,14 +160,11 @@ export default async function ReviewPage({
   const skipIf = getHotSauceSkipIfCopy(review);
   const qaSignals = [
     review.imageReviewed
-      ? "Hero imagery reviewed for match and clarity."
-      : "Hero imagery is using the currently published asset.",
+      ? "Image marked reviewed in our editorial record."
+      : "The image has not been marked reviewed.",
     review.factQaReviewed
-      ? "Key product facts received a manual fact pass."
-      : "Key product facts rely on current source data and may be refreshed.",
-    review.qaReport
-      ? `Latest QA status: ${review.qaReport.status.toUpperCase()} (${review.qaReport.score}/100).`
-      : "No archived QA score is published for this review yet."
+      ? "Product facts marked reviewed in our editorial record."
+      : "Product facts have not been marked reviewed. Check the retailer for current details."
   ];
   const relatedReviews = allReviews
     .filter((candidate) => candidate.slug !== review.slug)
@@ -380,7 +377,7 @@ export default async function ReviewPage({
           <div className="panel p-6">
             <h2 className="font-display text-3xl text-charcoal">Buy this if</h2>
             <p className="mt-4 text-sm leading-7 text-charcoal/75">
-              You want a bottle recommendation that maps cleanly to how you actually cook and eat.
+              The flavors and heat level described here suit the dishes you like to cook.
             </p>
             {resolvedPrimaryOffer ? (
               <AffiliateLink
@@ -489,7 +486,7 @@ export default async function ReviewPage({
         <div className="mt-14">
           <p className="eyebrow">Read next</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">
-            More reviews that fit this lane.
+            More sauces to compare.
           </h2>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/70">
             If this bottle was close but not quite right, these reviews are the next smartest places to compare.
@@ -508,8 +505,7 @@ export default async function ReviewPage({
             Recipes that pair with this sauce
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-charcoal/70">
-            Scored against the recipe&apos;s cuisine, heat profile, and ingredient signals — these
-            are the dishes this bottle actually earns its place on.
+            Try this sauce with dishes that share its flavors and heat level.
           </p>
           <div className="mt-6 grid gap-6 lg:grid-cols-3">
             {recipesForThisSauce.map((recipe) => (
@@ -547,7 +543,7 @@ export default async function ReviewPage({
             <div className="panel p-6 sm:p-7">
               <p className="eyebrow">Background guides</p>
               <h3 className="mt-3 font-display text-4xl text-charcoal">
-                Guides that explain the lane
+                Related cooking guides
               </h3>
               <div className="mt-6 space-y-4">
                 {guidesForReview.map((guide) => (

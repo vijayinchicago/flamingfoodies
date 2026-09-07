@@ -114,8 +114,7 @@ export function ShareBar({
               <p className="text-xs uppercase tracking-[0.24em] text-ember">Share this</p>
               <h2 className="mt-2 font-display text-3xl text-charcoal">Pass it around</h2>
               <p className="mt-2 max-w-2xl text-sm leading-7 text-charcoal/70">
-                Use the quick-share options for chat and social, or save the hero image when the
-                page deserves a stronger Pinterest moment.
+                Send this page to a friend, copy the link, or save it to a Pinterest board.
               </p>
             </div>
             {feedback ? <p className="text-sm text-charcoal/70">{feedback}</p> : null}
@@ -160,11 +159,10 @@ export function ShareBar({
               />
             </div>
             <div className="p-4">
-              <p className="text-xs uppercase tracking-[0.22em] text-ember">Best share asset</p>
-              <h3 className="mt-2 font-display text-2xl text-charcoal">Save the visual, not just the link</h3>
+              <p className="text-xs uppercase tracking-[0.22em] text-ember">Save for later</p>
+              <h3 className="mt-2 font-display text-2xl text-charcoal">Pin this page</h3>
               <p className="mt-2 text-sm leading-6 text-charcoal/70">
-                Pinterest tends to work best when the image travels with the recipe, review, or
-                article instead of just the URL.
+                Save the image with a link back to this recipe, review, or article.
               </p>
               <PinterestSaveButton
                 title={title}
