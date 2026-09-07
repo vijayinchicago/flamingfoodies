@@ -24,6 +24,11 @@ import {
   type AutomationRunStatus,
   type AutomationStateSnapshotRecord
 } from "@/lib/services/automation-control";
+import {
+  getAutomationResultWarning,
+  getAutomationRunTiming,
+  getGenerationChildJobs
+} from "@/lib/services/run-diagnostics";
 
 export const dynamic = "force-dynamic";
 
@@ -58,8 +63,12 @@ function formatDateTime(value?: string | null) {
 }
 
 function formatDuration(durationMs?: number | null) {
-  if (!durationMs || durationMs < 1000) {
-    return durationMs === 0 ? "0s" : "Not recorded";
+  if (durationMs === null || durationMs === undefined || durationMs < 0) {
+    return "Not recorded";
+  }
+
+  if (durationMs < 1000) {
+    return `${durationMs}ms`;
   }
 
   const totalSeconds = Math.round(durationMs / 1000);
@@ -330,6 +339,10 @@ function RunDetailPanel({
     rollbackScope && snapshots.some((snapshot) => snapshot.scope === rollbackScope)
   );
   const canRollback = run.status === "succeeded" && !run.rollbackRunId && hasRollbackSnapshot;
+  const timing = getAutomationRunTiming(run);
+  const resultWarning = getAutomationResultWarning(run.resultPayload);
+  const childJobs = getGenerationChildJobs(run.resultPayload);
+  const failedChildJobs = childJobs.filter((job) => job.error);
 
   return (
     <section className="panel-light p-6">
@@ -351,6 +364,35 @@ function RunDetailPanel({
           Close detail
         </Link>
       </div>
+
+      {timing.isOverdue ? (
+        <article className="mt-6 rounded-[1.5rem] border border-rose-200 bg-rose-50 p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-700">
+            Stale open run
+          </p>
+          <p className="mt-3 text-sm leading-7 text-rose-900/80">
+            This run has been open for {formatDuration(timing.elapsedMs)}, beyond the six-minute
+            reconciliation window. It is no longer plausibly executing and was most likely cut off
+            by the serverless duration limit before the completion event could be saved.
+          </p>
+        </article>
+      ) : null}
+
+      {resultWarning ? (
+        <article className="mt-6 rounded-[1.5rem] border border-amber-200 bg-amber-50 p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-800">
+            Result needs attention
+          </p>
+          <p className="mt-3 break-words text-sm leading-7 text-amber-950/80">
+            {resultWarning}
+          </p>
+          {run.status === "succeeded" ? (
+            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-amber-800">
+              The database status says succeeded, but the saved result contains an error.
+            </p>
+          ) : null}
+        </article>
+      ) : null}
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <article className="rounded-[1.5rem] border border-charcoal/10 p-5">
@@ -374,10 +416,10 @@ function RunDetailPanel({
         <article className="rounded-[1.5rem] border border-charcoal/10 p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">Duration</p>
           <p className="mt-3 font-display text-3xl text-charcoal">
-            {formatDuration(run.durationMs)}
+            {formatDuration(timing.elapsedMs)}
           </p>
           <p className="mt-3 text-sm leading-6 text-charcoal/70">
-            Environment: {run.environment}
+            {run.status === "started" ? "Live elapsed time" : "Recorded execution time"}
           </p>
         </article>
         <article className="rounded-[1.5rem] border border-charcoal/10 p-5">
@@ -386,8 +428,87 @@ function RunDetailPanel({
             Created {formatNumber(run.rowsCreated)}, updated {formatNumber(run.rowsUpdated)},
             published {formatNumber(run.rowsPublished)}, sent {formatNumber(run.rowsSent)}.
           </p>
+          <p className="mt-2 text-xs text-charcoal/55">
+            External actions: {formatNumber(run.externalActionsCount)}
+          </p>
         </article>
       </div>
+
+      <article className="mt-6 rounded-[1.5rem] border border-charcoal/10 p-5">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+          Trigger context
+        </p>
+        <div className="mt-3 grid gap-3 text-sm leading-7 text-charcoal/70 md:grid-cols-2 xl:grid-cols-4">
+          <p>
+            Reference: <span className="font-mono text-xs">{run.triggerReference || "None"}</span>
+          </p>
+          <p>Environment: {run.environment}</p>
+          <p>Ledger row: {formatDateTime(run.createdAt)}</p>
+          <p>
+            Admin: <span className="font-mono text-xs">{run.createdByAdminId || "System"}</span>
+          </p>
+        </div>
+      </article>
+
+      {childJobs.length ? (
+        <article className="mt-6 rounded-[1.5rem] border border-charcoal/10 p-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                Child generation jobs
+              </p>
+              <p className="mt-2 text-sm text-charcoal/65">
+                {childJobs.length - failedChildJobs.length} completed · {failedChildJobs.length}{" "}
+                failed
+              </p>
+            </div>
+            <Link
+              href="/admin/automation/jobs"
+              className="text-sm font-semibold text-ember underline-offset-4 hover:underline"
+            >
+              Open generation ledger
+            </Link>
+          </div>
+          <div className="mt-4 grid gap-3">
+            {childJobs.map((job) => (
+              <div
+                key={job.id}
+                className={`rounded-2xl border p-4 ${
+                  job.error ? "border-rose-200 bg-rose-50" : "border-charcoal/10"
+                }`}
+              >
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <p className="font-semibold text-charcoal">
+                      Job #{job.id} · {formatLabel(job.type)}
+                    </p>
+                    <p className="mt-2 text-sm text-charcoal/70">
+                      {job.title || job.error || "No child result summary was recorded."}
+                    </p>
+                    <p className="mt-2 text-xs text-charcoal/55">
+                      {[job.profile, job.cuisine, job.heatLevel, job.recipeLane]
+                        .filter(Boolean)
+                        .map((value) => formatLabel(String(value)))
+                        .join(" · ") || "No generation context recorded"}
+                    </p>
+                    {job.occurrences > 1 ? (
+                      <p className="mt-2 text-xs font-semibold text-amber-800">
+                        {job.occurrences} attempt entries were recorded for this job.
+                      </p>
+                    ) : null}
+                  </div>
+                  <Link
+                    href={`/admin/automation/jobs#job-${job.id}`}
+                    className="inline-flex shrink-0 rounded-full border border-charcoal/10 bg-white px-4 py-2 text-sm font-semibold text-charcoal transition hover:bg-charcoal/5"
+                  >
+                    Inspect job
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </article>
+      ) : null}
 
       <article className="mt-6 rounded-[1.5rem] border border-charcoal/10 p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
@@ -526,57 +647,69 @@ function RunsList({
 }) {
   return (
     <section className="grid gap-4">
-      {runs.map((run) => (
-        <article key={run.id} className="panel-light p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="max-w-3xl">
-              <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em]">
-                <span className={`rounded-full px-3 py-1 ${statusClasses(run.status)}`}>
-                  {formatLabel(run.status)}
-                </span>
-                <span className="rounded-full bg-charcoal/5 px-3 py-1 text-charcoal/70">
-                  {formatLabel(run.triggerSource)}
-                </span>
-                <span className="rounded-full bg-charcoal/5 px-3 py-1 text-charcoal/70">
-                  {formatLabel(run.agentId)}
-                </span>
+      {runs.map((run) => {
+        const timing = getAutomationRunTiming(run);
+
+        return (
+          <article key={run.id} className="panel-light p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-3xl">
+                <div className="flex flex-wrap items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em]">
+                  <span className={`rounded-full px-3 py-1 ${statusClasses(run.status)}`}>
+                    {formatLabel(run.status)}
+                  </span>
+                  {timing.isOverdue ? (
+                    <span className="rounded-full bg-rose-100 px-3 py-1 text-rose-800">
+                      likely timed out
+                    </span>
+                  ) : null}
+                  <span className="rounded-full bg-charcoal/5 px-3 py-1 text-charcoal/70">
+                    {formatLabel(run.triggerSource)}
+                  </span>
+                  <span className="rounded-full bg-charcoal/5 px-3 py-1 text-charcoal/70">
+                    {formatLabel(run.agentId)}
+                  </span>
+                </div>
+                <h2 className="mt-4 font-display text-3xl text-charcoal">
+                  Run #{run.id} · {formatLabel(run.agentId)}
+                </h2>
+                <p className="mt-3 text-sm leading-7 text-charcoal/70">
+                  {run.summary || run.errorMessage || "No summary recorded for this run yet."}
+                </p>
+                {run.triggerReference ? (
+                  <p className="mt-3 font-mono text-xs text-charcoal/55">{run.triggerReference}</p>
+                ) : null}
               </div>
-              <h2 className="mt-4 font-display text-3xl text-charcoal">
-                Run #{run.id} · {formatLabel(run.agentId)}
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-charcoal/70">
-                {run.summary || run.errorMessage || "No summary recorded for this run yet."}
-              </p>
-              {run.triggerReference ? (
-                <p className="mt-3 font-mono text-xs text-charcoal/55">{run.triggerReference}</p>
-              ) : null}
+              <div className="rounded-[1.5rem] bg-charcoal/5 px-5 py-4 text-sm text-charcoal/65 lg:min-w-[300px]">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                  Started
+                </p>
+                <p className="mt-2 font-semibold text-charcoal">{formatDateTime(run.startedAt)}</p>
+                <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                  Duration
+                </p>
+                <p className="mt-2 font-semibold text-charcoal">
+                  {formatDuration(timing.elapsedMs)}
+                  {run.status === "started" ? " elapsed" : ""}
+                </p>
+                <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-ember">
+                  Mutation totals
+                </p>
+                <p className="mt-2 leading-7">
+                  Created {formatNumber(run.rowsCreated)}, updated {formatNumber(run.rowsUpdated)},
+                  published {formatNumber(run.rowsPublished)}, sent {formatNumber(run.rowsSent)}.
+                </p>
+                <Link
+                  href={buildRunsHref(searchParams, { runId: String(run.id) })}
+                  className="mt-4 inline-flex rounded-full border border-charcoal/10 bg-white px-4 py-2 text-sm font-semibold text-charcoal transition hover:bg-charcoal/5"
+                >
+                  Inspect run
+                </Link>
+              </div>
             </div>
-            <div className="rounded-[1.5rem] bg-charcoal/5 px-5 py-4 text-sm text-charcoal/65 lg:min-w-[300px]">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-ember">
-                Started
-              </p>
-              <p className="mt-2 font-semibold text-charcoal">{formatDateTime(run.startedAt)}</p>
-              <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-ember">
-                Duration
-              </p>
-              <p className="mt-2 font-semibold text-charcoal">{formatDuration(run.durationMs)}</p>
-              <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-ember">
-                Mutation totals
-              </p>
-              <p className="mt-2 leading-7">
-                Created {formatNumber(run.rowsCreated)}, updated {formatNumber(run.rowsUpdated)},
-                published {formatNumber(run.rowsPublished)}, sent {formatNumber(run.rowsSent)}.
-              </p>
-              <Link
-                href={buildRunsHref(searchParams, { runId: String(run.id) })}
-                className="mt-4 inline-flex rounded-full border border-charcoal/10 bg-white px-4 py-2 text-sm font-semibold text-charcoal transition hover:bg-charcoal/5"
-              >
-                Inspect run
-              </Link>
-            </div>
-          </div>
-        </article>
-      ))}
+          </article>
+        );
+      })}
     </section>
   );
 }
