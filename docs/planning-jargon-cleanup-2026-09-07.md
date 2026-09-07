@@ -7,7 +7,8 @@
 - Rewrote related planning phrases, including “browse by intent,” “why-buy case,”
   “use case,” “shopping paths,” “buying paths,” “More Paths,” “Pillar guide,”
   “practical signals” and “Action-oriented buyers.” Removed publishing-strategy sentences
-  such as “If someone lands here from search,” plus “cooking layer” and “Trust links.”
+  such as “If someone lands here from search,” plus “cooking layer,” “Trust links,”
+  “Shopping rail,” “highest-signal buys,” and reader-retention labels on recipes.
 - Kept analytics identifiers, database taxonomy, URLs and admin operations unchanged.
 - Retained affiliate, automation and editorial-pen-name disclosures and image credits.
 - Source-backed catalog and sample copy were included, along with the guide sync script.
@@ -27,6 +28,11 @@ tables were inspected. Local backups and the approved replacement manifest are i
 Also inspected the public text in `search_runtime_optimizations`. Cleaned one Nashville
 hot chicken intro override and its source defaults, with a full settings backup and an
 exact-value concurrency check. All other runtime settings remain unchanged.
+
+Live verification exposed a cached previous version of that intro override alongside the
+new source default. Purged this project's data cache and verified that the older duplicate
+disappeared. Direct database repairs need cache revalidation as well as a new deployment;
+the database audit alone does not prove the rendered page is current.
 
 ## Prevention and validation
 

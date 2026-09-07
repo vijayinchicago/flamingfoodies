@@ -23,7 +23,7 @@ export function RecipeIngredientRail({
     <section id="ingredients" className="recipe-print-section panel p-6 sm:p-7">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="eyebrow">Shopping rail</p>
+          <p className="eyebrow">What you’ll need</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">Ingredients</h2>
         </div>
         <div className="text-right text-sm text-charcoal/55">

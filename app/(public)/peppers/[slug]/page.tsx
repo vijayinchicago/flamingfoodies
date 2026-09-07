@@ -516,7 +516,7 @@ export default async function PepperPage({ params }: { params: { slug: string } 
         <section className="mt-14">
           <p className="eyebrow">From the blog</p>
           <h2 className="mt-3 font-display text-3xl text-charcoal sm:text-4xl">
-            Editorial that references {pepper.name.toLowerCase()}.
+            Articles about {pepper.name.toLowerCase()}.
           </h2>
           <div className="mt-8 grid gap-6 lg:grid-cols-3">
             {blogPostsForPepper.map((post) => (

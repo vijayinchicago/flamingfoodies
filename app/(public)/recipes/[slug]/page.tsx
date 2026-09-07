@@ -846,7 +846,7 @@ export default async function RecipePage({
           <div className="min-w-0 space-y-8">
             <section className="recipe-print-section recipe-core-panel panel p-6 sm:p-8">
               <p className="eyebrow">Why this recipe works</p>
-              <h2 className="mt-3 font-display text-5xl text-charcoal">Editorial notes before you cook</h2>
+              <h2 className="mt-3 font-display text-5xl text-charcoal">Before you cook</h2>
               <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_0.8fr]">
                 <div>
                   <p className="text-base leading-8 text-charcoal/80">{recipe.intro || heroSummary}</p>
@@ -865,7 +865,7 @@ export default async function RecipePage({
                     <p className="mt-2 text-sm leading-7 text-charcoal/65">{projectCard.copy}</p>
                   </div>
                   <div className="recipe-print-keep rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-5">
-                    <p className="text-xs uppercase tracking-[0.22em] text-ember">Why readers stick with it</p>
+                    <p className="text-xs uppercase tracking-[0.22em] text-ember">When to make it</p>
                     <p className="mt-2 font-display text-3xl text-charcoal">{occasionCard.title}</p>
                     <p className="mt-2 text-sm leading-7 text-charcoal/65">{occasionCard.copy}</p>
                   </div>
@@ -1091,8 +1091,7 @@ export default async function RecipePage({
               </Link>
             </div>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-charcoal/80">
-              These are the highest-signal buys for this specific recipe: one sauce, one pantry
-              staple, and one tool that genuinely makes the dish easier to repeat.
+              A sauce, a pantry ingredient, and a kitchen tool to consider for this dish.
             </p>
             <div className="mt-6 grid gap-4 lg:grid-cols-3">
               {primaryRecipeOffers.map((offer) => (
@@ -1399,7 +1398,7 @@ export default async function RecipePage({
               <div className="panel p-6 sm:p-7">
                 <p className="eyebrow">From the blog</p>
                 <h3 className="mt-3 font-display text-4xl text-charcoal">
-                  Editorial that builds on this dish
+                  More about this dish
                 </h3>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-charcoal/65">
                   Read more about the ingredients and cuisine.
@@ -1427,7 +1426,7 @@ export default async function RecipePage({
                   Read the guide behind the technique
                 </h3>
                 <p className="mt-3 max-w-2xl text-sm leading-7 text-charcoal/65">
-                  Evergreen explainers that go deeper on what this recipe is doing.
+                  Learn more about the cooking techniques used here.
                 </p>
                 <div className="mt-6 space-y-4">
                   {guidesForRecipe.map((guide) => (

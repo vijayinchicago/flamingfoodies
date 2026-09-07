@@ -521,7 +521,7 @@ export default async function ReviewPage({
             <div className="panel p-6 sm:p-7">
               <p className="eyebrow">From the blog</p>
               <h3 className="mt-3 font-display text-4xl text-charcoal">
-                Editorial that places this bottle in context
+                More about these ingredients and flavors
               </h3>
               <div className="mt-6 grid gap-4 md:grid-cols-2">
                 {blogPostsForReview.map((post) => (

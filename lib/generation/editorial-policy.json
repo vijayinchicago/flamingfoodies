@@ -31,7 +31,7 @@
     "\\b(?:content|editorial) (?:pillars?|clusters?|franchises?|surfaces?|funnels?)\\b",
     "\\b(?:conversion funnels?|engagement signals?|ingredient signals?|audience segments?|keyword strategy|why[ -]buy case|email capture|content-planning|use cases?|shopping paths?|buying paths?|more paths|pillar guides?)\\b",
     "^\\s*pillar\\s*$",
-    "\\b(?:lands? here from search|found this while looking|search-style guides?|cooking layer|editorial library|trust links|coverage beats|how this work gets framed)\\b"
+    "\\b(?:lands? here from search|found this while looking|search-style guides?|cooking layer|editorial library|trust links|coverage beats|how this work gets framed|shopping rail|highest-signal buys|why readers stick|editorial that|evergreen (?:guides?|explainers?|reference))\\b"
   ],
   "fillerPatterns": [
     "\\bpacked with flavou?r\\b",

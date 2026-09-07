@@ -7,7 +7,7 @@ import { buildMetadata } from "@/lib/seo";
 export const metadata = buildMetadata({
   title: "Spicy Food Guides | FlamingFoodies",
   description:
-    "Evergreen guides for Scoville heat, fermentation, hot sauce technique, and spicy cooking reference.",
+    "Practical guides to Scoville heat, fermentation, hot sauce, and cooking with chilies.",
   path: "/guides"
 });
 
@@ -18,7 +18,7 @@ export default async function GuidesPage() {
     <section className="container-shell py-16">
       <SectionHeading
         eyebrow="Guides"
-        title="Evergreen reference pieces for the spicy food rabbit hole."
+        title="Guides to peppers, hot sauce, and spicy cooking."
         copy="Reference guides go deeper on Scoville heat, fermentation, pantry technique, and spicy cooking fundamentals."
       />
       <div className="mt-10 grid gap-6 lg:grid-cols-2">

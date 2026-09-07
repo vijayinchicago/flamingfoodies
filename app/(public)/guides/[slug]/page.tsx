@@ -35,7 +35,7 @@ export async function generateMetadata({
 
   return buildMetadata({
     title: guide?.title || "Guide | FlamingFoodies",
-    description: guide?.description || "Evergreen spicy food guide.",
+    description: guide?.description || "A practical guide to spicy food.",
     path: `/guides/${params.slug}`
   });
 }
@@ -166,7 +166,7 @@ export default async function GuidePage({
         <section className="mt-14">
           <p className="eyebrow">From the blog</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">
-            Editorial that touches the same ground.
+            Articles on this topic.
           </h2>
           <div className="mt-8 grid gap-6 lg:grid-cols-3">
             {postsForGuide.map((post) => (
