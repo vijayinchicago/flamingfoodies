@@ -143,6 +143,7 @@ export interface Recipe extends BaseContent {
   qaNotes?: string;
   qaReport?: RecipeQaReport;
   qaIssues?: RecipeQaIssue[];
+  qaCheckedAt?: string;
   seoTitle?: string;
   seoDescription?: string;
   ratingAvg?: number;

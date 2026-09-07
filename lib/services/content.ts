@@ -471,6 +471,7 @@ function mapRecipeRow(row: any): Recipe {
     qaNotes: sanitizeAutomationQaNotes(row.qa_notes),
     qaReport: row.qa_report ?? undefined,
     qaIssues: Array.isArray(row.qa_issues) ? row.qa_issues : undefined,
+    qaCheckedAt: row.qa_checked_at ?? undefined,
     featured: row.featured ?? false,
     source: row.source,
     status: row.status,
