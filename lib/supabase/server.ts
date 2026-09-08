@@ -36,16 +36,13 @@ export function createSupabaseServerClient() {
   );
 }
 
-export function createSupabaseAdminClient(options?: { noStore?: boolean }) {
+export function createSupabaseAdminClient() {
   if (!flags.hasSupabaseAdmin) return null;
 
   return createClient(
     env.NEXT_PUBLIC_SUPABASE_URL!,
     supabaseConfig.adminKey!,
     {
-      ...(options?.noStore ? {
-        global: { fetch: (input: RequestInfo | URL, init?: RequestInit) => fetch(input, { ...init, cache: "no-store" }) }
-      } : {}),
       auth: {
         autoRefreshToken: false,
         persistSession: false

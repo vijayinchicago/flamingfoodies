@@ -99,7 +99,7 @@ describe("published content cache", () => {
     const count = state.reads.length;
     expect(await getPublishedRows(table)).toEqual(first);
     expect(state.reads).toHaveLength(count);
-    expect(state.options.every((options) => options.noStore)).toBe(true);
+    expect(state.options.every((options) => options === undefined)).toBe(true);
   });
 
   it.each(EDITORIAL_TABLES)("fetches %s details by slug without a catalog query", async (table) => {

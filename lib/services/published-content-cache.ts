@@ -42,7 +42,10 @@ export function invalidatePublicSearchRuntime() {
 }
 
 function database() {
-  const client = createSupabaseAdminClient({ noStore: true });
+  // Next 14's unstable_cache already sets fetchCache: force-no-store inside its
+  // callback. Explicit fetch({cache: "no-store"}) instead triggers a static-build
+  // bailout in this Next version, even inside the cached callback.
+  const client = createSupabaseAdminClient();
   if (!client) throw new Error("Published-content database is not configured");
   return client;
 }

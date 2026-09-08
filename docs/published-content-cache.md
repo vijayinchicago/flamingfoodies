@@ -33,8 +33,10 @@ result for 30 days. Next retains stale data if a time-based background refresh
 fails. An explicit unpublish invalidates old content: a subsequent origin failure
 fails closed rather than serving a known-removed article.
 
-The Supabase fetch inside each cached loader uses `no-store`, so there is no
-second, independently stale fetch cache underneath the tagged data entry.
+Next 14's `unstable_cache` sets `fetchCache: force-no-store` inside its callback,
+so there is no independently stale fetch cache underneath the tagged data entry.
+Do not additionally set `fetch({cache: "no-store"})`: Next 14.2.30 treats that
+explicit option as a static-build bailout, including inside cached callbacks.
 
 ## Mutation coverage
 
