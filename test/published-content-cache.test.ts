@@ -56,7 +56,7 @@ vi.mock("@/lib/supabase/server", () => ({ createSupabaseAdminClient: (options: a
 
 import {
   CONTENT_PAGE_SIZE, CONTENT_METRICS_TTL, PUBLISHED_CONTENT_TTL,
-  EDITORIAL_TABLES, PUBLIC_CONTENT_COLUMNS, SEARCH_RUNTIME_KEY,
+  EDITORIAL_TABLES, PUBLIC_CONTENT_COLUMNS, PUBLIC_METRIC_COLUMNS, SEARCH_RUNTIME_KEY,
   assertCacheEntrySize, getPublishedRow, getPublishedRows, getPublicSearchRuntimeValue,
   invalidatePublishedContent, invalidatePublicSearchRuntime
 } from "@/lib/services/published-content-cache";
@@ -77,6 +77,20 @@ beforeEach(() => {
 });
 
 describe("published content cache", () => {
+  it("selects only columns verified against the live schema on 2026-09-08", () => {
+    const schema = {
+      blog_posts: "id,slug,title,description,content,author_name,author_id,category,tags,image_url,image_alt,heat_level,cuisine_type,scoville_rating,featured,affiliate_disclosure,status,source,seo_title,seo_description,canonical_url,read_time_minutes,view_count,like_count,published_at,created_at,updated_at,qa_notes,qa_report,qa_checked_at,qa_issues",
+      recipes: "id,slug,title,description,intro,author_name,author_id,heat_level,cuisine_type,prep_time_minutes,cook_time_minutes,total_time_minutes,servings,difficulty,ingredients,instructions,nutrition,equipment,tips,variations,tags,image_url,image_alt,video_url,featured,status,source,affiliate_disclosure,seo_title,seo_description,view_count,like_count,save_count,rating_avg,rating_count,published_at,created_at,updated_at,ingredient_sections,method_steps,active_time_minutes,make_ahead_notes,storage_notes,reheat_notes,serving_suggestions,substitutions,faqs,hero_summary,hero_image_reviewed,cuisine_qa_reviewed,qa_notes,qa_report,qa_checked_at,qa_issues",
+      reviews: "id,slug,title,description,content,product_name,brand,rating,price_usd,affiliate_url,image_url,image_alt,heat_level,scoville_min,scoville_max,flavor_notes,cuisine_origin,category,pros,cons,tags,recommended,featured,status,source,seo_title,seo_description,view_count,published_at,created_at,updated_at,image_reviewed,fact_qa_reviewed,qa_notes,qa_report,qa_checked_at,qa_issues"
+    };
+    for (const table of EDITORIAL_TABLES) {
+      const available = new Set(schema[table].split(","));
+      for (const column of `${PUBLIC_CONTENT_COLUMNS[table]},${PUBLIC_METRIC_COLUMNS[table]}`.split(",")) {
+        expect(available.has(column), `${table}.${column} must exist`).toBe(true);
+      }
+    }
+  });
+
   it.each(EDITORIAL_TABLES)("reuses small %s entries across repeated catalog reads", async (table) => {
     const first = await getPublishedRows(table);
     expect(first).toHaveLength(23);

@@ -15,11 +15,16 @@ type ContentRow = Record<string, any>;
 
 // Keep public prose used by search/recommendations, but never fetch internal QA
 // reports or generation metadata for public pages. Admin readers remain separate.
-const commonColumns = "id,slug,title,description,author_name,image_url,image_alt,pinterest_image_url,tags,featured,source,status,created_at,published_at";
+const commonColumns = "id,slug,title,description,image_url,image_alt,tags,featured,source,status,created_at,published_at";
 export const PUBLIC_CONTENT_COLUMNS: Record<EditorialTable, string> = {
-  recipes: `${commonColumns},intro,hero_summary,heat_level,cuisine_type,prep_time_minutes,cook_time_minutes,total_time_minutes,active_time_minutes,servings,difficulty,ingredients,ingredient_sections,instructions,method_steps,tips,variations,make_ahead_notes,storage_notes,reheat_notes,serving_suggestions,substitutions,faqs,equipment,hero_image_reviewed,cuisine_qa_reviewed,seo_title,seo_description`,
-  blog_posts: `${commonColumns},content,category,seo_title,seo_description,cuisine_type,heat_level,scoville_rating,read_time_minutes`,
+  recipes: `${commonColumns},author_name,intro,hero_summary,heat_level,cuisine_type,prep_time_minutes,cook_time_minutes,total_time_minutes,active_time_minutes,servings,difficulty,ingredients,ingredient_sections,instructions,method_steps,tips,variations,make_ahead_notes,storage_notes,reheat_notes,serving_suggestions,substitutions,faqs,equipment,hero_image_reviewed,cuisine_qa_reviewed,seo_title,seo_description`,
+  blog_posts: `${commonColumns},author_name,content,category,seo_title,seo_description,cuisine_type,heat_level,scoville_rating,read_time_minutes`,
   reviews: `${commonColumns},product_name,brand,rating,price_usd,affiliate_url,content,heat_level,scoville_min,scoville_max,flavor_notes,cuisine_origin,category,pros,cons,image_reviewed,fact_qa_reviewed,recommended`
+};
+export const PUBLIC_METRIC_COLUMNS: Record<EditorialTable, string> = {
+  recipes: "id,view_count,like_count,save_count,rating_avg,rating_count",
+  blog_posts: "id,view_count,like_count",
+  reviews: "id,view_count"
 };
 
 export function publishedContentTag(table: EditorialTable) {
@@ -66,7 +71,7 @@ const readers = Object.fromEntries(EDITORIAL_TABLES.map((table) => {
       const rows = data ?? [];
       assertCacheEntrySize(rows);
       return rows;
-    }, [...namespace, table, "page"], { revalidate: PUBLISHED_CONTENT_TTL, tags }),
+    }, [...namespace, table, "page", PUBLIC_CONTENT_COLUMNS[table]], { revalidate: PUBLISHED_CONTENT_TTL, tags }),
     detail: unstable_cache(async (slug: string): Promise<ContentRow | null> => {
       const { data, error } = await database().from(table)
         .select(PUBLIC_CONTENT_COLUMNS[table])
@@ -74,17 +79,14 @@ const readers = Object.fromEntries(EDITORIAL_TABLES.map((table) => {
       if (error) throw new Error(`Cannot load published ${table} detail: ${error.message}`);
       assertCacheEntrySize(data);
       return data;
-    }, [...namespace, table, "detail"], { revalidate: PUBLISHED_CONTENT_TTL, tags }),
+    }, [...namespace, table, "detail", PUBLIC_CONTENT_COLUMNS[table]], { revalidate: PUBLISHED_CONTENT_TTL, tags }),
     metrics: unstable_cache(async (page: number): Promise<ContentRow[]> => {
-      const columns = table === "recipes"
-        ? "id,view_count,like_count,save_count,rating_avg,rating_count"
-        : "id,view_count,like_count";
-      const { data, error } = await database().from(table).select(columns)
+      const { data, error } = await database().from(table).select(PUBLIC_METRIC_COLUMNS[table])
         .eq("status", "published").order("id", { ascending: false })
         .range(page * 250, (page + 1) * 250 - 1);
       if (error) throw new Error(`Cannot load ${table} statistics: ${error.message}`);
       return data ?? [];
-    }, [...namespace, table, "metrics"], { revalidate: CONTENT_METRICS_TTL, tags })
+    }, [...namespace, table, "metrics", PUBLIC_METRIC_COLUMNS[table]], { revalidate: CONTENT_METRICS_TTL, tags })
   }];
 })) as Record<EditorialTable, {
   page: (page: number) => Promise<ContentRow[]>;
