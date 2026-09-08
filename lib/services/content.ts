@@ -28,9 +28,11 @@ import {
   applyRecipeSearchOptimization
 } from "@/lib/search-content-optimizations";
 import {
+  getPublicSearchRuntimeOptimizations,
   getRuntimeBlogSearchOptimization,
   getRuntimeRecipeSearchOptimization
 } from "@/lib/services/search-insights";
+import { getPublishedRow, getPublishedRows } from "@/lib/services/published-content-cache";
 import {
   buildShopPickSlug,
   chooseShopPickEntries,
@@ -761,22 +763,15 @@ export async function getBlogPosts() {
     return Promise.all(getFallbackPublished(sampleBlogPosts).map(applyBlogSearchEnhancements));
   }
 
-  const supabase = createSupabaseAdminClient();
-  if (!supabase) {
-    return Promise.all(getFallbackPublished(sampleBlogPosts).map(applyBlogSearchEnhancements));
-  }
-
-  const { data } = await supabase
-    .from("blog_posts")
-    .select("*")
-    .eq("status", "published")
-    .order("published_at", { ascending: false });
+  const [data, runtime] = await Promise.all([
+    getPublishedRows("blog_posts"), getPublicSearchRuntimeOptimizations()
+  ]);
 
   if (!data?.length) {
     return Promise.all(getFallbackPublished(sampleBlogPosts).map(applyBlogSearchEnhancements));
   }
 
-  return Promise.all(data.map(mapBlogRow).map(applyBlogSearchEnhancements));
+  return data.map(mapBlogRow).map((post) => applyBlogSearchOptimization(post, runtime?.blog[post.slug]));
 }
 
 export async function getBlogPost(slug: string) {
@@ -785,18 +780,7 @@ export async function getBlogPost(slug: string) {
     return fallbackPost ? applyBlogSearchEnhancements(fallbackPost) : null;
   }
 
-  const supabase = createSupabaseAdminClient();
-  if (!supabase) {
-    const fallbackPost = getFallbackItem(sampleBlogPosts.find((post) => post.slug === slug) ?? null);
-    return fallbackPost ? applyBlogSearchEnhancements(fallbackPost) : null;
-  }
-
-  const { data } = await supabase
-    .from("blog_posts")
-    .select("*")
-    .eq("slug", slug)
-    .eq("status", "published")
-    .maybeSingle();
+  const data = await getPublishedRow("blog_posts", slug);
 
   if (!data) {
     const fallbackPost = getFallbackItem(sampleBlogPosts.find((post) => post.slug === slug) ?? null);
@@ -850,27 +834,24 @@ export async function getRecipes() {
     return Promise.all(getFallbackPublished(sampleRecipes).map(applyRecipeSearchEnhancements));
   }
 
-  const supabase = createSupabaseAdminClient();
-  if (!supabase) {
-    return Promise.all(getFallbackPublished(sampleRecipes).map(applyRecipeSearchEnhancements));
-  }
-
-  const { data } = await supabase
-    .from("recipes")
-    .select("*")
-    .eq("status", "published")
-    .order("published_at", { ascending: false });
+  const [data, runtime] = await Promise.all([
+    getPublishedRows("recipes"), getPublicSearchRuntimeOptimizations()
+  ]);
 
   if (!data?.length) {
     return Promise.all(getFallbackPublished(sampleRecipes).map(applyRecipeSearchEnhancements));
   }
 
-  return Promise.all(data.map(mapRecipeRow).map(applyRecipeSearchEnhancements));
+  return data.map(mapRecipeRow).map((recipe) => applyRecipeSearchOptimization(recipe, runtime?.recipes[recipe.slug]));
 }
 
 export async function getRecipe(slug: string) {
-  const recipes = await getRecipes();
-  return recipes.find((recipe) => recipe.slug === slug) ?? null;
+  if (!flags.hasSupabaseAdmin) {
+    const fallback = getFallbackItem(sampleRecipes.find((recipe) => recipe.slug === slug) ?? null);
+    return fallback ? applyRecipeSearchEnhancements(fallback) : null;
+  }
+  const row = await getPublishedRow("recipes", slug);
+  return row ? applyRecipeSearchEnhancements(mapRecipeRow(row)) : null;
 }
 
 export async function getAdminRecipes() {
@@ -915,14 +896,7 @@ export async function getAdminRecipeById(id: number) {
 export async function getReviews() {
   if (!flags.hasSupabaseAdmin) return getFallbackPublished(sampleReviews);
 
-  const supabase = createSupabaseAdminClient();
-  if (!supabase) return getFallbackPublished(sampleReviews);
-
-  const { data } = await supabase
-    .from("reviews")
-    .select("*")
-    .eq("status", "published")
-    .order("published_at", { ascending: false });
+  const data = await getPublishedRows("reviews");
 
   if (!data?.length) return getFallbackPublished(sampleReviews);
 
@@ -930,8 +904,11 @@ export async function getReviews() {
 }
 
 export async function getReview(slug: string) {
-  const reviews = await getReviews();
-  return reviews.find((review) => review.slug === slug) ?? null;
+  if (!flags.hasSupabaseAdmin) {
+    return getFallbackItem(sampleReviews.find((review) => review.slug === slug) ?? null);
+  }
+  const row = await getPublishedRow("reviews", slug);
+  return row ? mapReviewRow(row) : null;
 }
 
 export async function getAdminReviews() {

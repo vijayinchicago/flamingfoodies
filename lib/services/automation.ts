@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { invalidatePublishedContent } from "@/lib/services/published-content-cache";
 import { FLAMINGFOODIES_EDITORIAL_POLICY } from "@/lib/generation/editorial-policy";
 import { z } from "zod";
 
@@ -3110,6 +3111,7 @@ async function insertGeneratedRowWithCuisineFallback(
   };
 
   if (!result.error || !isInvalidCuisineEnumError(result.error)) {
+    if (!result.error && values.status === "published") invalidatePublishedContent(table);
     return result;
   }
 
@@ -3126,6 +3128,7 @@ async function insertGeneratedRowWithCuisineFallback(
     data: GeneratedContentInsertRow | null;
     error: PostgrestErrorLike;
   };
+  if (!result.error && values.status === "published") invalidatePublishedContent(table);
   return result;
 }
 
@@ -4288,6 +4291,7 @@ async function publishFromTable(
       .single();
 
     if (!error && data) {
+      invalidatePublishedContent(table);
       published.push({
         id: data.id,
         slug: data.slug,

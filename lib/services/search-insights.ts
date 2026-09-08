@@ -30,6 +30,7 @@ import {
 import { env, flags, hasConfiguredEnvValue } from "@/lib/env";
 import { shouldNoIndexPath } from "@/lib/indexing-policy";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { SEARCH_RUNTIME_KEY, getPublicSearchRuntimeValue, invalidatePublicSearchRuntime } from "@/lib/services/published-content-cache";
 import type { RecipeFaq } from "@/lib/types";
 
 export {
@@ -46,7 +47,7 @@ export type {
   SearchRuntimeOptimizations
 } from "@/lib/search-recommendation-workflow";
 
-const SEARCH_RUNTIME_OPTIMIZATIONS_KEY = "search_runtime_optimizations";
+const SEARCH_RUNTIME_OPTIMIZATIONS_KEY = SEARCH_RUNTIME_KEY;
 const SEARCH_CONSOLE_SCOPE = "https://www.googleapis.com/auth/webmasters.readonly";
 const SEARCH_CONSOLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const SEARCH_CONSOLE_API_BASE = "https://searchconsole.googleapis.com/webmasters/v3/sites";
@@ -731,6 +732,7 @@ async function saveRuntimeOptimizations(runtime: SearchRuntimeOptimizations | nu
   if (error) {
     throw new Error(`Failed to save runtime search optimizations: ${error.message}`);
   }
+  invalidatePublicSearchRuntime();
 }
 
 async function saveSearchInsightRun(input: {
@@ -1437,18 +1439,23 @@ export async function restoreSearchRuntimeOptimizationSnapshot(
   };
 }
 
+export async function getPublicSearchRuntimeOptimizations() {
+  if (!flags.hasSupabaseAdmin) return null;
+  return parseRuntimeOptimizations(await getPublicSearchRuntimeValue());
+}
+
 export async function getRuntimeBlogSearchOptimization(slug: string) {
-  const runtime = await getSearchRuntimeOptimizations();
+  const runtime = await getPublicSearchRuntimeOptimizations();
   return runtime?.blog[slug];
 }
 
 export async function getRuntimeRecipeSearchOptimization(slug: string) {
-  const runtime = await getSearchRuntimeOptimizations();
+  const runtime = await getPublicSearchRuntimeOptimizations();
   return runtime?.recipes[slug];
 }
 
 export async function getSearchLandingPageOptimization(path: string) {
-  const runtime = await getSearchRuntimeOptimizations();
+  const runtime = await getPublicSearchRuntimeOptimizations();
   return runtime?.pages[path] ?? null;
 }
 

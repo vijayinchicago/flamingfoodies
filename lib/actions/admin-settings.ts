@@ -7,6 +7,12 @@ import { z } from "zod";
 import { parseSettingValue } from "@/lib/admin-utils";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import {
+  EDITORIAL_TABLES,
+  SEARCH_RUNTIME_KEY,
+  invalidatePublishedContent,
+  invalidatePublicSearchRuntime
+} from "@/lib/services/published-content-cache";
 
 const settingSchema = z.object({
   key: z.string().min(1),
@@ -68,6 +74,8 @@ export async function updateSiteSettingAction(formData: FormData) {
     );
   }
 
+  if (parsed.data.key === SEARCH_RUNTIME_KEY) invalidatePublicSearchRuntime();
+
   await writeAuditLog(supabase, {
     adminId: admin.id,
     action: "update_site_setting",
@@ -81,4 +89,17 @@ export async function updateSiteSettingAction(formData: FormData) {
   revalidatePath("/admin/settings/general");
   revalidatePath("/admin/social/templates");
   redirect(`${parsed.data.redirectPath || "/admin/settings/general"}?updated=1`);
+}
+
+export async function refreshPublishedContentCacheAction() {
+  const admin = await requireAdmin();
+  for (const table of EDITORIAL_TABLES) invalidatePublishedContent(table);
+  invalidatePublicSearchRuntime();
+  await writeAuditLog(createSupabaseAdminClient(), {
+    adminId: admin.id,
+    action: "refresh_published_content_cache",
+    targetType: "cache",
+    targetId: "public_editorial"
+  });
+  redirect("/admin/settings/general?cacheRefreshed=1");
 }

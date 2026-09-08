@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { invalidatePublishedContent } from "@/lib/services/published-content-cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -1176,6 +1177,7 @@ export async function createBlogPostAction(formData: FormData) {
     redirect(`/admin/content/blog?error=${encodeURIComponent(error.message)}`);
   }
 
+  invalidatePublishedContent("blog_posts");
   await writeAuditLog(supabase, {
     adminId: admin.id,
     action: "create_blog_post",
@@ -1292,6 +1294,7 @@ export async function updateBlogPostAction(formData: FormData) {
     redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
   }
 
+  invalidatePublishedContent("blog_posts");
   await writeAuditLog(supabase, {
     adminId: admin.id,
     action: "edit_blog_post",
@@ -1377,6 +1380,7 @@ export async function updateBlogPostStateAction(formData: FormData) {
     redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
   }
 
+  invalidatePublishedContent("blog_posts");
   await writeAuditLog(supabase, {
     adminId: admin.id,
     action: "update_blog_post",
@@ -1541,6 +1545,7 @@ export async function createRecipeAction(formData: FormData) {
     redirect(`/admin/content/recipes?error=${encodeURIComponent(error.message)}`);
   }
 
+  invalidatePublishedContent("recipes");
   await writeAuditLog(supabase, {
     adminId: admin.id,
     action: "create_recipe",
@@ -1718,6 +1723,7 @@ export async function updateRecipeAction(formData: FormData) {
     redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
   }
 
+  invalidatePublishedContent("recipes");
   await writeAuditLog(supabase, {
     adminId: admin.id,
     action: "edit_recipe",
@@ -1830,6 +1836,7 @@ export async function updateRecipeStateAction(formData: FormData) {
     redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
   }
 
+  invalidatePublishedContent("recipes");
   if (parsed.data.intent === "publish" && recipeRowForPublish?.source === "ai_generated") {
     await ensureSocialPostsForPublishedContent({
       supabase,
@@ -1894,6 +1901,7 @@ export async function deletePendingReviewRecipesAction(formData: FormData) {
     if (deleteError) {
       redirect(`${redirectTo}?error=${encodeURIComponent(deleteError.message)}`);
     }
+    invalidatePublishedContent("recipes");
   }
 
   await writeAuditLog(supabase, {
@@ -2028,6 +2036,7 @@ export async function createReviewAction(formData: FormData) {
     redirect(`/admin/content/reviews?error=${encodeURIComponent(error.message)}`);
   }
 
+  invalidatePublishedContent("reviews");
   await writeAuditLog(supabase, {
     adminId: admin.id,
     action: "create_review",
@@ -2172,6 +2181,7 @@ export async function updateReviewAction(formData: FormData) {
     redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
   }
 
+  invalidatePublishedContent("reviews");
   await writeAuditLog(supabase, {
     adminId: admin.id,
     action: "edit_review",
@@ -2277,6 +2287,7 @@ export async function updateReviewStateAction(formData: FormData) {
     redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
   }
 
+  invalidatePublishedContent("reviews");
   if (parsed.data.intent === "publish" && reviewRowForPublish?.source === "ai_generated") {
     await ensureSocialPostsForPublishedContent({
       supabase,
@@ -2588,6 +2599,7 @@ export async function importSampleCatalogAction(formData: FormData) {
       redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
     }
 
+    invalidatePublishedContent("blog_posts");
     counts.blogs = sampleBlogPosts.length;
   }
 
@@ -2601,6 +2613,7 @@ export async function importSampleCatalogAction(formData: FormData) {
       redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
     }
 
+    invalidatePublishedContent("recipes");
     counts.recipes = sampleRecipes.length;
   }
 
@@ -2614,6 +2627,7 @@ export async function importSampleCatalogAction(formData: FormData) {
       redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
     }
 
+    invalidatePublishedContent("reviews");
     counts.reviews = sampleReviews.length;
   }
 
