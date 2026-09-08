@@ -124,7 +124,7 @@ export default async function AffordableHotSaucesPage() {
         <SectionHeading
           eyebrow="Under $15"
           title="The strongest budget pours."
-          copy="These bottles overdeliver for the money. Each pick earns its spot by being useful often, not just by being cheap once."
+          copy="Compare the listed prices, heat levels, and suggested pairings."
         />
         <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {underFifteen.map((review) => (

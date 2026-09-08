@@ -112,7 +112,7 @@ export default async function BestHotSaucesForTacosPage() {
         <SectionHeading
           eyebrow="Recommended bottles"
           title="Start with these taco-night winners."
-          copy="Each pick here earns its spot because it helps tacos taste clearer, brighter, or deeper."
+          copy="Compare peppers, acidity, and heat levels to find a sauce for your taco filling."
         />
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           {tacoSauces.map((review) => (

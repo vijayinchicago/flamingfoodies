@@ -131,7 +131,7 @@ export default async function BrandPage({ params }: { params: { slug: string } }
         </div>
         <div className="space-y-4">
           <div className="panel p-6">
-            <p className="eyebrow">Why it matters</p>
+            <p className="eyebrow">About the brand</p>
             <p className="mt-3 text-sm leading-7 text-charcoal/75">{brand.whyItMatters}</p>
           </div>
           <div className="rounded-[1.75rem] border border-ember/20 bg-ember/8 p-6">

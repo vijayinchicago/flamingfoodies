@@ -95,7 +95,7 @@ export default async function FlameClubPage() {
 
       <section className="container-shell pb-12 sm:pb-20">
         <div className="text-center">
-          <p className="eyebrow">What lands in your inbox</p>
+          <p className="eyebrow">In each newsletter</p>
           <h2 className="mt-3 font-display text-3xl text-charcoal sm:text-5xl">
             Three useful things, every week.
           </h2>
@@ -197,7 +197,7 @@ export default async function FlameClubPage() {
               Friday&apos;s recipe is already in the oven.
             </h2>
             <p className="mt-4 text-sm leading-7 text-charcoal/75 sm:text-base">
-              Drop your email below to get it. No spam, no stunts, no newsletter sludge.
+              Enter your email below to subscribe. You can unsubscribe at any time.
             </p>
             <div className="mt-8">
               <Suspense fallback={<div className="h-[120px]" />}>

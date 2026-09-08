@@ -377,7 +377,7 @@ export const sampleRecipes: Recipe[] = [
         body:
           "Slide the shrimp off the grill, rest for a minute, then hit them with scallions and plenty of lime so the plate stays bright against all that spice and smoke.",
         cue: "The final platter should smell spicy and citrusy, not just charred.",
-        tip: "Serve these with extra napkins and extra lime. Both earn their place.",
+        tip: "Serve these with extra napkins and extra lime.",
         durationMinutes: 2,
         ingredientRefs: ["limes", "scallions"]
       }
@@ -1793,7 +1793,7 @@ export const sampleRecipes: Recipe[] = [
     description:
       "Roasted salmon brushed with hot honey over rice, crunchy vegetables, and a cooling herbed yogurt sauce.",
     intro:
-      "This one lands in the sweet spot between meal-prep useful and dinner-party photogenic. Cajun seasoning and hot honey do the heavy lifting.",
+      "Cajun seasoning and hot honey flavor the salmon in these rice bowls.",
     heroSummary:
       "A glossy weeknight bowl with spiced salmon, sticky hot honey, cool yogurt, and enough fresh crunch to keep the whole thing balanced.",
     imageUrl:
@@ -2403,7 +2403,7 @@ export const sampleReviews: Review[] = [
     slug: "heatonist-los-calientes-rojo-review",
     title: "Heatonist Los Calientes Rojo Review",
     description:
-      "A balanced, smoky-red sauce that hits the sweet spot between everyday usability and enough bite to stay interesting.",
+      "Heatonist Los Calientes Rojo: flavor notes, heat level, and suggested food pairings.",
     productName: "Los Calientes Rojo",
     brand: "Heatonist",
     rating: 4.7,

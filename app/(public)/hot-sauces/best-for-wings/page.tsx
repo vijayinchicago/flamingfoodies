@@ -171,7 +171,7 @@ export default async function BestHotSaucesForWingsPage() {
 
       <HotSauceComparisonTable
         eyebrow="Wing-night comparison"
-        title="See which bottle earns the late-night slot."
+        title="Compare hot sauces for wings."
         copy="Compare the heat, flavor, and suggested pairings before choosing a sauce for your wings."
         rows={comparisonRows}
       />

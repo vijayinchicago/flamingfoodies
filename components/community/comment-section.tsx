@@ -78,7 +78,7 @@ export async function CommentSection({
           ))
         ) : (
           <div className="panel p-6 text-sm text-charcoal/55">
-            No comments yet. Be the first useful voice in the room.
+            No comments yet.
           </div>
         )}
       </div>

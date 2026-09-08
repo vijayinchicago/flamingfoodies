@@ -23,7 +23,7 @@ export function EmailCapture({
   tag = "homepage-hero",
   heading = "Join Flame Club",
   buttonLabel = "Join Flame Club",
-  successMessage = "You’re in. Expect weekly heat, not inbox sludge.",
+  successMessage = "You’re subscribed. Look out for the next newsletter.",
   description,
   defaultSegments = ["weekly-roundup"],
   segmentOptions = [],

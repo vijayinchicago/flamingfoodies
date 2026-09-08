@@ -326,7 +326,7 @@ export default async function ShopPage() {
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-ember/70 to-transparent" />
           <p className="eyebrow">Shop Smarter</p>
           <h1 className="mt-4 max-w-4xl font-display text-5xl leading-[0.92] text-charcoal sm:text-6xl xl:text-7xl">
-            Buy the bottle, tool, or gift that actually changes dinner.
+            Browse hot sauces, cooking tools, and gifts.
           </h1>
           <p className="mt-6 max-w-3xl text-lg leading-8 text-charcoal/78">
             Shop hot sauces, pantry staples, kitchen gear, and gift-ready picks chosen to make
@@ -502,7 +502,7 @@ export default async function ShopPage() {
           <CategorySpotlight
             id="best-bottle"
             eyebrow="Best Everyday Bottle"
-            title="Start with a bottle you will actually finish."
+            title="Compare hot sauces for everyday cooking."
             copy="Start with a versatile bottle first, then try brighter or hotter options if you want something more specific."
             lead={resolvedHotSauceLinks[0]}
             supporting={resolvedHotSauceLinks.slice(1, 3)}

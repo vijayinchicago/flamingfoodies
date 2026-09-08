@@ -41,7 +41,7 @@ function makeBlogPost(overrides: Partial<BlogPost> = {}): BlogPost {
     likeCount: 0,
     seoTitle: "How to Build a Better Starter Hot Sauce Shelf | FlamingFoodies",
     seoDescription:
-      "Build a smarter starter hot sauce shelf with everyday bottles, brighter sauces, and one serious heat option that actually earns its place.",
+      "Compare hot sauces for everyday cooking, including vinegar-forward options and hotter sauces, with suggested pairings for each.",
     cuisineType: "other",
     heatLevel: "medium",
     scovilleRating: 6,

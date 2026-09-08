@@ -320,7 +320,7 @@ export function RecipeEditorForm({
         <textarea
           name="heroSummary"
           defaultValue={recipe ? getRecipeHeroSummary(recipe) : ""}
-          placeholder="Hero summary / why this recipe lands"
+          placeholder="Recipe summary: main ingredients, texture, and preparation"
           rows={4}
           className="w-full rounded-2xl border border-charcoal/10 px-4 py-3 outline-none focus:border-ember"
         />

@@ -383,8 +383,7 @@ export function RecipeBrowseClient({
               A few good tools make spicy cooking easier to repeat.
             </h2>
             <p className="mt-4 text-sm leading-7 text-charcoal/75">
-              If a recipe earns a spot in your rotation, these are the pieces that help it come out
-              the way it should without making the kitchen feel overbuilt.
+              Compare these tools with the equipment listed in your chosen recipe.
             </p>
             <Link
               href="/shop"

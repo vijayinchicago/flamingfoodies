@@ -59,7 +59,7 @@ describe("generation prompts", () => {
     expect(prompt).toContain("Cuisine: thai");
     expect(prompt).toContain("Heat level: hot");
     expect(prompt).toContain("\"hero_image_query\"");
-    expect(prompt).toContain("Write with the voice of a sharp, experienced food editor");
+    expect(prompt).toContain("Do not imply firsthand cooking or testing");
     expect(prompt).toContain("clear, welcoming food writing");
   });
 
@@ -97,9 +97,9 @@ describe("generation prompts", () => {
   it("creates a blog prompt with category details", () => {
     const prompt = BLOG_POST_PROMPT({ category: "culture" });
     expect(prompt).toContain("Topic category: culture");
-    expect(prompt).toContain("at least 3 H2 subheadings");
-    expect(prompt).toContain("at least 1 short bullet or numbered list");
-    expect(prompt).toContain("Write like a strong magazine-style food writer");
+    expect(prompt).toContain("descriptive markdown H2 subheadings");
+    expect(prompt).toContain("list only where it helps explain the topic");
+    expect(prompt).toContain("Do not pad to reach a word count");
     expect(prompt).toContain("clear, welcoming food writing");
     expect(prompt).toContain("\"hero_image_query\"");
   });
@@ -108,7 +108,7 @@ describe("generation prompts", () => {
     const prompt = REVIEW_PROMPT({ category: "hot-sauce", cuisine_origin: "jamaican", heat_level: "hot" });
 
     expect(prompt).toContain("Product descriptions are not taste-test evidence");
-    expect(prompt).toContain("what the bottle tastes like");
+    expect(prompt).toContain("Attribute flavor and heat descriptions to the source");
     expect(prompt).toContain("Avoid macho heat language");
     expect(prompt).toContain("\"hero_image_query\"");
   });

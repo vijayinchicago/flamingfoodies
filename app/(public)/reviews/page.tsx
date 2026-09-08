@@ -141,7 +141,7 @@ export default async function ReviewsIndexPage({
         <div className="panel p-6 sm:p-8">
           <p className="eyebrow">Hot sauce map</p>
           <h2 className="mt-3 font-display text-3xl text-charcoal sm:text-4xl">
-            Find the right bottle faster, not just the loudest one.
+            Compare hot sauces by heat, flavor, and price.
           </h2>
           <p className="mt-4 text-sm leading-7 text-charcoal/75">
             This page should help you tell, at a glance, which sauces are everyday staples, which

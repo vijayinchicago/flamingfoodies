@@ -80,31 +80,31 @@ import { absoluteUrl, formatDate } from "@/lib/utils";
 
 const heatNotes: Record<HeatLevel, { title: string; copy: string }> = {
   mild: {
-    title: "Low-lift heat",
-    copy: "Flavor leads and the spice stays approachable, so the whole table can lean in."
+    title: "Mild heat",
+    copy: "The recipe is classified as mild. Adjust the chile quantity to your preference."
   },
   medium: {
-    title: "Balanced burn",
-    copy: "You get a real chile presence without blowing out the rest of the dish."
+    title: "Medium heat",
+    copy: "The recipe is classified as medium. Use less chile if you prefer milder food."
   },
   hot: {
-    title: "Assertive heat",
-    copy: "This one should feel exciting, not punishing, with enough punch to cut through rich bites."
+    title: "Hot",
+    copy: "The recipe is classified as hot. Check the chile quantities before you start."
   },
   inferno: {
-    title: "Serious firepower",
-    copy: "Built for spice people who still want the dish to taste complete and not one-note."
+    title: "Very hot",
+    copy: "The recipe is classified as inferno. Follow its guidance for reducing the heat."
   },
   reaper: {
-    title: "Challenge-level spice",
-    copy: "The heat is the event here, so keep your garnishes and sides ready to balance it."
+    title: "Extremely hot",
+    copy: "The recipe is classified as reaper-level heat. Measure hot sauces and chiles carefully."
   }
 };
 
 const difficultyNotes: Record<Recipe["difficulty"], string> = {
-  beginner: "Straightforward technique, forgiving timing, and a very manageable workflow.",
-  intermediate: "A little sequencing matters, but nothing here should feel restaurant-only.",
-  advanced: "There is some project energy here, but the payoff is exactly why the recipe is worth doing."
+  beginner: "Read the ingredient list and method before you start.",
+  intermediate: "Check the method for steps that need to be prepared at the same time.",
+  advanced: "Read through the method and equipment list before planning your cooking time."
 };
 
 function formatCookTime(minutes: number) {
@@ -179,46 +179,16 @@ function getPrintNoteBlocks(recipe: Recipe, substitutions: string[], servingSugg
 }
 
 function getProjectCard(recipe: Recipe) {
-  if (recipe.totalTimeMinutes >= 150) {
-    return {
-      title: "Weekend project payoff",
-      copy:
-        "Most of the clock is passive cooking, so the real job is getting your prep and assembly clean before the pot goes on."
-    };
-  }
-
-  if (recipe.totalTimeMinutes <= 35) {
-    return {
-      title: "Weeknight-capable heat",
-      copy: "This moves fast enough for a real dinner plan, not just a fantasy one."
-    };
-  }
-
   return {
-    title: "Planned but practical",
-    copy:
-      "Give yourself a little space to cook and this lands in the sweet spot between special and repeatable."
+    title: formatCookTime(recipe.totalTimeMinutes),
+    copy: `Prep: ${formatCookTime(recipe.prepTimeMinutes)}. Cook: ${formatCookTime(recipe.cookTimeMinutes)}.`
   };
 }
 
 function getOccasionCard(recipe: Recipe) {
-  if (recipe.servings >= 6) {
-    return {
-      title: "Built for a crowd",
-      copy: "This is the kind of recipe that pays you back when more people show up hungry."
-    };
-  }
-
-  if (recipe.servings <= 2) {
-    return {
-      title: "Dialed in for a smaller table",
-      copy: "The recipe reads intimate and focused, with just enough yield for a tight dinner."
-    };
-  }
-
   return {
-    title: "Great for repeat meals",
-    copy: "Cook once, eat well now, and still have enough left for another sharp meal."
+    title: `${recipe.servings} ${recipe.servings === 1 ? "serving" : "servings"}`,
+    copy: "The ingredient quantities below are for this yield."
   };
 }
 
@@ -672,7 +642,7 @@ export default async function RecipePage({
               <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-charcoal/35 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-6 sm:p-8">
                 <div className="rounded-[2rem] border border-white/10 bg-charcoal/75 p-6 backdrop-blur-md">
-                  <p className="text-xs uppercase tracking-[0.24em] text-ember">Why this one lands</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-ember">About this recipe</p>
                   <p className="mt-3 text-base leading-7 text-cream/85">{heroSummary}</p>
                   <div className="mt-5 grid grid-cols-2 gap-3 text-sm text-cream/85">
                     <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
@@ -845,27 +815,22 @@ export default async function RecipePage({
 
           <div className="min-w-0 space-y-8">
             <section className="recipe-print-section recipe-core-panel panel p-6 sm:p-8">
-              <p className="eyebrow">Why this recipe works</p>
+              <p className="eyebrow">Recipe notes</p>
               <h2 className="mt-3 font-display text-5xl text-charcoal">Before you cook</h2>
               <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_0.8fr]">
                 <div>
                   <p className="text-base leading-8 text-charcoal/80">{recipe.intro || heroSummary}</p>
-                  <p className="mt-4 text-base leading-8 text-charcoal/80">
-                    The goal here is not just heat. It is contrast, pacing, and texture: enough
-                    richness to feel satisfying, enough brightness to keep the plate moving, and
-                    enough chile character that the spice actually tastes like something.
-                  </p>
                 </div>
                 <div className="grid gap-4">
                 <div className="recipe-print-keep rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-5">
-                    <p className="text-xs uppercase tracking-[0.22em] text-ember">Best use</p>
+                    <p className="text-xs uppercase tracking-[0.22em] text-ember">Total time</p>
                     <p className="mt-2 font-display text-3xl text-charcoal">
-                      {recipe.totalTimeMinutes >= 90 ? "Slow meal, big payoff" : "Fast table win"}
+                      {projectCard.title}
                     </p>
                     <p className="mt-2 text-sm leading-7 text-charcoal/65">{projectCard.copy}</p>
                   </div>
                   <div className="recipe-print-keep rounded-[1.75rem] border border-charcoal/10 bg-charcoal/[0.04] p-5">
-                    <p className="text-xs uppercase tracking-[0.22em] text-ember">When to make it</p>
+                    <p className="text-xs uppercase tracking-[0.22em] text-ember">Yield</p>
                     <p className="mt-2 font-display text-3xl text-charcoal">{occasionCard.title}</p>
                     <p className="mt-2 text-sm leading-7 text-charcoal/65">{occasionCard.copy}</p>
                   </div>
@@ -923,8 +888,7 @@ export default async function RecipePage({
 
               {(substitutions.length || recipe.variations.length) ? (
                 <div className="recipe-print-section recipe-core-panel panel p-6 sm:p-7">
-                  <p className="eyebrow">Substitutions and variations</p>
-                  <h3 className="mt-3 font-display text-4xl text-charcoal">Remix without losing the point</h3>
+                  <h3 className="mt-3 font-display text-4xl text-charcoal">Substitutions and variations</h3>
                   <div className="mt-6 space-y-4">
                     {substitutions.map((substitution) => (
                       <div
@@ -975,8 +939,8 @@ export default async function RecipePage({
 
               {servingSuggestions.length ? (
                 <div className="recipe-print-section recipe-core-panel panel p-6 sm:p-7">
-                  <p className="eyebrow">Serve it like you mean it</p>
-                  <h3 className="mt-3 font-display text-4xl text-charcoal">Finish, pair, and plate</h3>
+                  <p className="eyebrow">At the table</p>
+                  <h3 className="mt-3 font-display text-4xl text-charcoal">Serving suggestions</h3>
                   <ul className="mt-6 space-y-4">
                     {servingSuggestions.map((suggestion) => (
                       <li
@@ -994,7 +958,7 @@ export default async function RecipePage({
             {faqs.length ? (
               <section id="faqs" className="recipe-print-section recipe-core-panel panel p-6 sm:p-7">
                 <p className="eyebrow">FAQ</p>
-                <h3 className="mt-3 font-display text-4xl text-charcoal">The repeat questions</h3>
+                <h3 className="mt-3 font-display text-4xl text-charcoal">Common questions</h3>
                 <div className="mt-6 space-y-4">
                   {faqs.map((faq) => (
                     <details
@@ -1042,7 +1006,7 @@ export default async function RecipePage({
                 defaultSegments={["recipe-club"]}
                 heading="Get more recipes like this every Friday."
                 buttonLabel="Join Flame Club"
-                description="One good spicy dinner, one honest bottle pick, and no inbox sludge."
+                description="A recipe, a hot sauce recommendation, and cooking advice each Friday."
               />
             </section>
           </div>
@@ -1063,12 +1027,12 @@ export default async function RecipePage({
             <p className="mt-3 text-sm leading-7 text-charcoal/80">{difficultyNotes[recipe.difficulty]}</p>
           </article>
           <article className="recipe-core-panel rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6">
-            <p className="text-xs uppercase tracking-[0.24em] text-ember">Cooking mode</p>
+            <p className="text-xs uppercase tracking-[0.24em] text-ember">Total time</p>
             <h2 className="mt-3 font-display text-3xl text-charcoal">{projectCard.title}</h2>
             <p className="mt-3 text-sm leading-7 text-charcoal/80">{projectCard.copy}</p>
           </article>
           <article className="recipe-core-panel rounded-[2rem] border border-charcoal/10 bg-charcoal/[0.04] p-6">
-            <p className="text-xs uppercase tracking-[0.24em] text-ember">Best moment</p>
+            <p className="text-xs uppercase tracking-[0.24em] text-ember">Yield</p>
             <h2 className="mt-3 font-display text-3xl text-charcoal">{occasionCard.title}</h2>
             <p className="mt-3 text-sm leading-7 text-charcoal/80">{occasionCard.copy}</p>
           </article>
@@ -1281,9 +1245,9 @@ export default async function RecipePage({
 
                   {resolvedGearLinks.length ? (
                     <div className="panel p-6 sm:p-7">
-                      <p className="eyebrow">Gear that pays off</p>
+                      <p className="eyebrow">Recommended equipment</p>
                       <h3 className="mt-3 font-display text-4xl text-charcoal">
-                        Tools that make this easier to repeat
+                        Cooking tools
                       </h3>
                       <div className="mt-6 space-y-4">
                         {resolvedGearLinks.map(({ link, resolved }) => (

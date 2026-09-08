@@ -46,14 +46,14 @@ Generate a complete recipe, clearly identifying any regional adaptations. Requir
 - The recipe must feel like a real dish a strong home cook could execute.
 - The finished dish should clearly fit the requested dish category without drifting into generic filler.
 - Prefer specificity over fluff. Use actual ingredients, doneness cues, timings, and finishing details.
-- Write with the voice of a sharp, experienced food editor who actually cooks: warm, confident, lightly opinionated, and concrete.
-- Let the intro, hero summary, tips, and FAQs sound human and specific, not templated or salesy.
-- Vary sentence length and rhythm so the writing does not sound machine-flat.
+- Describe this dish's ingredients, texture and preparation in plain language. Do not imply firsthand cooking or testing.
+- Keep the intro and hero summary brief and distinct. Each must add a specific detail about this dish, not interchangeable praise.
+- Use ordinary descriptive headings. Do not add slogans, contrived contrasts or a fixed three-part rhythm to create a voice.
 - Avoid generic filler phrases like "packed with flavor," "perfect for weeknights," "takes it to the next level," "bursting with," or "you'll love."
 - Do not fake personal anecdotes, testing claims, family stories, or restaurant memories.
 - Group ingredients into logical sections when the dish has components like marinade, sauce, garnish, slaw, glaze, salsa, or assembly.
 - Write at least 4 method steps with action-led titles, concise bodies, at least 1 timed step, and at least 2 sensory cues across the method.
-- Include make-ahead, storage, reheating, serving suggestions, substitutions, and FAQs.
+- Include make-ahead, storage, reheating, serving suggestions, substitutions, and FAQs only where useful and supported. Use empty arrays or empty strings for optional material rather than inventing it.
 - The hero_image_query must describe a plated finished dish photo, not a bottle shot or product shot.
 - The image_alt must describe the finished dish naturally.
 - Do not include any keys beyond the JSON schema below.
@@ -133,12 +133,13 @@ Target keywords: ${params.keywords?.join(", ") || "naturally relevant keywords"}
 
 Requirements:
 - Write a practical, publishable article, not a vague overview.
-- Use markdown with at least 3 H2 subheadings.
-- Aim for roughly 900-1400 words.
-- Include at least 1 short bullet or numbered list that improves scanability.
+- Use descriptive markdown H2 subheadings where they help organize the subject; do not pad the article to meet a heading quota.
+- Length should follow the available evidence and useful explanation. Do not pad to reach a word count.
+- Existing auto-publish checks require at least 450 words and three clear H2 sections. Choose a topic with enough supported detail to meet those checks naturally; if evidence is insufficient, leave it for review rather than inventing filler.
+- Use a short bullet or numbered list only where it makes a comparison or sequence easier to follow.
 - Keep the article specific to spicy food, hot sauce, peppers, heat, or spicy cooking culture.
-- Write like a strong magazine-style food writer with a clear point of view, not like a content farm or encyclopedia.
-- Sound human: vary sentence length, use concrete examples, and let the piece make specific judgments where appropriate.
+- Name the ingredients, techniques or documented facts that matter to this topic. Explain judgments using those details.
+- Use descriptive headings, not stock questions or slogans. Delete any paragraph that adds no information beyond the preceding text.
 - Avoid generic filler phrases like "packed with flavor," "perfect for," "takes it to the next level," "in all the right ways," "bursting with," or "you'll love."
 - Do not pad with thesis-restating transitions or empty setup paragraphs.
 - Do not invent first-hand experience, interviews, restaurant visits, or testing notes that did not happen.
@@ -150,7 +151,7 @@ Return ONLY valid JSON. Do not include any keys beyond the JSON schema below.
 {
   "title": "...",
   "description": "...",
-  "content": "full post content in markdown (900-1400 words, at least 3 H2 subheadings, includes at least 1 bullet or numbered list)",
+  "content": "article in markdown, with descriptive subheadings and a list only where it helps explain the topic",
   "category": "${params.category}",
   "tags": ["..."],
   "heat_level": "mild|medium|hot|inferno|reaper",
@@ -176,11 +177,11 @@ Cuisine origin: ${params.cuisine_origin || "choose a relevant origin if appropri
 Heat level: ${params.heat_level || "choose the most appropriate heat level"}
 
 Requirements:
-- Sound like a trusted friend with a sharp palate, not a product catalog or generic roundup.
-- Be concrete about what the bottle tastes like, where the heat lands, and what foods it actually suits.
+- Give evidence-based buying advice, with descriptive headings and clear limitations.
+- Attribute flavor and heat descriptions to the source unless supplied testing records support them. Explain food pairings as recommendations, not tasting evidence.
 - Make practical judgments about value, usefulness, and who should skip it.
 - Avoid macho heat language, filler, fake testing claims, or empty product hype.
-- Let the opening and closing paragraphs sound human, generous, and specific.
+- Open with the product's documented features. End only if there is a useful buying consideration to add; do not repeat the introduction.
 - The hero_image_query must describe the exact bottle or product photo, not a generic spicy-food scene.
 - If an affiliate_url is included, the image_alt must clearly describe the exact product image.
 ${params.product_focus
@@ -231,8 +232,8 @@ ${FLAMINGFOODIES_EDITORIAL_POLICY}
 Brand voice:
 - warm, generous, and family-table oriented
 - useful enough to send to a friend
-- food-obsessed without sounding corporate
-- specific, lightly opinionated, and never macho
+- describe only the dish or product details supplied; do not infer technique or tasting from a title
+- no interchangeable praise, slogans, invented anecdotes or macho heat language
 - use "🔥" at most once if heat genuinely matters
 
 Return JSON: { "caption": "...", "hashtags": ["..."] }`;

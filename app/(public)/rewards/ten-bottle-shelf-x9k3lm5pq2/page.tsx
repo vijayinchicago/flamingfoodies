@@ -8,7 +8,7 @@ export const revalidate = 3600;
 export const metadata = buildMetadata({
   title: "The Starter Shelf — Flame Club VIP Reward",
   description:
-    "The hot sauces that earn their space. Each one tested, with what it's good on, what to skip it for, and where to buy it cheapest. Flame Club Tier 2 reward.",
+    "A starter selection of hot sauces, with suggested pairings, buying considerations, and links to check current prices. Flame Club Tier 2 reward.",
   path: "/rewards/ten-bottle-shelf-x9k3lm5pq2",
   noIndex: true
 });
@@ -195,10 +195,8 @@ export default async function StarterShelfPage() {
               The Starter Shelf
             </h1>
             <p className="mt-4 text-base leading-7 text-charcoal/80 print:text-sm">
-              The hot sauces I&apos;d build a kitchen around if I were starting from
-              scratch tomorrow. Each one earns its space. For each, I&apos;ll tell
-              you what it&apos;s actually good on, what to skip it for, and where
-              the cheapest place to buy is.
+              A starter selection of hot sauces, with suggested pairings,
+              reasons to choose or skip each bottle, and links to check current prices.
             </p>
             <p className="mt-6 text-xs uppercase tracking-[0.22em] text-charcoal/55">
               You earned this with five Flame Club referrals · Edition 1

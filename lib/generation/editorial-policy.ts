@@ -5,6 +5,7 @@ export const FLAMINGFOODIES_EDITORIAL_POLICY = policy.rules.map((rule) => `- ${r
 
 const artifactPatterns = policy.artifactPatterns.map((pattern) => new RegExp(pattern, "i"));
 const fillerPatterns = policy.fillerPatterns.map((pattern) => new RegExp(pattern, "i"));
+const boilerplatePatterns = policy.boilerplatePatterns.map((pattern) => new RegExp(pattern, "i"));
 const planningJargonPatterns = policy.planningJargonPatterns.map((pattern) => new RegExp(pattern, "i"));
 
 // Scan copy, not provenance, URLs, internal QA messages or publishing metadata.
@@ -30,6 +31,23 @@ export function getEditorialCopyIssues(value: unknown): RecipeQaIssue[] {
     issues.push({ severity: "blocker", code: "editorial-stock-filler", message: `Replace stock praise with useful specifics: ${[...new Set(filler)].join(", ")}.` });
   }
   const jargon = pieces.flatMap((piece) => planningJargonPatterns.flatMap((pattern) => piece.match(pattern)?.[0] ?? []));
+  const boilerplate = pieces.flatMap((piece) => boilerplatePatterns.flatMap((pattern) => piece.match(pattern)?.[0] ?? []));
+  if (boilerplate.length) {
+    issues.push({ severity: "blocker", code: "editorial-template-filler", message: `Remove generic slogans or replace them with supported specifics: ${[...new Set(boilerplate)].join(", ")}.` });
+  }
+  const repeatedParagraph = pieces.some((piece) => {
+    const seen = new Set<string>();
+    return piece.split(/\n\s*\n/).some((paragraph) => {
+      const normalized = paragraph.trim().replace(/\s+/g, " ").toLowerCase();
+      if (normalized.length < 100) return false;
+      if (seen.has(normalized)) return true;
+      seen.add(normalized);
+      return false;
+    });
+  });
+  if (repeatedParagraph) {
+    issues.push({ severity: "blocker", code: "editorial-repeated-paragraph", message: "Remove the duplicated paragraph; do not restate the same explanation to fill space." });
+  }
   if (jargon.length) {
     issues.push({ severity: "blocker", code: "editorial-planning-jargon", message: `Replace internal planning jargon with reader-facing specifics: ${[...new Set(jargon)].join(", ")}.` });
   }

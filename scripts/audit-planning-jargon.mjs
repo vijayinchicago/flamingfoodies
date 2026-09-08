@@ -3,13 +3,19 @@ import fs from "node:fs";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
-const root = path.resolve("artifacts/editorial-cleanup/planning-jargon");
+const campaign = process.argv.find((arg) => arg.startsWith("--campaign="))?.split("=")[1] || "planning-jargon";
+if (!/^[a-z0-9-]+$/.test(campaign)) throw new Error("Invalid audit campaign name");
+const root = path.resolve("artifacts/editorial-cleanup", campaign);
 fs.mkdirSync(root, { recursive: true, mode: 0o700 });
 const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 const tables = ["recipes", "blog_posts", "reviews", "brands", "peppers", "festivals", "tutorials"];
 const excluded = /(?:url|slug|source|credit|license|disclosure|qa|author|reviewed|status|model|prompt|token|_id$|^id$|recipe_?lane)/i;
 const policy = JSON.parse(fs.readFileSync(new URL("../lib/generation/editorial-policy.json", import.meta.url), "utf8"));
-const suspect = new RegExp([...policy.planningJargonPatterns, "\\blanes?\\b", "follow-on activity"].join("|"), "igm");
+const suspect = new RegExp([
+  ...policy.planningJargonPatterns, "\\blanes?\\b", "follow-on activity",
+  ...(process.argv.includes("--style") ? [...policy.fillerPatterns, ...policy.boilerplatePatterns,
+    "\\b(?:sweet spot|hits different|in all the right ways|punch(?:es|ing)? above (?:its|their) weight)\\b"] : [])
+].join("|"), "igm");
 const leaves = (value, prefix = "") => typeof value === "string" ? [[prefix, value]] : value && typeof value === "object" ? Object.entries(value).filter(([key]) => !excluded.test(key)).flatMap(([key, child]) => leaves(child, prefix ? `${prefix}.${key}` : key)) : [];
 const read = (obj, key) => key.split(".").reduce((value, part) => value?.[part], obj);
 const save = (file, data) => fs.writeFileSync(file, JSON.stringify(data, null, 2) + "\n", { mode: 0o600 });
@@ -43,8 +49,11 @@ if (process.argv.includes("--apply")) {
     for (const edit of entry.edits) {
       if (!leaves(current).some(([key]) => key === edit.path)) throw new Error(`Protected path: ${edit.path}`);
       const field = edit.path.split(".")[0];
-      // This repair only changes narrative copy, never recipe procedures or quantities.
-      if (/^(?:ingredients|ingredient_sections|instructions|method_steps|.*time.*|servings|difficulty)$/.test(field)) throw new Error(`Protected recipe field: ${field}`);
+      // Only this known trailing editorial aside may be removed from a method tip.
+      // The serving instruction preceding it, all step bodies and quantities stay intact.
+      const removeTipAside = /^method_steps\.\d+\.tip$/.test(edit.path)
+        && edit.before === " Both earn their place." && edit.after === "";
+      if (/^(?:ingredients|ingredient_sections|instructions|method_steps|.*time.*|servings|difficulty)$/.test(field) && !removeTipAside) throw new Error(`Protected recipe field: ${field}`);
       const original = read(patch[field] === undefined ? current : patch, edit.path);
       if (!original.includes(edit.before) || original.split(edit.before).length !== 2) throw new Error(`Expected one exact match: ${entry.table}/${entry.id} ${edit.path}`);
       if (/https?:|\]\(/.test(edit.before + edit.after)) throw new Error("Do not alter links");

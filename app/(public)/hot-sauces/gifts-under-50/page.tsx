@@ -100,7 +100,7 @@ export default async function HotSauceGiftsUnderFiftyPage() {
           <p className="eyebrow">Quick gift — ships Prime</p>
           <h2 className="mt-3 font-display text-3xl text-charcoal">Hot Sauce Gift Box — $25–45</h2>
           <p className="mt-3 text-sm leading-7 text-charcoal/70">
-            A curated multi-bottle set that lands under budget and arrives ready to give. No wrapping gymnastics required.
+            A multi-bottle gift set. Check the current price and packaging before ordering.
           </p>
           <AffiliateLink
             href={resolvedGiftBox.href}

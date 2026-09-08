@@ -143,7 +143,7 @@ export default async function HomePage() {
       <section className="container-shell py-10">
         <SectionHeading
           eyebrow="Popular searches"
-          title="Start with the bottle question you actually have."
+          title="Find a hot sauce for your next meal."
           copy="Find a sauce for eggs, tacos or wings, compare prices, and learn what to look for on the label."
         />
         <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">

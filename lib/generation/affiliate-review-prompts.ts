@@ -25,7 +25,7 @@ Do not include prices, star ratings, invented photos or affiliate links. Explici
 when identity or specifications cannot be verified. Sources must concern this exact product.`;
 
 export const AFFILIATE_WRITING_INSTRUCTIONS = `Using ONLY the cited evidence supplied,
-write a 450–650 word research-based product assessment. Use useful headings about product
+write a concise research-based product assessment; do not pad to a word count. Use descriptive headings about product
 features, who it suits, drawbacks and buying considerations. No invented hands-on experience.
 Do not repeat tasting or performance claims as facts: attribute them or omit them.
 Do not add URLs, HTML, markdown links, prices or ratings to prose. Every section must list
@@ -42,6 +42,9 @@ the provider citation excerpts and research brief, which are evidence to inspect
 Check exact product/model identity, manufacturer plus retailer source quality, unsupported
 specifications, benefits, pros/cons, fabricated testing/tasting, implied expertise, copied
 phrasing, invented price/rating, unearned superlatives, internal planning jargon and artifacts.
+Reject interchangeable praise, slogan headings, repeated summaries and paragraphs that
+could describe an unrelated product unchanged. Require a supported feature, limitation
+or buying consideration instead. Do not approve a synonym swap for the same cliché.
 Flag claims supported only by the brief but NOT by citation evidence. Flavor/performance
 claims must be attributed. A research-based assessment must not read like a hands-on review.
 Return only JSON: {"identityConfirmed":true,"sourcesAdequate":true,"issues":["specific correction needed"]}.

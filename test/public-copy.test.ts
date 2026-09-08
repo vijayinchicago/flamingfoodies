@@ -13,15 +13,15 @@ function sourceFiles(dir: string): string[] {
 }
 
 describe("public template copy", () => {
-  it("does not expose lane metaphors or known content-planning jargon", () => {
+  it("does not expose planning jargon or known stock editorial slogans", () => {
     const files = [
       ...sourceFiles("app/(public)"), ...sourceFiles("components"),
       "lib/sample-data/index.ts", "lib/brands.ts", "lib/peppers.ts", "lib/festivals.ts",
       "lib/tutorials.ts", "lib/shop.ts", "lib/hot-sauces.ts", "lib/recipe-commerce.ts",
       "lib/recipe-editorial-sections.ts", "lib/editorial-franchises.ts", "lib/newsletter-segments.ts",
-      "lib/search-content-optimizations.ts"
+      "lib/search-content-optimizations.ts", "lib/recipes.ts"
     ];
-    const patterns = [/(?:^|\s)lanes?(?=[.!?,;:\s]|$)/i, ...policy.planningJargonPatterns.map((pattern) => new RegExp(pattern, "i"))];
+    const patterns = [/(?:^|\s)lanes?(?=[.!?,;:\s]|$)/i, ...[...policy.planningJargonPatterns, ...policy.boilerplatePatterns].map((pattern) => new RegExp(pattern, "i"))];
     const failures: string[] = [];
     for (const file of files) {
       const source = ts.createSourceFile(file, fs.readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);

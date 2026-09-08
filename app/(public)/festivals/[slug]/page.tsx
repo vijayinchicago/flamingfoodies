@@ -222,7 +222,7 @@ export default async function FestivalPage({ params }: { params: { slug: string 
       {/* Editorial + Expect two-col */}
       <div className="mt-12 grid gap-6 lg:grid-cols-2">
         <div className="panel p-8">
-          <p className="eyebrow">Why it matters</p>
+          <p className="eyebrow">About the festival</p>
           <p className="mt-4 text-sm leading-8 text-charcoal/75">{festival.editorialNote}</p>
         </div>
         <div className="panel p-8">

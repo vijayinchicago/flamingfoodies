@@ -60,6 +60,40 @@ describe("shared editorial copy checks", () => {
     })).toEqual([]);
   });
 
+  it.each([
+    "Why this one lands", "Fast table win", "Slow meal, big payoff",
+    "Remix without losing the point", "Serve it like you mean it",
+    "Gear that pays off", "No inbox sludge", "Keep the plate moving",
+    "Each bottle earns its place", "The recipe reads intimate and focused",
+    "Why Thai Heat Just Hits Different"
+  ])("blocks recurring editorial slogans: %s", (text) => {
+    expect(getEditorialCopyIssues({ sections: [{ heading: text }] })).toContainEqual(
+      expect.objectContaining({ code: "editorial-template-filler", severity: "blocker" })
+    );
+    expect(() => assertEditorialCopy({ seo_description: text })).toThrow("generic slogans");
+  });
+
+  it("allows descriptive technique explanations and ordinary culinary language", () => {
+    expect(getEditorialCopyIssues({
+      content: "## Why this recipe works\n\nToasting the cumin in oil adds aroma to the beans. The lime adds acidity to the sauce. Cook for 10 minutes—then check the texture.",
+      title: "A quick dinner with rice and beans",
+      disclosure: "The previous heading was Why this one lands.",
+      imageCredit: "Serve it like you mean it / licensed photograph"
+    })).toEqual([]);
+  });
+
+  it("blocks repeated long paragraphs within a single body", () => {
+    const paragraph = "Drain the beans before adding them to the pan. Stir gently to coat them with the cumin oil, then add the rice and water.";
+    expect(getEditorialCopyIssues({ content: `${paragraph}\n\n## Method\n\n${paragraph.toUpperCase()}` })).toContainEqual(
+      expect.objectContaining({ code: "editorial-repeated-paragraph", severity: "blocker" })
+    );
+  });
+
+  it("does not mistake short labels or metadata reuse for duplicate body paragraphs", () => {
+    const description = "Drain the beans before adding them to the pan. Stir gently to coat them with the cumin oil, then add the rice and water.";
+    expect(getEditorialCopyIssues({ description, seo_description: description, content: "Ingredients\n\nIngredients" })).toEqual([]);
+  });
+
   it("shares the rules across prompt templates", () => {
     expect(RECIPE_PROMPT({ cuisine_type: "mexican", heat_level: "medium" })).toContain(FLAMINGFOODIES_EDITORIAL_POLICY);
     expect(SOCIAL_CAPTION_PROMPT({ type: "recipe", title: "Salsa" }, "instagram")).toContain(FLAMINGFOODIES_EDITORIAL_POLICY);

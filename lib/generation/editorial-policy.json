@@ -5,6 +5,10 @@
     "Keep introductions brief and specific to this dish or topic. Vary structure according to the subject, not by mechanically varying punctuation. No padded conclusions, rhetorical hooks in every paragraph, SEO jargon, stock anecdotes or repetitive three-part lists. Never pad to meet a word count.",
     "Avoid stock praise: packed with flavor, bursting with flavor, mouthwatering, culinary journey, tantalizing, game-changer, flavor explosion, taste buds dancing, elevate your cooking, take it to the next level, perfect for any occasion. Replace praise with an actual ingredient, texture or useful detail; do not simply substitute another cliché.",
     "Keep internal content-planning language out of reader copy, headings, metadata, captions and emails. Never call a cuisine, flavor, recipe category, heat level, newsletter or shopping choice a lane. Do not expose search intent, content pillars or clusters, keyword strategy, audience segments, conversion funnels, engagement signals, why-buy cases, content surfaces or editorial franchises. Name the actual dish, flavor, subject, reader action or newsletter instead. Do not mechanically swap lane for journey, pathway or ecosystem. Literal street names, attributed quotations and technical metadata are not editorial metaphors. Planning inputs and source drafts may contain this jargon; do not echo it.",
+    "Use descriptive headings such as Ingredients, Method, Substitutions, Storage, Serving suggestions, and Buying considerations. Do not use vague slogans such as Why this one lands, Fast table win, Slow meal big payoff, Remix without losing the point, Serve it like you mean it, Gear that pays off, or No inbox sludge. Remove a redundant heading instead of replacing it with a different slogan.",
+    "Apply the specificity test to every introduction, summary, heading and recommendation: if it could describe several unrelated dishes or products unchanged, delete it or replace it with a supported ingredient, technique, texture, timing, limitation or buying consideration. Do not repeat generic paragraphs about balance, contrast, pacing, texture, brightness, richness, payoff, or earning a place in a rotation. These words are allowed when they convey a specific supported detail; ordinary punctuation is not an authorship test.",
+    "Do not manufacture a personality by adding actually, real, honest, sharp, punchy, dialed-in, or not just X but Y to every section. Use a conversational voice through clear explanations and relevant choices. Why this recipe works is appropriate only when followed by a supported explanation of this recipe's technique, not generic praise. Never replace a cliché with a synonym and call it a revision.",
+    "Do not infer hands-off cooking from total time, leftovers from serving count, universal spice tolerance from a heat label, or product value from affiliate availability. Use the supplied active time, yield, recipe method or cited product evidence. Omit optional FAQs, tips and supporting sections when there is nothing useful and supported to add; do not fill a word-count quota.",
     "Never invent firsthand cooking, taste tests, family memories, travel, interviews, credentials, awards, source quotations, research or scientific mechanisms. A supplied draft is not evidence for a claim. Omit unsupported physiology and health benefits. Identify adaptations instead of claiming that every recipe is authentic or traditional.",
     "Product descriptions are not taste-test evidence. Attribute manufacturer claims, qualify unverified information, and avoid invented prices, rankings or comparative testing. Keep affiliate disclosures, source links, image credits, licensing information and accurate automation/editorial-pen-name disclosures intact.",
     "For research, verify current product, event and record claims against primary sources. Preserve sources in the requested source fields or ordinary links where the schema permits. If required facts cannot be verified, omit the candidate rather than guess. Do not turn provider citation tokens into fake references.",
@@ -32,6 +36,16 @@
     "\\b(?:conversion funnels?|engagement signals?|ingredient signals?|audience segments?|keyword strategy|why[ -]buy case|email capture|content-planning|use cases?|shopping paths?|buying paths?|more paths|pillar guides?)\\b",
     "^\\s*pillar\\s*$",
     "\\b(?:lands? here from search|found this while looking|search-style guides?|cooking layer|editorial library|trust links|coverage beats|how this work gets framed|shopping rail|highest-signal buys|why readers stick|editorial that|evergreen (?:guides?|explainers?|reference))\\b"
+  ],
+  "boilerplatePatterns": [
+    "\\bwhy (?:this|that) (?:one|recipe|dish|bottle) lands\\b",
+    "\\bwhy [^\\n.!?]{0,50}hits different\\b",
+    "\\b(?:fast table win|slow meal,? big payoff|weekend project payoff|weeknight-capable heat|low-lift heat|project energy)\\b",
+    "\\b(?:remix without losing the point|serve it like you mean it|gear that pays off|the repeat questions|first useful voice in the room)\\b",
+    "\\b(?:inbox|newsletter) sludge\\b",
+    "\\b(?:sweet spot between special and repeatable|real dinner plan,? not just a fantasy one|another sharp meal|the recipe reads intimate and focused)\\b",
+    "\\b(?:contrast, pacing, and texture|keep the plate moving|the heat is the event here|no wrapping gymnastics required)\\b",
+    "\\b(?:earns? (?:its|a|their) (?:spot|place|space)|pays? (?:you )?back)\\b"
   ],
   "fillerPatterns": [
     "\\bpacked with flavou?r\\b",

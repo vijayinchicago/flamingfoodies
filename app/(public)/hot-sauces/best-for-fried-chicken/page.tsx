@@ -151,7 +151,7 @@ export default async function BestHotSaucesForFriedChickenPage() {
           <p className="eyebrow">Quick buying rule</p>
           <h2 className="mt-3 font-display text-4xl text-charcoal">Start with vinegar, garlic, or hot honey.</h2>
           <ul className="mt-5 space-y-3 text-sm leading-7 text-charcoal/70">
-            <li>Vinegar-forward sauces cut rich breading fast and keep the plate moving.</li>
+            <li>Vinegar-forward sauces add acidity to fried chicken.</li>
             <li>Garlic-heavy bottles work especially well on sandwiches, tenders, and fries.</li>
             <li>Hot honey is best when you want sweet heat, crisp edges, and late-night utility.</li>
             <li>One serious heat bottle is enough; most fried chicken does better with flavor first.</li>
@@ -185,7 +185,7 @@ export default async function BestHotSaucesForFriedChickenPage() {
 
       <HotSauceComparisonTable
         eyebrow="Fried-chicken comparison"
-        title="See which bottle earns space next to the crispy stuff."
+        title="Compare sauces for fried chicken."
         copy="This is the quick-buy table for fried chicken, hot sandwiches, tenders, and cutlets when you want better contrast instead of random heat."
         rows={comparisonRows}
       />
@@ -195,7 +195,7 @@ export default async function BestHotSaucesForFriedChickenPage() {
           <SectionHeading
             eyebrow="Cook with them"
             title="Recipes for fried-chicken night."
-            copy="If the bottle works here, it should pay you back on a sandwich or another crispy chicken dinner immediately."
+            copy="Try these fried chicken recipes with your chosen sauce."
           />
           <div className="mt-8 grid gap-6 lg:grid-cols-3">
             {friedChickenRecipes.map((recipe) => (

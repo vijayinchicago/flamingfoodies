@@ -75,7 +75,7 @@ export default async function BestHotSaucesPage() {
       />
       <SectionHeading
         eyebrow="Best hot sauces"
-        title="The bottles we would actually tell someone to buy first."
+        title="Hot sauces to consider for your first purchase."
         copy="This page is the short list: bottles with real repeat-use value, not just one-hot-bite novelty. If someone asks what belongs in a first serious hot sauce lineup, start here."
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
@@ -273,7 +273,7 @@ export default async function BestHotSaucesPage() {
       </div>
 
       <ShareBar
-        title="Best Hot Sauces — The bottles we would actually tell someone to buy first."
+        title="Best Hot Sauces"
         description="The short list: bottles with real repeat-use value, from everyday pours to bigger hitters that still taste good."
         url={absoluteUrl("/hot-sauces/best")}
         contentType="hot-sauce-list"

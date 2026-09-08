@@ -94,23 +94,28 @@ function buildPrompt(input: {
 BRAND VOICE
 - Warm, conversational, practical, flavor-first.
 - Like a friend texting you a recipe and a hot sauce pick. Not corporate. Not hype.
-- Specific, opinionated, useful. Short sentences. Signed by Vijay.
+- Use the supplied recipe and product details. Signed by Vijay; do not invent his experiences or opinions.
 - Never use exclamation points more than once. Avoid em-dashes back to back. No "in a world where" cliches.
 
 EMAIL STRUCTURE (strict — three sections, in this order)
 1. ONE RECIPE WORTH COOKING (2-3 sentences on why this one + a one-line "PRO TIP")
 2. ONE BOTTLE WORTH OPENING (2-3 sentences: what it's good on, what to skip it for)
-3. ONE THING WORTH KNOWING (60-80 word kitchen-spice fact, tip, or myth-buster)
+3. ONE THING WORTH KNOWING (a brief note grounded in the supplied content; no word-count padding)
+
+EVIDENCE LIMITS
+- The candidates contain summaries, not complete recipes or testing reports. Do not invent cooking steps, temperatures, storage advice, tasting results, or scientific claims from a title.
+- A pro tip must be supported by the supplied description. If none is available, use a practical reading reminder such as checking the recipe's ingredient list before shopping.
+- For the final note, explain a supplied detail or how to use the linked recipe/review. Do not invent a fact or myth-buster to fill the section.
 
 SUBJECT LINE
 - Format: "Flame Club Friday — [hook]"
-- Examples: "Flame Club Friday — the dinner that almost didn't ship", "Flame Club Friday — the bottle I was wrong about"
-- Hook should be specific and curiosity-driven, not a topic label.
+- Name the featured dish, ingredient or documented product feature. Do not invent behind-the-scenes stories or personal reversals.
+- Use a descriptive subject, not a curiosity gap or vague promise.
 
 PREVIEW TEXT
 - ~80 chars max. Builds on the subject. Hints at value, doesn't restate it.
 
-CANDIDATES — pick the strongest of each (your judgment). Prefer specificity, contrast, and recipes/bottles you can write opinionated copy about.
+CANDIDATES — choose one recipe and one review with enough supplied detail for a useful summary.
 
 RECIPES:
 ${recipesBlock}
@@ -129,7 +134,7 @@ Output only a single JSON object with these exact keys (no markdown fences, no c
   "review_slug": "<slug from candidates>",
   "review_title": "<title from candidates>",
   "review_intro": "2-3 sentences",
-  "one_thing_worth_knowing": "60-80 words"
+  "one_thing_worth_knowing": "A brief supported note or practical reading reminder"
 }`;
 }
 

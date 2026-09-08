@@ -59,7 +59,7 @@ export default async function BestHotSaucesForPizzaPage() {
       />
       <SectionHeading
         eyebrow="Hot sauces for pizza"
-        title="Best Hot Sauces for Pizza — The bottles that make pizza more addictive, not just hotter."
+        title="Best Hot Sauces for Pizza"
         copy="Pizza rewards cling, sweetness, garlic, and controlled aggression. These are the sauces and condiments that improve the slice instead of just dominating it."
       />
       <AffiliateDisclosure className="mt-6 max-w-3xl" compact />
