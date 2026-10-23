@@ -408,7 +408,7 @@ export default async function RecipePage({
   ].filter(Boolean) as Array<{ label: string; value: string }>;
 
   return (
-    <article className="container-shell overflow-x-clip py-10 sm:py-16">
+    <article className="recipe-page container-shell overflow-x-clip py-10 sm:py-16">
       <RecipeSchema recipe={recipe} />
       <FaqSchema faqs={faqs} />
       <BreadcrumbSchema
@@ -420,6 +420,15 @@ export default async function RecipePage({
       />
 
       <section className="recipe-print-header print-only">
+        <Image
+          className="recipe-print-photo"
+          src={hero.imageUrl}
+          alt={hero.imageAlt || recipe.title}
+          width={240}
+          height={160}
+          loading="eager"
+          unoptimized
+        />
         <p className="eyebrow">FlamingFoodies recipe</p>
         <h1 className="mt-3 font-display text-5xl text-charcoal">{recipe.title}</h1>
         <p className="mt-4 max-w-4xl text-lg leading-8 text-charcoal/80">{recipe.description}</p>

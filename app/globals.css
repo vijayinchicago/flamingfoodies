@@ -172,6 +172,12 @@ a {
     display: none !important;
   }
 
+  .recipe-page {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    overflow: visible !important;
+  }
+
   .container-shell {
     max-width: none !important;
     padding-left: 0 !important;
@@ -200,9 +206,32 @@ a {
   }
 
   .recipe-print-header {
+    display: flow-root !important;
+    break-inside: avoid;
     margin-bottom: 0.9rem;
     border-bottom: 2px solid #111111;
     padding-bottom: 0.7rem;
+  }
+
+  .recipe-print-photo {
+    float: right;
+    width: 1.65in;
+    height: 1.1in;
+    margin: 0 0 0.5rem 0.75rem;
+    object-fit: cover;
+    border-radius: 0.35rem;
+  }
+
+  .recipe-print-header h1 {
+    margin-top: 0.35rem;
+    font-size: 24pt;
+    line-height: 1.1;
+  }
+
+  .recipe-print-header > p {
+    margin-top: 0.45rem;
+    font-size: 10pt;
+    line-height: 1.35;
   }
 
   .recipe-print-header h1,
@@ -212,6 +241,8 @@ a {
   }
 
   .recipe-print-meta {
+    clear: both;
+    margin-top: 0.6rem;
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.35rem;
@@ -244,10 +275,11 @@ a {
   }
 
   .recipe-print-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
-    gap: 0.7rem;
-    align-items: start;
+    display: block;
+  }
+
+  .recipe-print-card + .recipe-print-card {
+    margin-top: 0.7rem;
   }
 
   .recipe-print-card,
@@ -257,12 +289,16 @@ a {
     border: 1px solid #d6d0ca;
     border-radius: 0.85rem;
     padding: 0.6rem 0.7rem;
-    break-inside: avoid;
-    page-break-inside: avoid;
+    break-inside: auto;
+    page-break-inside: auto;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
   }
 
   .recipe-print-card h2,
   .recipe-print-note-card h3 {
+    break-after: avoid;
+    page-break-after: avoid;
     margin: 0 0 0.45rem;
     font-family: Georgia, serif;
     font-size: 1rem;
