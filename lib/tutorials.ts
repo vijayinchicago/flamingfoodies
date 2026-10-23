@@ -330,24 +330,11 @@ function rowToTutorial(row: TutorialRow): Tutorial {
 
 export async function getTutorialsFromDb(): Promise<Tutorial[]> {
   try {
-    const { createSupabaseServerClient } = await import("@/lib/supabase/server");
-    const supabase = createSupabaseServerClient();
-    if (!supabase) return TUTORIALS;
-    const { data, error } = await supabase
-      .from("tutorials").select("*").eq("status", "published").order("title");
-    if (error || !data || data.length === 0) return TUTORIALS;
-    return (data as TutorialRow[]).map(rowToTutorial);
+    const { getPublicReferenceRows } = await import("@/lib/services/public-reference-cache");
+    const rows = await getPublicReferenceRows("tutorials");
+    return rows.length ? (rows as TutorialRow[]).map(rowToTutorial).sort((a, b) => a.title.localeCompare(b.title)) : TUTORIALS;
   } catch { return TUTORIALS; }
 }
-
 export async function getTutorialFromDb(slug: string): Promise<Tutorial | undefined> {
-  try {
-    const { createSupabaseServerClient } = await import("@/lib/supabase/server");
-    const supabase = createSupabaseServerClient();
-    if (!supabase) return getTutorialBySlug(slug);
-    const { data, error } = await supabase
-      .from("tutorials").select("*").eq("slug", slug).eq("status", "published").single();
-    if (error || !data) return getTutorialBySlug(slug);
-    return rowToTutorial(data as TutorialRow);
-  } catch { return getTutorialBySlug(slug); }
+  return (await getTutorialsFromDb()).find(item => item.slug === slug);
 }

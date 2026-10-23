@@ -1,5 +1,6 @@
 "use server";
 
+import { invalidatePublicReferences } from "@/lib/services/public-reference-cache";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -49,6 +50,7 @@ export async function updateFestivalStateAction(formData: FormData) {
     if (error) {
       redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
     }
+    invalidatePublicReferences("festivals");
     for (const p of paths()) revalidatePath(p);
     revalidatePath(`/festivals/${parsed.data.slug}`);
     redirect(`${redirectTo}?deleted=${encodeURIComponent(parsed.data.slug)}`);
@@ -64,6 +66,7 @@ export async function updateFestivalStateAction(formData: FormData) {
     redirect(`${redirectTo}?error=${encodeURIComponent(error.message)}`);
   }
 
+  invalidatePublicReferences("festivals");
   for (const p of paths()) revalidatePath(p);
   revalidatePath(`/festivals/${parsed.data.slug}`);
   redirect(

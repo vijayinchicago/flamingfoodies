@@ -1,34 +1,116 @@
 {
   "crons": [
-    { "path": "/api/admin/generate?type=recipe&qty=3", "schedule": "0 6 * * *" },
+    {
+      "path": "/api/admin/generate?type=recipe&qty=1",
+      "schedule": "0 6 * * *"
+    },
     {
       "path": "/api/admin/generate?type=recipe&qty=1&profile=hot_sauce_recipe",
       "schedule": "0 9 * * 1"
     },
-    { "path": "/api/admin/generate?type=blog_post&qty=1", "schedule": "0 7 * * *" },
-    { "path": "/api/admin/generate?type=merch_product&qty=1", "schedule": "0 11 * * *" },
-    { "path": "/api/admin/shop-refresh", "schedule": "30 23 * * *" },
-    { "path": "/api/admin/affiliate-reviews/cron", "schedule": "0 8 * * 1,4" },
-    { "path": "/api/admin/reevaluate-ai-drafts", "schedule": "45 17 * * *" },
-    { "path": "/api/admin/prepublish-qa", "schedule": "55 17 * * *" },
-    { "path": "/api/admin/publish-scheduled", "schedule": "0 18 * * *" },
-    { "path": "/api/admin/editorial-performance-evaluator/cron", "schedule": "45 18 * * *" },
-    { "path": "/api/admin/growth-loop", "schedule": "30 18 * * *" },
-    { "path": "/api/admin/social-scheduler", "schedule": "15 19 * * *" },
-    { "path": "/api/admin/social-distribution-evaluator/cron", "schedule": "45 20 * * *" },
-    { "path": "/api/admin/shop-performance-evaluator/cron", "schedule": "30 0 * * *" },
-    { "path": "/api/admin/newsletter-digest?mode=autonomous_friday", "schedule": "0 13 * * 5" },
-    { "path": "/api/admin/mailerlite-stats", "schedule": "0 14 * * *" },
-    { "path": "/api/admin/subscriber-reconcile", "schedule": "0 11 * * 0" },
-    { "path": "/api/admin/referral-evaluator", "schedule": "0 12 * * 1" },
-    { "path": "/api/admin/search-insights", "schedule": "30 12 * * 1" },
-    { "path": "/api/admin/search-insights-executor/cron", "schedule": "0 13 * * *" },
-    { "path": "/api/admin/search-performance-evaluator/cron", "schedule": "30 13 * * *" },
-    { "path": "/api/admin/content-shop-sync", "schedule": "0 12 * * *" },
-    { "path": "/api/admin/festival-discovery",  "schedule": "0 2 * * *" },
-    { "path": "/api/admin/pepper-discovery",    "schedule": "0 3 * * 1" },
-    { "path": "/api/admin/brand-discovery",     "schedule": "0 4 * * 1" },
-    { "path": "/api/admin/release-monitor",     "schedule": "15 4 * * 1" },
-    { "path": "/api/admin/tutorial-generate",   "schedule": "0 5 * * 3" }
+    {
+      "path": "/api/admin/generate?type=blog_post&qty=1",
+      "schedule": "0 7 * * *"
+    },
+    {
+      "path": "/api/admin/generate?type=merch_product&qty=1",
+      "schedule": "0 11 * * *"
+    },
+    {
+      "path": "/api/admin/shop-refresh",
+      "schedule": "30 23 * * *"
+    },
+    {
+      "path": "/api/admin/affiliate-reviews/cron",
+      "schedule": "0 8 * * 1,4"
+    },
+    {
+      "path": "/api/admin/reevaluate-ai-drafts",
+      "schedule": "45 17 * * *"
+    },
+    {
+      "path": "/api/admin/prepublish-qa",
+      "schedule": "55 17 * * *"
+    },
+    {
+      "path": "/api/admin/publish-scheduled",
+      "schedule": "0 18 * * *"
+    },
+    {
+      "path": "/api/admin/editorial-performance-evaluator/cron",
+      "schedule": "45 18 * * *"
+    },
+    {
+      "path": "/api/admin/growth-loop",
+      "schedule": "30 18 * * *"
+    },
+    {
+      "path": "/api/admin/social-scheduler",
+      "schedule": "15 19 * * *"
+    },
+    {
+      "path": "/api/admin/social-distribution-evaluator/cron",
+      "schedule": "45 20 * * *"
+    },
+    {
+      "path": "/api/admin/shop-performance-evaluator/cron",
+      "schedule": "30 0 * * *"
+    },
+    {
+      "path": "/api/admin/newsletter-digest?mode=autonomous_friday",
+      "schedule": "0 13 * * 5"
+    },
+    {
+      "path": "/api/admin/mailerlite-stats",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/admin/subscriber-reconcile",
+      "schedule": "0 11 * * 0"
+    },
+    {
+      "path": "/api/admin/referral-evaluator",
+      "schedule": "0 12 * * 1"
+    },
+    {
+      "path": "/api/admin/search-insights",
+      "schedule": "30 12 * * 1"
+    },
+    {
+      "path": "/api/admin/search-insights-executor/cron",
+      "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/admin/search-performance-evaluator/cron",
+      "schedule": "30 13 * * *"
+    },
+    {
+      "path": "/api/admin/content-shop-sync",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/admin/festival-discovery",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/admin/pepper-discovery",
+      "schedule": "0 3 * * 1"
+    },
+    {
+      "path": "/api/admin/brand-discovery",
+      "schedule": "0 4 * * 1"
+    },
+    {
+      "path": "/api/admin/release-monitor",
+      "schedule": "15 4 * * 1"
+    },
+    {
+      "path": "/api/admin/tutorial-generate",
+      "schedule": "0 5 * * 3"
+    },
+    {
+      "path": "/api/admin/automation-health",
+      "schedule": "0 22 * * *"
+    }
   ]
 }

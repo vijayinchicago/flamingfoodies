@@ -1,3 +1,4 @@
+import { REFERENCE_TABLES, invalidatePublicReferences } from "@/lib/services/public-reference-cache";
 import { requireCronAuthorization } from "@/lib/cron";
 import {
   EDITORIAL_TABLES,
@@ -14,5 +15,6 @@ export async function POST(request: Request) {
   if (unauthorized) return unauthorized;
   for (const table of EDITORIAL_TABLES) invalidatePublishedContent(table);
   invalidatePublicSearchRuntime();
+  for (const table of REFERENCE_TABLES) invalidatePublicReferences(table);
   return Response.json({ ok: true, invalidated: [...EDITORIAL_TABLES, "search_runtime_optimizations"] });
 }

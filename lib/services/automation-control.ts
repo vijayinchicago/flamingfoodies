@@ -1,5 +1,6 @@
 import { requireCronAuthorization } from "@/lib/cron";
-import { flags } from "@/lib/env";
+import { withDatabaseBudget } from "@/lib/supabase/egress-budget";
+import { env, flags } from "@/lib/env";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { jsonResponse } from "@/lib/utils";
 
@@ -2256,6 +2257,43 @@ export async function runCronAutomationTask<TResult>(
   }
 
   const gate = await assertAgentExecutionAllowed(options.agentId, "cron");
+  const mode = new URL(options.request.url).searchParams.get("mode");
+  const missing: string[] = [];
+  if (!flags.hasSupabaseAdmin) missing.push("Supabase server configuration");
+  if (["mailerlite-stats-collector", "subscriber-sync-reconciler"].includes(options.agentId)
+      || (options.agentId === "newsletter-digest-agent" && mode === "autonomous_friday")) {
+    if (!flags.hasMailerLite) missing.push("MAILERLITE_API_KEY");
+  }
+  if (options.agentId === "newsletter-digest-agent" && mode === "send_due" && !flags.hasConvertKitBroadcast) {
+    missing.push("CONVERTKIT_API_SECRET");
+  }
+  if (options.agentId === "pinterest-distributor") {
+    if (!flags.hasBuffer) missing.push("Buffer credentials");
+    if (!(env.BUFFER_CHANNEL_IDS || env.BUFFER_PROFILE_IDS)) missing.push("Buffer channel targets");
+    if (env.BUFFER_API_KEY && !env.BUFFER_PINTEREST_BOARD_ID) missing.push("BUFFER_PINTEREST_BOARD_ID");
+  }
+  const discoveryTables: Partial<Record<AutomationAgentId, string[]>> = {
+    "festival-discovery": ["festivals"], "pepper-discovery": ["peppers"],
+    "brand-discovery": ["brands"], "release-monitor": ["brands", "releases"],
+    "tutorial-generator": ["tutorials"]
+  };
+  const schemaClient = createSupabaseAdminClient();
+  for (const table of discoveryTables[options.agentId] ?? []) {
+    if (!schemaClient) break;
+    const { error } = await schemaClient.from(table).select("id", { head: true }).limit(0);
+    if (error) missing.push(`Database table ${table}: ${error.message}`);
+  }
+  // A read-only scheduler probe exercises auth, schema and policy without
+  // inserting a run, consuming caps, calling models, or sending anything.
+  if (new URL(options.request.url).searchParams.get("dry_run") === "1") {
+    return { ok: false, response: jsonResponse({
+      ok: gate.ok && missing.length === 0, dryRun: true, agentId: options.agentId,
+      policy: gate.ok ? "ready" : gate.errorMessage, missing
+    }) };
+  }
+  if (missing.length) {
+    return { ok: false, response: jsonResponse({ ok: false, error: `Missing configuration: ${missing.join(", ")}` }, { status: 503 }) };
+  }
   if (!gate.ok) {
     await recordBlockedAutomationRun({
       agentId: options.agentId,
@@ -2291,7 +2329,7 @@ export async function runCronAutomationTask<TResult>(
   }
 
   try {
-    const result = await options.execute({ run });
+    const result = await withDatabaseBudget(options.agentId, () => options.execute({ run }));
     await options.onSuccess?.(result, { run });
 
     const summary = options.summarize?.(result, { run });

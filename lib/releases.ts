@@ -53,28 +53,15 @@ function rowToRelease(row: ReleaseRow): Release {
 
 export async function getReleasesFromDb(limit = 30): Promise<Release[]> {
   try {
-    const { createSupabaseServerClient } = await import("@/lib/supabase/server");
-    const supabase = createSupabaseServerClient();
-    if (!supabase) return [];
-    const { data, error } = await supabase
-      .from("releases")
-      .select("*")
-      .eq("status", "published")
-      .order("published_at", { ascending: false })
-      .limit(limit);
-    if (error || !data) return [];
-    return (data as ReleaseRow[]).map(rowToRelease);
+    const { getPublicReferenceRows } = await import("@/lib/services/public-reference-cache");
+    const rows = await getPublicReferenceRows("releases");
+    return (rows as ReleaseRow[]).map(rowToRelease).sort((a, b) => b.publishedAt.localeCompare(a.publishedAt)).slice(0, limit);
   } catch { return []; }
 }
-
 export async function getReleaseFromDb(slug: string): Promise<Release | undefined> {
   try {
-    const { createSupabaseServerClient } = await import("@/lib/supabase/server");
-    const supabase = createSupabaseServerClient();
-    if (!supabase) return undefined;
-    const { data, error } = await supabase
-      .from("releases").select("*").eq("slug", slug).eq("status", "published").single();
-    if (error || !data) return undefined;
-    return rowToRelease(data as ReleaseRow);
+    const { getPublicReferenceRows } = await import("@/lib/services/public-reference-cache");
+    const row = (await getPublicReferenceRows("releases")).find(item => item.slug === slug);
+    return row ? rowToRelease(row as ReleaseRow) : undefined;
   } catch { return undefined; }
 }

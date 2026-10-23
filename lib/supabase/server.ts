@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 
 import { env, flags, supabaseConfig } from "@/lib/env";
+import { budgetedDatabaseFetch } from "@/lib/supabase/egress-budget";
 
 export function createSupabaseServerClient() {
   if (!flags.hasSupabase) return null;
@@ -46,7 +47,8 @@ export function createSupabaseAdminClient() {
       auth: {
         autoRefreshToken: false,
         persistSession: false
-      }
+      },
+      global: { fetch: budgetedDatabaseFetch }
     }
   );
 }

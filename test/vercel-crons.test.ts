@@ -53,16 +53,16 @@ describe("vercel cron config", () => {
     expect(legacyBrandMonitorCron).toBeUndefined();
   });
 
-  it("runs due newsletter sends on the configured approval-gated daily cron", () => {
+  it("keeps the active Friday MailerLite digest without scheduling the legacy Kit sender", () => {
     const config = readVercelConfig();
     const digestCron = config.crons?.find(
-      (entry) => entry.path === "/api/admin/newsletter-digest"
+      (entry) => entry.path === "/api/admin/newsletter-digest?mode=autonomous_friday"
     );
     const sendDueCron = config.crons?.find(
       (entry) => entry.path === "/api/admin/newsletter-digest?mode=send_due"
     );
 
-    expect(digestCron?.schedule).toBe("0 10 * * 0");
-    expect(sendDueCron?.schedule).toBe("5 10 * * *");
+    expect(digestCron?.schedule).toBe("0 13 * * 5");
+    expect(sendDueCron).toBeUndefined();
   });
 });

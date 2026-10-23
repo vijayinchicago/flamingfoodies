@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { parseSettingValue } from "@/lib/admin-utils";
+import { REFERENCE_TABLES, invalidatePublicReferences } from "@/lib/services/public-reference-cache";
 import { requireAdmin } from "@/lib/supabase/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import {
@@ -93,6 +94,7 @@ export async function updateSiteSettingAction(formData: FormData) {
 
 export async function refreshPublishedContentCacheAction() {
   const admin = await requireAdmin();
+  for (const table of REFERENCE_TABLES) invalidatePublicReferences(table);
   for (const table of EDITORIAL_TABLES) invalidatePublishedContent(table);
   invalidatePublicSearchRuntime();
   await writeAuditLog(createSupabaseAdminClient(), {

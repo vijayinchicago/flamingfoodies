@@ -3102,24 +3102,13 @@ function rowToPepper(row: PepperRow): Pepper {
 
 export async function getPeppersFromDb(): Promise<Pepper[]> {
   try {
-    const { createSupabaseServerClient } = await import("@/lib/supabase/server");
-    const supabase = createSupabaseServerClient();
-    if (!supabase) return PEPPERS;
-    const { data, error } = await supabase
-      .from("peppers").select("*").eq("status", "published").order("scoville_min");
-    if (error || !data || data.length === 0) return PEPPERS;
-    return (data as PepperRow[]).map(rowToPepper);
+    const { getPublicReferenceRows } = await import("@/lib/services/public-reference-cache");
+    const rows = await getPublicReferenceRows("peppers");
+    if (!rows.length) return PEPPERS;
+    return (rows as PepperRow[]).map(rowToPepper).sort((a, b) => a.scovilleMin - b.scovilleMin);
   } catch { return PEPPERS; }
 }
 
 export async function getPepperFromDb(slug: string): Promise<Pepper | undefined> {
-  try {
-    const { createSupabaseServerClient } = await import("@/lib/supabase/server");
-    const supabase = createSupabaseServerClient();
-    if (!supabase) return getPepperBySlug(slug);
-    const { data, error } = await supabase
-      .from("peppers").select("*").eq("slug", slug).eq("status", "published").single();
-    if (error || !data) return getPepperBySlug(slug);
-    return rowToPepper(data as PepperRow);
-  } catch { return getPepperBySlug(slug); }
+  return (await getPeppersFromDb()).find(item => item.slug === slug);
 }

@@ -298,24 +298,13 @@ function rowToBrand(row: BrandRow): Brand {
 
 export async function getBrandsFromDb(): Promise<Brand[]> {
   try {
-    const { createSupabaseServerClient } = await import("@/lib/supabase/server");
-    const supabase = createSupabaseServerClient();
-    if (!supabase) return BRANDS;
-    const { data, error } = await supabase
-      .from("brands").select("*").eq("status", "published").order("name");
-    if (error || !data || data.length === 0) return BRANDS;
-    return (data as BrandRow[]).map(rowToBrand);
+    const { getPublicReferenceRows } = await import("@/lib/services/public-reference-cache");
+    const rows = await getPublicReferenceRows("brands");
+    if (!rows.length) return BRANDS;
+    return (rows as BrandRow[]).map(rowToBrand).sort((a, b) => a.name.localeCompare(b.name));
   } catch { return BRANDS; }
 }
 
 export async function getBrandFromDb(slug: string): Promise<Brand | undefined> {
-  try {
-    const { createSupabaseServerClient } = await import("@/lib/supabase/server");
-    const supabase = createSupabaseServerClient();
-    if (!supabase) return getBrandBySlug(slug);
-    const { data, error } = await supabase
-      .from("brands").select("*").eq("slug", slug).eq("status", "published").single();
-    if (error || !data) return getBrandBySlug(slug);
-    return rowToBrand(data as BrandRow);
-  } catch { return getBrandBySlug(slug); }
+  return (await getBrandsFromDb()).find(item => item.slug === slug);
 }

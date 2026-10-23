@@ -840,22 +840,11 @@ function rowToFestival(row: FestivalRow): Festival {
  */
 export async function getFestivalsFromDb(): Promise<Festival[]> {
   try {
-    const { createSupabaseServerClient } = await import("@/lib/supabase/server");
-    const supabase = createSupabaseServerClient();
-    if (!supabase) return FESTIVALS;
-
-    const { data, error } = await supabase
-      .from("festivals")
-      .select("*")
-      .eq("status", "published")
-      .order("month", { ascending: true });
-
-    if (error || !data || data.length === 0) return FESTIVALS;
-
-    return (data as FestivalRow[]).map(rowToFestival);
-  } catch {
-    return FESTIVALS;
-  }
+    const { getPublicReferenceRows } = await import("@/lib/services/public-reference-cache");
+    const rows = await getPublicReferenceRows("festivals");
+    if (!rows.length) return FESTIVALS;
+    return (rows as FestivalRow[]).map(rowToFestival).sort((a, b) => a.month - b.month);
+  } catch { return FESTIVALS; }
 }
 
 export type AdminFestival = Festival & {
@@ -898,24 +887,7 @@ export async function getAdminFestivals(): Promise<AdminFestival[]> {
  * Load a single festival by slug from DB, falling back to static data.
  */
 export async function getFestivalFromDb(slug: string): Promise<Festival | undefined> {
-  try {
-    const { createSupabaseServerClient } = await import("@/lib/supabase/server");
-    const supabase = createSupabaseServerClient();
-    if (!supabase) return getFestivalBySlug(slug);
-
-    const { data, error } = await supabase
-      .from("festivals")
-      .select("*")
-      .eq("slug", slug)
-      .eq("status", "published")
-      .single();
-
-    if (error || !data) return getFestivalBySlug(slug);
-
-    return rowToFestival(data as FestivalRow);
-  } catch {
-    return getFestivalBySlug(slug);
-  }
+  return (await getFestivalsFromDb()).find(item => item.slug === slug);
 }
 
 /**

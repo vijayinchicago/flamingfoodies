@@ -1,4 +1,14 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+beforeEach(() => {
+  vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://test.supabase.co");
+  vi.stubEnv("SUPABASE_SECRET_KEY", "test-key");
+  vi.stubEnv("CONVERTKIT_API_SECRET", "test-key");
+  vi.stubEnv("BUFFER_API_KEY", "test-key");
+  vi.stubEnv("BUFFER_CHANNEL_IDS", "pinterest:test-channel");
+  vi.stubEnv("BUFFER_PINTEREST_BOARD_ID", "test-board");
+  vi.doMock("@/lib/supabase/server", () => ({ createSupabaseAdminClient: () => null }));
+});
 
 async function importGenerateRoute({
   runGenerationPipeline = vi.fn().mockResolvedValue({ mode: "live", createdJobs: [] }),
@@ -638,5 +648,27 @@ describe("social scheduler cron route", () => {
       platforms: ["instagram", "facebook"]
     });
     expect(queueSocialScheduler).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("read-only scheduler probes", () => {
+  it("checks generation authentication without calling the model", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
+    const { route, runGenerationPipeline } = await importGenerateRoute();
+    const response = await route.GET(new Request("https://flamingfoodies.com/api/admin/generate?type=recipe&dry_run=1", {
+      headers: { authorization: "Bearer topsecret" }
+    }));
+    expect(await response.json()).toMatchObject({ ok: true, dryRun: true });
+    expect(runGenerationPipeline).not.toHaveBeenCalled();
+  });
+  it("reports missing send credentials without advancing campaigns", async () => {
+    vi.stubEnv("CRON_SECRET", "topsecret");
+    vi.stubEnv("CONVERTKIT_API_SECRET", "");
+    const { route, processScheduledNewsletterCampaigns } = await importNewsletterRoute();
+    const response = await route.GET(new Request("https://flamingfoodies.com/api/admin/newsletter-digest?mode=send_due&dry_run=1", {
+      headers: { authorization: "Bearer topsecret" }
+    }));
+    expect(await response.json()).toMatchObject({ ok: false, dryRun: true, missing: ["CONVERTKIT_API_SECRET"] });
+    expect(processScheduledNewsletterCampaigns).not.toHaveBeenCalled();
   });
 });
